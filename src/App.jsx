@@ -1819,7 +1819,19 @@ const getBudgetSummary = useMemo(() => {
   }));
 }, [budgetData]);
 
-const COLORS = ['#0088FE', '#00C49F', ...
+const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D', '#FFC658', '#FF6B9D'];
+
+const handleAddTransaction = () => {
+  
+  return months.map((month) => ({
+    month,
+    income: totalIncome,
+    expenses: totalExpenses,
+    net: totalIncome - totalExpenses
+  }));
+}, [budgetData]);
+
+const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D', '#FFC658', '#FF6B9D'];
 
                 </div>
           </div>
