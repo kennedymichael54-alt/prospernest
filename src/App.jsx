@@ -13,7 +13,33 @@ const FinanceDashboard = () => {
   const [transactionSort, setTransactionSort] = useState('date-desc');
   const [cpaFilter, setCpaFilter] = useState('');
   const [cpaSort, setCpaSort] = useState('date-desc');
-  const [selectedRetirementAccountType, setSelectedRetirementAccountType] = useState(''); 
+  const [selectedRetirementAccountType, setSelectedRetirementAccountType] = useState('');
+
+// NEW STATE FOR BILL HISTORY
+const [billDates, setBillDates] = useState([
+  { id: 1, name: 'Mortgage', amount: 2200, dueDate: '2024-11-20' },
+  { id: 2, name: 'Electric Bill', amount: 180, dueDate: '2024-11-23' },
+  { id: 3, name: 'Car Insurance', amount: 220, dueDate: '2024-11-28' },
+]);
+
+// NEW STATE FOR BUDGET
+const [budgetData, setBudgetData] = useState({
+  income: [
+    { id: 1, name: 'Primary Salary', amount: 8500 },
+    { id: 2, name: 'Freelance', amount: 2000 },
+  ],
+  expenses: [
+    { id: 1, name: 'Mortgage', amount: 2200 },
+    { id: 2, name: 'Utilities', amount: 300 },
+    { id: 3, name: 'Groceries', amount: 450 },
+    { id: 4, name: 'Insurance', amount: 220 },
+  ]
+});
+
+const [marketData, setMarketData({
+
+
+  
   const [marketData, setMarketData] = useState({
     dow: { value: 44296.51, change: 0.28 },
     sp500: { value: 5969.34, change: 0.35 },
@@ -589,6 +615,48 @@ const handleRetirementFileUpload = async (e) => {
   }
 };
 
+  // Add bill date
+const addBillDate = (bill) => {
+  setBillDates([...billDates, { ...bill, id: Date.now() }]);
+};
+
+// Delete bill
+const deleteBill = (id) => {
+  setBillDates(billDates.filter(bill => bill.id !== id));
+};
+
+// Add income source
+const addIncome = (income) => {
+  setBudgetData({
+    ...budgetData,
+    income: [...budgetData.income, { ...income, id: Date.now() }]
+  });
+};
+
+// Delete income
+const deleteIncome = (id) => {
+  setBudgetData({
+    ...budgetData,
+    income: budgetData.income.filter(item => item.id !== id)
+  });
+};
+
+// Add expense
+const addExpense = (expense) => {
+  setBudgetData({
+    ...budgetData,
+    expenses: [...budgetData.expenses, { ...expense, id: Date.now() }]
+  });
+};
+
+// Delete expense
+const deleteExpense = (id) => {
+  setBudgetData({
+    ...budgetData,
+    expenses: budgetData.expenses.filter(item => item.id !== id)
+  });
+};
+
   // ... (existing function continues)
 
   const exportCPAData = () => {
@@ -652,21 +720,23 @@ const handleRetirementFileUpload = async (e) => {
         </header>
 
         {/* Tab Navigation */}
-        <div className="flex gap-2 mb-6 border-b border-slate-700">
-          {['dashboard', 'transactions', 'retirement', 'cpa'].map(tab => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`px-6 py-3 font-medium capitalize transition-all ${
-                activeTab === tab
-                  ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-t-lg'
-                  : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              {tab === 'cpa' ? 'CPA Export' : tab}
-            </button>
-          ))}
-        </div>
+    <div className="flex gap-2 mb-6 border-b border-slate-700">
+  {['dashboard', 'transactions', 'billHistory', 'budget', 'retirement', 'cpa'].map(tab => (
+    <button
+      key={tab}
+      onClick={() => setActiveTab(tab)}
+      className={`px-6 py-3 font-medium transition-all ${
+        activeTab === tab
+          ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-t-lg'
+          : 'text-slate-400 hover:text-white'
+      }`}
+    >
+      {tab === 'cpa' ? 'CPA Export' : 
+       tab === 'billHistory' ? 'Bill History' :
+       tab.charAt(0).toUpperCase() + tab.slice(1)}
+    </button>
+  ))}
+</div>
 
         {/* Dashboard Tab */}
         {activeTab === 'dashboard' && (
@@ -1131,7 +1201,372 @@ const handleRetirementFileUpload = async (e) => {
           </div>
         )}
 
+{/* Bill History Tab - NEW */}
+        {activeTab === 'billHistory' && (
+          <div className="space-y-6">
+            <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-6 shadow-lg">
+              <h3 className="text-2xl font-semibold mb-4">Add New Bill</h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                <div>
+                  <label className="block text-sm text-slate-300 mb-2">Bill Name</label>
+                  <input
+                    type="text"
+                    id="bill-name"
+                    placeholder="e.g., Electric Bill"
+                    className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm text-slate-300 mb-2">Amount</label>
+                  <input
+                    type="number"
+                    id="bill-amount"
+                    placeholder="0.00"
+                    className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm text-slate-300 mb-2">Due Date</label>
+                  <input
+                    type="date"
+                    id="bill-date"
+                    className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  />
+                </div>
+              </div>
+              <button
+                onClick={() => {
+                  const name = document.getElementById('bill-name').value;
+                  const amount = parseFloat(document.getElementById('bill-amount').value);
+                  const dueDate = document.getElementById('bill-date').value;
+                  
+                  if (name && amount && dueDate) {
+                    addBillDate({ name, amount, dueDate });
+                    document.getElementById('bill-name').value = '';
+                    document.getElementById('bill-amount').value = '';
+                    document.getElementById('bill-date').value = '';
+                  } else {
+                    alert('Please fill in all fields');
+                  }
+                }}
+                className="flex items-center gap-2 px-6 py-2 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 rounded-lg transition-all"
+              >
+                <Plus size={20} />
+                Add Bill
+              </button>
+            </div>
+
+            {/* Calendar */}
+            <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-6 shadow-lg">
+              <div className="flex justify-between items-center mb-6">
+                <button
+                  onClick={() => {
+                    if (selectedMonth === 0) {
+                      setSelectedMonth(11);
+                      setSelectedYear(selectedYear - 1);
+                    } else {
+                      setSelectedMonth(selectedMonth - 1);
+                    }
+                  }}
+                  className="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg transition-colors"
+                >
+                  ← Previous
+                </button>
+                <h3 className="text-2xl font-semibold">
+                  {new Date(selectedYear, selectedMonth).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                </h3>
+                <button
+                  onClick={() => {
+                    if (selectedMonth === 11) {
+                      setSelectedMonth(0);
+                      setSelectedYear(selectedYear + 1);
+                    } else {
+                      setSelectedMonth(selectedMonth + 1);
+                    }
+                  }}
+                  className="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg transition-colors"
+                >
+                  Next →
+                </button>
+              </div>
+
+              {/* Calendar Grid */}
+              <div className="grid grid-cols-7 gap-2">
+                {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+                  <div key={day} className="text-center font-bold text-slate-400 py-2">
+                    {day}
+                  </div>
+                ))}
+                
+                {(() => {
+                  const daysInMonth = new Date(selectedYear, selectedMonth + 1, 0).getDate();
+                  const firstDay = new Date(selectedYear, selectedMonth, 1).getDay();
+                  const days = [];
+                  
+                  // Empty cells for days before month starts
+                  for (let i = 0; i < firstDay; i++) {
+                    days.push(<div key={`empty-${i}`} className="aspect-square"></div>);
+                  }
+                  
+                  // Days of the month
+                  for (let day = 1; day <= daysInMonth; day++) {
+                    const billsOnDay = billDates.filter(bill => {
+                      const billDate = new Date(bill.dueDate);
+                      return billDate.getDate() === day && 
+                             billDate.getMonth() === selectedMonth && 
+                             billDate.getFullYear() === selectedYear;
+                    });
+                    
+                    days.push(
+                      <div
+                        key={day}
+                        className="aspect-square border border-slate-600 rounded-lg p-2 bg-slate-700/30 hover:bg-slate-700/50 transition-colors"
+                      >
+                        <div className="font-semibold text-sm mb-1">{day}</div>
+                        {billsOnDay.map((bill) => (
+                          <div
+                            key={bill.id}
+                            className="text-xs bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded px-1 py-0.5 mb-1 truncate"
+                            title={`${bill.name}: $${bill.amount}`}
+                          >
+                            {bill.name}
+                          </div>
+                        ))}
+                      </div>
+                    );
+                  }
+                  
+                  return days;
+                })()}
+              </div>
+            </div>
+
+            {/* Bills List */}
+            <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-6 shadow-lg">
+              <h3 className="text-xl font-semibold mb-4">All Bills</h3>
+              <div className="space-y-3">
+                {billDates.map(bill => (
+                  <div key={bill.id} className="flex justify-between items-center p-4 bg-slate-700/30 rounded-lg">
+                    <div>
+                      <div className="font-semibold">{bill.name}</div>
+                      <div className="text-sm text-slate-400">
+                        Due: {new Date(bill.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <div className="text-lg font-bold">${bill.amount.toFixed(2)}</div>
+                      <button
+                        onClick={() => deleteBill(bill.id)}
+                        className="text-red-400 hover:text-red-300 transition-colors"
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        
+{/* Budget Tab - NEW */}
+        {activeTab === 'budget' && (
+          <div className="space-y-6">
+            {/* Income Section */}
+            <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-6 shadow-lg">
+              <h3 className="text-2xl font-semibold mb-4 text-green-400">Income Sources</h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                <div>
+                  <label className="block text-sm text-slate-300 mb-2">Source Name</label>
+                  <input
+                    type="text"
+                    id="income-name"
+                    placeholder="e.g., Salary"
+                    className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm text-slate-300 mb-2">Monthly Amount</label>
+                  <input
+                    type="number"
+                    id="income-amount"
+                    placeholder="0.00"
+                    className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                  />
+                </div>
+                <div className="flex items-end">
+                  <button
+                    onClick={() => {
+                      const name = document.getElementById('income-name').value;
+                      const amount = parseFloat(document.getElementById('income-amount').value);
+                      
+                      if (name && amount) {
+                        addIncome({ name, amount });
+                        document.getElementById('income-name').value = '';
+                        document.getElementById('income-amount').value = '';
+                      } else {
+                        alert('Please fill in all fields');
+                      }
+                    }}
+                    className="w-full px-6 py-2 bg-green-600 hover:bg-green-700 rounded-lg transition-colors flex items-center justify-center gap-2"
+                  >
+                    <Plus size={20} />
+                    Add Income
+                  </button>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                {budgetData.income.map(item => (
+                  <div key={item.id} className="flex justify-between items-center p-3 bg-green-500/10 border border-green-500/30 rounded-lg">
+                    <span className="font-semibold">{item.name}</span>
+                    <div className="flex items-center gap-3">
+                      <span className="text-green-400 font-bold">${item.amount.toFixed(2)}</span>
+                      <button
+                        onClick={() => deleteIncome(item.id)}
+                        className="text-red-400 hover:text-red-300 transition-colors"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Expense Section */}
+            <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-6 shadow-lg">
+              <h3 className="text-2xl font-semibold mb-4 text-red-400">Expenses</h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                <div>
+                  <label className="block text-sm text-slate-300 mb-2">Expense Name</label>
+                  <input
+                    type="text"
+                    id="expense-name"
+                    placeholder="e.g., Rent"
+                    className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm text-slate-300 mb-2">Monthly Amount</label>
+                  <input
+                    type="number"
+                    id="expense-amount"
+                    placeholder="0.00"
+                    className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                  />
+                </div>
+                <div className="flex items-end">
+                  <button
+                    onClick={() => {
+                      const name = document.getElementById('expense-name').value;
+                      const amount = parseFloat(document.getElementById('expense-amount').value);
+                      
+                      if (name && amount) {
+                        addExpense({ name, amount });
+                        document.getElementById('expense-name').value = '';
+                        document.getElementById('expense-amount').value = '';
+                      } else {
+                        alert('Please fill in all fields');
+                      }
+                    }}
+                    className="w-full px-6 py-2 bg-red-600 hover:bg-red-700 rounded-lg transition-colors flex items-center justify-center gap-2"
+                  >
+                    <Plus size={20} />
+                    Add Expense
+                  </button>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                {budgetData.expenses.map(item => (
+                  <div key={item.id} className="flex justify-between items-center p-3 bg-red-500/10 border border-red-500/30 rounded-lg">
+                    <span className="font-semibold">{item.name}</span>
+                    <div className="flex items-center gap-3">
+                      <span className="text-red-400 font-bold">${item.amount.toFixed(2)}</span>
+                      <button
+                        onClick={() => deleteExpense(item.id)}
+                        className="text-red-400 hover:text-red-300 transition-colors"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Yearly Summary */}
+            <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-6 shadow-lg">
+              <h3 className="text-2xl font-semibold mb-6">Yearly Budget Summary</h3>
+              
+              {/* Summary Cards */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-4">
+                  <div className="text-sm text-slate-400 mb-1">Total Monthly Income</div>
+                  <div className="text-2xl font-bold text-green-400">
+                    ${budgetData.income.reduce((sum, item) => sum + item.amount, 0).toLocaleString()}
+                  </div>
+                </div>
+                <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4">
+                  <div className="text-sm text-slate-400 mb-1">Total Monthly Expenses</div>
+                  <div className="text-2xl font-bold text-red-400">
+                    ${budgetData.expenses.reduce((sum, item) => sum + item.amount, 0).toLocaleString()}
+                  </div>
+                </div>
+                <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
+                  <div className="text-sm text-slate-400 mb-1">Monthly Net</div>
+                  <div className={`text-2xl font-bold ${(budgetData.income.reduce((sum, item) => sum + item.amount, 0) - budgetData.expenses.reduce((sum, item) => sum + item.amount, 0)) >= 0 ? 'text-blue-400' : 'text-orange-400'}`}>
+                    ${(budgetData.income.reduce((sum, item) => sum + item.amount, 0) - budgetData.expenses.reduce((sum, item) => sum + item.amount, 0)).toLocaleString()}
+                  </div>
+                </div>
+                <div className="bg-purple-500/10 border border-purple-500/30 rounded-lg p-4">
+                  <div className="text-sm text-slate-400 mb-1">Yearly Net</div>
+                  <div className={`text-2xl font-bold ${(budgetData.income.reduce((sum, item) => sum + item.amount, 0) - budgetData.expenses.reduce((sum, item) => sum + item.amount, 0)) >= 0 ? 'text-purple-400' : 'text-orange-400'}`}>
+                    ${((budgetData.income.reduce((sum, item) => sum + item.amount, 0) - budgetData.expenses.reduce((sum, item) => sum + item.amount, 0)) * 12).toLocaleString()}
+                  </div>
+                </div>
+              </div>
+
+              {/* Monthly Grid */}
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-6">
+                {getBudgetSummary.map((month, index) => (
+                  <div key={index} className="bg-slate-700/30 rounded-lg p-4 text-center">
+                    <div className="text-sm font-semibold text-slate-400 mb-2">{month.month}</div>
+                    <div className="text-xs text-green-400 mb-1">+${month.income.toLocaleString()}</div>
+                    <div className="text-xs text-red-400 mb-2">-${month.expenses.toLocaleString()}</div>
+                    <div className={`text-lg font-bold ${month.net >= 0 ? 'text-blue-400' : 'text-orange-400'}`}>
+                      ${Math.abs(month.net).toLocaleString()}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Chart */}
+              <ResponsiveContainer width="100%" height={350}>
+                <BarChart data={getBudgetSummary}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                  <XAxis dataKey="month" stroke="#9CA3AF" />
+                  <YAxis stroke="#9CA3AF" />
+                  <Tooltip
+                    formatter={(value) => `$${value.toLocaleString()}`}
+                    contentStyle={{ backgroundColor: '#1F2937', border: '1px solid #374151' }}
+                  />
+                  <Legend />
+                  <Bar dataKey="income" name="Income" fill="#10B981" />
+                  <Bar dataKey="expenses" name="Expenses" fill="#EF4444" />
+                  <Bar dataKey="net" name="Net" fill="#3B82F6" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        )}
+
         {/* Retirement Tab */}
+        {activeTab === 'retirement' && (
+  
+  
 
 {/* Retirement Tab */}
         {activeTab === 'retirement' && (
@@ -1305,6 +1740,31 @@ const handleRetirementFileUpload = async (e) => {
           </div>
         )}
 
+
+        const retirementByAccountType = useMemo(() => {
+  const grouped = {};
+  investments.forEach(inv => {
+    grouped[inv.accountType] = (grouped[inv.accountType] || 0) + inv.currentValue;
+  });
+  return Object.entries(grouped).map(([name, value]) => ({ name, value }));
+}, [investments]);
+
+// NEW: Budget summary by month
+const getBudgetSummary = useMemo(() => {
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  
+  const totalIncome = budgetData.income.reduce((sum, item) => sum + item.amount, 0);
+  const totalExpenses = budgetData.expenses.reduce((sum, item) => sum + item.amount, 0);
+  
+  return months.map((month) => ({
+    month,
+    income: totalIncome,
+    expenses: totalExpenses,
+    net: totalIncome - totalExpenses
+  }));
+}, [budgetData]);
+
+const COLORS = ['#0088FE', '#00C49F', ...
         
 
         {/* CPA Export Tab */}
