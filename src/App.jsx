@@ -8,6 +8,7 @@ const FinanceDashboard = () => {
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [currentDate] = useState(new Date());
   const [lastImportDate, setLastImportDate] = useState(new Date('2024-11-23'));
+  const [comparisonView, setComparisonView] = useState(''); // '', 'month', 'quarter', 'year'
   
   const [transactions, setTransactions] = useState([
     // Sample data across multiple months for comparison
@@ -56,6 +57,46 @@ const FinanceDashboard = () => {
   const categories = {
     income: ['Salary', 'Freelance', 'Investment Income', 'Other Income'],
     expense: ['Housing', 'Food', 'Utilities', 'Transportation', 'Insurance', 'Healthcare', 'Entertainment', 'Other']
+  };
+
+  // Map transaction description to GL Account
+  const mapToGLAccount = (description, category, type) => {
+    const desc = description.toLowerCase();
+    
+    // Direct matches
+    if (desc.includes('mortgage') && desc.includes('interest')) return { number: '6009', description: 'Mortgage Interest (Paid)' };
+    if (desc.includes('mortgage')) return { number: '2001', description: 'Mortgage' };
+    if (desc.includes('insurance')) return { number: '6006', description: 'Insurance' };
+    if (desc.includes('utilities') || desc.includes('electric') || desc.includes('gas') || desc.includes('water')) return { number: '6013', description: 'Utilities' };
+    if (desc.includes('maintenance') || desc.includes('repair')) return { number: '6004', description: 'Maintenance' };
+    if (desc.includes('travel') || desc.includes('conference')) return { number: '6003', description: 'Travel' };
+    if (desc.includes('restaurant') || desc.includes('meal') || desc.includes('dining')) return { number: '6016', description: 'Meals & Entertainment' };
+    if (desc.includes('tax')) return { number: '6012', description: 'Taxes' };
+    if (desc.includes('salary') || desc.includes('payroll')) return { number: '4007', description: 'Payroll' };
+    if (desc.includes('rent')) return { number: '4004', description: 'Rent' };
+    if (desc.includes('vehicle') || desc.includes('car')) return { number: '1003', description: 'Vehicles' };
+    if (desc.includes('cleaning')) return { number: '6002', description: 'Cleaning Fees' };
+    if (desc.includes('advertising')) return { number: '6001', description: 'Advertising' };
+    if (desc.includes('commission')) return { number: '6005', description: 'Commissions' };
+    if (desc.includes('legal') || desc.includes('professional')) return { number: '6007', description: 'Legal / Professional Fees' };
+    if (desc.includes('management')) return { number: '6008', description: 'Management Fees' };
+    if (desc.includes('office')) return { number: '6011', description: 'Office Supplies' };
+    if (desc.includes('grocery') || desc.includes('groceries')) return { number: '6016', description: 'Meals & Entertainment' };
+    if (desc.includes('childcare')) return { number: '6015', description: 'Miscellaneous' };
+    if (desc.includes('client gifts')) return { number: '6016', description: 'Meals & Entertainment' };
+    
+    // Category-based fallback
+    if (category === 'Housing') return { number: '2001', description: 'Mortgage' };
+    if (category === 'Food') return { number: '6016', description: 'Meals & Entertainment' };
+    if (category === 'Transportation') return { number: '1003', description: 'Vehicles' };
+    if (category === 'Healthcare') return { number: '6015', description: 'Miscellaneous' };
+    if (category === 'Entertainment') return { number: '6016', description: 'Meals & Entertainment' };
+    
+    // Type-based fallback
+    if (type === 'income') return { number: '4008', description: 'Rental Revenue' };
+    
+    // Default
+    return { number: '1007', description: 'Cash' };
   };
 
   // Filter transactions by selected month and year
@@ -145,8 +186,29 @@ const FinanceDashboard = () => {
     };
   }, [transactions, selectedMonth, selectedYear]);
 
-  // Prepare trend data for line chart
-  const trendData = useMemo(() => {
+  // Prepare trend data for line charts
+  const incomeTrendData = useMemo(() => {
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const data = [];
+    
+    for (let i = 0; i < 12; i++) {
+      const currentYearTrans = getTransactionsForPeriod(i, selectedYear);
+      const lastYearTrans = getTransactionsForPeriod(i, selectedYear - 1);
+      
+      const currentIncome = currentYearTrans.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
+      const lastYearIncome = lastYearTrans.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
+      
+      data.push({
+        month: months[i],
+        currentYear: currentIncome,
+        lastYear: lastYearIncome
+      });
+    }
+    
+    return data;
+  }, [transactions, selectedYear]);
+
+  const expenseTrendData = useMemo(() => {
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     const data = [];
     
@@ -195,6 +257,7 @@ const FinanceDashboard = () => {
       };
       setTransactions([...transactions, transaction]);
       setNewTransaction({ date: '', description: '', amount: '', type: 'expense', category: '', source: '' });
+      setLastImportDate(new Date());
     }
   };
 
@@ -232,6 +295,7 @@ const FinanceDashboard = () => {
           
           if (newTransactions.length > 0) {
             setTransactions([...transactions, ...newTransactions]);
+            setLastImportDate(new Date());
           }
         } catch (error) {
           alert('Error parsing CSV file. Please ensure it follows the correct format.');
@@ -242,16 +306,20 @@ const FinanceDashboard = () => {
   };
 
   const exportCPAData = () => {
-    const headers = ['Date', 'Description', 'Amount', 'Type', 'Category', 'Source', 'Tax Deductible'];
-    const rows = transactions.map(t => [
-      t.date,
-      t.description,
-      Math.abs(t.amount).toFixed(2),
-      t.type,
-      t.category,
-      t.source,
-      t.category === 'Healthcare' || t.category === 'Insurance' ? 'Yes' : 'No'
-    ]);
+    const headers = ['Date', 'Description', 'Amount', 'Outflow/Inflow', 'GL Account', 'GL Account Offset'];
+    const rows = transactions.map(t => {
+      const glAccount = mapToGLAccount(t.description, t.category, t.type);
+      const isOutflow = t.amount < 0;
+      
+      return [
+        t.date,
+        t.description,
+        Math.abs(t.amount).toFixed(2),
+        isOutflow ? 'Outflow' : 'Inflow',
+        `${glAccount.number} ${glAccount.description}`,
+        '1007 Cash'
+      ];
+    });
     
     const csv = [headers, ...rows].map(row => row.join(',')).join('\n');
     const blob = new Blob([csv], { type: 'text/csv' });
@@ -278,9 +346,13 @@ const FinanceDashboard = () => {
                 <Calendar size={20} />
                 <span className="text-sm">Current Date</span>
               </div>
-              <p className="text-xl font-semibold text-white">
+              <p className="text-xl font-semibold text-white mb-3">
                 {currentDate.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
               </p>
+              <div className="text-sm text-slate-400">
+                <span>Last Import: </span>
+                <span className="text-slate-300">{lastImportDate.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</span>
+              </div>
             </div>
           </div>
         </header>
@@ -414,10 +486,47 @@ const FinanceDashboard = () => {
               </div>
             </div>
 
-            {/* Comparison Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Comparison Selector */}
+            <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-6 shadow-lg">
+              <h3 className="text-lg font-semibold mb-4">View Comparisons</h3>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setComparisonView(comparisonView === 'month' ? '' : 'month')}
+                  className={`px-6 py-3 rounded-lg transition-all ${
+                    comparisonView === 'month'
+                      ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white'
+                      : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                  }`}
+                >
+                  Month over Month
+                </button>
+                <button
+                  onClick={() => setComparisonView(comparisonView === 'quarter' ? '' : 'quarter')}
+                  className={`px-6 py-3 rounded-lg transition-all ${
+                    comparisonView === 'quarter'
+                      ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white'
+                      : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                  }`}
+                >
+                  Quarter over Quarter
+                </button>
+                <button
+                  onClick={() => setComparisonView(comparisonView === 'year' ? '' : 'year')}
+                  className={`px-6 py-3 rounded-lg transition-all ${
+                    comparisonView === 'year'
+                      ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white'
+                      : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                  }`}
+                >
+                  Year over Year
+                </button>
+              </div>
+            </div>
+
+            {/* Comparison Details - Only shown when a comparison is selected */}
+            {comparisonView === 'month' && (
               <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-6 shadow-lg">
-                <h3 className="text-lg font-semibold mb-4">Month over Month</h3>
+                <h3 className="text-lg font-semibold mb-4">Month over Month Comparison</h3>
                 <div className="space-y-3">
                   <div className="flex justify-between items-center">
                     <span className="text-slate-400">This Month</span>
@@ -438,9 +547,11 @@ const FinanceDashboard = () => {
                   </div>
                 </div>
               </div>
+            )}
 
+            {comparisonView === 'quarter' && (
               <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-6 shadow-lg">
-                <h3 className="text-lg font-semibold mb-4">Quarter over Quarter</h3>
+                <h3 className="text-lg font-semibold mb-4">Quarter over Quarter Comparison</h3>
                 <div className="space-y-3">
                   <div className="flex justify-between items-center">
                     <span className="text-slate-400">This Quarter</span>
@@ -461,9 +572,11 @@ const FinanceDashboard = () => {
                   </div>
                 </div>
               </div>
+            )}
 
+            {comparisonView === 'year' && (
               <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-6 shadow-lg">
-                <h3 className="text-lg font-semibold mb-4">Year over Year</h3>
+                <h3 className="text-lg font-semibold mb-4">Year over Year Comparison</h3>
                 <div className="space-y-3">
                   <div className="flex justify-between items-center">
                     <span className="text-slate-400">This Year</span>
@@ -484,40 +597,78 @@ const FinanceDashboard = () => {
                   </div>
                 </div>
               </div>
-            </div>
+            )}
 
-            {/* Expense Trends Line Chart */}
-            <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-6 shadow-lg">
-              <h3 className="text-xl font-semibold mb-4">Expense Trends - {selectedYear} vs {selectedYear - 1}</h3>
-              <ResponsiveContainer width="100%" height={350}>
-                <LineChart data={trendData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                  <XAxis dataKey="month" stroke="#9CA3AF" />
-                  <YAxis stroke="#9CA3AF" />
-                  <Tooltip 
-                    formatter={(value) => `$${value.toLocaleString()}`} 
-                    contentStyle={{ backgroundColor: '#1F2937', border: '1px solid #374151' }} 
-                  />
-                  <Legend />
-                  <Line 
-                    type="monotone" 
-                    dataKey="currentYear" 
-                    stroke="#8B5CF6" 
-                    strokeWidth={3}
-                    name={`${selectedYear}`}
-                    dot={{ fill: '#8B5CF6', r: 5 }}
-                  />
-                  <Line 
-                    type="monotone" 
-                    dataKey="lastYear" 
-                    stroke="#3B82F6" 
-                    strokeWidth={3}
-                    name={`${selectedYear - 1}`}
-                    dot={{ fill: '#3B82F6', r: 5 }}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
+            {/* Trend Charts - Only shown when a comparison is selected */}
+            {comparisonView && (
+              <>
+                {/* Income Trends Line Chart */}
+                <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-6 shadow-lg">
+                  <h3 className="text-xl font-semibold mb-4">Income Trends - {selectedYear} vs {selectedYear - 1}</h3>
+                  <ResponsiveContainer width="100%" height={350}>
+                    <LineChart data={incomeTrendData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                      <XAxis dataKey="month" stroke="#9CA3AF" />
+                      <YAxis stroke="#9CA3AF" />
+                      <Tooltip 
+                        formatter={(value) => `$${value.toLocaleString()}`} 
+                        contentStyle={{ backgroundColor: '#1F2937', border: '1px solid #374151' }} 
+                      />
+                      <Legend />
+                      <Line 
+                        type="monotone" 
+                        dataKey="currentYear" 
+                        stroke="#10B981" 
+                        strokeWidth={3}
+                        name={`${selectedYear}`}
+                        dot={{ fill: '#10B981', r: 5 }}
+                      />
+                      <Line 
+                        type="monotone" 
+                        dataKey="lastYear" 
+                        stroke="#34D399" 
+                        strokeWidth={3}
+                        name={`${selectedYear - 1}`}
+                        dot={{ fill: '#34D399', r: 5 }}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+
+                {/* Expense Trends Line Chart */}
+                <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-6 shadow-lg">
+                  <h3 className="text-xl font-semibold mb-4">Expense Trends - {selectedYear} vs {selectedYear - 1}</h3>
+                  <ResponsiveContainer width="100%" height={350}>
+                    <LineChart data={expenseTrendData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                      <XAxis dataKey="month" stroke="#9CA3AF" />
+                      <YAxis stroke="#9CA3AF" />
+                      <Tooltip 
+                        formatter={(value) => `$${value.toLocaleString()}`} 
+                        contentStyle={{ backgroundColor: '#1F2937', border: '1px solid #374151' }} 
+                      />
+                      <Legend />
+                      <Line 
+                        type="monotone" 
+                        dataKey="currentYear" 
+                        stroke="#8B5CF6" 
+                        strokeWidth={3}
+                        name={`${selectedYear}`}
+                        dot={{ fill: '#8B5CF6', r: 5 }}
+                      />
+                      <Line 
+                        type="monotone" 
+                        dataKey="lastYear" 
+                        stroke="#3B82F6" 
+                        strokeWidth={3}
+                        name={`${selectedYear - 1}`}
+                        dot={{ fill: '#3B82F6', r: 5 }}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </>
+            )}
           </div>
         )}
 
@@ -701,16 +852,16 @@ const FinanceDashboard = () => {
               <h3 className="text-2xl font-semibold mb-4">CPA Export</h3>
               <p className="text-slate-300 mb-6">
                 Export your transaction data in a format ready for your CPA to import into Xero.
-                The export includes all transactions with tax-relevant categorization.
+                The export includes all transactions mapped to appropriate GL accounts.
               </p>
               
               <div className="bg-slate-900/50 border border-slate-600 rounded-lg p-4 mb-6">
                 <h4 className="font-semibold mb-2">Export includes:</h4>
                 <ul className="list-disc list-inside text-slate-300 space-y-1">
                   <li>Transaction date and description</li>
-                  <li>Amount, type, and category</li>
-                  <li>Source information</li>
-                  <li>Tax deductible indicator</li>
+                  <li>Amount with outflow/inflow indicator</li>
+                  <li>GL Account mapping based on transaction details</li>
+                  <li>GL Account Offset (1007 Cash)</li>
                 </ul>
               </div>
 
@@ -731,24 +882,26 @@ const FinanceDashboard = () => {
                     <th className="text-left py-2 px-3">Date</th>
                     <th className="text-left py-2 px-3">Description</th>
                     <th className="text-right py-2 px-3">Amount</th>
-                    <th className="text-left py-2 px-3">Type</th>
-                    <th className="text-left py-2 px-3">Category</th>
-                    <th className="text-left py-2 px-3">Tax Deductible</th>
+                    <th className="text-left py-2 px-3">Outflow/Inflow</th>
+                    <th className="text-left py-2 px-3">GL Account</th>
+                    <th className="text-left py-2 px-3">GL Account Offset</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {transactions.slice(0, 10).map(t => (
-                    <tr key={t.id} className="border-b border-slate-700">
-                      <td className="py-2 px-3">{t.date}</td>
-                      <td className="py-2 px-3">{t.description}</td>
-                      <td className="py-2 px-3 text-right">${Math.abs(t.amount).toFixed(2)}</td>
-                      <td className="py-2 px-3">{t.type}</td>
-                      <td className="py-2 px-3">{t.category}</td>
-                      <td className="py-2 px-3">
-                        {t.category === 'Healthcare' || t.category === 'Insurance' ? 'Yes' : 'No'}
-                      </td>
-                    </tr>
-                  ))}
+                  {transactions.slice(0, 10).map(t => {
+                    const glAccount = mapToGLAccount(t.description, t.category, t.type);
+                    const isOutflow = t.amount < 0;
+                    return (
+                      <tr key={t.id} className="border-b border-slate-700">
+                        <td className="py-2 px-3">{t.date}</td>
+                        <td className="py-2 px-3">{t.description}</td>
+                        <td className="py-2 px-3 text-right">${Math.abs(t.amount).toFixed(2)}</td>
+                        <td className="py-2 px-3">{isOutflow ? 'Outflow' : 'Inflow'}</td>
+                        <td className="py-2 px-3">{glAccount.number} {glAccount.description}</td>
+                        <td className="py-2 px-3">1007 Cash</td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
               {transactions.length > 10 && (
