@@ -1810,11 +1810,6 @@ const deleteExpense = (id) => {
         )}
 
 
-        </ResponsiveContainer>
-            </div>
-          </div>
-        )}
-
         {/* CPA Export Tab */}
         {activeTab === 'cpa' && (
           <div className="space-y-6">
