@@ -796,7 +796,7 @@ const FinanceDashboard = () => {
                 
               <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4 mb-6">
   <p className="text-sm text-blue-300">
-    <strong>💡 Enhanced Import:</strong> You can now upload both CSV and PDF files! The system will automatically extract transaction data from your bank statements.
+    <strong> Enhanced Import:</strong> You can now upload both CSV and PDF files! The system will automatically extract transaction data from your bank statements.
   </p>
                 
               </div>
