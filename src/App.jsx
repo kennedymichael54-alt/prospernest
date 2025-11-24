@@ -48,11 +48,11 @@ const FinanceDashboard = () => {
   ]);
 
   const [investments, setInvestments] = useState([
-    { id: 1, type: '401(k)', currentValue: 250000, targetValue: 1000000, contributionRate: 15 },
-    { id: 2, type: 'Roth IRA', currentValue: 85000, targetValue: 500000, contributionRate: 10 },
-    { id: 3, type: 'Taxable Brokerage', currentValue: 120000, targetValue: 300000, contributionRate: 8 },
-    { id: 4, type: 'Real Estate', currentValue: 180000, targetValue: 500000, contributionRate: 5 },
-  ]);
+    { id: 1, type: '401(k)', accountType: '401k', currentValue: 250000, targetValue: 1000000, contributionRate: 15, uploadDate: new Date().toISOString() },
+  { id: 2, type: 'Roth IRA', accountType: 'Roth IRA', currentValue: 85000, targetValue: 500000, contributionRate: 10, uploadDate: new Date().toISOString() },
+  { id: 3, type: 'Taxable Brokerage', accountType: 'Traditional IRA', currentValue: 120000, targetValue: 300000, contributionRate: 8, uploadDate: new Date().toISOString() },
+  { id: 4, type: 'Real Estate', accountType: 'VUL', currentValue: 180000, targetValue: 500000, contributionRate: 5, uploadDate: new Date().toISOString() },
+]);
 
   const [newTransaction, setNewTransaction] = useState({
     date: '',
