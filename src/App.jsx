@@ -799,7 +799,7 @@ const FinanceDashboard = () => {
     <strong>💡 Enhanced Import:</strong> You can now upload both CSV and PDF files! The system will automatically extract transaction data from your bank statements.
   </p>
                 
-              </div>
+              
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-7 gap-4 mb-4">
                 <input
