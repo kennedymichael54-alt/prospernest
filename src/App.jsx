@@ -433,7 +433,7 @@ const FinanceDashboard = () => {
             <div>
               <div className="flex items-center gap-4 mb-2">
                 <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-                  Family Finance Dashboard
+                  HomeBudget Hub
                 </h1>
                 <div className="relative">
                   <div className="bg-gradient-to-r from-amber-500 to-orange-500 px-3 py-1 rounded-full text-xs font-bold text-white shadow-lg transform -rotate-3 hover:rotate-0 transition-transform">
@@ -441,7 +441,7 @@ const FinanceDashboard = () => {
                   </div>
                 </div>
               </div>
-              <p className="text-slate-300">Take charge of your finances to ensure you and your family are taken care of</p>
+              <p className="text-slate-300">🌱 Grow your finances now, safeguard your family forever.</p>
             </div>
             <div className="text-right">
               <div className="flex items-center gap-2 text-slate-300 mb-1">
