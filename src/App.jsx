@@ -974,27 +974,26 @@ const handleRetirementFileUpload = async (e) => {
           </div>
         )}
 
-        {/* Transactions Tab */}
-        {activeTab === 'transactions' && (
-          <div className="space-y-6">
-            <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-6 shadow-lg">
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="text-2xl font-semibold">Add Transaction</h3>
-              <label className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg cursor-pointer transition-colors">
-  <Upload size={20} />
-  <span>Import CSV/PDF</span>
-  <input type="file" accept=".csv,.pdf" onChange={handleFileUpload} className="hidden" />
-</label>
+    {/* Transactions Tab */}
+{activeTab === 'transactions' && (
+  <div className="space-y-6">
+    <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-6 shadow-lg">
+      <div className="flex justify-between items-center mb-6">
+        <h3 className="text-2xl font-semibold">Add Transaction</h3>
+        <label className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg cursor-pointer transition-colors">
+          <Upload size={20} />
+          <span>Import CSV/PDF</span>
+          <input type="file" accept=".csv,.pdf" onChange={handleFileUpload} className="hidden" />
+        </label>
+      </div>
 
-                </label>
+      <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4 mb-6">
+        <p className="text-sm text-blue-300">
+          <strong>💡 Enhanced Import:</strong> You can now upload both CSV and PDF files! The system will automatically extract transaction data from your bank statements.
+        </p>
+      </div>
 
-<div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4 mb-6">
-  <p className="text-sm text-blue-300">
-    <strong>💡 Enhanced Import:</strong> You can now upload both CSV and PDF files! The system will automatically extract transaction data from your bank statements.
-  </p>
-</div>
-
-<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-7 gap-4 mb-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-7 gap-4 mb-4">
                 
               
                 
