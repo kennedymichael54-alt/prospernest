@@ -2,6 +2,9 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { PieChart, Pie, Cell, BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Upload, Plus, Trash2, Download, TrendingUp, TrendingDown, DollarSign, Target, Calendar, Filter, Search, ArrowUpDown } from 'lucide-react';
 
+// CORRECTED STATE SECTION - COPY THIS ENTIRE BLOCK
+// Replace lines 10-50 in your App.jsx with this exact code
+
 const FinanceDashboard = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
@@ -34,11 +37,11 @@ const FinanceDashboard = () => {
     ]
   });
   
-const [marketData, setMarketData] = useState({   
-  dow: { value: 44296.51, change: 0.28 },
-  sp500: { value: 5969.34, change: 0.35 },
-  nasdaq: { value: 19003.65, change: 0.63 }
-});
+  const [marketData, setMarketData] = useState({   
+    dow: { value: 44296.51, change: 0.28 },
+    sp500: { value: 5969.34, change: 0.35 },
+    nasdaq: { value: 19003.65, change: 0.63 }
+  });
   
   const [transactions, setTransactions] = useState([
     // Sample data across multiple months for comparison
