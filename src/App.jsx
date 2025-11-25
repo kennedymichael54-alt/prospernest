@@ -731,7 +731,7 @@ const deleteExpense = (id) => {
 
         {/* Tab Navigation */}
     <div className="flex gap-2 mb-6 border-b border-slate-700">
-  {['dashboard', 'transactions', 'billHistory', 'budget', 'retirement', 'cpa'].map(tab => (
+  {['dashboard', 'transactions', 'billHistory', 'budget', 'retirement', 'netWorth', 'fire', 'goals', 'cpa'].map(tab => (
     <button
       key={tab}
       onClick={() => setActiveTab(tab)}
@@ -743,6 +743,9 @@ const deleteExpense = (id) => {
     >
       {tab === 'cpa' ? 'CPA Export' : 
        tab === 'billHistory' ? 'Bill History' :
+       tab === 'netWorth' ? 'Net Worth' :
+       tab === 'fire' ? 'FIRE Calculator' :
+       tab === 'goals' ? 'Goals' :
        tab.charAt(0).toUpperCase() + tab.slice(1)}
     </button>
   ))}
