@@ -2,6 +2,8 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { PieChart, Pie, Cell, BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Upload, Plus, Trash2, Download, TrendingUp, TrendingDown, DollarSign, Target, Calendar, Filter, Search, ArrowUpDown } from 'lucide-react';
 import { NetWorthDashboard } from './components/NetWorthDashboard';
+import { FIRECalculator } from './components/FIRECalculator';
+import { GoalsTracker } from './components/GoalsTracker';
 
 // CORRECTED STATE SECTION - COPY THIS ENTIRE BLOCK
 // Replace lines 10-50 in your App.jsx with this exact code
