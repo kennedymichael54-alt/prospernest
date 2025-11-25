@@ -1,274 +1,423 @@
 import React, { useState, useEffect } from 'react';
-import { Card } from './ui/Card';
-import { Button } from './ui/Button';
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend, Area, AreaChart } from 'recharts';
-import { TrendingUp, Target, Calendar, DollarSign } from 'lucide-react';
+import { useNetWorth } from '../hooks/useNetWorth';
+import { TrendingUp, DollarSign, Calendar, Target, Zap, Mountain, Award } from 'lucide-react';
 
-export function FIRECalculator({ currentNetWorth = 0 }) {
-  const [inputs, setInputs] = useState({
-    currentSavings: currentNetWorth,
-    monthlyIncome: 5000,
-    monthlyExpenses: 3500,
-    monthlySavings: 1500,
-    currentAge: 30,
-    retirementAge: 65,
-    expectedReturn: 7,
-    inflationRate: 3,
-    safeWithdrawalRate: 4
-  });
+export function FIRECalculator() {
+  const { assets, liabilities } = useNetWorth();
+  
+  // Form inputs
+  const [annualExpenses, setAnnualExpenses] = useState(50000);
+  const [currentAge, setCurrentAge] = useState(35);
+  const [annualIncome, setAnnualIncome] = useState(80000);
+  const [annualSavings, setAnnualSavings] = useState(20000);
+  const [expectedReturn, setExpectedReturn] = useState(7);
+  const [inflationRate, setInflationRate] = useState(3);
+  const [withdrawalRate, setWithdrawalRate] = useState(4);
 
-  const [results, setResults] = useState(null);
+  // Calculate current net worth
+  const totalAssets = assets.reduce((sum, asset) => sum + (asset.value || 0), 0);
+  const totalLiabilities = liabilities.reduce((sum, liability) => sum + (liability.balance || 0), 0);
+  const currentNetWorth = totalAssets - totalLiabilities;
 
-  useEffect(() => {
-    calculateFIRE();
-  }, [inputs]);
+  // Calculate savings rate
+  const savingsRate = annualIncome > 0 ? ((annualSavings / annualIncome) * 100).toFixed(1) : 0;
 
-  function calculateFIRE() {
-    const {
-      currentSavings,
-      monthlySavings,
-      monthlyExpenses,
-      currentAge,
-      expectedReturn,
-      inflationRate,
-      safeWithdrawalRate
-    } = inputs;
+  // Calculate FIRE numbers for different scenarios
+  const leanFIRENumber = annualExpenses * 0.7 * (100 / withdrawalRate); // 30% less expenses
+  const regularFIRENumber = annualExpenses * (100 / withdrawalRate); // Standard 4% rule
+  const fatFIRENumber = annualExpenses * 1.5 * (100 / withdrawalRate); // 50% more expenses
 
-    // FIRE number = Annual expenses / Safe withdrawal rate
-    const annualExpenses = monthlyExpenses * 12;
-    const fireNumber = annualExpenses / (safeWithdrawalRate / 100);
-
-    // Calculate years to FIRE
-    const monthlyReturn = expectedReturn / 100 / 12;
-    const monthsToFIRE = Math.log(
-      (fireNumber * monthlyReturn) / monthlySavings + 1
-    ) / Math.log(1 + monthlyReturn);
-    const yearsToFIRE = Math.ceil(monthsToFIRE / 12);
-    const fireAge = currentAge + yearsToFIRE;
-
-    // Generate projection data
-    const projectionData = [];
-    let balance = currentSavings;
+  // Calculate years to FIRE for each scenario
+  const calculateYearsToFIRE = (fireNumber) => {
+    if (annualSavings <= 0) return null;
+    const realReturn = ((1 + expectedReturn / 100) / (1 + inflationRate / 100) - 1) * 100;
+    const monthlyReturn = realReturn / 100 / 12;
+    const monthlySavings = annualSavings / 12;
     
-    for (let year = 0; year <= Math.min(yearsToFIRE + 5, 40); year++) {
-      projectionData.push({
-        year: currentAge + year,
-        balance: Math.round(balance),
-        fireNumber: Math.round(fireNumber)
-      });
-      
-      // Compound for next year
-      balance = balance * (1 + expectedReturn / 100) + (monthlySavings * 12);
+    if (currentNetWorth >= fireNumber) return 0;
+    
+    let balance = currentNetWorth;
+    let months = 0;
+    const maxMonths = 600; // 50 years max
+    
+    while (balance < fireNumber && months < maxMonths) {
+      balance = balance * (1 + monthlyReturn) + monthlySavings;
+      months++;
     }
+    
+    return months >= maxMonths ? null : (months / 12).toFixed(1);
+  };
 
-    // Calculate coast FIRE (stop contributing, let it grow)
-    const coastFIREYears = Math.log(fireNumber / currentSavings) / Math.log(1 + expectedReturn / 100);
-    const coastFIREAge = currentAge + Math.ceil(coastFIREYears);
+  const yearsToLeanFIRE = calculateYearsToFIRE(leanFIRENumber);
+  const yearsToRegularFIRE = calculateYearsToFIRE(regularFIRENumber);
+  const yearsToFatFIRE = calculateYearsToFIRE(fatFIRENumber);
 
-    // Lean vs Fat FIRE scenarios
-    const leanFIRE = (annualExpenses * 0.7) / (safeWithdrawalRate / 100);
-    const fatFIRE = (annualExpenses * 1.5) / (safeWithdrawalRate / 100);
+  // Calculate Coast FIRE (amount needed to coast to retirement at 65)
+  const calculateCoastFIRE = () => {
+    const yearsUntil65 = 65 - currentAge;
+    if (yearsUntil65 <= 0) return regularFIRENumber;
+    const realReturn = ((1 + expectedReturn / 100) / (1 + inflationRate / 100) - 1);
+    return regularFIRENumber / Math.pow(1 + realReturn, yearsUntil65);
+  };
 
-    setResults({
-      fireNumber,
-      yearsToFIRE,
-      fireAge,
-      monthsToFIRE: Math.ceil(monthsToFIRE),
-      projectionData,
-      coastFIREAge,
-      leanFIRE,
-      fatFIRE,
-      savingsRate: ((monthlySavings / inputs.monthlyIncome) * 100).toFixed(1)
-    });
-  }
+  const coastFIRENumber = calculateCoastFIRE();
+  const hasReachedCoastFIRE = currentNetWorth >= coastFIRENumber;
 
-  function handleInputChange(field, value) {
-    setInputs(prev => ({ ...prev, [field]: parseFloat(value) || 0 }));
-  }
-
-  if (!results) return null;
+  // Calculate Barista FIRE (part-time work to cover expenses)
+  const baristaFIRENumber = regularFIRENumber * 0.5; // Need half, work covers the rest
+  const yearsToBarista = calculateYearsToFIRE(baristaFIRENumber);
 
   return (
     <div className="space-y-6">
-      {/* Key Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card className="p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600">FIRE Number</p>
-              <p className="text-2xl font-bold text-green-600 mt-1">
-                ${(results.fireNumber / 1000).toFixed(0)}K
-              </p>
-              <p className="text-xs text-gray-500 mt-1">25x annual expenses</p>
-            </div>
-            <Target className="w-10 h-10 text-green-500 opacity-20" />
-          </div>
-        </Card>
-
-        <Card className="p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600">Years to FIRE</p>
-              <p className="text-2xl font-bold text-blue-600 mt-1">
-                {results.yearsToFIRE}
-              </p>
-              <p className="text-xs text-gray-500 mt-1">{results.monthsToFIRE} months</p>
-            </div>
-            <TrendingUp className="w-10 h-10 text-blue-500 opacity-20" />
-          </div>
-        </Card>
-
-        <Card className="p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600">FIRE Age</p>
-              <p className="text-2xl font-bold text-purple-600 mt-1">
-                {results.fireAge}
-              </p>
-              <p className="text-xs text-gray-500 mt-1">vs {inputs.retirementAge} traditional</p>
-            </div>
-            <Calendar className="w-10 h-10 text-purple-500 opacity-20" />
-          </div>
-        </Card>
-
-        <Card className="p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600">Savings Rate</p>
-              <p className="text-2xl font-bold text-orange-600 mt-1">
-                {results.savingsRate}%
-              </p>
-              <p className="text-xs text-gray-500 mt-1">${inputs.monthlySavings}/mo</p>
-            </div>
-            <DollarSign className="w-10 h-10 text-orange-500 opacity-20" />
-          </div>
-        </Card>
+      {/* Header */}
+      <div className="bg-gradient-to-r from-orange-600 to-pink-500 rounded-lg p-6 text-white">
+        <h2 className="text-2xl font-bold mb-2">FIRE Calculator</h2>
+        <p className="text-white/90">Financial Independence, Retire Early</p>
       </div>
 
-      {/* Projection Chart */}
-      <Card className="p-6">
-        <h3 className="text-lg font-semibold mb-4">Path to FIRE</h3>
-        <ResponsiveContainer width="100%" height={400}>
-          <AreaChart data={results.projectionData}>
-            <defs>
-              <linearGradient id="colorBalance" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
-                <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
-              </linearGradient>
-            </defs>
-            <XAxis dataKey="year" />
-            <YAxis tickFormatter={(value) => `$${(value / 1000).toFixed(0)}K`} />
-            <Tooltip formatter={(value) => `$${value.toLocaleString()}`} />
-            <Legend />
-            <Area
-              type="monotone"
-              dataKey="balance"
-              stroke="#10b981"
-              fillOpacity={1}
-              fill="url(#colorBalance)"
-              name="Portfolio Balance"
-            />
-            <Line
-              type="monotone"
-              dataKey="fireNumber"
-              stroke="#ef4444"
-              strokeWidth={2}
-              strokeDasharray="5 5"
-              name="FIRE Number"
-            />
-          </AreaChart>
-        </ResponsiveContainer>
-      </Card>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Input Panel */}
+        <div className="lg:col-span-1 space-y-6">
+          <div className="bg-slate-800 rounded-lg p-6">
+            <h3 className="text-lg font-semibold text-slate-200 mb-4">Your Information</h3>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-1">Current Age</label>
+                <input
+                  type="number"
+                  value={currentAge}
+                  onChange={(e) => setCurrentAge(parseFloat(e.target.value) || 0)}
+                  className="w-full px-3 py-2 bg-slate-700 text-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                />
+              </div>
 
-      {/* Input Controls */}
-      <Card className="p-6">
-        <h3 className="text-lg font-semibold mb-4">Adjust Your Numbers</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <div>
-            <label className="block text-sm font-medium mb-1">Current Savings</label>
-            <input
-              type="number"
-              value={inputs.currentSavings}
-              onChange={(e) => handleInputChange('currentSavings', e.target.value)}
-              className="w-full px-3 py-2 border rounded-lg"
-            />
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-1">Annual Income</label>
+                <input
+                  type="number"
+                  value={annualIncome}
+                  onChange={(e) => setAnnualIncome(parseFloat(e.target.value) || 0)}
+                  className="w-full px-3 py-2 bg-slate-700 text-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-1">Annual Savings</label>
+                <input
+                  type="number"
+                  value={annualSavings}
+                  onChange={(e) => setAnnualSavings(parseFloat(e.target.value) || 0)}
+                  className="w-full px-3 py-2 bg-slate-700 text-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                />
+                <div className="text-sm text-slate-400 mt-1">Savings Rate: {savingsRate}%</div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-1">Annual Expenses</label>
+                <input
+                  type="number"
+                  value={annualExpenses}
+                  onChange={(e) => setAnnualExpenses(parseFloat(e.target.value) || 0)}
+                  className="w-full px-3 py-2 bg-slate-700 text-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-1">Expected Return (%)</label>
+                <input
+                  type="number"
+                  step="0.1"
+                  value={expectedReturn}
+                  onChange={(e) => setExpectedReturn(parseFloat(e.target.value) || 0)}
+                  className="w-full px-3 py-2 bg-slate-700 text-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-1">Inflation Rate (%)</label>
+                <input
+                  type="number"
+                  step="0.1"
+                  value={inflationRate}
+                  onChange={(e) => setInflationRate(parseFloat(e.target.value) || 0)}
+                  className="w-full px-3 py-2 bg-slate-700 text-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-1">Safe Withdrawal Rate (%)</label>
+                <input
+                  type="number"
+                  step="0.1"
+                  value={withdrawalRate}
+                  onChange={(e) => setWithdrawalRate(parseFloat(e.target.value) || 0)}
+                  className="w-full px-3 py-2 bg-slate-700 text-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                />
+              </div>
+            </div>
           </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Monthly Income</label>
-            <input
-              type="number"
-              value={inputs.monthlyIncome}
-              onChange={(e) => handleInputChange('monthlyIncome', e.target.value)}
-              className="w-full px-3 py-2 border rounded-lg"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Monthly Expenses</label>
-            <input
-              type="number"
-              value={inputs.monthlyExpenses}
-              onChange={(e) => handleInputChange('monthlyExpenses', e.target.value)}
-              className="w-full px-3 py-2 border rounded-lg"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Monthly Savings</label>
-            <input
-              type="number"
-              value={inputs.monthlySavings}
-              onChange={(e) => handleInputChange('monthlySavings', e.target.value)}
-              className="w-full px-3 py-2 border rounded-lg"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Current Age</label>
-            <input
-              type="number"
-              value={inputs.currentAge}
-              onChange={(e) => handleInputChange('currentAge', e.target.value)}
-              className="w-full px-3 py-2 border rounded-lg"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Expected Return (%)</label>
-            <input
-              type="number"
-              step="0.1"
-              value={inputs.expectedReturn}
-              onChange={(e) => handleInputChange('expectedReturn', e.target.value)}
-              className="w-full px-3 py-2 border rounded-lg"
-            />
+
+          {/* Current Status */}
+          <div className="bg-slate-800 rounded-lg p-6">
+            <h3 className="text-lg font-semibold text-slate-200 mb-4">Current Status</h3>
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <span className="text-slate-400">Net Worth</span>
+                <span className="text-lg font-semibold text-green-400">
+                  ${currentNetWorth.toLocaleString('en-US', { minimumFractionDigits: 0 })}
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-slate-400">Savings Rate</span>
+                <span className="text-lg font-semibold text-cyan-400">{savingsRate}%</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-slate-400">Monthly Savings</span>
+                <span className="text-lg font-semibold text-purple-400">
+                  ${(annualSavings / 12).toLocaleString('en-US', { minimumFractionDigits: 0 })}
+                </span>
+              </div>
+            </div>
           </div>
         </div>
-      </Card>
 
-      {/* Scenarios */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="p-6">
-          <h4 className="font-semibold text-green-700 mb-2">Lean FIRE</h4>
-          <p className="text-2xl font-bold">${(results.leanFIRE / 1000).toFixed(0)}K</p>
-          <p className="text-sm text-gray-600 mt-1">70% of current expenses</p>
-        </Card>
-        <Card className="p-6">
-          <h4 className="font-semibold text-blue-700 mb-2">Regular FIRE</h4>
-          <p className="text-2xl font-bold">${(results.fireNumber / 1000).toFixed(0)}K</p>
-          <p className="text-sm text-gray-600 mt-1">Current lifestyle</p>
-        </Card>
-        <Card className="p-6">
-          <h4 className="font-semibold text-purple-700 mb-2">Fat FIRE</h4>
-          <p className="text-2xl font-bold">${(results.fatFIRE / 1000).toFixed(0)}K</p>
-          <p className="text-sm text-gray-600 mt-1">150% of current expenses</p>
-        </Card>
+        {/* Results Panel */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* FIRE Scenarios */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Lean FIRE */}
+            <div className="bg-slate-800 rounded-lg p-6 border-2 border-green-500/30">
+              <div className="flex items-center gap-2 mb-3">
+                <Zap className="w-5 h-5 text-green-400" />
+                <h3 className="text-lg font-semibold text-slate-200">Lean FIRE</h3>
+              </div>
+              <div className="space-y-2">
+                <div className="text-sm text-slate-400">Target Amount</div>
+                <div className="text-2xl font-bold text-green-400">
+                  ${leanFIRENumber.toLocaleString('en-US', { minimumFractionDigits: 0 })}
+                </div>
+                <div className="text-sm text-slate-400 mt-2">Annual Budget</div>
+                <div className="text-lg text-slate-300">
+                  ${(annualExpenses * 0.7).toLocaleString('en-US', { minimumFractionDigits: 0 })}
+                </div>
+                <div className="pt-3 border-t border-slate-700 mt-3">
+                  <div className="text-sm text-slate-400">Years to Lean FIRE</div>
+                  <div className="text-3xl font-bold text-green-400 mt-1">
+                    {yearsToLeanFIRE ? `${yearsToLeanFIRE} years` : 'N/A'}
+                  </div>
+                  {yearsToLeanFIRE && (
+                    <div className="text-sm text-slate-400 mt-1">
+                      Age {(currentAge + parseFloat(yearsToLeanFIRE)).toFixed(0)}
+                    </div>
+                  )}
+                </div>
+                <div className="text-xs text-slate-500 mt-2">Minimal lifestyle, 70% of current expenses</div>
+              </div>
+            </div>
+
+            {/* Regular FIRE */}
+            <div className="bg-slate-800 rounded-lg p-6 border-2 border-cyan-500/30">
+              <div className="flex items-center gap-2 mb-3">
+                <Target className="w-5 h-5 text-cyan-400" />
+                <h3 className="text-lg font-semibold text-slate-200">Regular FIRE</h3>
+              </div>
+              <div className="space-y-2">
+                <div className="text-sm text-slate-400">Target Amount</div>
+                <div className="text-2xl font-bold text-cyan-400">
+                  ${regularFIRENumber.toLocaleString('en-US', { minimumFractionDigits: 0 })}
+                </div>
+                <div className="text-sm text-slate-400 mt-2">Annual Budget</div>
+                <div className="text-lg text-slate-300">
+                  ${annualExpenses.toLocaleString('en-US', { minimumFractionDigits: 0 })}
+                </div>
+                <div className="pt-3 border-t border-slate-700 mt-3">
+                  <div className="text-sm text-slate-400">Years to FIRE</div>
+                  <div className="text-3xl font-bold text-cyan-400 mt-1">
+                    {yearsToRegularFIRE ? `${yearsToRegularFIRE} years` : 'N/A'}
+                  </div>
+                  {yearsToRegularFIRE && (
+                    <div className="text-sm text-slate-400 mt-1">
+                      Age {(currentAge + parseFloat(yearsToRegularFIRE)).toFixed(0)}
+                    </div>
+                  )}
+                </div>
+                <div className="text-xs text-slate-500 mt-2">Maintain current lifestyle, 4% rule</div>
+              </div>
+            </div>
+
+            {/* Fat FIRE */}
+            <div className="bg-slate-800 rounded-lg p-6 border-2 border-purple-500/30">
+              <div className="flex items-center gap-2 mb-3">
+                <Mountain className="w-5 h-5 text-purple-400" />
+                <h3 className="text-lg font-semibold text-slate-200">Fat FIRE</h3>
+              </div>
+              <div className="space-y-2">
+                <div className="text-sm text-slate-400">Target Amount</div>
+                <div className="text-2xl font-bold text-purple-400">
+                  ${fatFIRENumber.toLocaleString('en-US', { minimumFractionDigits: 0 })}
+                </div>
+                <div className="text-sm text-slate-400 mt-2">Annual Budget</div>
+                <div className="text-lg text-slate-300">
+                  ${(annualExpenses * 1.5).toLocaleString('en-US', { minimumFractionDigits: 0 })}
+                </div>
+                <div className="pt-3 border-t border-slate-700 mt-3">
+                  <div className="text-sm text-slate-400">Years to Fat FIRE</div>
+                  <div className="text-3xl font-bold text-purple-400 mt-1">
+                    {yearsToFatFIRE ? `${yearsToFatFIRE} years` : 'N/A'}
+                  </div>
+                  {yearsToFatFIRE && (
+                    <div className="text-sm text-slate-400 mt-1">
+                      Age {(currentAge + parseFloat(yearsToFatFIRE)).toFixed(0)}
+                    </div>
+                  )}
+                </div>
+                <div className="text-xs text-slate-500 mt-2">Luxury lifestyle, 150% of current expenses</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Alternative FIRE Paths */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Coast FIRE */}
+            <div className="bg-slate-800 rounded-lg p-6">
+              <div className="flex items-center gap-2 mb-3">
+                <TrendingUp className="w-5 h-5 text-blue-400" />
+                <h3 className="text-lg font-semibold text-slate-200">Coast FIRE</h3>
+              </div>
+              <div className="space-y-3">
+                <div className="text-sm text-slate-400">
+                  Amount needed to coast to retirement at 65 (no more savings needed)
+                </div>
+                <div className="text-3xl font-bold text-blue-400">
+                  ${coastFIRENumber.toLocaleString('en-US', { minimumFractionDigits: 0 })}
+                </div>
+                {hasReachedCoastFIRE ? (
+                  <div className="bg-green-500/20 text-green-400 px-4 py-2 rounded-lg flex items-center gap-2">
+                    <Award className="w-5 h-5" />
+                    <span className="font-semibold">Congratulations! You've reached Coast FIRE!</span>
+                  </div>
+                ) : (
+                  <div className="text-slate-400">
+                    <div className="flex justify-between items-center">
+                      <span>Current Progress</span>
+                      <span className="font-semibold">
+                        {((currentNetWorth / coastFIRENumber) * 100).toFixed(1)}%
+                      </span>
+                    </div>
+                    <div className="w-full bg-slate-700 rounded-full h-2 mt-2">
+                      <div 
+                        className="bg-blue-400 h-2 rounded-full transition-all"
+                        style={{ width: `${Math.min((currentNetWorth / coastFIRENumber) * 100, 100)}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
+                <div className="text-xs text-slate-500 mt-2">
+                  Your money will grow to your FIRE number by age 65 without additional savings
+                </div>
+              </div>
+            </div>
+
+            {/* Barista FIRE */}
+            <div className="bg-slate-800 rounded-lg p-6">
+              <div className="flex items-center gap-2 mb-3">
+                <DollarSign className="w-5 h-5 text-orange-400" />
+                <h3 className="text-lg font-semibold text-slate-200">Barista FIRE</h3>
+              </div>
+              <div className="space-y-3">
+                <div className="text-sm text-slate-400">
+                  Semi-retire with part-time work covering half your expenses
+                </div>
+                <div className="text-3xl font-bold text-orange-400">
+                  ${baristaFIRENumber.toLocaleString('en-US', { minimumFractionDigits: 0 })}
+                </div>
+                <div className="text-sm text-slate-400">Years to Barista FIRE</div>
+                <div className="text-2xl font-bold text-orange-400">
+                  {yearsToBarista ? `${yearsToBarista} years` : 'N/A'}
+                </div>
+                {yearsToBarista && (
+                  <div className="text-sm text-slate-400">
+                    Age {(currentAge + parseFloat(yearsToBarista)).toFixed(0)}
+                  </div>
+                )}
+                <div className="text-xs text-slate-500 mt-2">
+                  Work part-time to cover ${(annualExpenses / 2).toLocaleString('en-US', { minimumFractionDigits: 0 })}/year
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Progress Breakdown */}
+          <div className="bg-slate-800 rounded-lg p-6">
+            <h3 className="text-lg font-semibold text-slate-200 mb-4">Path to FIRE Progress</h3>
+            <div className="space-y-4">
+              {[
+                { name: 'Lean FIRE', target: leanFIRENumber, color: 'green' },
+                { name: 'Regular FIRE', target: regularFIRENumber, color: 'cyan' },
+                { name: 'Fat FIRE', target: fatFIRENumber, color: 'purple' }
+              ].map((scenario) => {
+                const progress = (currentNetWorth / scenario.target) * 100;
+                return (
+                  <div key={scenario.name}>
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-slate-300 font-medium">{scenario.name}</span>
+                      <span className="text-slate-400">
+                        {progress.toFixed(1)}% • ${(scenario.target - currentNetWorth).toLocaleString('en-US', { minimumFractionDigits: 0 })} remaining
+                      </span>
+                    </div>
+                    <div className="w-full bg-slate-700 rounded-full h-3">
+                      <div 
+                        className={`bg-${scenario.color}-400 h-3 rounded-full transition-all`}
+                        style={{ width: `${Math.min(progress, 100)}%` }}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Key Insights */}
+          <div className="bg-gradient-to-br from-slate-800 to-slate-700 rounded-lg p-6">
+            <h3 className="text-lg font-semibold text-slate-200 mb-4">💡 Key Insights</h3>
+            <div className="space-y-3 text-slate-300">
+              <div className="flex items-start gap-2">
+                <div className="text-cyan-400 mt-1">•</div>
+                <div>
+                  Your current savings rate of <span className="font-semibold text-cyan-400">{savingsRate}%</span> means 
+                  you save ${(annualSavings / 12).toLocaleString('en-US', { minimumFractionDigits: 0 })} per month.
+                </div>
+              </div>
+              <div className="flex items-start gap-2">
+                <div className="text-green-400 mt-1">•</div>
+                <div>
+                  At your current pace, your portfolio will generate <span className="font-semibold text-green-400">
+                  ${(currentNetWorth * (withdrawalRate / 100)).toLocaleString('en-US', { minimumFractionDigits: 0 })}</span> annually 
+                  using the {withdrawalRate}% safe withdrawal rate.
+                </div>
+              </div>
+              <div className="flex items-start gap-2">
+                <div className="text-orange-400 mt-1">•</div>
+                <div>
+                  Increasing your savings rate by 10% would reduce your time to FIRE by approximately{' '}
+                  <span className="font-semibold text-orange-400">
+                    {yearsToRegularFIRE ? (parseFloat(yearsToRegularFIRE) * 0.2).toFixed(1) : 'N/A'}
+                  </span> years.
+                </div>
+              </div>
+              <div className="flex items-start gap-2">
+                <div className="text-purple-400 mt-1">•</div>
+                <div>
+                  Every $10,000 in additional savings brings you approximately{' '}
+                  <span className="font-semibold text-purple-400">
+                    {(10000 / annualExpenses * 12).toFixed(1)} months
+                  </span> closer to financial independence.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
-
-      {/* Coast FIRE Info */}
-      <Card className="p-6 bg-gradient-to-r from-blue-50 to-purple-50">
-        <h4 className="font-semibold text-lg mb-2">🏖️ Coast FIRE</h4>
-        <p className="text-gray-700">
-          You could stop saving at age <strong>{results.coastFIREAge}</strong> and still reach FIRE by {inputs.retirementAge} 
-          if you maintain a {inputs.expectedReturn}% return.
-        </p>
-      </Card>
     </div>
   );
 }
