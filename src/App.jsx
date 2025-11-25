@@ -731,11 +731,11 @@ const deleteExpense = (id) => {
         </header>
 
         {/* Tab Navigation */}
-    <div className="flex gap-2 mb-6 border-b border-slate-700">
-  {['dashboard', 'transactions', 'billHistory', 'budget', 'retirement', 'netWorth', 'fire', 'goals', 'cpa'].map(tab => (
+<div className="flex gap-2 mb-6 border-b border-slate-700">
+  {['dashboard', 'transactions', 'billHistory', 'budget', 'retirement', 'cpa'].map(tab => (
     <button
       key={tab}
-      onClick={() => setactiveTab(tab)}
+      onClick={() => setActiveTab(tab)}
       className={`px-6 py-3 font-medium transition-all ${
         activeTab === tab
           ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-t-lg'
@@ -744,14 +744,10 @@ const deleteExpense = (id) => {
     >
       {tab === 'cpa' ? 'CPA Export' : 
        tab === 'billHistory' ? 'Bill History' :
-       tab === 'netWorth' ? 'Net Worth' :
-       tab === 'fire' ? 'FIRE Calculator' :
-       tab === 'goals' ? 'Goals' :
        tab.charAt(0).toUpperCase() + tab.slice(1)}
     </button>
   ))}
 </div>
-
         {/* Dashboard Tab */}
         {activeTab === 'dashboard' && (
           <div className="space-y-6">
