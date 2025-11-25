@@ -1841,177 +1841,169 @@ const deleteExpense = (id) => {
             </div>
           </div>
         )}
+
+        {/* Net Worth Tab - NEW */}
+        {activeTab === 'netWorth' && (
+          <div className="space-y-6">
+            <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-6 shadow-lg">
+              <h3 className="text-2xl font-semibold mb-4">Net Worth Dashboard</h3>
+              <p className="text-slate-300 mb-4">
+                Track your assets, liabilities, and overall net worth over time.
+              </p>
+              <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
+                <p className="text-sm text-blue-300">
+                  <strong>🚧 Coming Soon:</strong> Complete net worth tracking with asset allocation charts, 
+                  liability management, and historical snapshots. Implementation from Day 5 guide.
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="bg-gradient-to-br from-green-500/20 to-green-600/20 backdrop-blur-sm border border-green-500/30 rounded-xl p-6 shadow-lg">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="text-lg font-semibold text-green-300">Total Assets</h3>
+                  <DollarSign className="text-green-400" />
+                </div>
+                <p className="text-3xl font-bold text-white">$0</p>
+                <p className="text-sm text-slate-400 mt-2">Add your first asset to get started</p>
+              </div>
+
+              <div className="bg-gradient-to-br from-red-500/20 to-red-600/20 backdrop-blur-sm border border-red-500/30 rounded-xl p-6 shadow-lg">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="text-lg font-semibold text-red-300">Total Liabilities</h3>
+                  <TrendingDown className="text-red-400" />
+                </div>
+                <p className="text-3xl font-bold text-white">$0</p>
+                <p className="text-sm text-slate-400 mt-2">Track your debts and loans</p>
+              </div>
+
+              <div className="bg-gradient-to-br from-blue-500/20 to-blue-600/20 backdrop-blur-sm border border-blue-500/30 rounded-xl p-6 shadow-lg">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="text-lg font-semibold text-blue-300">Net Worth</h3>
+                  <TrendingUp className="text-blue-400" />
+                </div>
+                <p className="text-3xl font-bold text-white">$0</p>
+                <p className="text-sm text-slate-400 mt-2">Assets - Liabilities</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* FIRE Calculator Tab - NEW */}
+        {activeTab === 'fire' && (
+          <div className="space-y-6">
+            <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-6 shadow-lg">
+              <h3 className="text-2xl font-semibold mb-4">🔥 FIRE Calculator</h3>
+              <p className="text-slate-300 mb-4">
+                Calculate your path to Financial Independence, Retire Early (FIRE)
+              </p>
+              <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
+                <p className="text-sm text-blue-300">
+                  <strong>🚧 Coming Soon:</strong> Calculate years to FIRE, project portfolio growth, 
+                  and explore different FIRE scenarios (Lean, Regular, Fat). Implementation from Day 5 guide.
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-6 shadow-lg">
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="text-sm font-semibold text-slate-300">FIRE Number</h4>
+                  <Target className="text-green-400 w-8 h-8 opacity-20" />
+                </div>
+                <p className="text-2xl font-bold text-white">$0</p>
+                <p className="text-xs text-slate-400 mt-1">25x annual expenses</p>
+              </div>
+
+              <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-6 shadow-lg">
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="text-sm font-semibold text-slate-300">Years to FIRE</h4>
+                  <TrendingUp className="text-blue-400 w-8 h-8 opacity-20" />
+                </div>
+                <p className="text-2xl font-bold text-white">--</p>
+                <p className="text-xs text-slate-400 mt-1">Based on savings rate</p>
+              </div>
+
+              <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-6 shadow-lg">
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="text-sm font-semibold text-slate-300">FIRE Age</h4>
+                  <Calendar className="text-purple-400 w-8 h-8 opacity-20" />
+                </div>
+                <p className="text-2xl font-bold text-white">--</p>
+                <p className="text-xs text-slate-400 mt-1">Target retirement age</p>
+              </div>
+
+              <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-6 shadow-lg">
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="text-sm font-semibold text-slate-300">Savings Rate</h4>
+                  <DollarSign className="text-orange-400 w-8 h-8 opacity-20" />
+                </div>
+                <p className="text-2xl font-bold text-white">0%</p>
+                <p className="text-xs text-slate-400 mt-1">Monthly savings</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Goals Tab - NEW */}
+        {activeTab === 'goals' && (
+          <div className="space-y-6">
+            <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-6 shadow-lg">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-2xl font-semibold">Financial Goals</h3>
+                <button className="flex items-center gap-2 px-6 py-2 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 rounded-lg transition-all">
+                  <Plus size={20} />
+                  New Goal
+                </button>
+              </div>
+              <p className="text-slate-300 mb-4">
+                Set and track your financial milestones
+              </p>
+              <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
+                <p className="text-sm text-blue-300">
+                  <strong>🚧 Coming Soon:</strong> Create and track financial goals including emergency fund, 
+                  debt payoff, FIRE number, and custom savings targets. Implementation from Day 5 guide.
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-6 shadow-lg">
+                <div className="text-3xl mb-3">🛡️</div>
+                <h4 className="font-semibold mb-2">Emergency Fund</h4>
+                <p className="text-sm text-slate-400">Build 3-6 months of expenses</p>
+                <div className="mt-4 w-full bg-slate-700 rounded-full h-2">
+                  <div className="bg-blue-500 h-2 rounded-full" style={{ width: '0%' }}></div>
+                </div>
+                <p className="text-xs text-slate-400 mt-2">$0 / $0 (0%)</p>
+              </div>
+
+              <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-6 shadow-lg">
+                <div className="text-3xl mb-3">💳</div>
+                <h4 className="font-semibold mb-2">Debt Payoff</h4>
+                <p className="text-sm text-slate-400">Eliminate high-interest debt</p>
+                <div className="mt-4 w-full bg-slate-700 rounded-full h-2">
+                  <div className="bg-green-500 h-2 rounded-full" style={{ width: '0%' }}></div>
+                </div>
+                <p className="text-xs text-slate-400 mt-2">$0 / $0 (0%)</p>
+              </div>
+
+              <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-6 shadow-lg">
+                <div className="text-3xl mb-3">🔥</div>
+                <h4 className="font-semibold mb-2">FIRE Number</h4>
+                <p className="text-sm text-slate-400">Reach financial independence</p>
+                <div className="mt-4 w-full bg-slate-700 rounded-full h-2">
+                  <div className="bg-purple-500 h-2 rounded-full" style={{ width: '0%' }}></div>
+                </div>
+                <p className="text-xs text-slate-400 mt-2">$0 / $0 (0%)</p>
+              </div>
+            </div>
+          </div>
+        )}
+
       </div>
     </div>
   );
 };
-
-{/* Net Worth Tab - NEW */}
-{activeTab === 'netWorth' && (
-  <div className="space-y-6">
-    <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-6 shadow-lg">
-      <h3 className="text-2xl font-semibold mb-4">Net Worth Dashboard</h3>
-      <p className="text-slate-300 mb-4">
-        Track your assets, liabilities, and overall net worth over time.
-      </p>
-      <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
-        <p className="text-sm text-blue-300">
-          <strong>🚧 Coming Soon:</strong> Complete net worth tracking with asset allocation charts, 
-          liability management, and historical snapshots. Implementation from Day 5 guide.
-        </p>
-      </div>
-    </div>
-
-    {/* Quick Stats Preview */}
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-      <div className="bg-gradient-to-br from-green-500/20 to-green-600/20 backdrop-blur-sm border border-green-500/30 rounded-xl p-6 shadow-lg">
-        <div className="flex items-center justify-between mb-2">
-          <h3 className="text-lg font-semibold text-green-300">Total Assets</h3>
-          <DollarSign className="text-green-400" />
-        </div>
-        <p className="text-3xl font-bold text-white">$0</p>
-        <p className="text-sm text-slate-400 mt-2">Add your first asset to get started</p>
-      </div>
-
-      <div className="bg-gradient-to-br from-red-500/20 to-red-600/20 backdrop-blur-sm border border-red-500/30 rounded-xl p-6 shadow-lg">
-        <div className="flex items-center justify-between mb-2">
-          <h3 className="text-lg font-semibold text-red-300">Total Liabilities</h3>
-          <TrendingDown className="text-red-400" />
-        </div>
-        <p className="text-3xl font-bold text-white">$0</p>
-        <p className="text-sm text-slate-400 mt-2">Track your debts and loans</p>
-      </div>
-
-      <div className="bg-gradient-to-br from-blue-500/20 to-blue-600/20 backdrop-blur-sm border border-blue-500/30 rounded-xl p-6 shadow-lg">
-        <div className="flex items-center justify-between mb-2">
-          <h3 className="text-lg font-semibold text-blue-300">Net Worth</h3>
-          <TrendingUp className="text-blue-400" />
-        </div>
-        <p className="text-3xl font-bold text-white">$0</p>
-        <p className="text-sm text-slate-400 mt-2">Assets - Liabilities</p>
-      </div>
-    </div>
-  </div>
-)}
-
-{/* FIRE Calculator Tab - NEW */}
-{activeTab === 'fire' && (
-  <div className="space-y-6">
-    <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-6 shadow-lg">
-      <h3 className="text-2xl font-semibold mb-4">🔥 FIRE Calculator</h3>
-      <p className="text-slate-300 mb-4">
-        Calculate your path to Financial Independence, Retire Early (FIRE)
-      </p>
-      <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
-        <p className="text-sm text-blue-300">
-          <strong>🚧 Coming Soon:</strong> Calculate years to FIRE, project portfolio growth, 
-          and explore different FIRE scenarios (Lean, Regular, Fat). Implementation from Day 5 guide.
-        </p>
-      </div>
-    </div>
-
-    {/* Quick Preview Cards */}
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-      <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-6 shadow-lg">
-        <div className="flex items-center justify-between mb-2">
-          <h4 className="text-sm font-semibold text-slate-300">FIRE Number</h4>
-          <Target className="text-green-400 w-8 h-8 opacity-20" />
-        </div>
-        <p className="text-2xl font-bold text-white">$0</p>
-        <p className="text-xs text-slate-400 mt-1">25x annual expenses</p>
-      </div>
-
-      <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-6 shadow-lg">
-        <div className="flex items-center justify-between mb-2">
-          <h4 className="text-sm font-semibold text-slate-300">Years to FIRE</h4>
-          <TrendingUp className="text-blue-400 w-8 h-8 opacity-20" />
-        </div>
-        <p className="text-2xl font-bold text-white">--</p>
-        <p className="text-xs text-slate-400 mt-1">Based on savings rate</p>
-      </div>
-
-      <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-6 shadow-lg">
-        <div className="flex items-center justify-between mb-2">
-          <h4 className="text-sm font-semibold text-slate-300">FIRE Age</h4>
-          <Calendar className="text-purple-400 w-8 h-8 opacity-20" />
-        </div>
-        <p className="text-2xl font-bold text-white">--</p>
-        <p className="text-xs text-slate-400 mt-1">Target retirement age</p>
-      </div>
-
-      <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-6 shadow-lg">
-        <div className="flex items-center justify-between mb-2">
-          <h4 className="text-sm font-semibold text-slate-300">Savings Rate</h4>
-          <DollarSign className="text-orange-400 w-8 h-8 opacity-20" />
-        </div>
-        <p className="text-2xl font-bold text-white">0%</p>
-        <p className="text-xs text-slate-400 mt-1">Monthly savings</p>
-      </div>
-    </div>
-  </div>
-)}
-
-{/* Goals Tab - NEW */}
-{activeTab === 'goals' && (
-  <div className="space-y-6">
-    <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-6 shadow-lg">
-      <div className="flex justify-between items-center mb-4">
-        <h3 className="text-2xl font-semibold">Financial Goals</h3>
-        <button className="flex items-center gap-2 px-6 py-2 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 rounded-lg transition-all">
-          <Plus size={20} />
-          New Goal
-        </button>
-      </div>
-      <p className="text-slate-300 mb-4">
-        Set and track your financial milestones
-      </p>
-      <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
-        <p className="text-sm text-blue-300">
-          <strong>🚧 Coming Soon:</strong> Create and track financial goals including emergency fund, 
-          debt payoff, FIRE number, and custom savings targets. Implementation from Day 5 guide.
-        </p>
-      </div>
-    </div>
-
-    {/* Goal Type Examples */}
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-      <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-6 shadow-lg">
-        <div className="text-3xl mb-3">🛡️</div>
-        <h4 className="font-semibold mb-2">Emergency Fund</h4>
-        <p className="text-sm text-slate-400">Build 3-6 months of expenses</p>
-        <div className="mt-4 w-full bg-slate-700 rounded-full h-2">
-          <div className="bg-blue-500 h-2 rounded-full" style={{ width: '0%' }}></div>
-        </div>
-        <p className="text-xs text-slate-400 mt-2">$0 / $0 (0%)</p>
-      </div>
-
-      <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-6 shadow-lg">
-        <div className="text-3xl mb-3">💳</div>
-        <h4 className="font-semibold mb-2">Debt Payoff</h4>
-        <p className="text-sm text-slate-400">Eliminate high-interest debt</p>
-        <div className="mt-4 w-full bg-slate-700 rounded-full h-2">
-          <div className="bg-green-500 h-2 rounded-full" style={{ width: '0%' }}></div>
-        </div>
-        <p className="text-xs text-slate-400 mt-2">$0 / $0 (0%)</p>
-      </div>
-
-      <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-6 shadow-lg">
-        <div className="text-3xl mb-3">🔥</div>
-        <h4 className="font-semibold mb-2">FIRE Number</h4>
-        <p className="text-sm text-slate-400">Reach financial independence</p>
-        <div className="mt-4 w-full bg-slate-700 rounded-full h-2">
-          <div className="bg-purple-500 h-2 rounded-full" style={{ width: '0%' }}></div>
-        </div>
-        <p className="text-xs text-slate-400 mt-2">$0 / $0 (0%)</p>
-      </div>
-    </div>
-  </div>
-)}
-
-
-
-
-
-
 
 export default FinanceDashboard;
