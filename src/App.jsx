@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { PieChart, Pie, Cell, BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Upload, Plus, Trash2, Download, TrendingUp, TrendingDown, DollarSign, Target, Calendar, Filter, Search, ArrowUpDown } from 'lucide-react';
+import { NetWorthDashboard } from './components/NetWorthDashboard';
 
 // CORRECTED STATE SECTION - COPY THIS ENTIRE BLOCK
 // Replace lines 10-50 in your App.jsx with this exact code
@@ -1842,8 +1843,10 @@ const deleteExpense = (id) => {
           </div>
         )}
 
-        {/* Net Worth Tab - NEW */}
-        {activeTab === 'netWorth' && (
+        {/* Net Worth Tab - UPDATED */}
+{activeTab === 'netWorth' && (
+  <NetWorthDashboard />
+)}
           <div className="space-y-6">
             <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-6 shadow-lg">
               <h3 className="text-2xl font-semibold mb-4">Net Worth Dashboard</h3>
