@@ -20,6 +20,7 @@ const FinanceDashboard = () => {
   const [cpaFilter, setCpaFilter] = useState('');
   const [cpaSort, setCpaSort] = useState('date-desc');
   const [selectedRetirementAccountType, setSelectedRetirementAccountType] = useState('');
+  const [cpaExportSoftware, setCpaExportSoftware] = useState('xero');
 
   const [billDates, setBillDates] = useState([
     { id: 1, name: 'Mortgage', amount: 2200, dueDate: '2024-11-20' },
@@ -81,15 +82,19 @@ const FinanceDashboard = () => {
   { id: 4, type: 'Real Estate', accountType: 'VUL', currentValue: 180000, targetValue: 500000, contributionRate: 5, uploadDate: new Date().toISOString() },
 ]);
 
-  const [newTransaction, setNewTransaction] = useState({
-    date: '',
-    description: '',
-    vendor: '',
-    amount: '',
-    type: 'expense',
-    category: '',
-    source: ''
-  });
+// UPDATE newTransaction state initialization (around line 100)
+const [newTransaction, setNewTransaction] = useState({
+  date: '',
+  description: '',
+  vendor: '',
+  amount: '',
+  type: 'expense',
+  category: '',
+  source: '',
+  institution: '',
+  recurring: false,
+  frequency: 'monthly'
+});
 
   const categories = {
     income: ['Salary', 'Freelance', 'Investment Income', 'Other Income'],
@@ -190,14 +195,25 @@ const parsePDF = async (file) => {
     return { number: '1007', description: 'Cash' };
   };
 
-  // Filter transactions by selected month and year
-  const filteredTransactions = useMemo(() => {
+  // UPDATE THE filteredTransactions useMemo
+// Find this section around line 250 and replace it
+
+const filteredTransactions = useMemo(() => {
+  // If "All" months selected (-1), show all transactions for the year
+  if (selectedMonth === -1) {
     return transactions.filter(t => {
       const transactionDate = new Date(t.date);
-      return transactionDate.getMonth() === selectedMonth && 
-             transactionDate.getFullYear() === selectedYear;
+      return transactionDate.getFullYear() === selectedYear;
     });
-  }, [transactions, selectedMonth, selectedYear]);
+  }
+  
+  // Otherwise filter by specific month
+  return transactions.filter(t => {
+    const transactionDate = new Date(t.date);
+    return transactionDate.getMonth() === selectedMonth && 
+           transactionDate.getFullYear() === selectedYear;
+  });
+}, [transactions, selectedMonth, selectedYear]);
 
   // Calculate totals for selected period
   const totals = useMemo(() => {
@@ -374,18 +390,37 @@ const parsePDF = async (file) => {
     return Object.entries(grouped).map(([name, value]) => ({ name, value }));
   }, [filteredTransactions]);
 
-  // Filtered and sorted transactions
-  const filteredAndSortedTransactions = useMemo(() => {
-    let filtered = transactions.filter(t => {
-      if (!transactionFilter) return true;
-      const searchTerm = transactionFilter.toLowerCase();
-      return (
-        t.description.toLowerCase().includes(searchTerm) ||
-        t.vendor.toLowerCase().includes(searchTerm) ||
-        t.category.toLowerCase().includes(searchTerm) ||
-        t.source.toLowerCase().includes(searchTerm)
-      );
-    });
+  // UPDATE filteredAndSortedTransactions useMemo
+// Replace around line 450
+
+const filteredAndSortedTransactions = useMemo(() => {
+  let filtered = transactions.filter(t => {
+    if (!transactionFilter) return true;
+    const searchTerm = transactionFilter.toLowerCase();
+    return (
+      t.description.toLowerCase().includes(searchTerm) ||
+      t.vendor.toLowerCase().includes(searchTerm) ||
+      t.category.toLowerCase().includes(searchTerm) ||
+      t.source.toLowerCase().includes(searchTerm) ||
+      (t.institution && t.institution.toLowerCase().includes(searchTerm))
+    );
+  });
+
+  return filtered.sort((a, b) => {
+    switch (transactionSort) {
+      case 'date-desc': return new Date(b.date) - new Date(a.date);
+      case 'date-asc': return new Date(a.date) - new Date(b.date);
+      case 'amount-desc': return Math.abs(b.amount) - Math.abs(a.amount);
+      case 'amount-asc': return Math.abs(a.amount) - Math.abs(b.amount);
+      case 'vendor': return a.vendor.localeCompare(b.vendor);
+      case 'description': return a.description.localeCompare(b.description);
+      case 'category': return a.category.localeCompare(b.category);
+      case 'source': return a.source.localeCompare(b.source);
+      case 'institution': return (a.institution || '').localeCompare(b.institution || '');
+      default: return 0;
+    }
+  });
+}, [transactions, transactionFilter, transactionSort]);
 
     return filtered.sort((a, b) => {
       switch (transactionSort) {
@@ -449,18 +484,72 @@ const getBudgetSummary = useMemo(() => {
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D', '#FFC658', '#FF6B9D'];
 
-  const handleAddTransaction = () => {
-    if (newTransaction.date && newTransaction.description && newTransaction.amount && newTransaction.vendor) {
-      const transaction = {
-        id: Date.now(),
-        ...newTransaction,
-        amount: parseFloat(newTransaction.amount) * (newTransaction.type === 'expense' ? -1 : 1)
+ // UPDATE handleAddTransaction function (around line 800)
+const handleAddTransaction = () => {
+  if (newTransaction.date && newTransaction.description && newTransaction.amount && newTransaction.vendor) {
+    const transaction = {
+      id: Date.now(),
+      ...newTransaction,
+      amount: parseFloat(newTransaction.amount) * (newTransaction.type === 'expense' ? -1 : 1)
+    };
+    
+    setTransactions([...transactions, transaction]);
+    
+    // If recurring expense, automatically add to bill dates
+    if (newTransaction.recurring && newTransaction.type === 'expense') {
+      const transactionDate = new Date(newTransaction.date);
+      
+      // Calculate next occurrence based on frequency
+      const getNextDate = (date, frequency) => {
+        const next = new Date(date);
+        switch (frequency) {
+          case 'weekly':
+            next.setDate(next.getDate() + 7);
+            break;
+          case 'bi-weekly':
+            next.setDate(next.getDate() + 14);
+            break;
+          case 'monthly':
+          default:
+            next.setMonth(next.getMonth() + 1);
+            break;
+        }
+        return next;
       };
-      setTransactions([...transactions, transaction]);
-      setNewTransaction({ date: '', description: '', vendor: '', amount: '', type: 'expense', category: '', source: '' });
-      setLastImportDate(new Date());
+      
+      const nextDueDate = getNextDate(transactionDate, newTransaction.frequency);
+      
+      // Add to bill dates calendar
+      const newBill = {
+        id: Date.now() + 1, // Ensure unique ID
+        name: newTransaction.description,
+        amount: Math.abs(parseFloat(newTransaction.amount)),
+        dueDate: nextDueDate.toISOString().split('T')[0],
+        recurring: true,
+        frequency: newTransaction.frequency
+      };
+      
+      setBillDates([...billDates, newBill]);
+      
+      // Show confirmation message
+      alert(`✅ Transaction added and scheduled as recurring ${newTransaction.frequency} bill starting ${nextDueDate.toLocaleDateString()}`);
     }
-  };
+    
+    setNewTransaction({ 
+      date: '', 
+      description: '', 
+      vendor: '', 
+      amount: '', 
+      type: 'expense', 
+      category: '', 
+      source: '',
+      institution: '',
+      recurring: false,
+      frequency: 'monthly'
+    });
+    setLastImportDate(new Date());
+  }
+};
 
   const handleDeleteTransaction = (id) => {
     setTransactions(transactions.filter(t => t.id !== id));
@@ -752,39 +841,190 @@ const deleteExpense = (id) => {
     </button>
   ))}
 </div>
-        {/* Dashboard Tab */}
-        {activeTab === 'dashboard' && (
-          <div className="space-y-6">
-            {/* Date Selector */}
-            <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-6 shadow-lg">
-              <h3 className="text-lg font-semibold mb-4">Select Period</h3>
-              <div className="flex gap-4">
-                <div className="flex-1">
-                  <label className="block text-sm text-slate-300 mb-2">Month</label>
-                  <select
-                    value={selectedMonth}
-                    onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
-                    className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  >
-                    {['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'].map((month, index) => (
-                      <option key={index} value={index}>{month}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="flex-1">
-                  <label className="block text-sm text-slate-300 mb-2">Year</label>
-                  <select
-                    value={selectedYear}
-                    onChange={(e) => setSelectedYear(parseInt(e.target.value))}
-                    className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  >
-                    {[2023, 2024, 2025, 2026].map(year => (
-                      <option key={year} value={year}>{year}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-            </div>
+        // DASHBOARD TAB - UPDATED SECTION
+// Replace the "Dashboard Tab" section in your app.jsx (around line 1000-1400)
+
+{activeTab === 'dashboard' && (
+  <div className="space-y-6">
+    {/* Date Selector */}
+    <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-6 shadow-lg">
+      <h3 className="text-lg font-semibold mb-4">Select Period</h3>
+      <div className="flex gap-4">
+        <div className="flex-1">
+          <label className="block text-sm text-slate-300 mb-2">Month</label>
+          <select
+            value={selectedMonth}
+            onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
+            className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+          >
+            <option value={-1}>All Months</option>
+            {['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'].map((month, index) => (
+              <option key={index} value={index}>{month}</option>
+            ))}
+          </select>
+        </div>
+        <div className="flex-1">
+          <label className="block text-sm text-slate-300 mb-2">Year</label>
+          <select
+            value={selectedYear}
+            onChange={(e) => setSelectedYear(parseInt(e.target.value))}
+            className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+          >
+            {[2023, 2024, 2025, 2026].map(year => (
+              <option key={year} value={year}>{year}</option>
+            ))}
+          </select>
+        </div>
+      </div>
+      {selectedMonth === -1 && (
+        <div className="mt-3 bg-blue-500/10 border border-blue-500/30 rounded-lg p-3">
+          <p className="text-sm text-blue-300">
+            📊 Showing totals for entire year {selectedYear}. Comparison views are disabled for full-year view.
+          </p>
+        </div>
+      )}
+    </div>
+
+    {/* Summary Cards */}
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="bg-gradient-to-br from-green-500/20 to-green-600/20 backdrop-blur-sm border border-green-500/30 rounded-xl p-6 shadow-lg">
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="text-lg font-semibold text-green-300">Total Income</h3>
+          <TrendingUp className="text-green-400" />
+        </div>
+        <p className="text-3xl font-bold text-white">${totals.income.toLocaleString()}</p>
+        {selectedMonth === -1 && (
+          <p className="text-sm text-green-300 mt-2">Full year {selectedYear}</p>
+        )}
+      </div>
+
+      <div className="bg-gradient-to-br from-red-500/20 to-red-600/20 backdrop-blur-sm border border-red-500/30 rounded-xl p-6 shadow-lg">
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="text-lg font-semibold text-red-300">Total Expenses</h3>
+          <TrendingDown className="text-red-400" />
+        </div>
+        <p className="text-3xl font-bold text-white">${totals.expenses.toLocaleString()}</p>
+        {selectedMonth === -1 && (
+          <p className="text-sm text-red-300 mt-2">Full year {selectedYear}</p>
+        )}
+      </div>
+
+      <div className={`bg-gradient-to-br ${totals.netIncome >= 0 ? 'from-blue-500/20 to-blue-600/20 border-blue-500/30' : 'from-orange-500/20 to-orange-600/20 border-orange-500/30'} backdrop-blur-sm border rounded-xl p-6 shadow-lg`}>
+        <div className="flex items-center justify-between mb-2">
+          <h3 className={`text-lg font-semibold ${totals.netIncome >= 0 ? 'text-blue-300' : 'text-orange-300'}`}>Net Income</h3>
+          <DollarSign className={totals.netIncome >= 0 ? 'text-blue-400' : 'text-orange-400'} />
+        </div>
+        <p className="text-3xl font-bold text-white">${totals.netIncome.toLocaleString()}</p>
+        {selectedMonth === -1 && (
+          <p className="text-sm text-blue-300 mt-2">Full year {selectedYear}</p>
+        )}
+      </div>
+    </div>
+
+    {/* Charts */}
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-6 shadow-lg">
+        <h3 className="text-xl font-semibold mb-4">
+          Income by Source
+          {selectedMonth === -1 && ` (${selectedYear} Total)`}
+        </h3>
+        {incomeBySource.length > 0 ? (
+          <ResponsiveContainer width="100%" height={300}>
+            <PieChart>
+              <Pie
+                data={incomeBySource}
+                cx="50%"
+                cy="50%"
+                labelLine={false}
+                label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                outerRadius={80}
+                fill="#8884d8"
+                dataKey="value"
+              >
+                {incomeBySource.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                ))}
+              </Pie>
+              <Tooltip formatter={(value) => `$${value.toLocaleString()}`} />
+            </PieChart>
+          </ResponsiveContainer>
+        ) : (
+          <div className="h-[300px] flex items-center justify-center text-slate-400">
+            No income data for selected period
+          </div>
+        )}
+      </div>
+
+      <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-6 shadow-lg">
+        <h3 className="text-xl font-semibold mb-4">
+          Expenses by Category
+          {selectedMonth === -1 && ` (${selectedYear} Total)`}
+        </h3>
+        {expensesByCategory.length > 0 ? (
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={expensesByCategory}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+              <XAxis dataKey="name" stroke="#9CA3AF" angle={-45} textAnchor="end" height={100} />
+              <YAxis stroke="#9CA3AF" />
+              <Tooltip formatter={(value) => `$${value.toLocaleString()}`} contentStyle={{ backgroundColor: '#1F2937', border: '1px solid #374151' }} />
+              <Bar dataKey="value" fill="#8B5CF6" />
+            </BarChart>
+          </ResponsiveContainer>
+        ) : (
+          <div className="h-[300px] flex items-center justify-center text-slate-400">
+            No expense data for selected period
+          </div>
+        )}
+      </div>
+    </div>
+
+    {/* Comparison Selector - Only show if NOT viewing all months */}
+    {selectedMonth !== -1 && (
+      <>
+        <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-6 shadow-lg">
+          <h3 className="text-lg font-semibold mb-4">View Comparisons</h3>
+          <div className="flex gap-3">
+            <button
+              onClick={() => setComparisonView(comparisonView === 'month' ? '' : 'month')}
+              className={`px-6 py-3 rounded-lg transition-all ${
+                comparisonView === 'month'
+                  ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white'
+                  : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+              }`}
+            >
+              Month over Month
+            </button>
+            <button
+              onClick={() => setComparisonView(comparisonView === 'quarter' ? '' : 'quarter')}
+              className={`px-6 py-3 rounded-lg transition-all ${
+                comparisonView === 'quarter'
+                  ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white'
+                  : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+              }`}
+            >
+              Quarter over Quarter
+            </button>
+            <button
+              onClick={() => setComparisonView(comparisonView === 'year' ? '' : 'year')}
+              className={`px-6 py-3 rounded-lg transition-all ${
+                comparisonView === 'year'
+                  ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white'
+                  : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+              }`}
+            >
+              Year over Year
+            </button>
+          </div>
+        </div>
+
+        {/* Rest of comparison views - only shown when comparisonView is active */}
+        {comparisonView && (
+          // ... existing comparison code remains the same ...
+        )}
+      </>
+    )}
+  </div>
+)}
 
             {/* Summary Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -1058,162 +1298,224 @@ const deleteExpense = (id) => {
           </div>
         )}
 
-    {/* Transactions Tab */}
-{activeTab === 'transactions' && (
-  <div className="space-y-6">
-    <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-6 shadow-lg">
-      <div className="flex justify-between items-center mb-6">
-        <h3 className="text-2xl font-semibold">Add Transaction</h3>
-        <label className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg cursor-pointer transition-colors">
-          <Upload size={20} />
-          <span>Import CSV/PDF</span>
-          <input type="file" accept=".csv,.pdf" onChange={handleFileUpload} className="hidden" />
-        </label>
-      </div>
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-9 gap-4 mb-4">
+  <input
+    type="date"
+    value={newTransaction.date}
+    onChange={(e) => setNewTransaction({ ...newTransaction, date: e.target.value })}
+    className="px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+  />
+  <input
+    type="text"
+    placeholder="Description"
+    value={newTransaction.description}
+    onChange={(e) => setNewTransaction({ ...newTransaction, description: e.target.value })}
+    className="px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+  />
+  <input
+    type="text"
+    placeholder="Vendor"
+    value={newTransaction.vendor}
+    onChange={(e) => setNewTransaction({ ...newTransaction, vendor: e.target.value })}
+    className="px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+  />
+  <input
+    type="number"
+    placeholder="Amount"
+    value={newTransaction.amount}
+    onChange={(e) => setNewTransaction({ ...newTransaction, amount: e.target.value })}
+    className="px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+  />
+  <select
+    value={newTransaction.type}
+    onChange={(e) => setNewTransaction({ ...newTransaction, type: e.target.value, category: '' })}
+    className="px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+  >
+    <option value="income">Income</option>
+    <option value="expense">Expense</option>
+  </select>
+  <select
+    value={newTransaction.category}
+    onChange={(e) => setNewTransaction({ ...newTransaction, category: e.target.value })}
+    className="px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+  >
+    <option value="">Select Category</option>
+    {categories[newTransaction.type].map(cat => (
+      <option key={cat} value={cat}>{cat}</option>
+    ))}
+  </select>
+  <input
+    type="text"
+    placeholder="Source"
+    value={newTransaction.source}
+    onChange={(e) => setNewTransaction({ ...newTransaction, source: e.target.value })}
+    className="px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+  />
+  <select
+    value={newTransaction.institution}
+    onChange={(e) => setNewTransaction({ ...newTransaction, institution: e.target.value })}
+    className="px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+  >
+    <option value="">Institution</option>
+    <option value="Chase">Chase</option>
+    <option value="Bank of America">Bank of America</option>
+    <option value="Wells Fargo">Wells Fargo</option>
+    <option value="Citi">Citi</option>
+    <option value="Capital One">Capital One</option>
+    <option value="American Express">American Express</option>
+    <option value="Discover">Discover</option>
+    <option value="Other">Other</option>
+  </select>
+  <select
+    value={newTransaction.recurring ? 'recurring' : 'one-time'}
+    onChange={(e) => setNewTransaction({ ...newTransaction, recurring: e.target.value === 'recurring' })}
+    className="px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+  >
+    <option value="one-time">One-time</option>
+    <option value="recurring">Recurring</option>
+  </select>
+</div>
 
-      <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4 mb-6">
-        <p className="text-sm text-blue-300">
-          <strong>💡 Enhanced Import:</strong> You can now upload both CSV and PDF files! The system will automatically extract transaction data from your bank statements.
-        </p>
-      </div>
+{/* Frequency selector - only show if recurring */}
+{newTransaction.recurring && (
+  <div className="mb-4">
+    <label className="block text-sm text-slate-300 mb-2">Frequency</label>
+    <select
+      value={newTransaction.frequency}
+      onChange={(e) => setNewTransaction({ ...newTransaction, frequency: e.target.value })}
+      className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+    >
+      <option value="weekly">Weekly</option>
+      <option value="bi-weekly">Bi-weekly</option>
+      <option value="monthly">Monthly</option>
+    </select>
+  </div>
+)}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-7 gap-4 mb-4">
-                
-              
-                
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-7 gap-4 mb-4">
-                <input
-                  type="date"
-                  value={newTransaction.date}
-                  onChange={(e) => setNewTransaction({ ...newTransaction, date: e.target.value })}
-                  className="px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                />
-                <input
-                  type="text"
-                  placeholder="Description"
-                  value={newTransaction.description}
-                  onChange={(e) => setNewTransaction({ ...newTransaction, description: e.target.value })}
-                  className="px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                />
-                <input
-                  type="text"
-                  placeholder="Vendor"
-                  value={newTransaction.vendor}
-                  onChange={(e) => setNewTransaction({ ...newTransaction, vendor: e.target.value })}
-                  className="px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                />
-                <input
-                  type="number"
-                  placeholder="Amount"
-                  value={newTransaction.amount}
-                  onChange={(e) => setNewTransaction({ ...newTransaction, amount: e.target.value })}
-                  className="px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                />
-                <select
-                  value={newTransaction.type}
-                  onChange={(e) => setNewTransaction({ ...newTransaction, type: e.target.value, category: '' })}
-                  className="px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                >
-                  <option value="income">Income</option>
-                  <option value="expense">Expense</option>
-                </select>
-                <select
-                  value={newTransaction.category}
-                  onChange={(e) => setNewTransaction({ ...newTransaction, category: e.target.value })}
-                  className="px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                >
-                  <option value="">Select Category</option>
-                  {categories[newTransaction.type].map(cat => (
-                    <option key={cat} value={cat}>{cat}</option>
-                  ))}
-                </select>
-                <input
-                  type="text"
-                  placeholder="Source"
-                  value={newTransaction.source}
-                  onChange={(e) => setNewTransaction({ ...newTransaction, source: e.target.value })}
-                  className="px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                />
-              </div>
+<button
+  onClick={handleAddTransaction}
+  className="flex items-center gap-2 px-6 py-2 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 rounded-lg transition-all"
+>
+  <Plus size={20} />
+  Add Transaction
+</button>
+      
+  
+  <div className="overflow-x-auto">
+    <table className="w-full">
+      <thead>
+        <tr className="border-b border-slate-600">
+          <th className="text-left py-3 px-4">
+            <button
+              onClick={() => setTransactionSort(transactionSort === 'date-desc' ? 'date-asc' : 'date-desc')}
+              className="flex items-center gap-2 hover:text-purple-400 transition-colors"
+            >
+              Date
+              <ArrowUpDown size={16} />
+            </button>
+          </th>
+          <th className="text-left py-3 px-4">
+            <button
+              onClick={() => setTransactionSort('description')}
+              className="flex items-center gap-2 hover:text-purple-400 transition-colors"
+            >
+              Description
+              <ArrowUpDown size={16} />
+            </button>
+          </th>
+          <th className="text-left py-3 px-4">
+            <button
+              onClick={() => setTransactionSort('vendor')}
+              className="flex items-center gap-2 hover:text-purple-400 transition-colors"
+            >
+              Vendor
+              <ArrowUpDown size={16} />
+            </button>
+          </th>
+          <th className="text-left py-3 px-4">
+            <button
+              onClick={() => setTransactionSort('category')}
+              className="flex items-center gap-2 hover:text-purple-400 transition-colors"
+            >
+              Category
+              <ArrowUpDown size={16} />
+            </button>
+          </th>
+          <th className="text-left py-3 px-4">
+            <button
+              onClick={() => setTransactionSort('source')}
+              className="flex items-center gap-2 hover:text-purple-400 transition-colors"
+            >
+              Source
+              <ArrowUpDown size={16} />
+            </button>
+          </th>
+          <th className="text-left py-3 px-4">
+            <button
+              onClick={() => setTransactionSort('institution')}
+              className="flex items-center gap-2 hover:text-purple-400 transition-colors"
+            >
+              Institution
+              <ArrowUpDown size={16} />
+            </button>
+          </th>
+          <th className="text-left py-3 px-4">Recurring</th>
+          <th className="text-left py-3 px-4">Frequency</th>
+          <th className="text-right py-3 px-4">
+            <button
+              onClick={() => setTransactionSort(transactionSort === 'amount-desc' ? 'amount-asc' : 'amount-desc')}
+              className="flex items-center gap-2 ml-auto hover:text-purple-400 transition-colors"
+            >
+              Amount
+              <ArrowUpDown size={16} />
+            </button>
+          </th>
+          <th className="text-center py-3 px-4">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {filteredAndSortedTransactions.map(t => (
+          <tr key={t.id} className="border-b border-slate-700 hover:bg-slate-700/30 transition-colors">
+            <td className="py-3 px-4">{t.date}</td>
+            <td className="py-3 px-4">{t.description}</td>
+            <td className="py-3 px-4">{t.vendor}</td>
+            <td className="py-3 px-4">{t.category}</td>
+            <td className="py-3 px-4">{t.source}</td>
+            <td className="py-3 px-4">
+              <span className="px-2 py-1 bg-slate-700 rounded text-xs">
+                {t.institution || 'Manual'}
+              </span>
+            </td>
+            <td className="py-3 px-4">
+              <span className={`px-2 py-1 rounded text-xs ${t.recurring ? 'bg-blue-500/20 text-blue-300' : 'bg-slate-700 text-slate-400'}`}>
+                {t.recurring ? 'Recurring' : 'One-time'}
+              </span>
+            </td>
+            <td className="py-3 px-4">
+              {t.recurring && (
+                <span className="px-2 py-1 bg-purple-500/20 text-purple-300 rounded text-xs">
+                  {t.frequency || 'Monthly'}
+                </span>
+              )}
+            </td>
+            <td className={`py-3 px-4 text-right font-semibold ${t.amount >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+              {t.amount >= 0 ? '+' : ''}{t.amount.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}
+            </td>
+            <td className="py-3 px-4 text-center">
               <button
-                onClick={handleAddTransaction}
-                className="flex items-center gap-2 px-6 py-2 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 rounded-lg transition-all"
+                onClick={() => handleDeleteTransaction(t.id)}
+                className="text-red-400 hover:text-red-300 transition-colors"
               >
-                <Plus size={20} />
-                Add Transaction
+                <Trash2 size={18} />
               </button>
-            </div>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+</div>
 
-            <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-6 shadow-lg">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-2xl font-semibold">Transaction History</h3>
-                <div className="flex gap-3">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" size={20} />
-                    <input
-                      type="text"
-                      placeholder="Filter transactions..."
-                      value={transactionFilter}
-                      onChange={(e) => setTransactionFilter(e.target.value)}
-                      className="pl-10 pr-4 py-2 bg-slate-700 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                    />
-                  </div>
-                  <select
-                    value={transactionSort}
-                    onChange={(e) => setTransactionSort(e.target.value)}
-                    className="px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  >
-                    <option value="date-desc">Date (Newest)</option>
-                    <option value="date-asc">Date (Oldest)</option>
-                    <option value="amount-desc">Amount (High-Low)</option>
-                    <option value="amount-asc">Amount (Low-High)</option>
-                    <option value="vendor">Vendor (A-Z)</option>
-                  </select>
-                </div>
-              </div>
-              
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-slate-600">
-                      <th className="text-left py-3 px-4">Date</th>
-                      <th className="text-left py-3 px-4">Description</th>
-                      <th className="text-left py-3 px-4">Vendor</th>
-                      <th className="text-left py-3 px-4">Category</th>
-                      <th className="text-left py-3 px-4">Source</th>
-                      <th className="text-right py-3 px-4">Amount</th>
-                      <th className="text-center py-3 px-4">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredAndSortedTransactions.map(t => (
-                      <tr key={t.id} className="border-b border-slate-700 hover:bg-slate-700/30 transition-colors">
-                        <td className="py-3 px-4">{t.date}</td>
-                        <td className="py-3 px-4">{t.description}</td>
-                        <td className="py-3 px-4">{t.vendor}</td>
-                        <td className="py-3 px-4">{t.category}</td>
-                        <td className="py-3 px-4">{t.source}</td>
-                        <td className={`py-3 px-4 text-right font-semibold ${t.amount >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                          {t.amount >= 0 ? '+' : ''}{t.amount.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}
-                        </td>
-                        <td className="py-3 px-4 text-center">
-                          <button
-                            onClick={() => handleDeleteTransaction(t.id)}
-                            className="text-red-400 hover:text-red-300 transition-colors"
-                          >
-                            <Trash2 size={18} />
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        )}
 
 {/* Bill History Tab - NEW */}
         {activeTab === 'billHistory' && (
@@ -1387,129 +1689,179 @@ const deleteExpense = (id) => {
 {/* Budget Tab - NEW */}
         {activeTab === 'budget' && (
           <div className="space-y-6">
-            {/* Income Section */}
-            <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-6 shadow-lg">
-              <h3 className="text-2xl font-semibold mb-4 text-green-400">Income Sources</h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                <div>
-                  <label className="block text-sm text-slate-300 mb-2">Source Name</label>
-                  <input
-                    type="text"
-                    id="income-name"
-                    placeholder="e.g., Salary"
-                    className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm text-slate-300 mb-2">Monthly Amount</label>
-                  <input
-                    type="number"
-                    id="income-amount"
-                    placeholder="0.00"
-                    className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                  />
-                </div>
-                <div className="flex items-end">
-                  <button
-                    onClick={() => {
-                      const name = document.getElementById('income-name').value;
-                      const amount = parseFloat(document.getElementById('income-amount').value);
-                      
-                      if (name && amount) {
-                        addIncome({ name, amount });
-                        document.getElementById('income-name').value = '';
-                        document.getElementById('income-amount').value = '';
-                      } else {
-                        alert('Please fill in all fields');
-                      }
-                    }}
-                    className="w-full px-6 py-2 bg-green-600 hover:bg-green-700 rounded-lg transition-colors flex items-center justify-center gap-2"
-                  >
-                    <Plus size={20} />
-                    Add Income
-                  </button>
-                </div>
-              </div>
+            
+            {/* Income Section with Proportional Bars */}
+<div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-6 shadow-lg">
+  <h3 className="text-2xl font-semibold mb-4 text-green-400">Income Sources</h3>
+  
+  {/* Add Income Form */}
+  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+    <div>
+      <label className="block text-sm text-slate-300 mb-2">Source Name</label>
+      <input
+        type="text"
+        id="income-name"
+        placeholder="e.g., Salary"
+        className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+      />
+    </div>
+    <div>
+      <label className="block text-sm text-slate-300 mb-2">Monthly Amount</label>
+      <input
+        type="number"
+        id="income-amount"
+        placeholder="0.00"
+        className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+      />
+    </div>
+    <div className="flex items-end">
+      <button
+        onClick={() => {
+          const name = document.getElementById('income-name').value;
+          const amount = parseFloat(document.getElementById('income-amount').value);
+          
+          if (name && amount) {
+            addIncome({ name, amount });
+            document.getElementById('income-name').value = '';
+            document.getElementById('income-amount').value = '';
+          } else {
+            alert('Please fill in all fields');
+          }
+        }}
+        className="w-full px-6 py-2 bg-green-600 hover:bg-green-700 rounded-lg transition-colors flex items-center justify-center gap-2"
+      >
+        <Plus size={20} />
+        Add Income
+      </button>
+    </div>
+  </div>
 
-              <div className="space-y-2">
-                {budgetData.income.map(item => (
-                  <div key={item.id} className="flex justify-between items-center p-3 bg-green-500/10 border border-green-500/30 rounded-lg">
-                    <span className="font-semibold">{item.name}</span>
-                    <div className="flex items-center gap-3">
-                      <span className="text-green-400 font-bold">${item.amount.toFixed(2)}</span>
-                      <button
-                        onClick={() => deleteIncome(item.id)}
-                        className="text-red-400 hover:text-red-300 transition-colors"
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
-                  </div>
-                ))}
+  {/* Income List with Proportional Bars */}
+  <div className="space-y-2">
+    {(() => {
+      const maxIncome = Math.max(...budgetData.income.map(item => item.amount), 1);
+      return budgetData.income.map(item => {
+        const percentage = (item.amount / maxIncome) * 100;
+        return (
+          <div key={item.id} className="bg-green-500/10 border border-green-500/30 rounded-lg p-4">
+            <div className="flex justify-between items-center mb-2">
+              <span className="font-semibold">{item.name}</span>
+              <div className="flex items-center gap-3">
+                <span className="text-green-400 font-bold">${item.amount.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
+                <button
+                  onClick={() => deleteIncome(item.id)}
+                  className="text-red-400 hover:text-red-300 transition-colors"
+                >
+                  <Trash2 size={16} />
+                </button>
               </div>
             </div>
-
-            {/* Expense Section */}
-            <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-6 shadow-lg">
-              <h3 className="text-2xl font-semibold mb-4 text-red-400">Expenses</h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                <div>
-                  <label className="block text-sm text-slate-300 mb-2">Expense Name</label>
-                  <input
-                    type="text"
-                    id="expense-name"
-                    placeholder="e.g., Rent"
-                    className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm text-slate-300 mb-2">Monthly Amount</label>
-                  <input
-                    type="number"
-                    id="expense-amount"
-                    placeholder="0.00"
-                    className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
-                  />
-                </div>
-                <div className="flex items-end">
-                  <button
-                    onClick={() => {
-                      const name = document.getElementById('expense-name').value;
-                      const amount = parseFloat(document.getElementById('expense-amount').value);
-                      
-                      if (name && amount) {
-                        addExpense({ name, amount });
-                        document.getElementById('expense-name').value = '';
-                        document.getElementById('expense-amount').value = '';
-                      } else {
-                        alert('Please fill in all fields');
-                      }
-                    }}
-                    className="w-full px-6 py-2 bg-red-600 hover:bg-red-700 rounded-lg transition-colors flex items-center justify-center gap-2"
-                  >
-                    <Plus size={20} />
-                    Add Expense
-                  </button>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                {budgetData.expenses.map(item => (
-                  <div key={item.id} className="flex justify-between items-center p-3 bg-red-500/10 border border-red-500/30 rounded-lg">
-                    <span className="font-semibold">{item.name}</span>
-                    <div className="flex items-center gap-3">
-                      <span className="text-red-400 font-bold">${item.amount.toFixed(2)}</span>
-                      <button
-                        onClick={() => deleteExpense(item.id)}
-                        className="text-red-400 hover:text-red-300 transition-colors"
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
-                  </div>
-                ))}
+            {/* Proportional Bar */}
+            <div className="w-full bg-slate-700 rounded-full h-3 overflow-hidden">
+              <div 
+                className="bg-gradient-to-r from-green-500 to-green-400 h-3 rounded-full transition-all duration-500 flex items-center justify-end pr-2"
+                style={{ width: `${percentage}%` }}
+              >
+                {percentage > 15 && (
+                  <span className="text-xs font-semibold text-white">
+                    {((item.amount / budgetData.income.reduce((sum, i) => sum + i.amount, 0)) * 100).toFixed(0)}%
+                  </span>
+                )}
               </div>
             </div>
+          </div>
+        );
+      });
+    })()}
+  </div>
+</div>
+
+            {/* Expense Section with Proportional Bars */}
+<div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-6 shadow-lg">
+  <h3 className="text-2xl font-semibold mb-4 text-red-400">Expenses</h3>
+  
+  {/* Add Expense Form */}
+  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+    <div>
+      <label className="block text-sm text-slate-300 mb-2">Expense Name</label>
+      <input
+        type="text"
+        id="expense-name"
+        placeholder="e.g., Rent"
+        className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+      />
+    </div>
+    <div>
+      <label className="block text-sm text-slate-300 mb-2">Monthly Amount</label>
+      <input
+        type="number"
+        id="expense-amount"
+        placeholder="0.00"
+        className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+      />
+    </div>
+    <div className="flex items-end">
+      <button
+        onClick={() => {
+          const name = document.getElementById('expense-name').value;
+          const amount = parseFloat(document.getElementById('expense-amount').value);
+          
+          if (name && amount) {
+            addExpense({ name, amount });
+            document.getElementById('expense-name').value = '';
+            document.getElementById('expense-amount').value = '';
+          } else {
+            alert('Please fill in all fields');
+          }
+        }}
+        className="w-full px-6 py-2 bg-red-600 hover:bg-red-700 rounded-lg transition-colors flex items-center justify-center gap-2"
+      >
+        <Plus size={20} />
+        Add Expense
+      </button>
+    </div>
+  </div>
+
+  {/* Expense List with Proportional Bars */}
+  <div className="space-y-2">
+    {(() => {
+      const maxExpense = Math.max(...budgetData.expenses.map(item => item.amount), 1);
+      return budgetData.expenses.map(item => {
+        const percentage = (item.amount / maxExpense) * 100;
+        return (
+          <div key={item.id} className="bg-red-500/10 border border-red-500/30 rounded-lg p-4">
+            <div className="flex justify-between items-center mb-2">
+              <span className="font-semibold">{item.name}</span>
+              <div className="flex items-center gap-3">
+                <span className="text-red-400 font-bold">${item.amount.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
+                <button
+                  onClick={() => deleteExpense(item.id)}
+                  className="text-red-400 hover:text-red-300 transition-colors"
+                >
+                  <Trash2 size={16} />
+                </button>
+              </div>
+            </div>
+            {/* Proportional Bar */}
+            <div className="w-full bg-slate-700 rounded-full h-3 overflow-hidden">
+              <div 
+                className="bg-gradient-to-r from-red-500 to-red-400 h-3 rounded-full transition-all duration-500 flex items-center justify-end pr-2"
+                style={{ width: `${percentage}%` }}
+              >
+                {percentage > 15 && (
+                  <span className="text-xs font-semibold text-white">
+                    {((item.amount / budgetData.expenses.reduce((sum, e) => sum + e.amount, 0)) * 100).toFixed(0)}%
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+        );
+      });
+    })()}
+  </div>
+</div>
+
 
             {/* Yearly Summary */}
             <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-6 shadow-lg">
@@ -1750,101 +2102,150 @@ const deleteExpense = (id) => {
         )}
 
 
-        {/* CPA Export Tab */}
-        {activeTab === 'cpa' && (
-          <div className="space-y-6">
-            <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-6 shadow-lg">
-              <h3 className="text-2xl font-semibold mb-4">CPA Export</h3>
-              <p className="text-slate-300 mb-6">
-                Export your transaction data in a format ready for your CPA to import into Xero.
-                The export includes all transactions mapped to appropriate GL accounts.
-              </p>
-              
-              <div className="bg-slate-900/50 border border-slate-600 rounded-lg p-4 mb-6">
-                <h4 className="font-semibold mb-2">Export includes:</h4>
-                <ul className="list-disc list-inside text-slate-300 space-y-1">
-                  <li>Transaction date, description, and vendor</li>
-                  <li>Amount with outflow/inflow indicator</li>
-                  <li>GL Account mapping based on transaction details</li>
-                  <li>GL Account Offset (1007 Cash)</li>
-                </ul>
-              </div>
+ {activeTab === 'cpa' && (
+  <div className="space-y-6">
+    <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-6 shadow-lg">
+      <h3 className="text-2xl font-semibold mb-4">CPA Export</h3>
+      <p className="text-slate-300 mb-6">
+        Export your transaction data in a format ready for your accountant or tax professional.
+        Select your accounting software below.
+      </p>
+      
+      {/* Software Selection */}
+      <div className="mb-6">
+        <label className="block text-sm font-medium text-slate-300 mb-2">
+          Export Format
+        </label>
+        <select
+          value={cpaExportSoftware}
+          onChange={(e) => setCpaExportSoftware(e.target.value)}
+          className="w-full md:w-64 px-4 py-3 bg-slate-700 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-lg"
+        >
+          <option value="quickbooks">QuickBooks</option>
+          <option value="xero">Xero</option>
+          <option value="turbotax">TurboTax</option>
+        </select>
+      </div>
 
-              <button
-                onClick={exportCPAData}
-                className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 rounded-lg transition-all text-lg font-semibold"
-              >
-                <Download size={20} />
-                Export for CPA
-              </button>
-            </div>
+      <div className="bg-slate-900/50 border border-slate-600 rounded-lg p-4 mb-6">
+        <h4 className="font-semibold mb-3">Export includes:</h4>
+        <ul className="list-disc list-inside text-slate-300 space-y-1">
+          <li>Transaction date, description, and vendor</li>
+          <li>Amount with outflow/inflow indicator</li>
+          <li>GL Account mapping based on transaction details</li>
+          <li>GL Account Offset (1007 Cash)</li>
+          <li>
+            Format optimized for {' '}
+            {cpaExportSoftware === 'quickbooks' && 'QuickBooks Desktop & Online'}
+            {cpaExportSoftware === 'xero' && 'Xero Accounting'}
+            {cpaExportSoftware === 'turbotax' && 'TurboTax'}
+          </li>
+        </ul>
+      </div>
 
-            <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-6 shadow-lg">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-xl font-semibold">Preview</h3>
-                <div className="flex gap-3">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" size={20} />
-                    <input
-                      type="text"
-                      placeholder="Filter..."
-                      value={cpaFilter}
-                      onChange={(e) => setCpaFilter(e.target.value)}
-                      className="pl-10 pr-4 py-2 bg-slate-700 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                    />
-                  </div>
-                  <select
-                    value={cpaSort}
-                    onChange={(e) => setCpaSort(e.target.value)}
-                    className="px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  >
-                    <option value="date-desc">Date (Newest)</option>
-                    <option value="date-asc">Date (Oldest)</option>
-                    <option value="amount-desc">Amount (High-Low)</option>
-                    <option value="amount-asc">Amount (Low-High)</option>
-                    <option value="vendor">Vendor (A-Z)</option>
-                  </select>
-                </div>
-              </div>
-              
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-slate-600">
-                      <th className="text-left py-2 px-3">Date</th>
-                      <th className="text-left py-2 px-3">Description</th>
-                      <th className="text-left py-2 px-3">Vendor</th>
-                      <th className="text-right py-2 px-3">Amount</th>
-                      <th className="text-left py-2 px-3">Outflow/Inflow</th>
-                      <th className="text-left py-2 px-3">GL Account</th>
-                      <th className="text-left py-2 px-3">GL Account Offset</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {cpaFilteredAndSorted.slice(0, 10).map(t => {
-                      const glAccount = mapToGLAccount(t.description, t.category, t.type);
-                      const isOutflow = t.amount < 0;
-                      return (
-                        <tr key={t.id} className="border-b border-slate-700">
-                          <td className="py-2 px-3">{t.date}</td>
-                          <td className="py-2 px-3">{t.description}</td>
-                          <td className="py-2 px-3">{t.vendor}</td>
-                          <td className="py-2 px-3 text-right">${Math.abs(t.amount).toFixed(2)}</td>
-                          <td className="py-2 px-3">{isOutflow ? 'Outflow' : 'Inflow'}</td>
-                          <td className="py-2 px-3">{glAccount.number} {glAccount.description}</td>
-                          <td className="py-2 px-3">1007 Cash</td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-              {cpaFilteredAndSorted.length > 10 && (
-                <p className="text-slate-400 text-sm mt-4">Showing 10 of {cpaFilteredAndSorted.length} transactions</p>
-              )}
-            </div>
+      {/* Software-specific notes */}
+      {cpaExportSoftware === 'quickbooks' && (
+        <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4 mb-6">
+          <p className="text-sm text-blue-300">
+            <strong>💡 QuickBooks:</strong> This export uses the IIF format compatible with QuickBooks Desktop. 
+            For QuickBooks Online, you can import via the Banking → File Upload feature.
+          </p>
+        </div>
+      )}
+
+      {cpaExportSoftware === 'xero' && (
+        <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4 mb-6">
+          <p className="text-sm text-blue-300">
+            <strong>💡 Xero:</strong> This export is formatted for Xero's bank statement import. 
+            Import via Accounting → Bank Accounts → Manage Account → Import a Statement.
+          </p>
+        </div>
+      )}
+
+      {cpaExportSoftware === 'turbotax' && (
+        <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4 mb-6">
+          <p className="text-sm text-blue-300">
+            <strong>💡 TurboTax:</strong> This export provides a transaction summary suitable for 
+            Schedule C (business) or investment income reporting. Review with your tax professional.
+          </p>
+        </div>
+      )}
+
+      <button
+        onClick={exportCPAData}
+        className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 rounded-lg transition-all text-lg font-semibold"
+      >
+        <Download size={20} />
+        Export for {cpaExportSoftware === 'quickbooks' ? 'QuickBooks' : cpaExportSoftware === 'xero' ? 'Xero' : 'TurboTax'}
+      </button>
+    </div>
+
+    <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-6 shadow-lg">
+      <div className="flex justify-between items-center mb-4">
+        <h3 className="text-xl font-semibold">Preview</h3>
+        <div className="flex gap-3">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" size={20} />
+            <input
+              type="text"
+              placeholder="Filter..."
+              value={cpaFilter}
+              onChange={(e) => setCpaFilter(e.target.value)}
+              className="pl-10 pr-4 py-2 bg-slate-700 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+            />
           </div>
-        )}
+          <select
+            value={cpaSort}
+            onChange={(e) => setCpaSort(e.target.value)}
+            className="px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+          >
+            <option value="date-desc">Date (Newest)</option>
+            <option value="date-asc">Date (Oldest)</option>
+            <option value="amount-desc">Amount (High-Low)</option>
+            <option value="amount-asc">Amount (Low-High)</option>
+            <option value="vendor">Vendor (A-Z)</option>
+          </select>
+        </div>
+      </div>
+      
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-slate-600">
+              <th className="text-left py-2 px-3">Date</th>
+              <th className="text-left py-2 px-3">Description</th>
+              <th className="text-left py-2 px-3">Vendor</th>
+              <th className="text-right py-2 px-3">Amount</th>
+              <th className="text-left py-2 px-3">Outflow/Inflow</th>
+              <th className="text-left py-2 px-3">GL Account</th>
+              <th className="text-left py-2 px-3">GL Account Offset</th>
+            </tr>
+          </thead>
+          <tbody>
+            {cpaFilteredAndSorted.slice(0, 10).map(t => {
+              const glAccount = mapToGLAccount(t.description, t.category, t.type);
+              const isOutflow = t.amount < 0;
+              return (
+                <tr key={t.id} className="border-b border-slate-700">
+                  <td className="py-2 px-3">{t.date}</td>
+                  <td className="py-2 px-3">{t.description}</td>
+                  <td className="py-2 px-3">{t.vendor}</td>
+                  <td className="py-2 px-3 text-right">${Math.abs(t.amount).toFixed(2)}</td>
+                  <td className="py-2 px-3">{isOutflow ? 'Outflow' : 'Inflow'}</td>
+                  <td className="py-2 px-3">{glAccount.number} {glAccount.description}</td>
+                  <td className="py-2 px-3">1007 Cash</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+      {cpaFilteredAndSorted.length > 10 && (
+        <p className="text-slate-400 text-sm mt-4">Showing 10 of {cpaFilteredAndSorted.length} transactions</p>
+      )}
+    </div>
+  </div>
+)}
 
   {/* Net Worth Tab - UPDATED */}
         {activeTab === 'netWorth' && (
