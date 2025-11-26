@@ -37,9 +37,9 @@ const initSupabase = async () => {
   try {
     const { createClient } = await import('@supabase/supabase-js');
     supabase = createClient(
-      'https://qemlptqjuxxvamxyxzal.supabase.co',
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFlbWxwdHFqdXh4dmFteHl4emFsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzI1ODY4MjcsImV4cCI6MjA0ODE2MjgyN30.s3rXoRAK5M9U2VbCO8LhYtYhmqxrh9LKN4xyNIy3PfE'
-    );
+  import.meta.env.VITE_SUPABASE_URL,
+  import.meta.env.VITE_SUPABASE_ANON_KEY
+);
     return supabase;
   } catch (e) {
     console.error('Supabase init error:', e);
