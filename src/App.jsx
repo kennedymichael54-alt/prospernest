@@ -422,17 +422,6 @@ const filteredAndSortedTransactions = useMemo(() => {
   });
 }, [transactions, transactionFilter, transactionSort]);
 
-    return filtered.sort((a, b) => {
-      switch (transactionSort) {
-        case 'date-desc': return new Date(b.date) - new Date(a.date);
-        case 'date-asc': return new Date(a.date) - new Date(b.date);
-        case 'amount-desc': return Math.abs(b.amount) - Math.abs(a.amount);
-        case 'amount-asc': return Math.abs(a.amount) - Math.abs(b.amount);
-        case 'vendor': return a.vendor.localeCompare(b.vendor);
-        default: return 0;
-      }
-    });
-  }, [transactions, transactionFilter, transactionSort]);
 
   // CPA filtered and sorted
   const cpaFilteredAndSorted = useMemo(() => {
