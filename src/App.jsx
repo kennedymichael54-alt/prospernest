@@ -804,6 +804,8 @@ function Dashboard({ user, setView, data, setData }) {
   const [activeTab, setActiveTab] = useState('home');
   const [showAddModal, setShowAddModal] = useState(false);
   const [netWorthHidden, setNetWorthHidden] = useState(false);
+  const [showAIChat, setShowAIChat] = useState(false);
+const [lastImportDate] = useState(new Date()); 
 
   const handleSignOut = async () => {
     const sb = await initSupabase();
@@ -817,20 +819,60 @@ function Dashboard({ user, setView, data, setData }) {
 
       
       {/* Header */}
-      <header style={{ background: 'rgba(30, 27, 56, 0.8)', backdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(255,255,255,0.1)', padding: '16px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-          <button onClick={() => setView('landing')} style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'linear-gradient(135deg, #8B5CF6, #EC4899)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <span style={{ color: 'white', fontWeight: 'bold', fontSize: '18px' }}>FF</span>
-          </button>
-          <div>
-            <div style={{ fontWeight: '600', fontSize: '18px' }}>Family Finance</div>
-            <div style={{ fontSize: '14px', color: 'rgba(255,255,255,0.6)' }}>Welcome back, {userName}!</div>
-          </div>
-        </div>
-        <button onClick={handleSignOut} style={{ padding: '10px 20px', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '10px', color: 'white', cursor: 'pointer', fontSize: '14px' }}>
-          Sign Out
-        </button>
-      </header>
+<header style={{ 
+  background: 'rgba(30, 27, 56, 0.8)', 
+  backdropFilter: 'blur(20px)', 
+  borderBottom: '1px solid rgba(255,255,255,0.1)', 
+  padding: '16px 24px', 
+  display: 'flex', 
+  alignItems: 'center', 
+  justifyContent: 'space-between' 
+}}>
+  <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+    <button onClick={() => setView('landing')} style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'linear-gradient(135deg, #8B5CF6, #EC4899)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <span style={{ color: 'white', fontWeight: 'bold', fontSize: '18px' }}>FF</span>
+    </button>
+    <div>
+      <div style={{ fontWeight: '600', fontSize: '18px' }}>Family Finance</div>
+      <div style={{ fontSize: '14px', color: 'rgba(255,255,255,0.6)' }}>Welcome back, {userName}!</div>
+    </div>
+  </div>
+  
+  {/* Right Side: Last Import + Today's Date + Sign Out */}
+  <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+    {/* Last Import Timestamp */}
+    <div style={{ 
+      fontSize: '13px', 
+      color: 'rgba(255,255,255,0.6)',
+      display: 'flex',
+      alignItems: 'center',
+      gap: '6px'
+    }}>
+      <span style={{ fontSize: '16px' }}>📥</span>
+      <span>Last import: {lastImportDate.toLocaleDateString()} at {lastImportDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+    </div>
+
+    {/* Today's Date */}
+    <div style={{ 
+      fontSize: '13px', 
+      color: 'rgba(255,255,255,0.6)',
+      display: 'flex',
+      alignItems: 'center',
+      gap: '6px',
+      padding: '8px 12px',
+      background: 'rgba(255,255,255,0.05)',
+      borderRadius: '8px'
+    }}>
+      <span style={{ fontSize: '16px' }}>📅</span>
+      <span>{new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}</span>
+    </div>
+
+    {/* Sign Out Button */}
+    <button onClick={handleSignOut} style={{ padding: '10px 20px', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '10px', color: 'white', cursor: 'pointer', fontSize: '14px' }}>
+      Sign Out
+    </button>
+  </div>
+</header>
 
       
 
@@ -881,25 +923,33 @@ function Dashboard({ user, setView, data, setData }) {
 {activeTab === 'settings' && <SettingsTab />}
       </main>
 
-
       
-      {/* Floating Action Button */}
-      <button
-        onClick={() => setShowAddModal(true)}
-        style={{
-          position: 'fixed', bottom: '24px', right: '24px',
-          width: '60px', height: '60px', borderRadius: '50%',
-          background: 'linear-gradient(135deg, #8B5CF6, #EC4899)',
-          border: 'none', cursor: 'pointer', fontSize: '28px', color: 'white',
-          boxShadow: '0 4px 20px rgba(139, 92, 246, 0.4)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center'
-        }}
-      >
-        +
-      </button>
+      {/* AI Assistant Button */}
+<button
+  onClick={() => setShowAIChat(true)}
+  style={{
+    position: 'fixed', bottom: '24px', right: '24px',
+    width: '60px', height: '60px', borderRadius: '50%',
+    background: 'linear-gradient(135deg, #8B5CF6, #EC4899)',
+    border: 'none', cursor: 'pointer', fontSize: '28px', color: 'white',
+    boxShadow: '0 4px 20px rgba(139, 92, 246, 0.4)',
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    transition: 'all 0.3s ease'
+  }}
+  onMouseEnter={(e) => {
+    e.currentTarget.style.transform = 'scale(1.05)';
+    e.currentTarget.style.boxShadow = '0 6px 30px rgba(139, 92, 246, 0.6)';
+  }}
+  onMouseLeave={(e) => {
+    e.currentTarget.style.transform = 'scale(1)';
+    e.currentTarget.style.boxShadow = '0 4px 20px rgba(139, 92, 246, 0.4)';
+  }}
+>
+  🤖
+</button>
 
-      {/* Add Modal */}
-      {showAddModal && <AddModal onClose={() => setShowAddModal(false)} data={data} setData={setData} />}
+      {/* AI Assistant Modal */}
+{showAIChat && <AIAssistantModal onClose={() => setShowAIChat(false)} data={data} />}
 
       <style>{`
   @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
@@ -1256,6 +1306,310 @@ function AddModal({ onClose, data, setData }) {
     </div>
   );
 }
+
+// ============================================================================
+// AI ASSISTANT MODAL
+// ============================================================================
+
+function AIAssistantModal({ onClose, data }) {
+  const [messages, setMessages] = useState([
+    { 
+      role: 'assistant', 
+      content: "Hi! 👋 I'm your Family Finance AI assistant. I can help you:\n\n• Analyze your spending patterns\n• Suggest budget optimizations\n• Answer questions about your finances\n• Provide insights on your goals\n• Help track bills and payments\n\nWhat would you like to know?" 
+    }
+  ]);
+  const [input, setInput] = useState('');
+  const [loading, setLoading] = useState(false);
+  const messagesEndRef = useRef(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  const sendMessage = async () => {
+    if (!input.trim() || loading) return;
+    
+    const userMessage = input.trim();
+    setInput('');
+    setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
+    setLoading(true);
+
+    // Simulate AI response (replace with actual AI integration)
+    setTimeout(() => {
+      let response = "I'd be happy to help with that! ";
+      const lower = userMessage.toLowerCase();
+
+      // Context-aware responses based on user's data
+      if (lower.includes('budget') || lower.includes('spending')) {
+        const totalSpent = data.budget.spent;
+        const totalBudget = data.budget.total;
+        const pct = ((totalSpent / totalBudget) * 100).toFixed(1);
+        response = `Based on your current data:\n\n💰 You've spent $${totalSpent.toLocaleString()} of your $${totalBudget.toLocaleString()} budget (${pct}%).\n\n`;
+        
+        // Find over-budget categories
+        const overBudget = data.budget.categories.filter(c => c.spent > c.budget);
+        if (overBudget.length > 0) {
+          response += `⚠️ You're over budget in ${overBudget.length} ${overBudget.length === 1 ? 'category' : 'categories'}:\n`;
+          overBudget.forEach(c => {
+            response += `• ${c.emoji} ${c.name}: $${c.spent} / $${c.budget} (+$${(c.spent - c.budget).toFixed(0)})\n`;
+          });
+          response += '\n💡 Tip: Consider reducing spending in these areas next month.';
+        } else {
+          response += '✨ Great job! All categories are within budget.';
+        }
+      } else if (lower.includes('bill') || lower.includes('payment')) {
+        const overdue = data.bills.filter(b => b.status === 'overdue');
+        const upcoming = data.bills.filter(b => b.status === 'upcoming');
+        
+        response = `📅 Bill Status:\n\n`;
+        if (overdue.length > 0) {
+          response += `😤 ${overdue.length} overdue ${overdue.length === 1 ? 'bill' : 'bills'}:\n`;
+          overdue.forEach(b => response += `• ${b.emoji} ${b.name}: $${b.amount}\n`);
+          response += '\n';
+        }
+        response += `📌 ${upcoming.length} upcoming ${upcoming.length === 1 ? 'bill' : 'bills'} (total: $${upcoming.reduce((sum, b) => sum + b.amount, 0).toFixed(2)})\n\n`;
+        response += overdue.length > 0 ? '⚡ Priority: Pay overdue bills first!' : '✅ You\'re all caught up!';
+      } else if (lower.includes('goal') || lower.includes('saving')) {
+        const goals = data.goals;
+        const totalSaved = goals.reduce((sum, g) => sum + g.current, 0);
+        const totalTarget = goals.reduce((sum, g) => sum + g.target, 0);
+        const overallPct = ((totalSaved / totalTarget) * 100).toFixed(1);
+        
+        response = `🎯 Goals Progress:\n\n`;
+        response += `Overall: $${totalSaved.toLocaleString()} / $${totalTarget.toLocaleString()} (${overallPct}%)\n\n`;
+        goals.forEach(g => {
+          const pct = ((g.current / g.target) * 100).toFixed(0);
+          const status = pct >= 100 ? '✅' : pct >= 75 ? '🟢' : pct >= 50 ? '🟡' : '🔴';
+          response += `${status} ${g.emoji} ${g.name}: ${pct}%\n`;
+        });
+        
+        const nextGoal = goals.filter(g => (g.current / g.target) < 1).sort((a, b) => (b.current / b.target) - (a.current / a.target))[0];
+        if (nextGoal) {
+          const remaining = nextGoal.target - nextGoal.current;
+          response += `\n💡 Focus: You're closest to completing ${nextGoal.emoji} ${nextGoal.name} (only $${remaining.toLocaleString()} to go!)`;
+        }
+      } else if (lower.includes('insight') || lower.includes('tip')) {
+        response = `💡 Smart Insights:\n\n`;
+        response += `📊 Your savings rate is ${data.savingsRate.current}% (target: ${data.savingsRate.target}%)\n`;
+        response += `🔥 At this rate, you'll reach FIRE in ${data.savingsRate.fireTimeline}\n\n`;
+        response += `✨ Quick wins:\n`;
+        response += `• Increase savings by ${data.savingsRate.target - data.savingsRate.current}% to hit your target\n`;
+        response += `• This month's surplus: $${data.cashFlow.net.toLocaleString()}\n`;
+        response += `• Consider allocating to your closest goal: ${data.goals[0].emoji} ${data.goals[0].name}`;
+      } else if (lower.includes('net worth') || lower.includes('wealth')) {
+        response = `💰 Net Worth Analysis:\n\n`;
+        response += `Current: $${data.netWorth.total.toLocaleString()}\n`;
+        response += `Change: +${data.netWorth.change}% (vs last month)\n\n`;
+        response += `📈 Breakdown:\n`;
+        response += `• Assets: $${data.netWorth.breakdown.assets.toLocaleString()}\n`;
+        response += `• Liabilities: -$${data.netWorth.breakdown.liabilities.toLocaleString()}\n\n`;
+        response += `🎯 You're building wealth! Keep it up!`;
+      } else {
+        response += "I can help you with:\n\n";
+        response += "• Budget analysis ('How's my budget?')\n";
+        response += "• Bill tracking ('What bills are due?')\n";
+        response += "• Goal progress ('How are my goals?')\n";
+        response += "• Smart insights ('Give me tips')\n";
+        response += "• Net worth tracking ('What's my net worth?')\n\n";
+        response += "What would you like to explore?";
+      }
+
+      setMessages(prev => [...prev, { role: 'assistant', content: response }]);
+      setLoading(false);
+    }, 1000);
+  };
+
+  return (
+    <div 
+      style={{ 
+        position: 'fixed', 
+        inset: 0, 
+        background: 'rgba(0,0,0,0.8)', 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'center', 
+        zIndex: 1001,
+        backdropFilter: 'blur(8px)'
+      }} 
+      onClick={onClose}
+    >
+      <div 
+        style={{ 
+          background: 'rgba(30, 27, 56, 0.98)', 
+          backdropFilter: 'blur(20px)', 
+          borderRadius: '24px', 
+          width: '90%', 
+          maxWidth: '600px',
+          maxHeight: '80vh',
+          border: '1px solid rgba(139, 92, 246, 0.3)',
+          boxShadow: '0 20px 60px rgba(139, 92, 246, 0.3)',
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden'
+        }} 
+        onClick={e => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div style={{ 
+          padding: '20px 24px', 
+          background: 'linear-gradient(135deg, #8B5CF6, #EC4899)', 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'space-between',
+          borderBottom: '1px solid rgba(255,255,255,0.1)'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <span style={{ fontSize: '28px' }}>🤖</span>
+            <div>
+              <h3 style={{ fontSize: '18px', fontWeight: '600', color: 'white', margin: 0 }}>
+                AI Financial Assistant
+              </h3>
+              <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.8)', margin: 0 }}>
+                Powered by your data
+              </p>
+            </div>
+          </div>
+          <button 
+            onClick={onClose}
+            style={{ 
+              width: '32px', 
+              height: '32px', 
+              borderRadius: '50%', 
+              background: 'rgba(255,255,255,0.2)', 
+              border: 'none', 
+              color: 'white', 
+              fontSize: '20px', 
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              transition: 'all 0.2s ease'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.3)'}
+            onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.2)'}
+          >
+            ×
+          </button>
+        </div>
+
+        {/* Messages */}
+        <div style={{ 
+          flex: 1, 
+          overflowY: 'auto', 
+          padding: '20px', 
+          display: 'flex', 
+          flexDirection: 'column', 
+          gap: '16px'
+        }}>
+          {messages.map((msg, i) => (
+            <div 
+              key={i} 
+              style={{ 
+                display: 'flex', 
+                justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start',
+                animation: 'slideIn 0.3s ease'
+              }}
+            >
+              <div style={{
+                maxWidth: '75%',
+                padding: '12px 16px',
+                borderRadius: '16px',
+                background: msg.role === 'user' 
+                  ? 'linear-gradient(135deg, #8B5CF6, #EC4899)' 
+                  : 'rgba(255,255,255,0.08)',
+                color: 'white',
+                fontSize: '14px',
+                lineHeight: 1.6,
+                whiteSpace: 'pre-wrap',
+                wordBreak: 'break-word'
+              }}>
+                {msg.content}
+              </div>
+            </div>
+          ))}
+          {loading && (
+            <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
+              <div style={{
+                padding: '12px 16px',
+                borderRadius: '16px',
+                background: 'rgba(255,255,255,0.08)',
+                color: 'rgba(255,255,255,0.6)',
+                fontSize: '14px'
+              }}>
+                <span style={{ animation: 'pulse 1.5s infinite' }}>Thinking...</span>
+              </div>
+            </div>
+          )}
+          <div ref={messagesEndRef} />
+        </div>
+
+        {/* Input */}
+        <div style={{ 
+          padding: '16px 20px', 
+          borderTop: '1px solid rgba(255,255,255,0.1)',
+          background: 'rgba(0,0,0,0.2)'
+        }}>
+          <div style={{ display: 'flex', gap: '12px' }}>
+            <input
+              value={input}
+              onChange={e => setInput(e.target.value)}
+              onKeyPress={e => e.key === 'Enter' && !e.shiftKey && sendMessage()}
+              placeholder="Ask about your finances..."
+              disabled={loading}
+              style={{
+                flex: 1,
+                padding: '12px 16px',
+                background: 'rgba(255,255,255,0.1)',
+                border: '1px solid rgba(255,255,255,0.2)',
+                borderRadius: '12px',
+                color: 'white',
+                fontSize: '14px',
+                outline: 'none',
+                transition: 'all 0.2s ease'
+              }}
+              onFocus={(e) => e.target.style.borderColor = 'rgba(139, 92, 246, 0.5)'}
+              onBlur={(e) => e.target.style.borderColor = 'rgba(255,255,255,0.2)'}
+            />
+            <button 
+              onClick={sendMessage}
+              disabled={loading || !input.trim()}
+              style={{ 
+                padding: '12px 24px', 
+                background: loading || !input.trim() 
+                  ? 'rgba(139, 92, 246, 0.3)'
+                  : 'linear-gradient(135deg, #8B5CF6, #EC4899)', 
+                border: 'none', 
+                borderRadius: '12px', 
+                color: 'white', 
+                fontSize: '14px',
+                fontWeight: '600',
+                cursor: loading || !input.trim() ? 'not-allowed' : 'pointer',
+                opacity: loading || !input.trim() ? 0.5 : 1,
+                transition: 'all 0.2s ease',
+                whiteSpace: 'nowrap'
+              }}
+            >
+              Send →
+            </button>
+          </div>
+          <p style={{ 
+            fontSize: '11px', 
+            color: 'rgba(255,255,255,0.4)', 
+            margin: '8px 0 0 0',
+            textAlign: 'center'
+          }}>
+            💡 Try: "How's my budget?" or "What bills are due?"
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 
 // ============================================================================
 // EXPORT
