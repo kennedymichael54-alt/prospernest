@@ -955,8 +955,12 @@ function HomeTab({ data, netWorthHidden, setNetWorthHidden }) {
 
   return (
     <div style={{ animation: 'slideIn 0.3s ease' }}>
+
+      
       {/* TOP SECTION - Hero Stats */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px', marginBottom: '24px' }}>
+
+        
         {/* Net Worth Card */}
         <div style={{ background: 'linear-gradient(135deg, #8B5CF6, #7C3AED)', borderRadius: '20px', padding: '24px', position: 'relative', overflow: 'hidden' }}>
           <div style={{ position: 'absolute', top: '-20px', right: '-20px', width: '100px', height: '100px', background: 'rgba(255,255,255,0.1)', borderRadius: '50%' }} />
@@ -1087,6 +1091,7 @@ function HomeTab({ data, netWorthHidden, setNetWorthHidden }) {
 
       {/* BOTTOM SECTION - Snapshots */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '20px' }}>
+        
         {/* Retirement */}
         <div style={{ background: 'rgba(30, 27, 56, 0.8)', backdropFilter: 'blur(20px)', borderRadius: '20px', padding: '24px', border: '1px solid rgba(255,255,255,0.1)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px' }}>
@@ -1285,39 +1290,7 @@ function GoalsTab({ data, setData }) {
           <button onClick={addGoal} style={{ padding: '12px 24px', background: 'linear-gradient(135deg, #8B5CF6, #EC4899)', border: 'none', borderRadius: '8px', color: 'white', cursor: 'pointer', fontWeight: '600' }}>Add</button>
         </div>
       </div>
-
-      {/* Goals List */}
-      <div style={{ display: 'grid', gap: '16px' }}>
-        {data.goals.map(goal => {
-          const pct = (goal.current / goal.target) * 100;
-          return (
-            <div key={goal.id} style={{ background: 'rgba(30, 27, 56, 0.8)', backdropFilter: 'blur(20px)', borderRadius: '16px', padding: '24px', border: '1px solid rgba(255,255,255,0.1)' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <span style={{ fontSize: '32px' }}>{goal.emoji}</span>
-                  <div>
-                    <div style={{ fontWeight: '600', fontSize: '18px' }}>{goal.name}</div>
-                    <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: '14px' }}>
-                      ${goal.current.toLocaleString()} of ${goal.target.toLocaleString()} ({pct.toFixed(1)}%)
-                    </div>
-                  </div>
-                </div>
-                <div style={{ display: 'flex', gap: '8px' }}>
-                  {[50, 100, 500].map(amt => (
-                    <button key={amt} onClick={() => addToGoal(goal.id, amt)} style={{ padding: '8px 12px', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '8px', color: 'white', cursor: 'pointer', fontSize: '13px' }}>
-                      +${amt}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div style={{ height: '12px', background: 'rgba(255,255,255,0.1)', borderRadius: '6px', overflow: 'hidden' }}>
-                <div style={{ width: `${pct}%`, height: '100%', background: `linear-gradient(90deg, ${goal.color}, #EC4899)`, borderRadius: '6px', transition: 'width 0.5s ease' }} />
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </div>
+});
   );
 }
 
