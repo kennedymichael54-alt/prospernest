@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, createContext, useContext } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 // ============================================
 // CONFIGURATION
@@ -19,44 +19,6 @@ const initSupabase = async () => {
   }
 };
 
-const haptic = {
-  light: () => navigator.vibrate?.(10),
-  medium: () => navigator.vibrate?.(20),
-  success: () => navigator.vibrate?.([10, 50, 20]),
-  error: () => navigator.vibrate?.([50, 30, 50]),
-};
-
-// ============================================
-// LOGO COMPONENT
-// ============================================
-function Logo({ size = 40, onClick }) {
-  return (
-    <button onClick={onClick} className="flex-shrink-0">
-      <svg viewBox="0 0 120 120" fill="none" style={{ width: size, height: size }}>
-        <defs>
-          <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#8B5CF6"/>
-            <stop offset="100%" stopColor="#EC4899"/>
-          </linearGradient>
-        </defs>
-        <circle cx="60" cy="60" r="60" fill="url(#logoGrad)"/>
-        <ellipse cx="60" cy="38" rx="28" ry="22" fill="white"/>
-        <ellipse cx="42" cy="48" rx="16" ry="14" fill="white"/>
-        <ellipse cx="78" cy="48" rx="16" ry="14" fill="white"/>
-        <ellipse cx="50" cy="32" rx="12" ry="10" fill="white"/>
-        <ellipse cx="70" cy="32" rx="12" ry="10" fill="white"/>
-        <path d="M54 58 L54 78 L66 78 L66 58 Z" fill="white"/>
-        <circle cx="45" cy="88" r="5" fill="white"/>
-        <path d="M45 93 L45 102" stroke="white" strokeWidth="3" strokeLinecap="round"/>
-        <circle cx="75" cy="88" r="5" fill="white"/>
-        <path d="M75 93 L75 102" stroke="white" strokeWidth="3" strokeLinecap="round"/>
-        <circle cx="60" cy="90" r="4" fill="white"/>
-        <path d="M60 94 L60 102" stroke="white" strokeWidth="2.5" strokeLinecap="round"/>
-      </svg>
-    </button>
-  );
-}
-
 // ============================================
 // ERROR BOUNDARY
 // ============================================
@@ -66,11 +28,10 @@ class ErrorBoundary extends React.Component {
   render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen bg-slate-900 flex items-center justify-center p-6">
-          <div className="text-center">
-            <Logo size={64} />
-            <h2 className="text-xl font-semibold text-white mt-4 mb-2">Something went wrong</h2>
-            <button onClick={() => window.location.reload()} className="px-6 py-3 bg-purple-600 text-white rounded-full font-medium mt-4">
+        <div style={{ minHeight: '100vh', background: '#0c0a1d', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>
+          <div style={{ textAlign: 'center' }}>
+            <h2>Something went wrong</h2>
+            <button onClick={() => window.location.reload()} style={{ marginTop: 16, padding: '12px 24px', background: '#8B5CF6', border: 'none', borderRadius: 8, color: 'white', cursor: 'pointer' }}>
               Try Again
             </button>
           </div>
@@ -82,13 +43,18 @@ class ErrorBoundary extends React.Component {
 }
 
 // ============================================
-// AI CHATBOT
+// AI CHATBOT COMPONENT
 // ============================================
 function AIChatbot({ isOpen, onClose }) {
   const [messages, setMessages] = useState([
-    { role: 'assistant', content: "👋 Hi! I'm the Family Finance assistant. How can I help you today?" }
+    { role: 'assistant', content: "👋 Hi! I'm the Family Finance AI assistant. Ask me anything about our products, pricing, or features!" }
   ]);
   const [input, setInput] = useState('');
+  const messagesEndRef = useRef(null);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
 
   const handleSend = () => {
     if (!input.trim()) return;
@@ -96,16 +62,18 @@ function AIChatbot({ isOpen, onClose }) {
     setMessages(prev => [...prev, { role: 'user', content: input }]);
     setInput('');
 
-    let response = "I'd be happy to help! Feel free to ask about our pricing, features, or how to get started.";
+    let response = "Great question! Our team is here to help. Start your free trial to explore all features.";
 
-    if (q.includes('price') || q.includes('cost')) {
-      response = "💰 Our pricing is simple:\n\n• HomeBudget Hub: $9.99/mo\n• BusinessBudget Hub: +$4.99/mo\n• REAnalyzer Hub: +$6.99/mo\n\nSave 17% with annual billing! All plans include a 14-day free trial.";
+    if (q.includes('price') || q.includes('cost') || q.includes('how much')) {
+      response = "💰 **Pricing:**\n\n• HomeBudget Hub: $9.99/mo (or $99/year - save 17%)\n• BusinessBudget Hub: +$4.99/mo add-on\n• REAnalyzer Hub: +$6.99/mo add-on\n\nAll plans include a 14-day free trial!";
     } else if (q.includes('free') || q.includes('trial')) {
-      response = "🎉 Yes! We offer a 14-day free trial with full access. No credit card required to start!";
+      response = "🎉 Yes! We offer a 14-day free trial with full access. No credit card required to start.";
     } else if (q.includes('family') || q.includes('share')) {
-      response = "👨‍👩‍👧‍👦 All plans include family sharing for up to 5 members at no extra cost!";
+      response = "👨‍👩‍👧‍👦 Family sharing is included! Add up to 5 family members at no extra cost.";
     } else if (q.includes('security') || q.includes('safe')) {
-      response = "🔒 We use 256-bit bank-level encryption. We never sell your data and only use read-only access.";
+      response = "🔒 We use 256-bit bank-level encryption. We never sell your data.";
+    } else if (q.includes('bank') || q.includes('connect')) {
+      response = "🏦 We support unlimited bank connections with real-time sync from 10,000+ institutions.";
     }
 
     setTimeout(() => {
@@ -116,34 +84,51 @@ function AIChatbot({ isOpen, onClose }) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed bottom-24 right-6 z-50 w-80 bg-slate-900 rounded-2xl border border-purple-500/30 shadow-2xl shadow-purple-500/20 overflow-hidden">
-      <div className="p-4 bg-gradient-to-r from-purple-600 to-pink-600 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <span className="text-xl">🤖</span>
-          <span className="font-semibold text-white">AI Assistant</span>
+    <div style={{
+      position: 'fixed', bottom: 100, right: 24, zIndex: 1000,
+      width: 340, maxWidth: 'calc(100vw - 48px)',
+      background: 'rgba(15, 12, 41, 0.98)', backdropFilter: 'blur(20px)',
+      borderRadius: 20, border: '1px solid rgba(139, 92, 246, 0.3)',
+      boxShadow: '0 25px 50px rgba(139, 92, 246, 0.3)',
+      overflow: 'hidden'
+    }}>
+      <div style={{ padding: 16, background: 'linear-gradient(135deg, #8B5CF6, #EC4899)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <span style={{ fontSize: 20 }}>🤖</span>
+          <span style={{ fontWeight: 600, color: 'white' }}>AI Assistant</span>
         </div>
-        <button onClick={onClose} className="text-white/80 hover:text-white text-xl">×</button>
+        <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'white', fontSize: 24, cursor: 'pointer', lineHeight: 1 }}>×</button>
       </div>
-      <div className="h-64 overflow-y-auto p-4 space-y-3">
+      <div style={{ height: 280, overflowY: 'auto', padding: 16 }}>
         {messages.map((m, i) => (
-          <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-            <div className={`max-w-[85%] p-3 rounded-xl text-sm whitespace-pre-wrap ${
-              m.role === 'user' ? 'bg-purple-600 text-white' : 'bg-slate-800 text-white/90'
-            }`}>
+          <div key={i} style={{ display: 'flex', justifyContent: m.role === 'user' ? 'flex-end' : 'flex-start', marginBottom: 12 }}>
+            <div style={{
+              maxWidth: '85%', padding: 12, borderRadius: 16,
+              background: m.role === 'user' ? 'linear-gradient(135deg, #8B5CF6, #EC4899)' : 'rgba(255,255,255,0.1)',
+              color: 'white', fontSize: 14, whiteSpace: 'pre-wrap'
+            }}>
               {m.content}
             </div>
           </div>
         ))}
+        <div ref={messagesEndRef} />
       </div>
-      <div className="p-3 border-t border-slate-700 flex gap-2">
+      <div style={{ padding: 12, borderTop: '1px solid rgba(255,255,255,0.1)', display: 'flex', gap: 8 }}>
         <input
           value={input}
           onChange={e => setInput(e.target.value)}
           onKeyPress={e => e.key === 'Enter' && handleSend()}
           placeholder="Ask a question..."
-          className="flex-1 px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white text-sm placeholder-slate-400 focus:outline-none focus:border-purple-500"
+          style={{
+            flex: 1, padding: '10px 14px', background: 'rgba(255,255,255,0.05)',
+            border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10,
+            color: 'white', fontSize: 14, outline: 'none'
+          }}
         />
-        <button onClick={handleSend} className="px-3 py-2 bg-purple-600 rounded-lg text-sm font-medium">
+        <button onClick={handleSend} style={{
+          padding: '10px 16px', background: 'linear-gradient(135deg, #8B5CF6, #EC4899)',
+          border: 'none', borderRadius: 10, color: 'white', fontWeight: 500, cursor: 'pointer'
+        }}>
           Send
         </button>
       </div>
@@ -152,7 +137,7 @@ function AIChatbot({ isOpen, onClose }) {
 }
 
 // ============================================
-// LANDING PAGE
+// LANDING PAGE - HOMEBUDDY LAYOUT WITH FAMILY FINANCE BRANDING
 // ============================================
 function LandingPage({ onNavigateToAuth }) {
   const [chatOpen, setChatOpen] = useState(false);
@@ -160,359 +145,336 @@ function LandingPage({ onNavigateToAuth }) {
   const [expandedFaq, setExpandedFaq] = useState(null);
 
   const faqs = [
-    { q: "How does the free trial work?", a: "Start with 14 days of full access. No credit card required. Cancel anytime." },
+    { q: "How does the 14-day free trial work?", a: "Start using Family Finance immediately with full access. No credit card required. Cancel anytime before the trial ends." },
     { q: "Can I share with my family?", a: "Yes! All plans include sharing with up to 5 family members at no extra cost." },
-    { q: "Is my data secure?", a: "Absolutely. We use 256-bit encryption and never sell your data." },
-    { q: "Can I cancel anytime?", a: "Yes, cancel anytime. Annual subscribers get a prorated refund." },
-    { q: "What banks do you support?", a: "We support 10,000+ financial institutions including all major banks." },
+    { q: "Is my financial data secure?", a: "Absolutely. We use 256-bit bank-level encryption and never sell your data." },
+    { q: "Can I cancel anytime?", a: "Yes, cancel anytime with no questions asked. Annual subscribers get a prorated refund." },
+    { q: "What banks do you support?", a: "We support 10,000+ financial institutions including all major banks, credit unions, and investment accounts." },
   ];
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white">
+    <div style={{ minHeight: '100vh', background: '#0c0a1d', color: 'white', position: 'relative', overflow: 'hidden' }}>
+      {/* Background Image - Family at Beach */}
+      <div style={{
+        position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 0,
+        backgroundImage: 'url(https://images.unsplash.com/photo-1511895426328-dc8714191300?w=1920&q=80)',
+        backgroundSize: 'cover', backgroundPosition: 'center',
+        opacity: 0.15
+      }} />
+      
+      {/* Purple Gradient Overlays */}
+      <div style={{ position: 'absolute', top: '20%', right: '20%', width: 400, height: 400, background: 'radial-gradient(circle, rgba(139, 92, 246, 0.4) 0%, transparent 70%)', filter: 'blur(60px)', zIndex: 1 }} />
+      <div style={{ position: 'absolute', bottom: '30%', right: '30%', width: 300, height: 300, background: 'radial-gradient(circle, rgba(236, 72, 153, 0.3) 0%, transparent 70%)', filter: 'blur(60px)', zIndex: 1 }} />
+      <div style={{ position: 'absolute', top: '50%', left: '10%', width: 250, height: 250, background: 'radial-gradient(circle, rgba(139, 92, 246, 0.2) 0%, transparent 70%)', filter: 'blur(50px)', zIndex: 1 }} />
+
       {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-slate-950/90 backdrop-blur-xl border-b border-white/5">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Logo size={36} />
-            <span className="text-lg font-bold">Family Finance</span>
-          </div>
-          <div className="hidden md:flex items-center gap-8 text-sm text-white/60">
-            <a href="#features" className="hover:text-white transition-colors">Features</a>
-            <a href="#pricing" className="hover:text-white transition-colors">Pricing</a>
-          </div>
-          <button
-            onClick={() => onNavigateToAuth('login')}
-            className="px-5 py-2 bg-white/10 hover:bg-white/20 rounded-full text-sm font-medium transition-all border border-white/10"
-          >
+      <nav style={{ position: 'relative', zIndex: 10, padding: '20px 40px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', maxWidth: 1400, margin: '0 auto' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div style={{ width: 40, height: 40, borderRadius: 12, background: 'linear-gradient(135deg, #8B5CF6, #EC4899)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 16 }}>FF</div>
+          <span style={{ fontSize: 20, fontWeight: 700 }}>Family Finance</span>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 32 }}>
+          <a href="#features" style={{ color: 'rgba(255,255,255,0.7)', textDecoration: 'none', fontSize: 14 }}>Features</a>
+          <a href="#pricing" style={{ color: 'rgba(255,255,255,0.7)', textDecoration: 'none', fontSize: 14 }}>Pricing</a>
+          <button onClick={() => onNavigateToAuth('login')} style={{ padding: '10px 24px', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: 50, color: 'white', fontSize: 14, cursor: 'pointer' }}>
             Log In
           </button>
         </div>
       </nav>
 
       {/* Hero Section */}
-      <section className="relative min-h-screen flex items-center justify-center pt-20">
-        {/* Background Image - Family at Beach Sunset */}
-        <div className="absolute inset-0">
-          <img 
-            src="https://images.unsplash.com/photo-1511895426328-dc8714191300?w=1920&q=80"
-            alt="Family at sunset"
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-950/80 to-slate-950/60"></div>
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-slate-950/80"></div>
-        </div>
-
-        {/* Content */}
-        <div className="relative z-10 max-w-7xl mx-auto px-6 py-20 grid lg:grid-cols-2 gap-12 items-center">
-          {/* Left Side - Text */}
-          <div>
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-500/20 border border-emerald-500/30 rounded-full text-sm text-emerald-400 mb-6">
-              <span className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></span>
-              Trusted by 10,000+ families
-            </div>
-
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight mb-6">
-              Your Family's{' '}
-              <span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-                Financial Command Center
-              </span>
-            </h1>
-
-            <p className="text-lg text-white/60 mb-8 max-w-xl">
-              Three powerful hubs. One simple app. Take control of your home budget, track investments, and analyze real estate—all in one place.
-            </p>
-
-            <div className="flex flex-wrap gap-4 mb-10">
-              <button
-                onClick={() => onNavigateToAuth('signup')}
-                className="px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full font-semibold text-lg hover:opacity-90 transition-all shadow-lg shadow-purple-500/30"
-              >
-                Start Free Trial →
-              </button>
-              <button className="px-8 py-4 bg-white/10 border border-white/20 rounded-full font-semibold text-lg hover:bg-white/20 transition-all flex items-center gap-2">
-                ▶ Watch Demo
-              </button>
-            </div>
-
-            {/* Stats */}
-            <div className="flex gap-8">
-              <div>
-                <div className="text-2xl font-bold">$2.4B+</div>
-                <div className="text-white/40 text-sm">Assets Tracked</div>
-              </div>
-              <div>
-                <div className="text-2xl font-bold flex items-center gap-1">4.9<span className="text-yellow-400">★</span></div>
-                <div className="text-white/40 text-sm">App Store</div>
-              </div>
-              <div>
-                <div className="text-2xl font-bold">256-bit</div>
-                <div className="text-white/40 text-sm">Encryption</div>
-              </div>
-            </div>
+      <section style={{ position: 'relative', zIndex: 10, maxWidth: 1400, margin: '0 auto', padding: '80px 40px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 60, alignItems: 'center' }}>
+        {/* Left Content */}
+        <div>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '8px 16px', background: 'rgba(16, 185, 129, 0.2)', border: '1px solid rgba(16, 185, 129, 0.3)', borderRadius: 50, marginBottom: 24 }}>
+            <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#10B981', animation: 'pulse 2s infinite' }} />
+            <span style={{ color: '#10B981', fontSize: 14 }}>Trusted by 10,000+ families</span>
           </div>
 
-          {/* Right Side - Dashboard Preview */}
-          <div className="hidden lg:block">
-            <div className="bg-slate-900/80 backdrop-blur-xl rounded-3xl border border-white/10 p-6 shadow-2xl">
-              <div className="flex items-center gap-2 mb-4">
-                <div className="w-3 h-3 rounded-full bg-purple-500"></div>
-                <span className="text-sm font-medium">Dashboard</span>
-              </div>
-              <div className="bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl p-6 mb-4">
-                <div className="text-white/70 text-sm">Net Worth</div>
-                <div className="text-4xl font-bold">$847,320</div>
-                <div className="text-emerald-300 text-sm mt-1">+12.4% this year</div>
-              </div>
-              <div className="grid grid-cols-4 gap-3">
-                {['🏠', '📈', '💳', '🎯'].map((icon, i) => (
-                  <div key={i} className="aspect-square bg-slate-800 rounded-xl flex items-center justify-center text-2xl">
-                    {icon}
-                  </div>
-                ))}
-              </div>
+          <h1 style={{ fontSize: 56, fontWeight: 700, lineHeight: 1.1, marginBottom: 24 }}>
+            Your Family's{' '}
+            <span style={{ background: 'linear-gradient(135deg, #8B5CF6, #EC4899)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+              Financial Command Center
+            </span>
+          </h1>
+
+          <p style={{ fontSize: 18, color: 'rgba(255,255,255,0.6)', marginBottom: 32, lineHeight: 1.6 }}>
+            Three powerful hubs. One simple app. Take control of your home budget, track investments, and analyze real estate—all in one place.
+          </p>
+
+          <div style={{ display: 'flex', gap: 16, marginBottom: 48 }}>
+            <button onClick={() => onNavigateToAuth('signup')} style={{
+              padding: '16px 32px', background: 'linear-gradient(135deg, #8B5CF6, #EC4899)',
+              border: 'none', borderRadius: 50, color: 'white', fontSize: 16, fontWeight: 600, cursor: 'pointer',
+              boxShadow: '0 10px 40px rgba(139, 92, 246, 0.4)'
+            }}>
+              Start Free Trial →
+            </button>
+            <button style={{ padding: '16px 32px', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: 50, color: 'white', fontSize: 16, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}>
+              ▶ Watch Demo
+            </button>
+          </div>
+
+          {/* Stats */}
+          <div style={{ display: 'flex', gap: 48 }}>
+            <div>
+              <div style={{ fontSize: 28, fontWeight: 700 }}>$2.4B+</div>
+              <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.5)' }}>Assets Tracked</div>
+            </div>
+            <div>
+              <div style={{ fontSize: 28, fontWeight: 700 }}>4.9<span style={{ color: '#FBBF24' }}>★</span></div>
+              <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.5)' }}>App Store</div>
+            </div>
+            <div>
+              <div style={{ fontSize: 28, fontWeight: 700 }}>256-bit</div>
+              <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.5)' }}>Encryption</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Right - Dashboard Preview */}
+        <div style={{ display: 'flex', justifyContent: 'center' }}>
+          <div style={{
+            background: 'rgba(30, 27, 56, 0.8)', backdropFilter: 'blur(20px)',
+            borderRadius: 24, border: '1px solid rgba(255,255,255,0.1)',
+            padding: 24, width: 340, boxShadow: '0 25px 80px rgba(0,0,0,0.5)'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+              <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#8B5CF6' }} />
+              <span style={{ fontSize: 14, fontWeight: 500 }}>Dashboard</span>
+            </div>
+            <div style={{ background: 'linear-gradient(135deg, #8B5CF6, #EC4899)', borderRadius: 16, padding: 20, marginBottom: 16 }}>
+              <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.8)', marginBottom: 4 }}>Net Worth</div>
+              <div style={{ fontSize: 36, fontWeight: 700 }}>$847,320</div>
+              <div style={{ fontSize: 14, color: '#86EFAC', marginTop: 4 }}>+12.4%</div>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
+              {['🏠', '📈', '💳', '🎯'].map((icon, i) => (
+                <div key={i} style={{ aspectRatio: '1', background: 'rgba(255,255,255,0.05)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>
+                  {icon}
+                </div>
+              ))}
             </div>
           </div>
         </div>
       </section>
 
-      {/* Features Section */}
-      <section id="features" className="py-24 px-6 bg-slate-950">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-purple-500/20 border border-purple-500/30 rounded-full text-sm text-purple-400 mb-4">
-              THREE POWERFUL HUBS
+      {/* Products Section */}
+      <section id="features" style={{ position: 'relative', zIndex: 10, padding: '100px 40px', maxWidth: 1400, margin: '0 auto' }}>
+        <div style={{ textAlign: 'center', marginBottom: 60 }}>
+          <div style={{ display: 'inline-block', padding: '8px 20px', background: 'rgba(139, 92, 246, 0.2)', border: '1px solid rgba(139, 92, 246, 0.3)', borderRadius: 50, fontSize: 14, color: '#A78BFA', marginBottom: 16 }}>
+            THREE POWERFUL HUBS
+          </div>
+          <h2 style={{ fontSize: 48, fontWeight: 700, marginBottom: 16 }}>Everything Your Family Needs</h2>
+          <p style={{ fontSize: 18, color: 'rgba(255,255,255,0.5)' }}>Purpose-built tools for modern family finances</p>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 24 }}>
+          {/* HomeBudget Hub - Most Popular */}
+          <div style={{ position: 'relative', background: 'rgba(30, 27, 56, 0.8)', borderRadius: 24, padding: 32, border: '1px solid rgba(139, 92, 246, 0.3)' }}>
+            <div style={{ position: 'absolute', top: -12, left: '50%', transform: 'translateX(-50%)', padding: '6px 16px', background: 'linear-gradient(135deg, #8B5CF6, #EC4899)', borderRadius: 50, fontSize: 12, fontWeight: 600 }}>
+              Most Popular
             </div>
-            <h2 className="text-4xl lg:text-5xl font-bold mb-4">Everything Your Family Needs</h2>
-            <p className="text-white/50 text-lg">Purpose-built tools for modern family finances</p>
+            <div style={{ width: 56, height: 56, borderRadius: 16, background: 'linear-gradient(135deg, #10B981, #14B8A6)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28, marginBottom: 20 }}>🏠</div>
+            <h3 style={{ fontSize: 22, fontWeight: 700, marginBottom: 8 }}>HomeBudget Hub</h3>
+            <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.5)', marginBottom: 20 }}>Track spending, manage bills, and build budgets that actually work for your family.</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {['Automatic transaction categorization', 'Bill reminders & payment tracking', 'Family spending insights', 'Goal setting & progress tracking'].map((f, i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, color: 'rgba(255,255,255,0.7)' }}>
+                  <span style={{ color: '#10B981' }}>✓</span> {f}
+                </div>
+              ))}
+            </div>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-6">
-            {/* HomeBudget Hub */}
-            <div className="relative bg-slate-900/80 rounded-3xl p-8 border border-purple-500/30">
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full text-xs font-bold">
-                Most Popular
-              </div>
-              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-2xl mb-6">
-                🏠
-              </div>
-              <h3 className="text-xl font-bold mb-2">HomeBudget Hub</h3>
-              <p className="text-white/50 text-sm mb-6">Track spending, manage bills, and build budgets that work for your family.</p>
-              <ul className="space-y-2">
-                {['Automatic categorization', 'Bill reminders', 'Family insights', 'Goal tracking'].map((f, i) => (
-                  <li key={i} className="flex items-center gap-2 text-sm text-white/70">
-                    <span className="text-emerald-400">✓</span> {f}
-                  </li>
-                ))}
-              </ul>
+          {/* BusinessBudget Hub - Coming Soon */}
+          <div style={{ position: 'relative', background: 'rgba(30, 27, 56, 0.5)', borderRadius: 24, padding: 32, border: '1px solid rgba(255,255,255,0.1)' }}>
+            <div style={{ position: 'absolute', top: -12, left: '50%', transform: 'translateX(-50%)', padding: '6px 16px', background: 'rgba(251, 191, 36, 0.2)', border: '1px solid rgba(251, 191, 36, 0.4)', borderRadius: 50, fontSize: 12, fontWeight: 600, color: '#FBBF24' }}>
+              Coming Soon
             </div>
-
-            {/* BusinessBudget Hub */}
-            <div className="relative bg-slate-900/50 rounded-3xl p-8 border border-white/10">
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 bg-amber-500/30 border border-amber-500/50 rounded-full text-xs font-medium text-amber-300">
-                Coming Soon
-              </div>
-              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center text-2xl mb-6">
-                💼
-              </div>
-              <h3 className="text-xl font-bold mb-2">BusinessBudget Hub</h3>
-              <p className="text-white/50 text-sm mb-6">Powerful tools for small and medium business finances.</p>
-              <ul className="space-y-2">
-                {['Cash flow forecasting', 'Expense management', 'Team access', 'Financial reports'].map((f, i) => (
-                  <li key={i} className="flex items-center gap-2 text-sm text-white/70">
-                    <span className="text-emerald-400">✓</span> {f}
-                  </li>
-                ))}
-              </ul>
+            <div style={{ width: 56, height: 56, borderRadius: 16, background: 'linear-gradient(135deg, #3B82F6, #06B6D4)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28, marginBottom: 20 }}>💼</div>
+            <h3 style={{ fontSize: 22, fontWeight: 700, marginBottom: 8 }}>BusinessBudget Hub</h3>
+            <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.5)', marginBottom: 20 }}>Powerful tools for small and medium business financial management.</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {['Cash flow forecasting', 'Expense management', 'Team access controls', 'Financial reports & invoicing'].map((f, i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, color: 'rgba(255,255,255,0.7)' }}>
+                  <span style={{ color: '#10B981' }}>✓</span> {f}
+                </div>
+              ))}
             </div>
+          </div>
 
-            {/* REAnalyzer Hub */}
-            <div className="relative bg-slate-900/50 rounded-3xl p-8 border border-white/10">
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 bg-amber-500/30 border border-amber-500/50 rounded-full text-xs font-medium text-amber-300">
-                Coming Soon
-              </div>
-              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center text-2xl mb-6">
-                🏢
-              </div>
-              <h3 className="text-xl font-bold mb-2">REAnalyzer Hub</h3>
-              <p className="text-white/50 text-sm mb-6">Analyze properties and build your real estate portfolio.</p>
-              <ul className="space-y-2">
-                {['Property analysis', 'ROI calculator', 'Market comparisons', 'Equity tracking'].map((f, i) => (
-                  <li key={i} className="flex items-center gap-2 text-sm text-white/70">
-                    <span className="text-emerald-400">✓</span> {f}
-                  </li>
-                ))}
-              </ul>
+          {/* REAnalyzer Hub - Coming Soon */}
+          <div style={{ position: 'relative', background: 'rgba(30, 27, 56, 0.5)', borderRadius: 24, padding: 32, border: '1px solid rgba(255,255,255,0.1)' }}>
+            <div style={{ position: 'absolute', top: -12, left: '50%', transform: 'translateX(-50%)', padding: '6px 16px', background: 'rgba(251, 191, 36, 0.2)', border: '1px solid rgba(251, 191, 36, 0.4)', borderRadius: 50, fontSize: 12, fontWeight: 600, color: '#FBBF24' }}>
+              Coming Soon
+            </div>
+            <div style={{ width: 56, height: 56, borderRadius: 16, background: 'linear-gradient(135deg, #F97316, #EAB308)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28, marginBottom: 20 }}>🏢</div>
+            <h3 style={{ fontSize: 22, fontWeight: 700, marginBottom: 8 }}>REAnalyzer Hub</h3>
+            <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.5)', marginBottom: 20 }}>Analyze properties, calculate returns, and build your real estate portfolio.</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {['Property analysis calculator', 'Rental income tracking', 'Market comparisons', 'Equity growth monitoring'].map((f, i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, color: 'rgba(255,255,255,0.7)' }}>
+                  <span style={{ color: '#10B981' }}>✓</span> {f}
+                </div>
+              ))}
             </div>
           </div>
         </div>
       </section>
 
       {/* Pricing & FAQ Section */}
-      <section id="pricing" className="py-24 px-6 bg-gradient-to-b from-slate-950 to-slate-900">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-12">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-purple-500/20 border border-purple-500/30 rounded-full text-sm text-purple-400 mb-4">
-              Simple Pricing
-            </div>
-            <h2 className="text-4xl lg:text-5xl font-bold mb-4">One Price. All Features.</h2>
-            <p className="text-white/50">No hidden fees, no upsells, no complexity</p>
+      <section id="pricing" style={{ position: 'relative', zIndex: 10, padding: '100px 40px', maxWidth: 1200, margin: '0 auto' }}>
+        <div style={{ textAlign: 'center', marginBottom: 60 }}>
+          <div style={{ display: 'inline-block', padding: '8px 20px', background: 'rgba(139, 92, 246, 0.2)', border: '1px solid rgba(139, 92, 246, 0.3)', borderRadius: 50, fontSize: 14, color: '#A78BFA', marginBottom: 16 }}>
+            Simple Pricing
           </div>
+          <h2 style={{ fontSize: 48, fontWeight: 700, marginBottom: 16 }}>One Price. All Features.</h2>
+          <p style={{ fontSize: 18, color: 'rgba(255,255,255,0.5)' }}>No hidden fees, no upsells, no complexity</p>
+        </div>
 
-          <div className="grid lg:grid-cols-2 gap-8 max-w-5xl mx-auto">
-            {/* Pricing Card */}
-            <div className="bg-slate-900 rounded-3xl p-8 border border-purple-500/30">
-              {/* Toggle */}
-              <div className="flex items-center justify-center gap-4 mb-8">
-                <span className={`text-sm ${!isAnnual ? 'text-white' : 'text-white/50'}`}>Monthly</span>
-                <button
-                  onClick={() => setIsAnnual(!isAnnual)}
-                  className={`relative w-14 h-7 rounded-full transition-colors ${isAnnual ? 'bg-purple-600' : 'bg-slate-700'}`}
-                >
-                  <div className={`absolute top-1 w-5 h-5 rounded-full bg-white transition-transform ${isAnnual ? 'translate-x-8' : 'translate-x-1'}`} />
-                </button>
-                <span className={`text-sm ${isAnnual ? 'text-white' : 'text-white/50'}`}>
-                  Annual <span className="text-emerald-400">(save 17%)</span>
-                </span>
-              </div>
-
-              {/* Price */}
-              <div className="text-center mb-8">
-                <div className="text-5xl font-bold">
-                  ${isAnnual ? '8.29' : '9.99'}
-                  <span className="text-xl text-white/50">/mo</span>
-                </div>
-                {isAnnual && <p className="text-white/50 text-sm mt-1">Billed $99/year</p>}
-              </div>
-
-              {/* Products */}
-              <div className="space-y-3 mb-6">
-                <div className="flex items-center justify-between p-4 bg-purple-500/20 rounded-xl border border-purple-500/30">
-                  <div className="flex items-center gap-3">
-                    <span className="text-xl">🏠</span>
-                    <span className="font-medium">HomeBudget Hub</span>
-                  </div>
-                  <span className="text-emerald-400 text-sm">Included</span>
-                </div>
-                <div className="flex items-center justify-between p-4 bg-slate-800/50 rounded-xl border border-white/10">
-                  <div className="flex items-center gap-3">
-                    <span className="text-xl">💼</span>
-                    <div>
-                      <span className="font-medium">BusinessBudget Hub</span>
-                      <span className="text-amber-400 text-xs ml-2">Coming Soon</span>
-                    </div>
-                  </div>
-                  <span className="text-white/50 text-sm">+$4.99/mo</span>
-                </div>
-                <div className="flex items-center justify-between p-4 bg-slate-800/50 rounded-xl border border-white/10">
-                  <div className="flex items-center gap-3">
-                    <span className="text-xl">🏢</span>
-                    <div>
-                      <span className="font-medium">REAnalyzer Hub</span>
-                      <span className="text-amber-400 text-xs ml-2">Coming Soon</span>
-                    </div>
-                  </div>
-                  <span className="text-white/50 text-sm">+$6.99/mo</span>
-                </div>
-              </div>
-
-              {/* Features */}
-              <ul className="space-y-2 mb-8">
-                {['Unlimited bank connections', 'Family sharing (5 members)', 'Real-time sync', 'Priority support', 'Data export'].map((f, i) => (
-                  <li key={i} className="flex items-center gap-2 text-sm text-white/70">
-                    <span className="text-purple-400">✓</span> {f}
-                  </li>
-                ))}
-              </ul>
-
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 40 }}>
+          {/* Pricing Card */}
+          <div style={{ background: 'rgba(30, 27, 56, 0.8)', borderRadius: 24, padding: 32, border: '1px solid rgba(139, 92, 246, 0.3)' }}>
+            {/* Toggle */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16, marginBottom: 32 }}>
+              <span style={{ fontSize: 14, color: !isAnnual ? 'white' : 'rgba(255,255,255,0.5)' }}>Monthly</span>
               <button
-                onClick={() => onNavigateToAuth('signup')}
-                className="w-full py-4 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl font-semibold text-lg hover:opacity-90 transition-all"
+                onClick={() => setIsAnnual(!isAnnual)}
+                style={{ width: 56, height: 28, borderRadius: 14, background: isAnnual ? '#8B5CF6' : 'rgba(255,255,255,0.2)', border: 'none', position: 'relative', cursor: 'pointer' }}
               >
-                Start 14-Day Free Trial
+                <div style={{ position: 'absolute', top: 4, width: 20, height: 20, borderRadius: '50%', background: 'white', transition: 'left 0.2s', left: isAnnual ? 32 : 4 }} />
               </button>
-              <p className="text-center text-white/40 text-sm mt-3">No credit card required</p>
+              <span style={{ fontSize: 14, color: isAnnual ? 'white' : 'rgba(255,255,255,0.5)' }}>
+                Annual <span style={{ color: '#10B981' }}>(save 17%)</span>
+              </span>
+            </div>
 
-              {/* Alternatives */}
-              <div className="mt-6 pt-6 border-t border-white/10 text-center">
-                <p className="text-white/40 text-xs">
-                  <span className="text-white/60">Alternate products:</span> Monarch ($14.99), YNAB ($14.99), Quicken ($5.99)
-                </p>
+            {/* Price */}
+            <div style={{ textAlign: 'center', marginBottom: 32 }}>
+              <div style={{ fontSize: 56, fontWeight: 700 }}>
+                <span style={{ fontSize: 24, color: 'rgba(255,255,255,0.5)' }}>$</span>
+                {isAnnual ? '8' : '9'}
+                <span style={{ fontSize: 24, color: 'rgba(255,255,255,0.5)' }}>.{isAnnual ? '29' : '99'}/mo</span>
+              </div>
+              {isAnnual && <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 14 }}>or $99/year (save 17%)</p>}
+            </div>
+
+            {/* Products */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 24 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: 16, background: 'rgba(139, 92, 246, 0.2)', borderRadius: 12, border: '1px solid rgba(139, 92, 246, 0.3)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}><span style={{ fontSize: 20 }}>🏠</span><span style={{ fontWeight: 500 }}>HomeBudget Hub</span></div>
+                <span style={{ color: '#10B981', fontSize: 14 }}>Included</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: 16, background: 'rgba(255,255,255,0.05)', borderRadius: 12, border: '1px solid rgba(255,255,255,0.1)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}><span style={{ fontSize: 20 }}>💼</span><span style={{ fontWeight: 500 }}>BusinessBudget Hub</span><span style={{ fontSize: 10, color: '#FBBF24', marginLeft: 4 }}>Coming Soon</span></div>
+                <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: 14 }}>+$4.99/mo</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: 16, background: 'rgba(255,255,255,0.05)', borderRadius: 12, border: '1px solid rgba(255,255,255,0.1)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}><span style={{ fontSize: 20 }}>🏢</span><span style={{ fontWeight: 500 }}>REAnalyzer Hub</span><span style={{ fontSize: 10, color: '#FBBF24', marginLeft: 4 }}>Coming Soon</span></div>
+                <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: 14 }}>+$6.99/mo</span>
               </div>
             </div>
 
-            {/* FAQ */}
-            <div>
-              <h3 className="text-2xl font-bold mb-6">Frequently Asked Questions</h3>
-              <div className="space-y-3">
-                {faqs.map((faq, i) => (
-                  <div key={i} className="bg-slate-900/50 rounded-xl border border-white/10 overflow-hidden">
-                    <button
-                      onClick={() => setExpandedFaq(expandedFaq === i ? null : i)}
-                      className="w-full p-4 flex items-center justify-between text-left hover:bg-white/5 transition-colors"
-                    >
-                      <span className="font-medium">{faq.q}</span>
-                      <span className={`transition-transform ${expandedFaq === i ? 'rotate-45' : ''}`}>+</span>
-                    </button>
-                    {expandedFaq === i && (
-                      <div className="px-4 pb-4 text-white/60 text-sm">{faq.a}</div>
-                    )}
-                  </div>
-                ))}
-              </div>
+            {/* Features */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 24 }}>
+              {['All 3 Hubs included', 'Unlimited bank connections', 'Family sharing (up to 5 members)', 'Real-time transaction sync', 'Advanced analytics & reports', 'Priority support', 'Data export anytime'].map((f, i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, color: 'rgba(255,255,255,0.7)' }}>
+                  <span style={{ color: '#A78BFA' }}>✓</span> {f}
+                </div>
+              ))}
+            </div>
+
+            <button onClick={() => onNavigateToAuth('signup')} style={{
+              width: '100%', padding: '16px', background: 'linear-gradient(135deg, #8B5CF6, #EC4899)',
+              border: 'none', borderRadius: 12, color: 'white', fontSize: 16, fontWeight: 600, cursor: 'pointer'
+            }}>
+              Start 14-Day Free Trial
+            </button>
+            <p style={{ textAlign: 'center', color: 'rgba(255,255,255,0.4)', fontSize: 13, marginTop: 12 }}>No credit card required</p>
+
+            {/* Alternatives */}
+            <div style={{ marginTop: 24, paddingTop: 24, borderTop: '1px solid rgba(255,255,255,0.1)', textAlign: 'center' }}>
+              <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12 }}>
+                <span style={{ color: 'rgba(255,255,255,0.6)' }}>Alternate products:</span> Monarch ($14.99), YNAB ($14.99), Quicken ($5.99)
+              </p>
             </div>
           </div>
-        </div>
-      </section>
 
-      {/* CTA Section */}
-      <section className="py-24 px-6 relative overflow-hidden">
-        <div className="absolute inset-0">
-          <img 
-            src="https://images.unsplash.com/photo-1609220136736-443140cffec6?w=1920&q=80"
-            alt="Happy family"
-            className="w-full h-full object-cover opacity-30"
-          />
-          <div className="absolute inset-0 bg-gradient-to-r from-purple-900/80 to-pink-900/80"></div>
-        </div>
-        <div className="relative z-10 max-w-3xl mx-auto text-center">
-          <h2 className="text-4xl lg:text-5xl font-bold mb-6">Ready to Take Control?</h2>
-          <p className="text-xl text-white/70 mb-8">Join thousands of families building a better financial future.</p>
-          <button
-            onClick={() => onNavigateToAuth('signup')}
-            className="px-10 py-4 bg-white text-slate-900 rounded-full font-bold text-lg hover:bg-white/90 transition-all"
-          >
-            Start Your Free Trial
-          </button>
+          {/* FAQ */}
+          <div>
+            <h3 style={{ fontSize: 28, fontWeight: 700, marginBottom: 24 }}>Frequently Asked Questions</h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {faqs.map((faq, i) => (
+                <div key={i} style={{ background: 'rgba(255,255,255,0.05)', borderRadius: 16, border: '1px solid rgba(255,255,255,0.1)', overflow: 'hidden' }}>
+                  <button
+                    onClick={() => setExpandedFaq(expandedFaq === i ? null : i)}
+                    style={{ width: '100%', padding: 20, display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'none', border: 'none', color: 'white', fontSize: 15, fontWeight: 500, cursor: 'pointer', textAlign: 'left' }}
+                  >
+                    {faq.q}
+                    <span style={{ transition: 'transform 0.2s', transform: expandedFaq === i ? 'rotate(45deg)' : 'none' }}>+</span>
+                  </button>
+                  {expandedFaq === i && (
+                    <div style={{ padding: '0 20px 20px', color: 'rgba(255,255,255,0.6)', fontSize: 14, lineHeight: 1.6 }}>{faq.a}</div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="py-12 px-6 bg-slate-950 border-t border-white/10">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="flex items-center gap-3">
-            <Logo size={32} />
-            <span className="font-semibold">Family Finance</span>
+      <footer style={{ position: 'relative', zIndex: 10, padding: '40px', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+        <div style={{ maxWidth: 1400, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 20 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ width: 32, height: 32, borderRadius: 10, background: 'linear-gradient(135deg, #8B5CF6, #EC4899)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 12 }}>FF</div>
+            <span style={{ fontWeight: 600 }}>Family Finance</span>
           </div>
-          <div className="flex gap-6 text-sm text-white/50">
-            <a href="#" className="hover:text-white">Privacy</a>
-            <a href="#" className="hover:text-white">Terms</a>
-            <a href="#" className="hover:text-white">Security</a>
-            <a href="#" className="hover:text-white">Support</a>
+          <div style={{ display: 'flex', gap: 24, fontSize: 14, color: 'rgba(255,255,255,0.5)' }}>
+            <a href="#" style={{ color: 'inherit', textDecoration: 'none' }}>Privacy</a>
+            <a href="#" style={{ color: 'inherit', textDecoration: 'none' }}>Terms</a>
+            <a href="#" style={{ color: 'inherit', textDecoration: 'none' }}>Security</a>
+            <a href="#" style={{ color: 'inherit', textDecoration: 'none' }}>Support</a>
           </div>
-          <div className="text-sm text-white/30">© 2024 Family Finance</div>
+          <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.3)' }}>© 2024 Family Finance</div>
         </div>
       </footer>
 
       {/* AI Chatbot */}
       <AIChatbot isOpen={chatOpen} onClose={() => setChatOpen(false)} />
       
-      {/* Chatbot Toggle Button */}
+      {/* Chatbot Button */}
       <button
         onClick={() => setChatOpen(!chatOpen)}
-        className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 shadow-lg shadow-purple-500/30 flex items-center justify-center text-2xl hover:scale-110 transition-transform"
+        style={{
+          position: 'fixed', bottom: 24, right: 24, zIndex: 1000,
+          width: 60, height: 60, borderRadius: '50%',
+          background: 'linear-gradient(135deg, #8B5CF6, #EC4899)',
+          border: 'none', boxShadow: '0 10px 40px rgba(139, 92, 246, 0.5)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: 24, cursor: 'pointer', transition: 'transform 0.2s'
+        }}
+        onMouseOver={e => e.currentTarget.style.transform = 'scale(1.1)'}
+        onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}
       >
         {chatOpen ? '×' : '💬'}
       </button>
+
+      <style>{`
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        @media (max-width: 1024px) {
+          section > div[style*="gridTemplateColumns: '1fr 1fr'"] { grid-template-columns: 1fr !important; }
+          section > div[style*="grid-template-columns: repeat(3"] { grid-template-columns: 1fr !important; }
+        }
+        @media (max-width: 768px) {
+          nav { padding: 16px 20px !important; }
+          nav > div:last-child > a { display: none; }
+          section { padding: 40px 20px !important; }
+          h1 { font-size: 36px !important; }
+          h2 { font-size: 32px !important; }
+        }
+      `}</style>
     </div>
   );
 }
@@ -527,7 +489,6 @@ function AuthPage({ mode = 'login', onAuth, onBack }) {
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [message, setMessage] = useState('');
 
   useEffect(() => { setIsLogin(mode === 'login'); }, [mode]);
 
@@ -546,16 +507,9 @@ function AuthPage({ mode = 'login', onAuth, onBack }) {
         if (authError) throw authError;
         onAuth(data.user);
       } else {
-        const { data, error: authError } = await client.auth.signUp({
-          email, password,
-          options: { data: { full_name: name } }
-        });
+        const { data, error: authError } = await client.auth.signUp({ email, password, options: { data: { full_name: name } } });
         if (authError) throw authError;
-        if (data.user && !data.session) {
-          setMessage('Check your email to confirm your account!');
-        } else {
-          onAuth(data.user);
-        }
+        if (data.user) onAuth(data.user);
       }
     } catch (err) {
       setError(err.message || 'Authentication failed');
@@ -567,59 +521,54 @@ function AuthPage({ mode = 'login', onAuth, onBack }) {
   const handleGoogle = async () => {
     try {
       const client = await initSupabase();
-      if (client) {
-        await client.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin } });
-      }
-    } catch (err) {
-      setError(err.message);
-    }
+      if (client) await client.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin } });
+    } catch (err) { setError(err.message); }
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white flex flex-col">
-      <div className="fixed inset-0 bg-gradient-to-br from-slate-950 via-purple-950/30 to-slate-950"></div>
-
-      <header className="relative z-10 p-6">
-        <button onClick={onBack} className="flex items-center gap-2">
-          <Logo size={40} />
-          <span className="font-semibold">Family Finance</span>
+    <div style={{ minHeight: '100vh', background: '#0c0a1d', color: 'white', display: 'flex', flexDirection: 'column' }}>
+      <div style={{ position: 'absolute', top: '20%', right: '30%', width: 400, height: 400, background: 'radial-gradient(circle, rgba(139, 92, 246, 0.3) 0%, transparent 70%)', filter: 'blur(60px)' }} />
+      
+      <header style={{ padding: 24, position: 'relative', zIndex: 10 }}>
+        <button onClick={onBack} style={{ display: 'flex', alignItems: 'center', gap: 12, background: 'none', border: 'none', color: 'white', cursor: 'pointer' }}>
+          <div style={{ width: 40, height: 40, borderRadius: 12, background: 'linear-gradient(135deg, #8B5CF6, #EC4899)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700 }}>FF</div>
+          <span style={{ fontSize: 18, fontWeight: 600 }}>Family Finance</span>
         </button>
       </header>
 
-      <main className="relative z-10 flex-1 flex items-center justify-center p-6">
-        <div className="w-full max-w-md">
-          <h1 className="text-3xl font-bold text-center mb-2">{isLogin ? 'Welcome back' : 'Start your free trial'}</h1>
-          <p className="text-white/50 text-center mb-8">{isLogin ? 'Sign in to continue' : '14 days free, then $9.99/month'}</p>
+      <main style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, position: 'relative', zIndex: 10 }}>
+        <div style={{ width: '100%', maxWidth: 400 }}>
+          <h1 style={{ fontSize: 32, fontWeight: 700, textAlign: 'center', marginBottom: 8 }}>{isLogin ? 'Welcome back' : 'Start your free trial'}</h1>
+          <p style={{ color: 'rgba(255,255,255,0.5)', textAlign: 'center', marginBottom: 32 }}>{isLogin ? 'Sign in to continue' : '14 days free, then $9.99/month'}</p>
 
-          <div className="bg-slate-900/50 backdrop-blur rounded-2xl p-8 border border-white/10">
-            {error && <div className="mb-4 p-3 bg-red-500/20 border border-red-500/30 rounded-lg text-red-300 text-sm">{error}</div>}
-            {message && <div className="mb-4 p-3 bg-emerald-500/20 border border-emerald-500/30 rounded-lg text-emerald-300 text-sm">{message}</div>}
+          <div style={{ background: 'rgba(30, 27, 56, 0.8)', borderRadius: 24, padding: 32, border: '1px solid rgba(255,255,255,0.1)' }}>
+            {error && <div style={{ padding: 12, background: 'rgba(239, 68, 68, 0.2)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: 12, color: '#FCA5A5', fontSize: 14, marginBottom: 20 }}>{error}</div>}
 
-            <button onClick={handleGoogle} className="w-full flex items-center justify-center gap-3 py-3 bg-white text-gray-800 rounded-xl font-medium mb-6">
-              <svg className="w-5 h-5" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+            <button onClick={handleGoogle} style={{ width: '100%', padding: 14, background: 'white', border: 'none', borderRadius: 12, color: '#333', fontWeight: 500, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, marginBottom: 24 }}>
+              <svg width="20" height="20" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
               Continue with Google
             </button>
 
-            <div className="flex items-center gap-4 mb-6">
-              <div className="flex-1 h-px bg-white/10"></div>
-              <span className="text-white/30 text-sm">or</span>
-              <div className="flex-1 h-px bg-white/10"></div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 24 }}>
+              <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.1)' }} />
+              <span style={{ color: 'rgba(255,255,255,0.3)', fontSize: 14 }}>or</span>
+              <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.1)' }} />
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit}>
               {!isLogin && (
-                <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="Full Name" className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:border-purple-500" />
+                <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="Full Name" style={{ width: '100%', padding: 14, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 12, color: 'white', fontSize: 15, marginBottom: 12, outline: 'none', boxSizing: 'border-box' }} />
               )}
-              <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="Email" className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:border-purple-500" required />
-              <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Password" className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:border-purple-500" required minLength={6} />
-              <button type="submit" disabled={loading} className="w-full py-3 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl font-semibold disabled:opacity-50">
+              <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="Email" required style={{ width: '100%', padding: 14, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 12, color: 'white', fontSize: 15, marginBottom: 12, outline: 'none', boxSizing: 'border-box' }} />
+              <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Password" required minLength={6} style={{ width: '100%', padding: 14, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 12, color: 'white', fontSize: 15, marginBottom: 20, outline: 'none', boxSizing: 'border-box' }} />
+              <button type="submit" disabled={loading} style={{ width: '100%', padding: 14, background: 'linear-gradient(135deg, #8B5CF6, #EC4899)', border: 'none', borderRadius: 12, color: 'white', fontSize: 16, fontWeight: 600, cursor: 'pointer', opacity: loading ? 0.7 : 1 }}>
                 {loading ? 'Please wait...' : (isLogin ? 'Sign In' : 'Create Account')}
               </button>
             </form>
 
-            <p className="text-center text-white/50 text-sm mt-6">
+            <p style={{ textAlign: 'center', color: 'rgba(255,255,255,0.5)', fontSize: 14, marginTop: 24 }}>
               {isLogin ? "Don't have an account? " : 'Already have an account? '}
-              <button onClick={() => { setIsLogin(!isLogin); setError(''); }} className="text-purple-400">
+              <button onClick={() => { setIsLogin(!isLogin); setError(''); }} style={{ background: 'none', border: 'none', color: '#A78BFA', cursor: 'pointer', fontSize: 14 }}>
                 {isLogin ? 'Sign up' : 'Sign in'}
               </button>
             </p>
@@ -638,65 +587,67 @@ function Dashboard({ user, onSignOut, onGoHome }) {
   const userName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Friend';
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950/50 to-slate-950 text-white">
-      <div className="max-w-7xl mx-auto px-4 pb-24">
-        <header className="sticky top-0 z-30 py-4 bg-slate-950/80 backdrop-blur-xl">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Logo size={40} onClick={onGoHome} />
-              <div>
-                <h1 className="font-bold">Family Finance</h1>
-                <p className="text-purple-300/70 text-sm">Welcome, {userName}!</p>
-              </div>
+    <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #0c0a1d 0%, #1a1040 50%, #0c0a1d 100%)', color: 'white' }}>
+      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '20px' }}>
+        <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 32 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            <button onClick={onGoHome} style={{ width: 48, height: 48, borderRadius: 16, background: 'linear-gradient(135deg, #8B5CF6, #EC4899)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 16, color: 'white', cursor: 'pointer' }}>FF</button>
+            <div>
+              <h1 style={{ fontSize: 20, fontWeight: 700, margin: 0 }}>Family Finance</h1>
+              <p style={{ color: 'rgba(167, 139, 250, 0.8)', fontSize: 14, margin: 0 }}>Welcome back, {userName}!</p>
             </div>
-            <button onClick={onSignOut} className="p-2 rounded-xl bg-white/10 border border-white/10">🚪</button>
           </div>
-
-          <nav className="mt-4 flex gap-1 p-1 bg-white/5 rounded-xl border border-white/10">
-            {[{ id: 'dashboard', icon: '🏠', label: 'Home' }, { id: 'networth', icon: '📈', label: 'Worth' }, { id: 'reports', icon: '📊', label: 'Reports' }, { id: 'settings', icon: '⚙️', label: 'Settings' }].map(tab => (
-              <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${activeTab === tab.id ? 'bg-purple-600' : 'hover:bg-white/5'}`}>
-                {tab.icon} {tab.label}
-              </button>
-            ))}
-          </nav>
+          <button onClick={onSignOut} style={{ padding: '10px 20px', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: 12, color: 'white', cursor: 'pointer' }}>Sign Out</button>
         </header>
 
-        <main className="mt-6 space-y-6">
-          <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
-            <div className="col-span-2 lg:col-span-1 bg-gradient-to-br from-purple-600 to-purple-700 rounded-2xl p-6">
-              <div className="text-purple-200 text-sm mb-1">Net Worth</div>
-              <div className="text-3xl font-bold">$285,420</div>
-              <div className="text-emerald-300 text-sm mt-1">↑ 12.4%</div>
-            </div>
-            <div className="bg-indigo-600/80 rounded-2xl p-6">
-              <div className="text-indigo-200 text-sm mb-1">Cash Flow</div>
-              <div className="text-2xl font-bold text-emerald-300">+$2,946</div>
-            </div>
-            <div className="bg-fuchsia-600/80 rounded-2xl p-6">
-              <div className="text-fuchsia-200 text-sm mb-1">Savings Rate</div>
-              <div className="text-2xl font-bold">58.3%</div>
-            </div>
-          </div>
+        <nav style={{ display: 'flex', gap: 8, padding: 8, background: 'rgba(255,255,255,0.05)', borderRadius: 16, marginBottom: 32 }}>
+          {[{ id: 'dashboard', label: '🏠 Home' }, { id: 'networth', label: '📈 Net Worth' }, { id: 'reports', label: '📊 Reports' }, { id: 'settings', label: '⚙️ Settings' }].map(tab => (
+            <button key={tab.id} onClick={() => setActiveTab(tab.id)} style={{ flex: 1, padding: '12px 16px', borderRadius: 12, border: 'none', background: activeTab === tab.id ? 'linear-gradient(135deg, #8B5CF6, #7C3AED)' : 'transparent', color: 'white', fontWeight: 500, cursor: 'pointer' }}>
+              {tab.label}
+            </button>
+          ))}
+        </nav>
 
-          <div className="bg-white/5 rounded-2xl p-6 border border-white/10">
-            <h3 className="font-semibold mb-4">📊 Recent Activity</h3>
-            <div className="space-y-3">
-              {[
-                { icon: '🛒', name: 'Grocery Store', amount: -127.43 },
-                { icon: '💼', name: 'Salary Deposit', amount: 4250 },
-                { icon: '📺', name: 'Netflix', amount: -15.99 },
-              ].map((t, i) => (
-                <div key={i} className="flex items-center justify-between p-3 bg-white/5 rounded-xl">
-                  <div className="flex items-center gap-3">
-                    <span className="text-xl">{t.icon}</span>
-                    <span>{t.name}</span>
-                  </div>
-                  <span className={t.amount > 0 ? 'text-emerald-400' : ''}>{t.amount > 0 ? '+' : ''}${Math.abs(t.amount).toLocaleString()}</span>
-                </div>
-              ))}
-            </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 20, marginBottom: 32 }}>
+          <div style={{ gridColumn: 'span 1', background: 'linear-gradient(135deg, #8B5CF6, #7C3AED)', borderRadius: 20, padding: 24 }}>
+            <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.8)', marginBottom: 4 }}>Net Worth</div>
+            <div style={{ fontSize: 36, fontWeight: 700 }}>$285,420</div>
+            <div style={{ color: '#86EFAC', fontSize: 14, marginTop: 4 }}>↑ 12.4%</div>
           </div>
-        </main>
+          <div style={{ background: 'linear-gradient(135deg, #6366F1, #4F46E5)', borderRadius: 20, padding: 24 }}>
+            <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.8)', marginBottom: 4 }}>Monthly Cash Flow</div>
+            <div style={{ fontSize: 28, fontWeight: 700, color: '#86EFAC' }}>+$2,946</div>
+          </div>
+          <div style={{ background: 'linear-gradient(135deg, #EC4899, #DB2777)', borderRadius: 20, padding: 24 }}>
+            <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.8)', marginBottom: 4 }}>Savings Rate</div>
+            <div style={{ fontSize: 28, fontWeight: 700 }}>58.3%</div>
+          </div>
+        </div>
+
+        <div style={{ background: 'rgba(255,255,255,0.05)', borderRadius: 20, padding: 24, border: '1px solid rgba(255,255,255,0.1)' }}>
+          <h3 style={{ fontSize: 18, fontWeight: 600, marginBottom: 20, marginTop: 0 }}>📊 Recent Transactions</h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {[
+              { icon: '🛒', name: 'Grocery Store', amount: -127.43, date: 'Today' },
+              { icon: '💼', name: 'Salary Deposit', amount: 4250, date: 'Nov 25' },
+              { icon: '📺', name: 'Netflix', amount: -15.99, date: 'Nov 24' },
+              { icon: '⛽', name: 'Gas Station', amount: -45.20, date: 'Nov 23' },
+            ].map((t, i) => (
+              <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: 16, background: 'rgba(255,255,255,0.05)', borderRadius: 12 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <span style={{ fontSize: 24 }}>{t.icon}</span>
+                  <div>
+                    <div style={{ fontWeight: 500 }}>{t.name}</div>
+                    <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)' }}>{t.date}</div>
+                  </div>
+                </div>
+                <span style={{ fontWeight: 600, color: t.amount > 0 ? '#86EFAC' : 'white' }}>
+                  {t.amount > 0 ? '+' : ''}${Math.abs(t.amount).toLocaleString()}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -738,8 +689,8 @@ function App() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-        <Logo size={64} />
+      <div style={{ minHeight: '100vh', background: '#0c0a1d', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ width: 60, height: 60, borderRadius: 16, background: 'linear-gradient(135deg, #8B5CF6, #EC4899)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 20, color: 'white' }}>FF</div>
       </div>
     );
   }
