@@ -8,10 +8,21 @@ import BudgetTab from './components/BudgetTab';
 import BillsCalendarView from './components/BillsCalendarView';
 import GoalsTimelineWithCelebration from './components/GoalsTimelineWithCelebration';
 import ProductShowcase from './components/FamilyFinance-ProductGraphics';
+import TransactionsTab from './components/TransactionsTab';
 
 // ============================================================================
 // FAMILY FINANCE - COMPREHENSIVE APP WITH REAL DATA SUPPORT
 // ============================================================================
+
+// Currency formatter helper - consistent $1,000.00 format
+const formatCurrency = (amount) => {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  }).format(Math.abs(amount));
+};
 
 // Error Boundary
 class ErrorBoundary extends React.Component {
@@ -772,6 +783,7 @@ function Dashboard({
           { id: 'bills', label: '📅 Bills' },
           { id: 'goals', label: '🎯 Goals' },
           { id: 'import', label: '📂 Import' },
+          { id: 'transactions', label: '📋 Transactions' },
           { id: 'settings', label: '⚙️ Settings' }
         ].map(tab => (
           <button
@@ -820,6 +832,12 @@ function Dashboard({
             onImport={onImportTransactions}
             parseCSV={parseCSV}
             transactionCount={transactions.length}
+          />
+        )}
+        {activeTab === 'transactions' && (
+          <TransactionsTab 
+            transactions={transactions}
+            onNavigateToImport={() => setActiveTab('import')}
           />
         )}
         {activeTab === 'settings' && <SettingsTab />}
@@ -939,7 +957,7 @@ function GoalsTab({ goals, onUpdateGoals }) {
                     <div>
                       <div style={{ fontWeight: '600', fontSize: '18px' }}>{goal.name}</div>
                       <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.5)' }}>
-                        ${goal.current.toLocaleString()} of ${goal.target.toLocaleString()}
+                        {formatCurrency(goal.current)} of {formatCurrency(goal.target)}
                       </div>
                     </div>
                   </div>
@@ -966,7 +984,7 @@ function GoalsTab({ goals, onUpdateGoals }) {
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span style={{ fontSize: '13px', color: 'rgba(255,255,255,0.5)' }}>
-                    ${remaining.toLocaleString()} to go
+                    {formatCurrency(remaining)} to go
                   </span>
                   <div style={{ display: 'flex', gap: '8px' }}>
                     <input
@@ -1311,10 +1329,10 @@ function AIAssistantModal({ onClose, transactions }) {
         response = "📂 I don't see any transaction data yet. Please import your bank CSV file first, then I can help you analyze your spending patterns, track expenses, and provide personalized insights!";
       } else if (lower.includes('spending') || lower.includes('spent')) {
         const totalSpent = transactions.filter(t => parseFloat(t.amount) < 0).reduce((sum, t) => sum + Math.abs(parseFloat(t.amount)), 0);
-        response = `💸 Based on your imported data, you've spent a total of $${totalSpent.toLocaleString(undefined, { minimumFractionDigits: 2 })} across ${transactions.filter(t => parseFloat(t.amount) < 0).length} transactions.`;
+        response = `💸 Based on your imported data, you've spent a total of ${formatCurrency(totalSpent)} across ${transactions.filter(t => parseFloat(t.amount) < 0).length} transactions.`;
       } else if (lower.includes('income') || lower.includes('earned')) {
         const totalIncome = transactions.filter(t => parseFloat(t.amount) > 0).reduce((sum, t) => sum + parseFloat(t.amount), 0);
-        response = `💰 Your total income from imported transactions is $${totalIncome.toLocaleString(undefined, { minimumFractionDigits: 2 })}.`;
+        response = `💰 Your total income from imported transactions is ${formatCurrency(totalIncome)}.`;
       } else if (lower.includes('categor')) {
         const categories = {};
         transactions.filter(t => parseFloat(t.amount) < 0).forEach(t => {
@@ -1322,7 +1340,7 @@ function AIAssistantModal({ onClose, transactions }) {
           categories[cat] = (categories[cat] || 0) + Math.abs(parseFloat(t.amount));
         });
         const sorted = Object.entries(categories).sort((a, b) => b[1] - a[1]).slice(0, 5);
-        response = `📊 Your top spending categories:\n\n${sorted.map(([cat, amount], i) => `${i + 1}. ${cat}: $${amount.toFixed(2)}`).join('\n')}`;
+        response = `📊 Your top spending categories:\n\n${sorted.map(([cat, amount], i) => `${i + 1}. ${cat}: ${formatCurrency(amount)}`).join('\n')}`;
       } else {
         response = `Based on your ${transactions.length} imported transactions, I can help you:\n\n• Analyze spending patterns\n• Track income vs expenses\n• View category breakdowns\n• Find savings opportunities\n\nWhat would you like to explore?`;
       }
@@ -1382,7 +1400,24 @@ function AIAssistantModal({ onClose, transactions }) {
   );
 }
 
+// ============================================================================
+// EMPTY STATE COMPONENT (inline for this file)
+// ============================================================================
 
+function EmptyState({ icon = '📊', title = 'No data yet', message = 'Import your transactions to get started', actionLabel = null, onAction = null }) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '60px 40px', textAlign: 'center', background: 'rgba(30, 27, 56, 0.5)', borderRadius: '20px', border: '1px dashed rgba(255,255,255,0.2)' }}>
+      <div style={{ fontSize: '64px', marginBottom: '20px', opacity: 0.8 }}>{icon}</div>
+      <h3 style={{ fontSize: '20px', fontWeight: '600', marginBottom: '8px' }}>{title}</h3>
+      <p style={{ fontSize: '15px', color: 'rgba(255,255,255,0.5)', maxWidth: '300px', lineHeight: 1.5, marginBottom: actionLabel ? '24px' : '0' }}>{message}</p>
+      {actionLabel && onAction && (
+        <button onClick={onAction} style={{ padding: '12px 24px', background: 'linear-gradient(135deg, #8B5CF6, #EC4899)', border: 'none', borderRadius: '12px', color: 'white', fontSize: '15px', fontWeight: '600', cursor: 'pointer' }}>
+          {actionLabel}
+        </button>
+      )}
+    </div>
+  );
+}
 
 // ============================================================================
 // EXPORT
