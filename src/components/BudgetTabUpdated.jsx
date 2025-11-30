@@ -6,6 +6,16 @@ import EmptyState from './EmptyState';
 // BUDGET TAB - With Month/Year Selector and Dynamic Data
 // ============================================================================
 
+// Currency formatter helper - consistent $1,000.00 format
+const formatCurrency = (amount) => {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  }).format(amount);
+};
+
 export default function BudgetTab({ 
   transactions = [],
   onNavigateToImport 
@@ -151,7 +161,7 @@ export default function BudgetTab({
             }}>
               <div style={{ position: 'absolute', top: '-20px', right: '-20px', width: '80px', height: '80px', background: 'rgba(255,255,255,0.1)', borderRadius: '50%' }} />
               <div style={{ fontSize: '14px', color: 'rgba(255,255,255,0.8)', marginBottom: '4px' }}>💰 Income</div>
-              <div style={{ fontSize: '32px', fontWeight: '700' }}>${income.toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
+              <div style={{ fontSize: '32px', fontWeight: '700' }}>{formatCurrency(income)}</div>
             </div>
 
             {/* Expenses */}
@@ -164,7 +174,7 @@ export default function BudgetTab({
             }}>
               <div style={{ position: 'absolute', top: '-20px', right: '-20px', width: '80px', height: '80px', background: 'rgba(255,255,255,0.1)', borderRadius: '50%' }} />
               <div style={{ fontSize: '14px', color: 'rgba(255,255,255,0.8)', marginBottom: '4px' }}>💸 Expenses</div>
-              <div style={{ fontSize: '32px', fontWeight: '700' }}>${expenses.toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
+              <div style={{ fontSize: '32px', fontWeight: '700' }}>{formatCurrency(expenses)}</div>
             </div>
 
             {/* Surplus */}
@@ -180,7 +190,7 @@ export default function BudgetTab({
               <div style={{ position: 'absolute', top: '-20px', right: '-20px', width: '80px', height: '80px', background: 'rgba(255,255,255,0.1)', borderRadius: '50%' }} />
               <div style={{ fontSize: '14px', color: 'rgba(255,255,255,0.8)', marginBottom: '4px' }}>✨ Surplus</div>
               <div style={{ fontSize: '32px', fontWeight: '700' }}>
-                {surplus >= 0 ? '+' : '-'}${Math.abs(surplus).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                {surplus >= 0 ? '+' : ''}{formatCurrency(surplus)}
               </div>
             </div>
           </div>
@@ -249,7 +259,7 @@ export default function BudgetTab({
                               fontSize: '13px', 
                               color: isOverBudget ? '#EF4444' : 'rgba(255,255,255,0.5)' 
                             }}>
-                              ${cat.spent.toFixed(2)} {hasBudget ? `/ $${cat.budget.toFixed(2)}` : ''}
+                              {formatCurrency(cat.spent)} {hasBudget ? `/ ${formatCurrency(cat.budget)}` : ''}
                             </div>
                           </div>
                         </div>
