@@ -1,14 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
-// ADD THESE IMPORTS HERE:
-import GoalsWithPercentage from './components/GoalsWithPercentage';
+
+// Component Imports
+import MonthYearSelector from './components/MonthYearSelector';
+import EmptyState from './components/EmptyState';
+import HomeTab from './components/HomeTab';
 import BudgetTab from './components/BudgetTab';
 import BillsCalendarView from './components/BillsCalendarView';
 import GoalsTimelineWithCelebration from './components/GoalsTimelineWithCelebration';
-import DataUploadSystem from './components/DataUploadSystem';
 import ProductShowcase from './components/FamilyFinance-ProductGraphics';
 
 // ============================================================================
-// FAMILY FINANCE - COMPREHENSIVE APP WITH FULL DASHBOARD FUNCTIONALITY
+// FAMILY FINANCE - COMPREHENSIVE APP WITH REAL DATA SUPPORT
 // ============================================================================
 
 // Error Boundary
@@ -44,9 +46,9 @@ const initSupabase = async () => {
   try {
     const { createClient } = await import('@supabase/supabase-js');
     supabase = createClient(
-  import.meta.env.VITE_SUPABASE_URL,
-  import.meta.env.VITE_SUPABASE_ANON_KEY
-);
+      import.meta.env.VITE_SUPABASE_URL,
+      import.meta.env.VITE_SUPABASE_ANON_KEY
+    );
     return supabase;
   } catch (e) {
     console.error('Supabase init error:', e);
@@ -55,112 +57,51 @@ const initSupabase = async () => {
 };
 
 // ============================================================================
-// SAMPLE DATA - Ready for real data connection
+// CSV PARSER UTILITY
 // ============================================================================
 
-const generateSampleData = () => {
-  const today = new Date();
+const parseCSV = (csvText) => {
+  const lines = csvText.split('\n');
+  const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
   
-  return {
-    // Net Worth Data
-    netWorth: {
-      total: 285420,
-      change: 12.4,
-      lastMonth: 254100,
-      hidden: false,
-      breakdown: {
-        assets: 342500,
-        liabilities: 57080
+  const transactions = [];
+  
+  for (let i = 1; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (!line) continue;
+    
+    // Handle CSV with quoted fields
+    const values = [];
+    let current = '';
+    let inQuotes = false;
+    
+    for (let char of line) {
+      if (char === '"') {
+        inQuotes = !inQuotes;
+      } else if (char === ',' && !inQuotes) {
+        values.push(current.trim());
+        current = '';
+      } else {
+        current += char;
       }
-    },
+    }
+    values.push(current.trim());
     
-    // Cash Flow Data
-    cashFlow: {
-      income: 8500,
-      expenses: 5554,
-      net: 2946,
-      breakdown: {
-        salary: 7200,
-        investments: 850,
-        other: 450
-      }
-    },
-    
-    // Budget Data
-    budget: {
-      spent: 4247,
-      total: 5500,
-      percentage: 77.2,
-      status: 'good', // good, warning, danger
-      categories: [
-        { name: 'Housing', emoji: '🏠', spent: 1850, budget: 1900, color: '#8B5CF6' },
-        { name: 'Food', emoji: '🍔', spent: 620, budget: 600, color: '#EC4899' },
-        { name: 'Transport', emoji: '🚗', spent: 380, budget: 400, color: '#10B981' },
-        { name: 'Shopping', emoji: '🛍️', spent: 445, budget: 400, color: '#F59E0B' },
-        { name: 'Entertainment', emoji: '🎬', spent: 180, budget: 250, color: '#6366F1' },
-        { name: 'Utilities', emoji: '💡', spent: 220, budget: 250, color: '#14B8A6' },
-        { name: 'Health', emoji: '🏥', spent: 150, budget: 200, color: '#EF4444' },
-        { name: 'Other', emoji: '📦', spent: 402, budget: 500, color: '#94A3B8' }
-      ]
-    },
-    
-    // Bills Data
-    bills: [
-      { id: 1, name: 'Rent', amount: 1850, dueDate: new Date(today.getFullYear(), today.getMonth(), 1), status: 'paid', emoji: '🏠' },
-      { id: 2, name: 'Electric', amount: 145, dueDate: new Date(today.getFullYear(), today.getMonth(), today.getDate() - 2), status: 'overdue', emoji: '⚡' },
-      { id: 3, name: 'Internet', amount: 79, dueDate: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 3), status: 'upcoming', emoji: '📶' },
-      { id: 4, name: 'Car Insurance', amount: 156, dueDate: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 5), status: 'upcoming', emoji: '🚗' },
-      { id: 5, name: 'Netflix', amount: 15.99, dueDate: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 8), status: 'upcoming', emoji: '📺' },
-      { id: 6, name: 'Phone', amount: 85, dueDate: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 12), status: 'upcoming', emoji: '📱' }
-    ],
-    
-    // Recent Transactions
-    transactions: [
-      { id: 1, name: 'Grocery Store', amount: -127.43, date: today, category: 'Food', emoji: '🛒' },
-      { id: 2, name: 'Salary Deposit', amount: 4250, date: new Date(today.getTime() - 86400000), category: 'Income', emoji: '💰' },
-      { id: 3, name: 'Netflix', amount: -15.99, date: new Date(today.getTime() - 86400000 * 2), category: 'Entertainment', emoji: '📺' },
-      { id: 4, name: 'Gas Station', amount: -45.20, date: new Date(today.getTime() - 86400000 * 3), category: 'Transport', emoji: '⛽' },
-      { id: 5, name: 'Amazon', amount: -89.99, date: new Date(today.getTime() - 86400000 * 4), category: 'Shopping', emoji: '📦' },
-      { id: 6, name: 'Coffee Shop', amount: -6.50, date: new Date(today.getTime() - 86400000 * 4), category: 'Food', emoji: '☕' },
-      { id: 7, name: 'Uber', amount: -24.00, date: new Date(today.getTime() - 86400000 * 5), category: 'Transport', emoji: '🚕' },
-      { id: 8, name: 'Freelance Payment', amount: 850, date: new Date(today.getTime() - 86400000 * 6), category: 'Income', emoji: '💻' }
-    ],
-    
-    // Goals
-    goals: [
-      { id: 1, name: 'Emergency Fund', emoji: '🛡️', current: 12500, target: 15000, color: '#10B981' },
-      { id: 2, name: 'Vacation', emoji: '✈️', current: 2800, target: 5000, color: '#8B5CF6' },
-      { id: 3, name: 'New Car', emoji: '🚗', current: 8500, target: 25000, color: '#EC4899' },
-      { id: 4, name: 'Home Down Payment', emoji: '🏠', current: 45000, target: 80000, color: '#F59E0B' }
-    ],
-    
-    // Retirement
-    retirement: {
-      total: 125840,
-      goal: 1000000,
-      monthlyContribution: 1500,
-      projectedAge: 62,
-      accounts: [
-        { name: '401(k)', balance: 89500, emoji: '📈' },
-        { name: 'Roth IRA', balance: 36340, emoji: '💎' }
-      ]
-    },
-    
-    // Savings Rate
-    savingsRate: {
-      current: 34.7,
-      target: 40,
-      fireTimeline: '18 years'
-    },
-    
-    // AI Insights
-    insights: [
-      { id: 1, type: 'tip', emoji: '💡', message: 'Your savings rate is 34.7% - aim for 40% to reach FIRE in 15 years!' },
-      { id: 2, type: 'warning', emoji: '⚠️', message: 'Food spending is 3% over budget this month' },
-      { id: 3, type: 'success', emoji: '🎉', message: 'You\'ve saved $2,946 this month - great job!' },
-      { id: 4, type: 'alert', emoji: '😤', message: 'Electric bill is 2 days overdue!' }
-    ]
-  };
+    if (values.length >= 5) {
+      const transaction = {
+        id: i,
+        date: values[0],
+        description: values[1]?.replace(/"/g, '') || '',
+        originalDescription: values[2]?.replace(/"/g, '') || '',
+        category: values[3]?.replace(/"/g, '') || 'Uncategorized',
+        amount: parseFloat(values[4]) || 0,
+        status: values[5]?.replace(/"/g, '') || 'Posted'
+      };
+      transactions.push(transaction);
+    }
+  }
+  
+  return transactions;
 };
 
 // ============================================================================
@@ -171,7 +112,12 @@ function App() {
   const [view, setView] = useState('landing');
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [data, setData] = useState(generateSampleData());
+  
+  // Real data state - starts empty
+  const [transactions, setTransactions] = useState([]);
+  const [bills, setBills] = useState([]);
+  const [goals, setGoals] = useState([]);
+  const [lastImportDate, setLastImportDate] = useState(null);
 
   useEffect(() => {
     const init = async () => {
@@ -181,11 +127,14 @@ function App() {
         if (session?.user) {
           setUser(session.user);
           setView('dashboard');
+          // Load saved data from localStorage
+          loadSavedData(session.user.id);
         }
         sb.auth.onAuthStateChange((event, session) => {
           if (session?.user) {
             setUser(session.user);
             setView('dashboard');
+            loadSavedData(session.user.id);
           } else {
             setUser(null);
             setView('landing');
@@ -196,6 +145,61 @@ function App() {
     };
     init();
   }, []);
+
+  // Load saved data from localStorage (per user)
+  const loadSavedData = (userId) => {
+    try {
+      const savedTransactions = localStorage.getItem(`ff_transactions_${userId}`);
+      const savedBills = localStorage.getItem(`ff_bills_${userId}`);
+      const savedGoals = localStorage.getItem(`ff_goals_${userId}`);
+      const savedImportDate = localStorage.getItem(`ff_lastImport_${userId}`);
+      
+      if (savedTransactions) setTransactions(JSON.parse(savedTransactions));
+      if (savedBills) setBills(JSON.parse(savedBills));
+      if (savedGoals) setGoals(JSON.parse(savedGoals));
+      if (savedImportDate) setLastImportDate(new Date(savedImportDate));
+    } catch (e) {
+      console.error('Error loading saved data:', e);
+    }
+  };
+
+  // Save data to localStorage (per user)
+  const saveData = (userId, key, data) => {
+    try {
+      localStorage.setItem(`ff_${key}_${userId}`, JSON.stringify(data));
+    } catch (e) {
+      console.error('Error saving data:', e);
+    }
+  };
+
+  // Handle CSV import
+  const handleImportTransactions = (newTransactions) => {
+    const userId = user?.id;
+    if (!userId) return;
+    
+    setTransactions(newTransactions);
+    setLastImportDate(new Date());
+    saveData(userId, 'transactions', newTransactions);
+    localStorage.setItem(`ff_lastImport_${userId}`, new Date().toISOString());
+  };
+
+  // Handle bills update
+  const handleUpdateBills = (newBills) => {
+    const userId = user?.id;
+    if (!userId) return;
+    
+    setBills(newBills);
+    saveData(userId, 'bills', newBills);
+  };
+
+  // Handle goals update
+  const handleUpdateGoals = (newGoals) => {
+    const userId = user?.id;
+    if (!userId) return;
+    
+    setGoals(newGoals);
+    saveData(userId, 'goals', newGoals);
+  };
 
   if (loading) {
     return (
@@ -209,7 +213,20 @@ function App() {
   }
 
   if (view === 'auth') return <AuthPage setView={setView} />;
-  if (view === 'dashboard') return <Dashboard user={user} setView={setView} data={data} setData={setData} />;
+  if (view === 'dashboard') return (
+    <Dashboard 
+      user={user} 
+      setView={setView} 
+      transactions={transactions}
+      bills={bills}
+      goals={goals}
+      lastImportDate={lastImportDate}
+      onImportTransactions={handleImportTransactions}
+      onUpdateBills={handleUpdateBills}
+      onUpdateGoals={handleUpdateGoals}
+      parseCSV={parseCSV}
+    />
+  );
   return <LandingPage setView={setView} />;
 }
 
@@ -219,7 +236,6 @@ function App() {
 
 function LandingPage({ setView }) {
   const [chatOpen, setChatOpen] = useState(false);
-  const [selectedHub, setSelectedHub] = useState('home');
 
   return (
     <div style={{ minHeight: '100vh', background: '#0c0a1d', color: 'white', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', position: 'relative', overflow: 'hidden' }}>
@@ -317,17 +333,10 @@ function LandingPage({ setView }) {
           </div>
         </section>
 
- {/* Products Section */}
-<section id="features" style={{ background: 'transparent' }}>
-  <div style={{ 
-    background: 'transparent',
-    padding: '80px 40px',
-    maxWidth: '1400px',
-    margin: '0 auto'
-  }}>
-    <ProductShowcase />
-  </div>
-</section>
+        {/* Products Section */}
+        <section id="features">
+          <ProductShowcase />
+        </section>
 
         {/* Pricing Section */}
         <PricingSection setView={setView} />
@@ -374,7 +383,7 @@ function PricingSection({ setView }) {
   return (
     <section id="pricing" style={{ maxWidth: '1400px', margin: '0 auto', padding: '80px 40px' }}>
       <div style={{ textAlign: 'center', marginBottom: '60px' }}>
-        <h2 style={{ fontSize: '40px', fontWeight: '700', marginBottom: '16px' }}>Simple, Transparent Pricing</h2>
+        <h2 style={{ fontSize: '40px', fontWeight: '700', marginBottom: '16px', color: 'white' }}>Simple, Transparent Pricing</h2>
         <p style={{ fontSize: '18px', color: 'rgba(255,255,255,0.6)' }}>Start free, upgrade when you're ready</p>
       </div>
 
@@ -396,7 +405,7 @@ function PricingSection({ setView }) {
 
           {/* Price */}
           <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-            <div style={{ fontSize: '48px', fontWeight: '700' }}>
+            <div style={{ fontSize: '48px', fontWeight: '700', color: 'white' }}>
               ${isAnnual ? '8.29' : '9.99'}<span style={{ fontSize: '18px', color: 'rgba(255,255,255,0.5)' }}>/mo</span>
             </div>
             {isAnnual && <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: '14px' }}>Billed $99/year</div>}
@@ -404,19 +413,19 @@ function PricingSection({ setView }) {
 
           {/* Products */}
           <div style={{ marginBottom: '24px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 0', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 0', borderBottom: '1px solid rgba(255,255,255,0.1)', color: 'white' }}>
               <span>🏠 HomeBudget Hub</span>
               <span style={{ background: 'rgba(16, 185, 129, 0.2)', color: '#10B981', padding: '4px 12px', borderRadius: '6px', fontSize: '13px' }}>Included</span>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 0', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
-              <span style={{ color: 'rgba(255,255,255,0.6)' }}>💼 BusinessBudget Hub</span>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 0', borderBottom: '1px solid rgba(255,255,255,0.1)', color: 'white' }}>
+              <span style={{ color: 'rgba(255,255,255,0.6)' }}>💼 BizBudget Hub</span>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: '13px' }}>+$4.99/mo</span>
                 <span style={{ background: 'rgba(251, 191, 36, 0.2)', color: '#FBBF24', padding: '2px 8px', borderRadius: '4px', fontSize: '11px' }}>Soon</span>
               </div>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 0' }}>
-              <span style={{ color: 'rgba(255,255,255,0.6)' }}>🏢 REAnalyzer Hub</span>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 0', color: 'white' }}>
+              <span style={{ color: 'rgba(255,255,255,0.6)' }}>🏢 REBudget Hub</span>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: '13px' }}>+$6.99/mo</span>
                 <span style={{ background: 'rgba(251, 191, 36, 0.2)', color: '#FBBF24', padding: '2px 8px', borderRadius: '4px', fontSize: '11px' }}>Soon</span>
@@ -444,7 +453,7 @@ function PricingSection({ setView }) {
 
         {/* FAQ */}
         <div>
-          <h3 style={{ fontSize: '24px', fontWeight: '600', marginBottom: '24px' }}>Frequently Asked Questions</h3>
+          <h3 style={{ fontSize: '24px', fontWeight: '600', marginBottom: '24px', color: 'white' }}>Frequently Asked Questions</h3>
           {faqs.map((faq, i) => (
             <div key={i} style={{ borderBottom: '1px solid rgba(255,255,255,0.1)', marginBottom: '8px' }}>
               <button
@@ -468,7 +477,7 @@ function PricingSection({ setView }) {
 }
 
 // ============================================================================
-// AI CHATBOT
+// AI CHATBOT (Landing Page)
 // ============================================================================
 
 function AIChatbot({ open, setOpen }) {
@@ -483,12 +492,11 @@ function AIChatbot({ open, setOpen }) {
     const userMsg = { role: 'user', content: input };
     setMessages(prev => [...prev, userMsg]);
     
-    // Simple response logic
     let response = 'I\'d be happy to help with that! Feel free to ask me about pricing, features, or how to get started.';
     const lower = input.toLowerCase();
     
     if (lower.includes('price') || lower.includes('cost')) {
-      response = '💰 Our pricing starts at $8.29/mo (billed annually) or $9.99/mo monthly. The HomeBudget Hub is included, with BusinessBudget (+$4.99) and REAnalyzer (+$6.99) coming soon as add-ons!';
+      response = '💰 Our pricing starts at $8.29/mo (billed annually) or $9.99/mo monthly. The HomeBudget Hub is included, with BizBudget (+$4.99) and REBudget (+$6.99) coming soon as add-ons!';
     } else if (lower.includes('trial') || lower.includes('free')) {
       response = '🎉 Yes! We offer a 14-day free trial with full access to all features. No credit card required to start!';
     } else if (lower.includes('family') || lower.includes('share')) {
@@ -508,7 +516,6 @@ function AIChatbot({ open, setOpen }) {
 
   return (
     <>
-      {/* Chat Button */}
       <button
         onClick={() => setOpen(!open)}
         style={{
@@ -521,7 +528,6 @@ function AIChatbot({ open, setOpen }) {
         {open ? '×' : '💬'}
       </button>
 
-      {/* Chat Panel */}
       {open && (
         <div style={{
           position: 'fixed', bottom: '100px', right: '24px', width: '340px',
@@ -529,13 +535,11 @@ function AIChatbot({ open, setOpen }) {
           borderRadius: '20px', border: '1px solid rgba(255,255,255,0.1)',
           overflow: 'hidden', zIndex: 1000, boxShadow: '0 10px 40px rgba(0,0,0,0.3)'
         }}>
-          {/* Header */}
           <div style={{ padding: '16px 20px', background: 'linear-gradient(135deg, #8B5CF6, #EC4899)', display: 'flex', alignItems: 'center', gap: '10px' }}>
             <span style={{ fontSize: '20px' }}>🤖</span>
             <span style={{ fontWeight: '600', color: 'white' }}>AI Assistant</span>
           </div>
 
-          {/* Messages */}
           <div style={{ height: '280px', overflowY: 'auto', padding: '16px' }}>
             {messages.map((msg, i) => (
               <div key={i} style={{ marginBottom: '12px', display: 'flex', justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start' }}>
@@ -550,7 +554,6 @@ function AIChatbot({ open, setOpen }) {
             ))}
           </div>
 
-          {/* Input */}
           <div style={{ padding: '16px', borderTop: '1px solid rgba(255,255,255,0.1)', display: 'flex', gap: '8px' }}>
             <input
               value={input}
@@ -621,12 +624,10 @@ function AuthPage({ setView }) {
 
   return (
     <div style={{ minHeight: '100vh', background: '#0c0a1d', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}>
-      {/* Background glows */}
       <div style={{ position: 'absolute', top: '20%', right: '30%', width: '400px', height: '400px', background: 'rgba(139, 92, 246, 0.3)', borderRadius: '50%', filter: 'blur(80px)' }} />
       <div style={{ position: 'absolute', bottom: '20%', left: '20%', width: '300px', height: '300px', background: 'rgba(236, 72, 153, 0.2)', borderRadius: '50%', filter: 'blur(60px)' }} />
 
       <div style={{ position: 'relative', zIndex: 1, width: '100%', maxWidth: '400px', padding: '20px' }}>
-        {/* Back to Landing */}
         <button onClick={() => setView('landing')} style={{ display: 'flex', alignItems: 'center', gap: '12px', background: 'transparent', border: 'none', color: 'white', cursor: 'pointer', marginBottom: '32px' }}>
           <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'linear-gradient(135deg, #8B5CF6, #EC4899)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <span style={{ fontWeight: 'bold', fontSize: '20px' }}>FF</span>
@@ -642,7 +643,6 @@ function AuthPage({ setView }) {
             {isLogin ? 'Sign in to your account' : 'Create your free account'}
           </p>
 
-          {/* Google Sign In */}
           <button onClick={handleGoogleSignIn} style={{ width: '100%', padding: '14px', background: 'white', border: 'none', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', cursor: 'pointer', marginBottom: '24px', fontSize: '15px', fontWeight: '500' }}>
             <svg width="20" height="20" viewBox="0 0 24 24">
               <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -698,15 +698,23 @@ function AuthPage({ setView }) {
 }
 
 // ============================================================================
-// DASHBOARD - FULL FEATURED
+// DASHBOARD
 // ============================================================================
 
-function Dashboard({ user, setView, data, setData }) {
+function Dashboard({ 
+  user, 
+  setView, 
+  transactions, 
+  bills, 
+  goals, 
+  lastImportDate,
+  onImportTransactions,
+  onUpdateBills,
+  onUpdateGoals,
+  parseCSV
+}) {
   const [activeTab, setActiveTab] = useState('home');
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [netWorthHidden, setNetWorthHidden] = useState(false);
   const [showAIChat, setShowAIChat] = useState(false);
-const [lastImportDate] = useState(new Date()); 
 
   const handleSignOut = async () => {
     const sb = await initSupabase();
@@ -717,80 +725,54 @@ const [lastImportDate] = useState(new Date());
 
   return (
     <div style={{ minHeight: '100vh', background: '#0c0a1d', color: 'white', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}>
-
-      
       {/* Header */}
-<header style={{ 
-  background: 'rgba(30, 27, 56, 0.8)', 
-  backdropFilter: 'blur(20px)', 
-  borderBottom: '1px solid rgba(255,255,255,0.1)', 
-  padding: '16px 24px', 
-  display: 'flex', 
-  alignItems: 'center', 
-  justifyContent: 'space-between' 
-}}>
-  <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-    <button onClick={() => setView('landing')} style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'linear-gradient(135deg, #8B5CF6, #EC4899)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <span style={{ color: 'white', fontWeight: 'bold', fontSize: '18px' }}>FF</span>
-    </button>
-    <div>
-      <div style={{ fontWeight: '600', fontSize: '18px' }}>Family Finance</div>
-      <div style={{ fontSize: '14px', color: 'rgba(255,255,255,0.6)' }}>Welcome back, {userName}!</div>
-    </div>
-  </div>
-  
-  {/* Right Side: Last Import + Today's Date + Sign Out */}
-  <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-    {/* Last Import Timestamp */}
-    <div style={{ 
-      fontSize: '13px', 
-      color: 'rgba(255,255,255,0.6)',
-      display: 'flex',
-      alignItems: 'center',
-      gap: '6px'
-    }}>
-      <span style={{ fontSize: '16px' }}>📥</span>
-      <span>Last import: {lastImportDate.toLocaleDateString()} at {lastImportDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-    </div>
+      <header style={{ 
+        background: 'rgba(30, 27, 56, 0.8)', 
+        backdropFilter: 'blur(20px)', 
+        borderBottom: '1px solid rgba(255,255,255,0.1)', 
+        padding: '16px 24px', 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'space-between' 
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <button onClick={() => setView('landing')} style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'linear-gradient(135deg, #8B5CF6, #EC4899)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <span style={{ color: 'white', fontWeight: 'bold', fontSize: '18px' }}>FF</span>
+          </button>
+          <div>
+            <div style={{ fontWeight: '600', fontSize: '18px' }}>Family Finance</div>
+            <div style={{ fontSize: '14px', color: 'rgba(255,255,255,0.6)' }}>Welcome back, {userName}!</div>
+          </div>
+        </div>
+        
+        <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+          {lastImportDate && (
+            <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.6)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{ fontSize: '16px' }}>📥</span>
+              <span>Last import: {lastImportDate.toLocaleDateString()} at {lastImportDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+            </div>
+          )}
 
-    {/* Today's Date */}
-    <div style={{ 
-      fontSize: '13px', 
-      color: 'rgba(255,255,255,0.6)',
-      display: 'flex',
-      alignItems: 'center',
-      gap: '6px',
-      padding: '8px 12px',
-      background: 'rgba(255,255,255,0.05)',
-      borderRadius: '8px'
-    }}>
-      <span style={{ fontSize: '16px' }}>📅</span>
-      <span>{new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}</span>
-    </div>
+          <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.6)', display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 12px', background: 'rgba(255,255,255,0.05)', borderRadius: '8px' }}>
+            <span style={{ fontSize: '16px' }}>📅</span>
+            <span>{new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}</span>
+          </div>
 
-    {/* Sign Out Button */}
-    <button onClick={handleSignOut} style={{ padding: '10px 20px', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '10px', color: 'white', cursor: 'pointer', fontSize: '14px' }}>
-      Sign Out
-    </button>
-  </div>
-</header>
-
-      
+          <button onClick={handleSignOut} style={{ padding: '10px 20px', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '10px', color: 'white', cursor: 'pointer', fontSize: '14px' }}>
+            Sign Out
+          </button>
+        </div>
+      </header>
 
       {/* Navigation Tabs */}
       <nav style={{ background: 'rgba(30, 27, 56, 0.5)', padding: '8px 24px', display: 'flex', gap: '8px' }}>
         {[
-        
-
-{ id: 'home', label: '🏠 Home' },
-{ id: 'budget', label: '💰 Budget' },
-{ id: 'bills', label: '📅 Bills' },
-{ id: 'goals', label: '🎯 Goals' },
-{ id: 'import', label: '📂 Import' },
-{ id: 'settings', label: '⚙️ Settings'  }
-
-
-      
+          { id: 'home', label: '🏠 Home' },
+          { id: 'budget', label: '💰 Budget' },
+          { id: 'bills', label: '📅 Bills' },
+          { id: 'goals', label: '🎯 Goals' },
+          { id: 'import', label: '📂 Import' },
+          { id: 'settings', label: '⚙️ Settings' }
         ].map(tab => (
           <button
             key={tab.id}
@@ -813,294 +795,455 @@ const [lastImportDate] = useState(new Date());
 
       {/* Main Content */}
       <main style={{ padding: '24px', maxWidth: '1400px', margin: '0 auto' }}>
-        {activeTab === 'home' && <HomeTab data={data} netWorthHidden={netWorthHidden} setNetWorthHidden={setNetWorthHidden} />}
-{activeTab === 'budget' && <BudgetTab />}
-{activeTab === 'bills' && <BillsCalendarView />}
-{activeTab === 'goals' && <GoalsTimelineWithCelebration />}
-{activeTab === 'import' && <DataUploadSystem onImportComplete={(transactions) => {
-  console.log('Imported:', transactions);
-  alert(`Successfully imported ${transactions.length} transactions!`);
-}} />}
-{activeTab === 'settings' && <SettingsTab />}
+        {activeTab === 'home' && (
+          <HomeTab 
+            transactions={transactions}
+            goals={goals}
+            onNavigateToImport={() => setActiveTab('import')}
+          />
+        )}
+        {activeTab === 'budget' && (
+          <BudgetTab 
+            transactions={transactions}
+            onNavigateToImport={() => setActiveTab('import')}
+          />
+        )}
+        {activeTab === 'bills' && <BillsCalendarView />}
+        {activeTab === 'goals' && (
+          <GoalsTab 
+            goals={goals}
+            onUpdateGoals={onUpdateGoals}
+          />
+        )}
+        {activeTab === 'import' && (
+          <ImportTab 
+            onImport={onImportTransactions}
+            parseCSV={parseCSV}
+            transactionCount={transactions.length}
+          />
+        )}
+        {activeTab === 'settings' && <SettingsTab />}
       </main>
 
-      
       {/* AI Assistant Button */}
-<button
-  onClick={() => setShowAIChat(true)}
-  style={{
-    position: 'fixed', bottom: '24px', right: '24px',
-    width: '60px', height: '60px', borderRadius: '50%',
-    background: 'linear-gradient(135deg, #8B5CF6, #EC4899)',
-    border: 'none', cursor: 'pointer', fontSize: '28px', color: 'white',
-    boxShadow: '0 4px 20px rgba(139, 92, 246, 0.4)',
-    display: 'flex', alignItems: 'center', justifyContent: 'center',
-    transition: 'all 0.3s ease'
-  }}
-  onMouseEnter={(e) => {
-    e.currentTarget.style.transform = 'scale(1.05)';
-    e.currentTarget.style.boxShadow = '0 6px 30px rgba(139, 92, 246, 0.6)';
-  }}
-  onMouseLeave={(e) => {
-    e.currentTarget.style.transform = 'scale(1)';
-    e.currentTarget.style.boxShadow = '0 4px 20px rgba(139, 92, 246, 0.4)';
-  }}
->
-  🤖
-</button>
+      <button
+        onClick={() => setShowAIChat(true)}
+        style={{
+          position: 'fixed', bottom: '24px', right: '24px',
+          width: '60px', height: '60px', borderRadius: '50%',
+          background: 'linear-gradient(135deg, #8B5CF6, #EC4899)',
+          border: 'none', cursor: 'pointer', fontSize: '28px', color: 'white',
+          boxShadow: '0 4px 20px rgba(139, 92, 246, 0.4)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center'
+        }}
+      >
+        🤖
+      </button>
 
-      {/* AI Assistant Modal */}
-{showAIChat && <AIAssistantModal onClose={() => setShowAIChat(false)} data={data} />}
+      {showAIChat && <AIAssistantModal onClose={() => setShowAIChat(false)} transactions={transactions} />}
 
       <style>{`
-  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
-  @keyframes slideIn { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-  
-  /* NEW ANIMATIONS FOR ENHANCED FEATURES */
-  @keyframes shimmer {
-    0% { transform: translateX(-100%); }
-    100% { transform: translateX(100%); }
-  }
-  @keyframes confetti {
-    0% { transform: translateY(-10px) rotate(0deg); opacity: 1; }
-    100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
-  }
-  @keyframes bounce-in {
-    0% { transform: scale(0); opacity: 0; }
-    50% { transform: scale(1.1); }
-    100% { transform: scale(1); opacity: 1; }
-  }
-  @keyframes spin-slow {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
-  }
-  .animate-shimmer { animation: shimmer 2s infinite; }
-  .animate-confetti { animation: confetti linear forwards; }
-  .animate-bounce-in { animation: bounce-in 0.5s ease-out; }
-  .animate-spin-slow { animation: spin-slow 2s linear infinite; }
-`}</style>
+        @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+      `}</style>
     </div>
   );
 }
 
 // ============================================================================
-// HOME TAB
+// GOALS TAB
 // ============================================================================
 
-function HomeTab({ data, netWorthHidden, setNetWorthHidden }) {
-  const formatCurrency = (val) => netWorthHidden ? '••••••' : `$${val.toLocaleString()}`;
-  
-  const getBudgetColor = (pct) => {
-    if (pct < 70) return '#10B981';
-    if (pct < 90) return '#FBBF24';
-    return '#EF4444';
+function GoalsTab({ goals, onUpdateGoals }) {
+  const [showAddGoal, setShowAddGoal] = useState(false);
+  const [newGoal, setNewGoal] = useState({ name: '', target: '', current: '', emoji: '🎯', color: '#8B5CF6' });
+
+  const emojiOptions = ['🎯', '🏠', '🚗', '✈️', '💰', '🛡️', '📚', '💎', '🎓', '👶', '💍', '🏖️'];
+  const colorOptions = ['#8B5CF6', '#EC4899', '#10B981', '#F59E0B', '#3B82F6', '#EF4444'];
+
+  const addGoal = () => {
+    if (!newGoal.name || !newGoal.target) return;
+    
+    const goal = {
+      id: Date.now(),
+      name: newGoal.name,
+      target: parseFloat(newGoal.target),
+      current: parseFloat(newGoal.current) || 0,
+      emoji: newGoal.emoji,
+      color: newGoal.color
+    };
+    
+    onUpdateGoals([...goals, goal]);
+    setNewGoal({ name: '', target: '', current: '', emoji: '🎯', color: '#8B5CF6' });
+    setShowAddGoal(false);
   };
 
-  const getBudgetStatus = (pct) => {
-    if (pct < 70) return { emoji: '✨', text: 'On track!' };
-    if (pct < 90) return { emoji: '⚠️', text: 'Watch spending' };
-    return { emoji: '😤', text: 'Slow down!' };
+  const updateGoalProgress = (goalId, newCurrent) => {
+    onUpdateGoals(goals.map(g => 
+      g.id === goalId ? { ...g, current: parseFloat(newCurrent) || 0 } : g
+    ));
   };
 
-  const status = getBudgetStatus(data.budget.percentage);
+  const deleteGoal = (goalId) => {
+    onUpdateGoals(goals.filter(g => g.id !== goalId));
+  };
 
   return (
     <div style={{ animation: 'slideIn 0.3s ease' }}>
-
-      
-      {/* TOP SECTION - Hero Stats */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px', marginBottom: '24px' }}>
-
-        
-        {/* Net Worth Card */}
-        <div style={{ background: 'linear-gradient(135deg, #8B5CF6, #7C3AED)', borderRadius: '20px', padding: '24px', position: 'relative', overflow: 'hidden' }}>
-          <div style={{ position: 'absolute', top: '-20px', right: '-20px', width: '100px', height: '100px', background: 'rgba(255,255,255,0.1)', borderRadius: '50%' }} />
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
-            <span style={{ fontSize: '14px', color: 'rgba(255,255,255,0.8)' }}>💰 Net Worth</span>
-            <button onClick={() => setNetWorthHidden(!netWorthHidden)} style={{ background: 'rgba(255,255,255,0.2)', border: 'none', borderRadius: '6px', padding: '4px 8px', cursor: 'pointer', color: 'white', fontSize: '12px' }}>
-              {netWorthHidden ? '👁️' : '🙈'}
-            </button>
-          </div>
-          <div style={{ fontSize: '36px', fontWeight: '700', marginBottom: '8px' }}>{formatCurrency(data.netWorth.total)}</div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ background: 'rgba(16, 185, 129, 0.3)', color: '#10B981', padding: '4px 8px', borderRadius: '6px', fontSize: '13px', fontWeight: '600' }}>
-              ↑ {data.netWorth.change}%
-            </span>
-            <span style={{ fontSize: '13px', color: 'rgba(255,255,255,0.6)' }}>vs last month</span>
-          </div>
-        </div>
-
-        {/* Cash Flow Card */}
-        <div style={{ background: 'linear-gradient(135deg, #3B82F6, #6366F1)', borderRadius: '20px', padding: '24px', position: 'relative', overflow: 'hidden' }}>
-          <div style={{ position: 'absolute', top: '-20px', right: '-20px', width: '100px', height: '100px', background: 'rgba(255,255,255,0.1)', borderRadius: '50%' }} />
-          <div style={{ fontSize: '14px', color: 'rgba(255,255,255,0.8)', marginBottom: '8px' }}>📊 Monthly Cash Flow</div>
-          <div style={{ fontSize: '36px', fontWeight: '700', marginBottom: '8px', color: data.cashFlow.net >= 0 ? '#10B981' : '#EF4444' }}>
-            {data.cashFlow.net >= 0 ? '+' : ''}{formatCurrency(data.cashFlow.net)}
-          </div>
-          <div style={{ display: 'flex', gap: '16px', fontSize: '13px' }}>
-            <span><span style={{ color: '#10B981' }}>●</span> In: {formatCurrency(data.cashFlow.income)}</span>
-            <span><span style={{ color: '#EF4444' }}>●</span> Out: {formatCurrency(data.cashFlow.expenses)}</span>
-          </div>
-        </div>
-
-        {/* Budget Ring Card */}
-        <div style={{ background: 'linear-gradient(135deg, #EC4899, #F472B6)', borderRadius: '20px', padding: '24px', position: 'relative', overflow: 'hidden' }}>
-          <div style={{ position: 'absolute', top: '-20px', right: '-20px', width: '100px', height: '100px', background: 'rgba(255,255,255,0.1)', borderRadius: '50%' }} />
-          <div style={{ fontSize: '14px', color: 'rgba(255,255,255,0.8)', marginBottom: '8px' }}>🎯 Budget Ring</div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-            {/* Circular Progress */}
-            <div style={{ position: 'relative', width: '80px', height: '80px' }}>
-              <svg viewBox="0 0 36 36" style={{ transform: 'rotate(-90deg)' }}>
-                <circle cx="18" cy="18" r="15.9" fill="none" stroke="rgba(255,255,255,0.2)" strokeWidth="3" />
-                <circle 
-                  cx="18" cy="18" r="15.9" fill="none" 
-                  stroke={getBudgetColor(data.budget.percentage)}
-                  strokeWidth="3"
-                  strokeDasharray={`${data.budget.percentage}, 100`}
-                  strokeLinecap="round"
-                />
-              </svg>
-              <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px', fontWeight: '700' }}>
-                {Math.round(data.budget.percentage)}%
-              </div>
-            </div>
-            <div>
-              <div style={{ fontSize: '20px', fontWeight: '600' }}>{status.emoji} {status.text}</div>
-              <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.7)' }}>${data.budget.spent.toLocaleString()} of ${data.budget.total.toLocaleString()}</div>
-            </div>
-          </div>
-        </div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+        <h2 style={{ fontSize: '24px', fontWeight: '600' }}>🎯 Financial Goals</h2>
+        <button
+          onClick={() => setShowAddGoal(true)}
+          style={{
+            padding: '12px 24px',
+            background: 'linear-gradient(135deg, #8B5CF6, #EC4899)',
+            border: 'none',
+            borderRadius: '12px',
+            color: 'white',
+            fontSize: '14px',
+            fontWeight: '600',
+            cursor: 'pointer'
+          }}
+        >
+          + Add Goal
+        </button>
       </div>
 
-      {/* MIDDLE SECTION - Activity */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '20px', marginBottom: '24px' }}>
-        {/* Upcoming Bills */}
-        <div style={{ background: 'rgba(30, 27, 56, 0.8)', backdropFilter: 'blur(20px)', borderRadius: '20px', padding: '24px', border: '1px solid rgba(255,255,255,0.1)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px' }}>
-            <span style={{ fontSize: '20px' }}>📅</span>
-            <span style={{ fontWeight: '600' }}>Upcoming Bills</span>
-          </div>
-          {data.bills.filter(b => b.status !== 'paid').slice(0, 4).map(bill => {
-            const isOverdue = bill.status === 'overdue';
-            const daysUntil = Math.ceil((bill.dueDate - new Date()) / (1000 * 60 * 60 * 24));
+      {goals.length === 0 ? (
+        <EmptyState
+          icon="🎯"
+          title="No goals set yet"
+          message="Create your first financial goal to start tracking your progress!"
+          actionLabel="+ Create Goal"
+          onAction={() => setShowAddGoal(true)}
+        />
+      ) : (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '20px' }}>
+          {goals.map(goal => {
+            const percentage = Math.min((goal.current / goal.target) * 100, 100);
+            const remaining = goal.target - goal.current;
+            
             return (
-              <div key={bill.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px', background: isOverdue ? 'rgba(239, 68, 68, 0.1)' : 'rgba(255,255,255,0.05)', borderRadius: '12px', marginBottom: '8px', border: isOverdue ? '1px solid rgba(239, 68, 68, 0.3)' : 'none', animation: isOverdue ? 'pulse 2s infinite' : 'none' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <span style={{ fontSize: '20px' }}>{bill.emoji}</span>
-                  <div>
-                    <div style={{ fontWeight: '500' }}>{bill.name}</div>
-                    <div style={{ fontSize: '12px', color: isOverdue ? '#EF4444' : 'rgba(255,255,255,0.5)' }}>
-                      {isOverdue ? '😤 Overdue!' : `${daysUntil} days`}
+              <div
+                key={goal.id}
+                style={{
+                  background: 'rgba(30, 27, 56, 0.8)',
+                  backdropFilter: 'blur(20px)',
+                  borderRadius: '20px',
+                  padding: '24px',
+                  border: '1px solid rgba(255,255,255,0.1)'
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <span style={{ fontSize: '32px' }}>{goal.emoji}</span>
+                    <div>
+                      <div style={{ fontWeight: '600', fontSize: '18px' }}>{goal.name}</div>
+                      <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.5)' }}>
+                        ${goal.current.toLocaleString()} of ${goal.target.toLocaleString()}
+                      </div>
                     </div>
                   </div>
+                  <div style={{ 
+                    padding: '6px 12px', 
+                    background: `${goal.color}20`, 
+                    borderRadius: '8px',
+                    color: goal.color,
+                    fontWeight: '600'
+                  }}>
+                    {percentage.toFixed(0)}%
+                  </div>
                 </div>
-                <span style={{ fontWeight: '600' }}>${bill.amount}</span>
+
+                <div style={{ height: '12px', background: 'rgba(255,255,255,0.1)', borderRadius: '6px', overflow: 'hidden', marginBottom: '16px' }}>
+                  <div style={{ 
+                    width: `${percentage}%`, 
+                    height: '100%', 
+                    background: goal.color,
+                    borderRadius: '6px',
+                    transition: 'width 0.5s ease'
+                  }} />
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: '13px', color: 'rgba(255,255,255,0.5)' }}>
+                    ${remaining.toLocaleString()} to go
+                  </span>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <input
+                      type="number"
+                      placeholder="Update"
+                      onBlur={(e) => updateGoalProgress(goal.id, e.target.value)}
+                      style={{
+                        width: '80px',
+                        padding: '6px 10px',
+                        background: 'rgba(255,255,255,0.1)',
+                        border: '1px solid rgba(255,255,255,0.2)',
+                        borderRadius: '6px',
+                        color: 'white',
+                        fontSize: '12px'
+                      }}
+                    />
+                    <button
+                      onClick={() => deleteGoal(goal.id)}
+                      style={{
+                        padding: '6px 10px',
+                        background: 'rgba(239, 68, 68, 0.2)',
+                        border: 'none',
+                        borderRadius: '6px',
+                        color: '#EF4444',
+                        fontSize: '12px',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
               </div>
             );
           })}
-          <div style={{ textAlign: 'center', padding: '8px', color: '#8B5CF6', fontSize: '14px', cursor: 'pointer' }}>
-            Due this week: ${data.bills.filter(b => b.status === 'upcoming').slice(0, 3).reduce((a, b) => a + b.amount, 0).toFixed(2)}
-          </div>
         </div>
+      )}
 
-        {/* Recent Activity */}
-        <div style={{ background: 'rgba(30, 27, 56, 0.8)', backdropFilter: 'blur(20px)', borderRadius: '20px', padding: '24px', border: '1px solid rgba(255,255,255,0.1)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px' }}>
-            <span style={{ fontSize: '20px' }}>💳</span>
-            <span style={{ fontWeight: '600' }}>Recent Activity</span>
-          </div>
-          {data.transactions.slice(0, 5).map(tx => (
-            <div key={tx.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px', background: 'rgba(255,255,255,0.05)', borderRadius: '12px', marginBottom: '8px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <span style={{ fontSize: '20px' }}>{tx.emoji}</span>
-                <div>
-                  <div style={{ fontWeight: '500' }}>{tx.name}</div>
-                  <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)' }}>{tx.category}</div>
-                </div>
+      {/* Add Goal Modal */}
+      {showAddGoal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }} onClick={() => setShowAddGoal(false)}>
+          <div style={{ background: 'rgba(30, 27, 56, 0.98)', backdropFilter: 'blur(20px)', borderRadius: '24px', padding: '32px', width: '400px', border: '1px solid rgba(255,255,255,0.1)' }} onClick={e => e.stopPropagation()}>
+            <h3 style={{ fontSize: '20px', fontWeight: '600', marginBottom: '24px' }}>🎯 Create New Goal</h3>
+
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', color: 'rgba(255,255,255,0.7)', fontSize: '14px' }}>Emoji</label>
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                {emojiOptions.map(emoji => (
+                  <button key={emoji} onClick={() => setNewGoal({ ...newGoal, emoji })} style={{ width: '40px', height: '40px', borderRadius: '10px', border: newGoal.emoji === emoji ? '2px solid #8B5CF6' : 'none', background: newGoal.emoji === emoji ? 'rgba(139, 92, 246, 0.2)' : 'rgba(255,255,255,0.1)', fontSize: '20px', cursor: 'pointer' }}>
+                    {emoji}
+                  </button>
+                ))}
               </div>
-              <span style={{ fontWeight: '600', color: tx.amount >= 0 ? '#10B981' : 'white' }}>
-                {tx.amount >= 0 ? '+' : ''}${Math.abs(tx.amount).toFixed(2)}
-              </span>
             </div>
-          ))}
-        </div>
 
-        {/* AI Insights */}
-        <div style={{ background: 'rgba(30, 27, 56, 0.8)', backdropFilter: 'blur(20px)', borderRadius: '20px', padding: '24px', border: '1px solid rgba(255,255,255,0.1)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px' }}>
-            <span style={{ fontSize: '20px' }}>✨</span>
-            <span style={{ fontWeight: '600' }}>AI Insights</span>
-          </div>
-          {data.insights.map(insight => (
-            <div key={insight.id} style={{ padding: '12px', background: insight.type === 'warning' ? 'rgba(251, 191, 36, 0.1)' : insight.type === 'alert' ? 'rgba(239, 68, 68, 0.1)' : insight.type === 'success' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(139, 92, 246, 0.1)', borderRadius: '12px', marginBottom: '8px', fontSize: '14px', lineHeight: 1.5 }}>
-              <span style={{ marginRight: '8px' }}>{insight.emoji}</span>
-              {insight.message}
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', color: 'rgba(255,255,255,0.7)', fontSize: '14px' }}>Color</label>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                {colorOptions.map(color => (
+                  <button key={color} onClick={() => setNewGoal({ ...newGoal, color })} style={{ width: '32px', height: '32px', borderRadius: '8px', border: newGoal.color === color ? '3px solid white' : 'none', background: color, cursor: 'pointer' }} />
+                ))}
+              </div>
             </div>
-          ))}
+
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', color: 'rgba(255,255,255,0.7)', fontSize: '14px' }}>Goal Name</label>
+              <input value={newGoal.name} onChange={e => setNewGoal({ ...newGoal, name: e.target.value })} placeholder="e.g., Emergency Fund" style={{ width: '100%', padding: '12px', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '10px', color: 'white', boxSizing: 'border-box' }} />
+            </div>
+
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', color: 'rgba(255,255,255,0.7)', fontSize: '14px' }}>Target Amount ($)</label>
+              <input type="number" value={newGoal.target} onChange={e => setNewGoal({ ...newGoal, target: e.target.value })} placeholder="10000" style={{ width: '100%', padding: '12px', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '10px', color: 'white', boxSizing: 'border-box' }} />
+            </div>
+
+            <div style={{ marginBottom: '24px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', color: 'rgba(255,255,255,0.7)', fontSize: '14px' }}>Current Progress ($)</label>
+              <input type="number" value={newGoal.current} onChange={e => setNewGoal({ ...newGoal, current: e.target.value })} placeholder="0" style={{ width: '100%', padding: '12px', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '10px', color: 'white', boxSizing: 'border-box' }} />
+            </div>
+
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <button onClick={() => setShowAddGoal(false)} style={{ flex: 1, padding: '14px', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '12px', color: 'white', cursor: 'pointer' }}>Cancel</button>
+              <button onClick={addGoal} style={{ flex: 1, padding: '14px', background: 'linear-gradient(135deg, #8B5CF6, #EC4899)', border: 'none', borderRadius: '12px', color: 'white', fontWeight: '600', cursor: 'pointer' }}>Create Goal</button>
+            </div>
+          </div>
         </div>
+      )}
+    </div>
+  );
+}
+
+// ============================================================================
+// IMPORT TAB
+// ============================================================================
+
+function ImportTab({ onImport, parseCSV, transactionCount }) {
+  const [dragOver, setDragOver] = useState(false);
+  const [importing, setImporting] = useState(false);
+  const [importResult, setImportResult] = useState(null);
+  const fileInputRef = useRef(null);
+
+  const handleFile = async (file) => {
+    if (!file) return;
+    
+    setImporting(true);
+    setImportResult(null);
+
+    try {
+      const text = await file.text();
+      const transactions = parseCSV(text);
+      
+      if (transactions.length > 0) {
+        onImport(transactions);
+        setImportResult({ success: true, count: transactions.length });
+      } else {
+        setImportResult({ success: false, error: 'No valid transactions found in file' });
+      }
+    } catch (error) {
+      setImportResult({ success: false, error: error.message });
+    }
+    
+    setImporting(false);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setDragOver(false);
+    const file = e.dataTransfer.files[0];
+    if (file && file.name.endsWith('.csv')) {
+      handleFile(file);
+    }
+  };
+
+  const handleFileSelect = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      handleFile(file);
+    }
+  };
+
+  return (
+    <div style={{ animation: 'slideIn 0.3s ease' }}>
+      <h2 style={{ fontSize: '24px', fontWeight: '600', marginBottom: '24px' }}>📂 Import Data</h2>
+
+      {/* Current Status */}
+      <div style={{ 
+        background: 'rgba(30, 27, 56, 0.8)', 
+        borderRadius: '16px', 
+        padding: '20px', 
+        marginBottom: '24px',
+        border: '1px solid rgba(255,255,255,0.1)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between'
+      }}>
+        <div>
+          <div style={{ fontSize: '14px', color: 'rgba(255,255,255,0.6)', marginBottom: '4px' }}>Current Data</div>
+          <div style={{ fontSize: '24px', fontWeight: '700' }}>
+            {transactionCount.toLocaleString()} <span style={{ fontSize: '14px', fontWeight: '400', color: 'rgba(255,255,255,0.6)' }}>transactions</span>
+          </div>
+        </div>
+        {transactionCount > 0 && (
+          <div style={{ background: 'rgba(16, 185, 129, 0.2)', color: '#10B981', padding: '8px 16px', borderRadius: '8px', fontSize: '14px' }}>
+            ✓ Data loaded
+          </div>
+        )}
       </div>
 
-      {/* BOTTOM SECTION - Snapshots */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '20px' }}>
+      {/* Drop Zone */}
+      <div
+        onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+        onDragLeave={() => setDragOver(false)}
+        onDrop={handleDrop}
+        onClick={() => fileInputRef.current?.click()}
+        style={{
+          background: dragOver ? 'rgba(139, 92, 246, 0.2)' : 'rgba(30, 27, 56, 0.5)',
+          border: `2px dashed ${dragOver ? '#8B5CF6' : 'rgba(255,255,255,0.2)'}`,
+          borderRadius: '20px',
+          padding: '60px 40px',
+          textAlign: 'center',
+          cursor: 'pointer',
+          transition: 'all 0.3s ease',
+          marginBottom: '24px'
+        }}
+      >
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".csv"
+          onChange={handleFileSelect}
+          style={{ display: 'none' }}
+        />
         
-        {/* Retirement */}
-        <div style={{ background: 'rgba(30, 27, 56, 0.8)', backdropFilter: 'blur(20px)', borderRadius: '20px', padding: '24px', border: '1px solid rgba(255,255,255,0.1)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px' }}>
-            <span style={{ fontSize: '20px' }}>🔥</span>
-            <span style={{ fontWeight: '600' }}>Retirement</span>
-          </div>
-          <div style={{ fontSize: '28px', fontWeight: '700', marginBottom: '8px' }}>${data.retirement.total.toLocaleString()}</div>
-          <div style={{ marginBottom: '16px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'rgba(255,255,255,0.5)', marginBottom: '4px' }}>
-              <span>Progress to ${(data.retirement.goal / 1000).toFixed(0)}K</span>
-              <span>{((data.retirement.total / data.retirement.goal) * 100).toFixed(1)}%</span>
+        {importing ? (
+          <>
+            <div style={{ fontSize: '48px', marginBottom: '16px' }}>⏳</div>
+            <div style={{ fontSize: '18px', fontWeight: '600', marginBottom: '8px' }}>Importing...</div>
+          </>
+        ) : (
+          <>
+            <div style={{ fontSize: '48px', marginBottom: '16px' }}>📄</div>
+            <div style={{ fontSize: '18px', fontWeight: '600', marginBottom: '8px' }}>
+              Drop your CSV file here
             </div>
-            <div style={{ height: '8px', background: 'rgba(255,255,255,0.1)', borderRadius: '4px', overflow: 'hidden' }}>
-              <div style={{ width: `${(data.retirement.total / data.retirement.goal) * 100}%`, height: '100%', background: 'linear-gradient(90deg, #F97316, #FBBF24)', borderRadius: '4px' }} />
+            <div style={{ fontSize: '14px', color: 'rgba(255,255,255,0.5)', marginBottom: '16px' }}>
+              or click to browse
             </div>
-          </div>
-          {data.retirement.accounts.map((acc, i) => (
-            <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderTop: '1px solid rgba(255,255,255,0.1)', fontSize: '14px' }}>
-              <span>{acc.emoji} {acc.name}</span>
-              <span style={{ fontWeight: '600' }}>${acc.balance.toLocaleString()}</span>
+            <div style={{ 
+              display: 'inline-block',
+              padding: '10px 24px', 
+              background: 'linear-gradient(135deg, #8B5CF6, #EC4899)', 
+              borderRadius: '10px',
+              fontSize: '14px',
+              fontWeight: '600'
+            }}>
+              Select File
             </div>
-          ))}
+          </>
+        )}
+      </div>
+
+      {/* Import Result */}
+      {importResult && (
+        <div style={{
+          background: importResult.success ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.2)',
+          border: `1px solid ${importResult.success ? 'rgba(16, 185, 129, 0.3)' : 'rgba(239, 68, 68, 0.3)'}`,
+          borderRadius: '12px',
+          padding: '16px 20px',
+          marginBottom: '24px'
+        }}>
+          {importResult.success ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', color: '#10B981' }}>
+              <span style={{ fontSize: '24px' }}>✅</span>
+              <div>
+                <div style={{ fontWeight: '600' }}>Import Successful!</div>
+                <div style={{ fontSize: '14px', opacity: 0.8 }}>{importResult.count.toLocaleString()} transactions imported</div>
+              </div>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', color: '#EF4444' }}>
+              <span style={{ fontSize: '24px' }}>❌</span>
+              <div>
+                <div style={{ fontWeight: '600' }}>Import Failed</div>
+                <div style={{ fontSize: '14px', opacity: 0.8 }}>{importResult.error}</div>
+              </div>
+            </div>
+          )}
         </div>
+      )}
 
-        {/* Goals */}
-<div style={{ background: 'rgba(30, 27, 56, 0.8)', backdropFilter: 'blur(20px)', borderRadius: '20px', padding: '24px', border: '1px solid rgba(255,255,255,0.1)' }}>
-  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px' }}>
-    <span style={{ fontSize: '20px' }}>🎯</span>
-    <span style={{ fontWeight: '600' }}>Goals</span>
-  </div>
-  <GoalsWithPercentage goals={data.goals} />
-</div>
-
-        
-        {/* Savings Rate */}
-        <div style={{ background: 'rgba(30, 27, 56, 0.8)', backdropFilter: 'blur(20px)', borderRadius: '20px', padding: '24px', border: '1px solid rgba(255,255,255,0.1)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px' }}>
-            <span style={{ fontSize: '20px' }}>💎</span>
-            <span style={{ fontWeight: '600' }}>Savings Rate</span>
+      {/* Supported Format */}
+      <div style={{ 
+        background: 'rgba(30, 27, 56, 0.8)', 
+        borderRadius: '16px', 
+        padding: '24px',
+        border: '1px solid rgba(255,255,255,0.1)'
+      }}>
+        <h3 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '16px' }}>📋 Supported CSV Format</h3>
+        <div style={{ fontSize: '14px', color: 'rgba(255,255,255,0.7)', lineHeight: 1.6 }}>
+          <p style={{ marginBottom: '12px' }}>Your CSV should have these columns:</p>
+          <div style={{ 
+            background: 'rgba(0,0,0,0.3)', 
+            borderRadius: '8px', 
+            padding: '12px 16px',
+            fontFamily: 'monospace',
+            fontSize: '13px',
+            overflowX: 'auto'
+          }}>
+            Date, Description, Original Description, Category, Amount, Status
           </div>
-          <div style={{ textAlign: 'center', padding: '20px 0' }}>
-            <div style={{ fontSize: '48px', fontWeight: '700', background: 'linear-gradient(135deg, #8B5CF6, #EC4899)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-              {data.savingsRate.current}%
-            </div>
-            <div style={{ color: 'rgba(255,255,255,0.6)', marginTop: '8px' }}>
-              Target: {data.savingsRate.target}%
-            </div>
-          </div>
-          <div style={{ background: 'rgba(139, 92, 246, 0.1)', borderRadius: '12px', padding: '16px', textAlign: 'center' }}>
-            <div style={{ fontSize: '14px', color: 'rgba(255,255,255,0.6)' }}>🔥 FIRE Timeline</div>
-            <div style={{ fontSize: '24px', fontWeight: '600', marginTop: '4px' }}>{data.savingsRate.fireTimeline}</div>
-          </div>
+          <p style={{ marginTop: '12px', color: 'rgba(255,255,255,0.5)' }}>
+            Tip: Most banks allow you to export transactions as CSV. Look for "Export" or "Download" in your bank's transaction history.
+          </p>
         </div>
       </div>
     </div>
   );
 }
-
 
 // ============================================================================
 // SETTINGS TAB
@@ -1137,101 +1280,22 @@ function SettingsTab() {
 }
 
 // ============================================================================
-// ADD MODAL
-// ============================================================================
-
-function AddModal({ onClose, data, setData }) {
-  const [type, setType] = useState('transaction');
-  const [form, setForm] = useState({ name: '', amount: '', category: 'Food', emoji: '🛒' });
-
-  const categories = [
-    { name: 'Food', emoji: '🍔' },
-    { name: 'Transport', emoji: '🚗' },
-    { name: 'Shopping', emoji: '🛍️' },
-    { name: 'Entertainment', emoji: '🎬' },
-    { name: 'Housing', emoji: '🏠' },
-    { name: 'Utilities', emoji: '💡' },
-    { name: 'Health', emoji: '🏥' },
-    { name: 'Income', emoji: '💰' }
-  ];
-
-  const handleAdd = () => {
-    if (!form.name || !form.amount) return;
-    
-    const amount = parseFloat(form.amount);
-    const isIncome = form.category === 'Income';
-    
-    setData(prev => ({
-      ...prev,
-      transactions: [
-        { id: Date.now(), name: form.name, amount: isIncome ? amount : -amount, date: new Date(), category: form.category, emoji: form.emoji },
-        ...prev.transactions
-      ]
-    }));
-    
-    onClose();
-  };
-
-  return (
-    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1001 }} onClick={onClose}>
-      <div style={{ background: 'rgba(30, 27, 56, 0.95)', backdropFilter: 'blur(20px)', borderRadius: '24px', padding: '32px', width: '400px', border: '1px solid rgba(255,255,255,0.1)' }} onClick={e => e.stopPropagation()}>
-        <h3 style={{ fontSize: '20px', fontWeight: '600', marginBottom: '24px', color: 'white' }}>➕ Add Transaction</h3>
-        
-        <div style={{ marginBottom: '16px' }}>
-          <label style={{ display: 'block', marginBottom: '8px', color: 'rgba(255,255,255,0.7)', fontSize: '14px' }}>Description</label>
-          <input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="e.g., Grocery Store" style={{ width: '100%', padding: '12px', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '10px', color: 'white', boxSizing: 'border-box' }} />
-        </div>
-        
-        <div style={{ marginBottom: '16px' }}>
-          <label style={{ display: 'block', marginBottom: '8px', color: 'rgba(255,255,255,0.7)', fontSize: '14px' }}>Amount</label>
-          <input type="number" value={form.amount} onChange={e => setForm({ ...form, amount: e.target.value })} placeholder="0.00" style={{ width: '100%', padding: '12px', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '10px', color: 'white', boxSizing: 'border-box' }} />
-        </div>
-        
-        <div style={{ marginBottom: '24px' }}>
-          <label style={{ display: 'block', marginBottom: '8px', color: 'rgba(255,255,255,0.7)', fontSize: '14px' }}>Category</label>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
-            {categories.map(cat => (
-              <button key={cat.name} onClick={() => setForm({ ...form, category: cat.name, emoji: cat.emoji })} style={{ padding: '12px 8px', background: form.category === cat.name ? 'linear-gradient(135deg, #8B5CF6, #EC4899)' : 'rgba(255,255,255,0.1)', border: 'none', borderRadius: '10px', color: 'white', cursor: 'pointer', fontSize: '12px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
-                <span style={{ fontSize: '20px' }}>{cat.emoji}</span>
-                {cat.name}
-              </button>
-            ))}
-          </div>
-        </div>
-        
-        <div style={{ display: 'flex', gap: '12px' }}>
-          <button onClick={onClose} style={{ flex: 1, padding: '14px', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '12px', color: 'white', cursor: 'pointer', fontSize: '15px' }}>Cancel</button>
-          <button onClick={handleAdd} style={{ flex: 1, padding: '14px', background: 'linear-gradient(135deg, #8B5CF6, #EC4899)', border: 'none', borderRadius: '12px', color: 'white', cursor: 'pointer', fontSize: '15px', fontWeight: '600' }}>Add</button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ============================================================================
 // AI ASSISTANT MODAL
 // ============================================================================
 
-function AIAssistantModal({ onClose, data }) {
+function AIAssistantModal({ onClose, transactions }) {
   const [messages, setMessages] = useState([
-    { 
-      role: 'assistant', 
-      content: "Hi! 👋 I'm your Family Finance AI assistant. I can help you:\n\n• Analyze your spending patterns\n• Suggest budget optimizations\n• Answer questions about your finances\n• Provide insights on your goals\n• Help track bills and payments\n\nWhat would you like to know?" 
-    }
+    { role: 'assistant', content: "Hi! 👋 I'm your Family Finance AI assistant. I can help you analyze your spending, find insights, and answer questions about your finances. What would you like to know?" }
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef(null);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
   useEffect(() => {
-    scrollToBottom();
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const sendMessage = async () => {
+  const sendMessage = () => {
     if (!input.trim() || loading) return;
     
     const userMessage = input.trim();
@@ -1239,278 +1303,103 @@ function AIAssistantModal({ onClose, data }) {
     setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
     setLoading(true);
 
-    // Simulate AI response (replace with actual AI integration)
     setTimeout(() => {
       let response = "I'd be happy to help with that! ";
       const lower = userMessage.toLowerCase();
 
-      // Context-aware responses based on user's data
-      if (lower.includes('budget') || lower.includes('spending')) {
-        const totalSpent = data.budget.spent;
-        const totalBudget = data.budget.total;
-        const pct = ((totalSpent / totalBudget) * 100).toFixed(1);
-        response = `Based on your current data:\n\n💰 You've spent $${totalSpent.toLocaleString()} of your $${totalBudget.toLocaleString()} budget (${pct}%).\n\n`;
-        
-        // Find over-budget categories
-        const overBudget = data.budget.categories.filter(c => c.spent > c.budget);
-        if (overBudget.length > 0) {
-          response += `⚠️ You're over budget in ${overBudget.length} ${overBudget.length === 1 ? 'category' : 'categories'}:\n`;
-          overBudget.forEach(c => {
-            response += `• ${c.emoji} ${c.name}: $${c.spent} / $${c.budget} (+$${(c.spent - c.budget).toFixed(0)})\n`;
-          });
-          response += '\n💡 Tip: Consider reducing spending in these areas next month.';
-        } else {
-          response += '✨ Great job! All categories are within budget.';
-        }
-      } else if (lower.includes('bill') || lower.includes('payment')) {
-        const overdue = data.bills.filter(b => b.status === 'overdue');
-        const upcoming = data.bills.filter(b => b.status === 'upcoming');
-        
-        response = `📅 Bill Status:\n\n`;
-        if (overdue.length > 0) {
-          response += `😤 ${overdue.length} overdue ${overdue.length === 1 ? 'bill' : 'bills'}:\n`;
-          overdue.forEach(b => response += `• ${b.emoji} ${b.name}: $${b.amount}\n`);
-          response += '\n';
-        }
-        response += `📌 ${upcoming.length} upcoming ${upcoming.length === 1 ? 'bill' : 'bills'} (total: $${upcoming.reduce((sum, b) => sum + b.amount, 0).toFixed(2)})\n\n`;
-        response += overdue.length > 0 ? '⚡ Priority: Pay overdue bills first!' : '✅ You\'re all caught up!';
-      } else if (lower.includes('goal') || lower.includes('saving')) {
-        const goals = data.goals;
-        const totalSaved = goals.reduce((sum, g) => sum + g.current, 0);
-        const totalTarget = goals.reduce((sum, g) => sum + g.target, 0);
-        const overallPct = ((totalSaved / totalTarget) * 100).toFixed(1);
-        
-        response = `🎯 Goals Progress:\n\n`;
-        response += `Overall: $${totalSaved.toLocaleString()} / $${totalTarget.toLocaleString()} (${overallPct}%)\n\n`;
-        goals.forEach(g => {
-          const pct = ((g.current / g.target) * 100).toFixed(0);
-          const status = pct >= 100 ? '✅' : pct >= 75 ? '🟢' : pct >= 50 ? '🟡' : '🔴';
-          response += `${status} ${g.emoji} ${g.name}: ${pct}%\n`;
+      if (transactions.length === 0) {
+        response = "📂 I don't see any transaction data yet. Please import your bank CSV file first, then I can help you analyze your spending patterns, track expenses, and provide personalized insights!";
+      } else if (lower.includes('spending') || lower.includes('spent')) {
+        const totalSpent = transactions.filter(t => parseFloat(t.amount) < 0).reduce((sum, t) => sum + Math.abs(parseFloat(t.amount)), 0);
+        response = `💸 Based on your imported data, you've spent a total of $${totalSpent.toLocaleString(undefined, { minimumFractionDigits: 2 })} across ${transactions.filter(t => parseFloat(t.amount) < 0).length} transactions.`;
+      } else if (lower.includes('income') || lower.includes('earned')) {
+        const totalIncome = transactions.filter(t => parseFloat(t.amount) > 0).reduce((sum, t) => sum + parseFloat(t.amount), 0);
+        response = `💰 Your total income from imported transactions is $${totalIncome.toLocaleString(undefined, { minimumFractionDigits: 2 })}.`;
+      } else if (lower.includes('categor')) {
+        const categories = {};
+        transactions.filter(t => parseFloat(t.amount) < 0).forEach(t => {
+          const cat = t.category || 'Uncategorized';
+          categories[cat] = (categories[cat] || 0) + Math.abs(parseFloat(t.amount));
         });
-        
-        const nextGoal = goals.filter(g => (g.current / g.target) < 1).sort((a, b) => (b.current / b.target) - (a.current / a.target))[0];
-        if (nextGoal) {
-          const remaining = nextGoal.target - nextGoal.current;
-          response += `\n💡 Focus: You're closest to completing ${nextGoal.emoji} ${nextGoal.name} (only $${remaining.toLocaleString()} to go!)`;
-        }
-      } else if (lower.includes('insight') || lower.includes('tip')) {
-        response = `💡 Smart Insights:\n\n`;
-        response += `📊 Your savings rate is ${data.savingsRate.current}% (target: ${data.savingsRate.target}%)\n`;
-        response += `🔥 At this rate, you'll reach FIRE in ${data.savingsRate.fireTimeline}\n\n`;
-        response += `✨ Quick wins:\n`;
-        response += `• Increase savings by ${data.savingsRate.target - data.savingsRate.current}% to hit your target\n`;
-        response += `• This month's surplus: $${data.cashFlow.net.toLocaleString()}\n`;
-        response += `• Consider allocating to your closest goal: ${data.goals[0].emoji} ${data.goals[0].name}`;
-      } else if (lower.includes('net worth') || lower.includes('wealth')) {
-        response = `💰 Net Worth Analysis:\n\n`;
-        response += `Current: $${data.netWorth.total.toLocaleString()}\n`;
-        response += `Change: +${data.netWorth.change}% (vs last month)\n\n`;
-        response += `📈 Breakdown:\n`;
-        response += `• Assets: $${data.netWorth.breakdown.assets.toLocaleString()}\n`;
-        response += `• Liabilities: -$${data.netWorth.breakdown.liabilities.toLocaleString()}\n\n`;
-        response += `🎯 You're building wealth! Keep it up!`;
+        const sorted = Object.entries(categories).sort((a, b) => b[1] - a[1]).slice(0, 5);
+        response = `📊 Your top spending categories:\n\n${sorted.map(([cat, amount], i) => `${i + 1}. ${cat}: $${amount.toFixed(2)}`).join('\n')}`;
       } else {
-        response += "I can help you with:\n\n";
-        response += "• Budget analysis ('How's my budget?')\n";
-        response += "• Bill tracking ('What bills are due?')\n";
-        response += "• Goal progress ('How are my goals?')\n";
-        response += "• Smart insights ('Give me tips')\n";
-        response += "• Net worth tracking ('What's my net worth?')\n\n";
-        response += "What would you like to explore?";
+        response = `Based on your ${transactions.length} imported transactions, I can help you:\n\n• Analyze spending patterns\n• Track income vs expenses\n• View category breakdowns\n• Find savings opportunities\n\nWhat would you like to explore?`;
       }
 
       setMessages(prev => [...prev, { role: 'assistant', content: response }]);
       setLoading(false);
-    }, 1000);
+    }, 800);
   };
 
   return (
-    <div 
-      style={{ 
-        position: 'fixed', 
-        inset: 0, 
-        background: 'rgba(0,0,0,0.8)', 
-        display: 'flex', 
-        alignItems: 'center', 
-        justifyContent: 'center', 
-        zIndex: 1001,
-        backdropFilter: 'blur(8px)'
-      }} 
-      onClick={onClose}
-    >
-      <div 
-        style={{ 
-          background: 'rgba(30, 27, 56, 0.98)', 
-          backdropFilter: 'blur(20px)', 
-          borderRadius: '24px', 
-          width: '90%', 
-          maxWidth: '600px',
-          maxHeight: '80vh',
-          border: '1px solid rgba(139, 92, 246, 0.3)',
-          boxShadow: '0 20px 60px rgba(139, 92, 246, 0.3)',
-          display: 'flex',
-          flexDirection: 'column',
-          overflow: 'hidden'
-        }} 
-        onClick={e => e.stopPropagation()}
-      >
-        {/* Header */}
-        <div style={{ 
-          padding: '20px 24px', 
-          background: 'linear-gradient(135deg, #8B5CF6, #EC4899)', 
-          display: 'flex', 
-          alignItems: 'center', 
-          justifyContent: 'space-between',
-          borderBottom: '1px solid rgba(255,255,255,0.1)'
-        }}>
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1001, backdropFilter: 'blur(8px)' }} onClick={onClose}>
+      <div style={{ background: 'rgba(30, 27, 56, 0.98)', backdropFilter: 'blur(20px)', borderRadius: '24px', width: '90%', maxWidth: '600px', maxHeight: '80vh', border: '1px solid rgba(139, 92, 246, 0.3)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }} onClick={e => e.stopPropagation()}>
+        
+        <div style={{ padding: '20px 24px', background: 'linear-gradient(135deg, #8B5CF6, #EC4899)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <span style={{ fontSize: '28px' }}>🤖</span>
             <div>
-              <h3 style={{ fontSize: '18px', fontWeight: '600', color: 'white', margin: 0 }}>
-                AI Financial Assistant
-              </h3>
-              <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.8)', margin: 0 }}>
-                Powered by your data
-              </p>
+              <h3 style={{ fontSize: '18px', fontWeight: '600', margin: 0 }}>AI Financial Assistant</h3>
+              <p style={{ fontSize: '13px', opacity: 0.8, margin: 0 }}>Powered by your data</p>
             </div>
           </div>
-          <button 
-            onClick={onClose}
-            style={{ 
-              width: '32px', 
-              height: '32px', 
-              borderRadius: '50%', 
-              background: 'rgba(255,255,255,0.2)', 
-              border: 'none', 
-              color: 'white', 
-              fontSize: '20px', 
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              transition: 'all 0.2s ease'
-            }}
-            onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.3)'}
-            onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.2)'}
-          >
-            ×
-          </button>
+          <button onClick={onClose} style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'rgba(255,255,255,0.2)', border: 'none', color: 'white', fontSize: '20px', cursor: 'pointer' }}>×</button>
         </div>
 
-        {/* Messages */}
-        <div style={{ 
-          flex: 1, 
-          overflowY: 'auto', 
-          padding: '20px', 
-          display: 'flex', 
-          flexDirection: 'column', 
-          gap: '16px'
-        }}>
+        <div style={{ flex: 1, overflowY: 'auto', padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
           {messages.map((msg, i) => (
-            <div 
-              key={i} 
-              style={{ 
-                display: 'flex', 
-                justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start',
-                animation: 'slideIn 0.3s ease'
-              }}
-            >
-              <div style={{
-                maxWidth: '75%',
-                padding: '12px 16px',
-                borderRadius: '16px',
-                background: msg.role === 'user' 
-                  ? 'linear-gradient(135deg, #8B5CF6, #EC4899)' 
-                  : 'rgba(255,255,255,0.08)',
-                color: 'white',
-                fontSize: '14px',
-                lineHeight: 1.6,
-                whiteSpace: 'pre-wrap',
-                wordBreak: 'break-word'
-              }}>
+            <div key={i} style={{ display: 'flex', justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start' }}>
+              <div style={{ maxWidth: '75%', padding: '12px 16px', borderRadius: '16px', background: msg.role === 'user' ? 'linear-gradient(135deg, #8B5CF6, #EC4899)' : 'rgba(255,255,255,0.08)', color: 'white', fontSize: '14px', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>
                 {msg.content}
               </div>
             </div>
           ))}
           {loading && (
             <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
-              <div style={{
-                padding: '12px 16px',
-                borderRadius: '16px',
-                background: 'rgba(255,255,255,0.08)',
-                color: 'rgba(255,255,255,0.6)',
-                fontSize: '14px'
-              }}>
-                <span style={{ animation: 'pulse 1.5s infinite' }}>Thinking...</span>
+              <div style={{ padding: '12px 16px', borderRadius: '16px', background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.6)', fontSize: '14px' }}>
+                Thinking...
               </div>
             </div>
           )}
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Input */}
-        <div style={{ 
-          padding: '16px 20px', 
-          borderTop: '1px solid rgba(255,255,255,0.1)',
-          background: 'rgba(0,0,0,0.2)'
-        }}>
-          <div style={{ display: 'flex', gap: '12px' }}>
-            <input
-              value={input}
-              onChange={e => setInput(e.target.value)}
-              onKeyPress={e => e.key === 'Enter' && !e.shiftKey && sendMessage()}
-              placeholder="Ask about your finances..."
-              disabled={loading}
-              style={{
-                flex: 1,
-                padding: '12px 16px',
-                background: 'rgba(255,255,255,0.1)',
-                border: '1px solid rgba(255,255,255,0.2)',
-                borderRadius: '12px',
-                color: 'white',
-                fontSize: '14px',
-                outline: 'none',
-                transition: 'all 0.2s ease'
-              }}
-              onFocus={(e) => e.target.style.borderColor = 'rgba(139, 92, 246, 0.5)'}
-              onBlur={(e) => e.target.style.borderColor = 'rgba(255,255,255,0.2)'}
-            />
-            <button 
-              onClick={sendMessage}
-              disabled={loading || !input.trim()}
-              style={{ 
-                padding: '12px 24px', 
-                background: loading || !input.trim() 
-                  ? 'rgba(139, 92, 246, 0.3)'
-                  : 'linear-gradient(135deg, #8B5CF6, #EC4899)', 
-                border: 'none', 
-                borderRadius: '12px', 
-                color: 'white', 
-                fontSize: '14px',
-                fontWeight: '600',
-                cursor: loading || !input.trim() ? 'not-allowed' : 'pointer',
-                opacity: loading || !input.trim() ? 0.5 : 1,
-                transition: 'all 0.2s ease',
-                whiteSpace: 'nowrap'
-              }}
-            >
-              Send →
-            </button>
-          </div>
-          <p style={{ 
-            fontSize: '11px', 
-            color: 'rgba(255,255,255,0.4)', 
-            margin: '8px 0 0 0',
-            textAlign: 'center'
-          }}>
-            💡 Try: "How's my budget?" or "What bills are due?"
-          </p>
+        <div style={{ padding: '16px 20px', borderTop: '1px solid rgba(255,255,255,0.1)', display: 'flex', gap: '12px' }}>
+          <input
+            value={input}
+            onChange={e => setInput(e.target.value)}
+            onKeyPress={e => e.key === 'Enter' && sendMessage()}
+            placeholder="Ask about your finances..."
+            style={{ flex: 1, padding: '12px 16px', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '12px', color: 'white', fontSize: '14px', outline: 'none' }}
+          />
+          <button onClick={sendMessage} disabled={loading} style={{ padding: '12px 24px', background: 'linear-gradient(135deg, #8B5CF6, #EC4899)', border: 'none', borderRadius: '12px', color: 'white', fontWeight: '600', cursor: 'pointer', opacity: loading ? 0.5 : 1 }}>
+            Send
+          </button>
         </div>
       </div>
     </div>
   );
 }
 
+// ============================================================================
+// EMPTY STATE COMPONENT (inline for this file)
+// ============================================================================
+
+function EmptyState({ icon = '📊', title = 'No data yet', message = 'Import your transactions to get started', actionLabel = null, onAction = null }) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '60px 40px', textAlign: 'center', background: 'rgba(30, 27, 56, 0.5)', borderRadius: '20px', border: '1px dashed rgba(255,255,255,0.2)' }}>
+      <div style={{ fontSize: '64px', marginBottom: '20px', opacity: 0.8 }}>{icon}</div>
+      <h3 style={{ fontSize: '20px', fontWeight: '600', marginBottom: '8px' }}>{title}</h3>
+      <p style={{ fontSize: '15px', color: 'rgba(255,255,255,0.5)', maxWidth: '300px', lineHeight: 1.5, marginBottom: actionLabel ? '24px' : '0' }}>{message}</p>
+      {actionLabel && onAction && (
+        <button onClick={onAction} style={{ padding: '12px 24px', background: 'linear-gradient(135deg, #8B5CF6, #EC4899)', border: 'none', borderRadius: '12px', color: 'white', fontSize: '15px', fontWeight: '600', cursor: 'pointer' }}>
+          {actionLabel}
+        </button>
+      )}
+    </div>
+  );
+}
 
 // ============================================================================
 // EXPORT
