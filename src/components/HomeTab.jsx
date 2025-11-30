@@ -415,6 +415,19 @@ export default function HomeTab({
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px' }}>
                 <span style={{ fontSize: '20px' }}>⚡</span>
                 <span style={{ fontWeight: '600' }}>Quick Stats</span>
+                <span style={{ 
+                  marginLeft: 'auto', 
+                  fontSize: '11px', 
+                  color: '#EC4899',
+                  background: 'rgba(236, 72, 153, 0.15)',
+                  padding: '4px 8px',
+                  borderRadius: '6px'
+                }}>
+                  {selectedMonth !== null 
+                    ? new Date(selectedYear, selectedMonth).toLocaleString('default', { month: 'short' }) + ' ' + selectedYear
+                    : selectedYear
+                  }
+                </span>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 <div style={{ 
@@ -425,7 +438,7 @@ export default function HomeTab({
                   borderRadius: '10px' 
                 }}>
                   <span style={{ color: 'rgba(255,255,255,0.7)' }}>Transactions</span>
-                  <span style={{ fontWeight: '600' }}>{filteredTransactions.length}</span>
+                  <span style={{ fontWeight: '600' }}>{filteredTransactions.length.toLocaleString()}</span>
                 </div>
                 <div style={{ 
                   display: 'flex', 
@@ -448,6 +461,17 @@ export default function HomeTab({
                 }}>
                   <span style={{ color: 'rgba(255,255,255,0.7)' }}>Categories</span>
                   <span style={{ fontWeight: '600' }}>{categoryBreakdown.length}</span>
+                </div>
+                <div style={{ 
+                  display: 'flex', 
+                  justifyContent: 'space-between', 
+                  padding: '12px', 
+                  background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(236, 72, 153, 0.15))', 
+                  borderRadius: '10px',
+                  border: '1px solid rgba(139, 92, 246, 0.2)'
+                }}>
+                  <span style={{ color: 'rgba(255,255,255,0.7)' }}>📊 Total All-Time</span>
+                  <span style={{ fontWeight: '600', color: '#EC4899' }}>{transactions.length.toLocaleString()}</span>
                 </div>
               </div>
             </div>
