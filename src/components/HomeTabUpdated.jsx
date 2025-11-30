@@ -6,6 +6,17 @@ import EmptyState from './EmptyState';
 // HOME TAB - With Month/Year Selector and Dynamic Data
 // ============================================================================
 
+// Currency formatter helper - consistent $1,000.00 format
+const formatCurrency = (amount, hideValue = false) => {
+  if (hideValue) return '••••••';
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  }).format(amount);
+};
+
 export default function HomeTab({ 
   transactions = [], 
   bills = [],
@@ -72,8 +83,6 @@ export default function HomeTab({
       .sort((a, b) => new Date(b.date || b.Date) - new Date(a.date || a.Date))
       .slice(0, 5);
   }, [filteredTransactions]);
-
-  const formatCurrency = (val) => netWorthHidden ? '••••••' : `$${val.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
   const hasData = transactions.length > 0;
   const hasFilteredData = filteredTransactions.length > 0;
@@ -142,7 +151,7 @@ export default function HomeTab({
             }}>
               <div style={{ position: 'absolute', top: '-20px', right: '-20px', width: '100px', height: '100px', background: 'rgba(255,255,255,0.1)', borderRadius: '50%' }} />
               <div style={{ fontSize: '14px', color: 'rgba(255,255,255,0.8)', marginBottom: '8px' }}>💰 Income</div>
-              <div style={{ fontSize: '32px', fontWeight: '700' }}>{formatCurrency(income)}</div>
+              <div style={{ fontSize: '32px', fontWeight: '700' }}>{formatCurrency(income, netWorthHidden)}</div>
             </div>
 
             {/* Expenses Card */}
@@ -155,7 +164,7 @@ export default function HomeTab({
             }}>
               <div style={{ position: 'absolute', top: '-20px', right: '-20px', width: '100px', height: '100px', background: 'rgba(255,255,255,0.1)', borderRadius: '50%' }} />
               <div style={{ fontSize: '14px', color: 'rgba(255,255,255,0.8)', marginBottom: '8px' }}>💸 Expenses</div>
-              <div style={{ fontSize: '32px', fontWeight: '700' }}>{formatCurrency(expenses)}</div>
+              <div style={{ fontSize: '32px', fontWeight: '700' }}>{formatCurrency(expenses, netWorthHidden)}</div>
             </div>
 
             {/* Net Cash Flow Card */}
@@ -173,7 +182,7 @@ export default function HomeTab({
                 📊 Net Cash Flow
               </div>
               <div style={{ fontSize: '32px', fontWeight: '700' }}>
-                {netCashFlow >= 0 ? '+' : ''}{formatCurrency(netCashFlow)}
+                {netWorthHidden ? '••••••' : (netCashFlow >= 0 ? '+' : '-') + formatCurrency(Math.abs(netCashFlow))}
               </div>
             </div>
           </div>
@@ -235,7 +244,7 @@ export default function HomeTab({
                         fontWeight: '600', 
                         color: amount >= 0 ? '#10B981' : 'white' 
                       }}>
-                        {amount >= 0 ? '+' : ''}${Math.abs(amount).toFixed(2)}
+                        {amount >= 0 ? '+' : '-'}{formatCurrency(Math.abs(amount))}
                       </span>
                     </div>
                   );
@@ -275,7 +284,7 @@ export default function HomeTab({
                         <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                           {getCategoryEmoji(cat.name)} {cat.name}
                         </span>
-                        <span style={{ fontWeight: '600' }}>${cat.amount.toFixed(2)}</span>
+                        <span style={{ fontWeight: '600' }}>{formatCurrency(cat.amount)}</span>
                       </div>
                       <div style={{ 
                         height: '8px', 
@@ -332,7 +341,7 @@ export default function HomeTab({
                 }}>
                   <span style={{ color: 'rgba(255,255,255,0.7)' }}>Avg. Transaction</span>
                   <span style={{ fontWeight: '600' }}>
-                    ${(expenses / (filteredTransactions.filter(t => parseFloat(t.amount || t.Amount) < 0).length || 1)).toFixed(2)}
+                    {formatCurrency(expenses / (filteredTransactions.filter(t => parseFloat(t.amount || t.Amount) < 0).length || 1))}
                   </span>
                 </div>
                 <div style={{ 
