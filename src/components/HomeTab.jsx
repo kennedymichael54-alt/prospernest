@@ -26,6 +26,10 @@ export default function HomeTab({
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
   const [netWorthHidden, setNetWorthHidden] = useState(false);
+  
+  // Sort states for Recent Activity and Categories
+  const [recentSort, setRecentSort] = useState('high'); // 'high' or 'low'
+  const [categorySort, setCategorySort] = useState('high'); // 'high' or 'low'
 
   // Filter transactions by selected month/year
   const filteredTransactions = useMemo(() => {
@@ -60,7 +64,7 @@ export default function HomeTab({
 
   const netCashFlow = income - expenses;
 
-  // Group expenses by category
+  // Group expenses by category (with dynamic sort)
   const categoryBreakdown = useMemo(() => {
     const categories = {};
     filteredTransactions
@@ -72,17 +76,27 @@ export default function HomeTab({
         }
         categories[cat] += Math.abs(parseFloat(tx.amount || tx.Amount));
       });
-    return Object.entries(categories)
-      .map(([name, amount]) => ({ name, amount }))
-      .sort((a, b) => b.amount - a.amount);
-  }, [filteredTransactions]);
+    const sorted = Object.entries(categories)
+      .map(([name, amount]) => ({ name, amount }));
+    
+    if (categorySort === 'high') {
+      sorted.sort((a, b) => b.amount - a.amount);
+    } else {
+      sorted.sort((a, b) => a.amount - b.amount);
+    }
+    return sorted;
+  }, [filteredTransactions, categorySort]);
 
-  // Recent transactions (last 5)
+  // Recent transactions (last 5, with dynamic sort)
   const recentTransactions = useMemo(() => {
-    return [...filteredTransactions]
-      .sort((a, b) => new Date(b.date || b.Date) - new Date(a.date || a.Date))
-      .slice(0, 5);
-  }, [filteredTransactions]);
+    const sorted = [...filteredTransactions];
+    if (recentSort === 'high') {
+      sorted.sort((a, b) => Math.abs(parseFloat(b.amount || b.Amount)) - Math.abs(parseFloat(a.amount || a.Amount)));
+    } else {
+      sorted.sort((a, b) => Math.abs(parseFloat(a.amount || a.Amount)) - Math.abs(parseFloat(b.amount || b.Amount)));
+    }
+    return sorted.slice(0, 5);
+  }, [filteredTransactions, recentSort]);
 
   const hasData = transactions.length > 0;
   const hasFilteredData = filteredTransactions.length > 0;
@@ -200,6 +214,47 @@ export default function HomeTab({
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px' }}>
                 <span style={{ fontSize: '20px' }}>💳</span>
                 <span style={{ fontWeight: '600' }}>Recent Activity</span>
+                
+                {/* Sort Buttons */}
+                <div style={{ display: 'flex', gap: '4px', marginLeft: '12px' }}>
+                  <button
+                    onClick={() => setRecentSort('high')}
+                    style={{
+                      padding: '4px 8px',
+                      background: recentSort === 'high' ? 'linear-gradient(135deg, #8B5CF6, #EC4899)' : 'rgba(255,255,255,0.1)',
+                      border: 'none',
+                      borderRadius: '6px',
+                      color: 'white',
+                      fontSize: '11px',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px'
+                    }}
+                    title="Sort High to Low"
+                  >
+                    ↓ High
+                  </button>
+                  <button
+                    onClick={() => setRecentSort('low')}
+                    style={{
+                      padding: '4px 8px',
+                      background: recentSort === 'low' ? 'linear-gradient(135deg, #8B5CF6, #EC4899)' : 'rgba(255,255,255,0.1)',
+                      border: 'none',
+                      borderRadius: '6px',
+                      color: 'white',
+                      fontSize: '11px',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px'
+                    }}
+                    title="Sort Low to High"
+                  >
+                    ↑ Low
+                  </button>
+                </div>
+                
                 <span style={{ 
                   marginLeft: 'auto', 
                   fontSize: '12px', 
@@ -263,6 +318,46 @@ export default function HomeTab({
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px' }}>
                 <span style={{ fontSize: '20px' }}>📊</span>
                 <span style={{ fontWeight: '600' }}>Top Spending Categories</span>
+                
+                {/* Sort Buttons */}
+                <div style={{ display: 'flex', gap: '4px', marginLeft: 'auto' }}>
+                  <button
+                    onClick={() => setCategorySort('high')}
+                    style={{
+                      padding: '4px 8px',
+                      background: categorySort === 'high' ? 'linear-gradient(135deg, #8B5CF6, #EC4899)' : 'rgba(255,255,255,0.1)',
+                      border: 'none',
+                      borderRadius: '6px',
+                      color: 'white',
+                      fontSize: '11px',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px'
+                    }}
+                    title="Sort High to Low"
+                  >
+                    ↓ High
+                  </button>
+                  <button
+                    onClick={() => setCategorySort('low')}
+                    style={{
+                      padding: '4px 8px',
+                      background: categorySort === 'low' ? 'linear-gradient(135deg, #8B5CF6, #EC4899)' : 'rgba(255,255,255,0.1)',
+                      border: 'none',
+                      borderRadius: '6px',
+                      color: 'white',
+                      fontSize: '11px',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px'
+                    }}
+                    title="Sort Low to High"
+                  >
+                    ↑ Low
+                  </button>
+                </div>
               </div>
               {categoryBreakdown.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '20px', color: 'rgba(255,255,255,0.5)' }}>
