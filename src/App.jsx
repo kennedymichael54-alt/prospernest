@@ -10,6 +10,7 @@ import GoalsTimelineWithCelebration from './components/GoalsTimelineWithCelebrat
 import ProductShowcase from './components/FamilyFinance-ProductGraphics';
 import TransactionsTab from './components/TransactionsTab';
 import ReportsTab from './components/ReportsTab';
+import RetirementTab from './components/RetirementTab';
 
 // ============================================================================
 // FAMILY FINANCE - COMPREHENSIVE APP WITH REAL DATA SUPPORT
@@ -1186,6 +1187,7 @@ function Dashboard({
             { id: 'transactions', label: '📋 Transactions' },
             { id: 'bills', label: '📅 Bills' },
             { id: 'goals', label: '🎯 Goals' },
+            { id: 'retirement', label: '🏖️ Retirement' },
             { id: 'reports', label: '📊 Reports' }
           ].map(tab => (
             <button
@@ -1289,6 +1291,7 @@ function Dashboard({
             onUpdateGoals={onUpdateGoals}
           />
         )}
+        {activeTab === 'retirement' && <RetirementTab />}
         {activeTab === 'import' && (
           <ImportTab 
             onImport={onImportTransactions}
