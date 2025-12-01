@@ -114,6 +114,162 @@ function EmptyState({ icon, title, message, actionLabel, onAction }) {
   );
 }
 
+// Cash Flow Projection Component
+function CashFlowProjection({ personalBanks, sideHustleBanks, investments }) {
+  // Load sales transactions for commission projections
+  const salesTransactions = useMemo(() => {
+    try {
+      const saved = localStorage.getItem('ff_sales_transactions');
+      return saved ? JSON.parse(saved) : [];
+    } catch { return []; }
+  }, []);
+
+  // Calculate totals
+  const totalCash = useMemo(() => {
+    const personalTotal = personalBanks.reduce((sum, b) => sum + (b.balance || 0), 0);
+    const businessTotal = sideHustleBanks.reduce((sum, b) => sum + (b.balance || 0), 0);
+    return personalTotal + businessTotal;
+  }, [personalBanks, sideHustleBanks]);
+
+  const totalInvestments = useMemo(() => {
+    return investments.reduce((sum, inv) => sum + parseFloat(inv.value || 0), 0);
+  }, [investments]);
+
+  // Calculate projected commissions based on closing dates
+  const projectedIncome = useMemo(() => {
+    const today = new Date();
+    const day15 = new Date(today); day15.setDate(today.getDate() + 15);
+    const day30 = new Date(today); day30.setDate(today.getDate() + 30);
+    const day60 = new Date(today); day60.setDate(today.getDate() + 60);
+
+    let income15 = 0, income30 = 0, income60 = 0;
+
+    salesTransactions.forEach(tx => {
+      if (tx.status === 'Under Contract' || tx.status === 'Active') {
+        const closeDate = new Date(tx.closingDate);
+        const commission = (parseFloat(tx.salesPrice) || 0) * (parseFloat(tx.commissionRate) || 3) / 100;
+        const netCommission = commission - (parseFloat(tx.brokerageCommission) || 0);
+        
+        if (closeDate <= day15 && closeDate >= today) income15 += netCommission;
+        if (closeDate <= day30 && closeDate >= today) income30 += netCommission;
+        if (closeDate <= day60 && closeDate >= today) income60 += netCommission;
+      }
+    });
+
+    return { day15: income15, day30: income30, day60: income60 };
+  }, [salesTransactions]);
+
+  // Format currency compactly
+  const formatCompact = (amount) => {
+    if (amount >= 1000000) return `$${(amount / 1000000).toFixed(1)}M`;
+    if (amount >= 1000) return `$${(amount / 1000).toFixed(1)}K`;
+    return `$${amount.toFixed(0)}`;
+  };
+
+  const formatFull = (amount) => {
+    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }).format(amount);
+  };
+
+  return (
+    <div style={{ padding: '20px', background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.08), rgba(59, 130, 246, 0.08))' }}>
+      <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+        <span>💰</span> Cash Flow Projection
+        <span style={{ fontSize: '9px', background: 'linear-gradient(135deg, #10B981, #3B82F6)', padding: '2px 6px', borderRadius: '4px', color: 'white' }}>SMART</span>
+      </div>
+
+      {/* Current Cash Balance - Hero */}
+      <div style={{ 
+        background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(59, 130, 246, 0.2))', 
+        borderRadius: '14px', 
+        padding: '16px', 
+        marginBottom: '12px',
+        border: '1px solid rgba(16, 185, 129, 0.3)',
+        position: 'relative',
+        overflow: 'hidden'
+      }}>
+        {/* Decorative glow */}
+        <div style={{ position: 'absolute', top: '-50%', right: '-20%', width: '150px', height: '150px', background: 'radial-gradient(circle, rgba(16, 185, 129, 0.3) 0%, transparent 70%)', pointerEvents: 'none' }} />
+        <div style={{ position: 'relative' }}>
+          <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.6)', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>💵 Total Current Cash</div>
+          <div style={{ fontSize: '28px', fontWeight: '800', color: '#10B981', letterSpacing: '-1px' }}>
+            {formatFull(totalCash)}
+          </div>
+          <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.5)', marginTop: '4px' }}>
+            All bank accounts combined
+          </div>
+        </div>
+      </div>
+
+      {/* Projected Cash Flow Grid */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', marginBottom: '12px' }}>
+        {[
+          { label: '15 Day', amount: totalCash + projectedIncome.day15, incoming: projectedIncome.day15, color: '#10B981', glow: 'rgba(16, 185, 129, 0.4)' },
+          { label: '30 Day', amount: totalCash + projectedIncome.day30, incoming: projectedIncome.day30, color: '#3B82F6', glow: 'rgba(59, 130, 246, 0.4)' },
+          { label: '60 Day', amount: totalCash + projectedIncome.day60, incoming: projectedIncome.day60, color: '#8B5CF6', glow: 'rgba(139, 92, 246, 0.4)' }
+        ].map((proj, i) => (
+          <div key={i} style={{ 
+            background: 'rgba(255,255,255,0.05)', 
+            borderRadius: '12px', 
+            padding: '12px', 
+            textAlign: 'center',
+            position: 'relative',
+            border: `1px solid ${proj.color}33`,
+            boxShadow: `0 0 20px ${proj.glow}, inset 0 0 20px ${proj.glow}`
+          }}>
+            {/* Ring effect */}
+            <div style={{ 
+              position: 'absolute', 
+              inset: '2px', 
+              borderRadius: '10px', 
+              border: `2px solid ${proj.color}`,
+              opacity: 0.3,
+              pointerEvents: 'none'
+            }} />
+            <div style={{ fontSize: '9px', color: 'rgba(255,255,255,0.5)', marginBottom: '4px', fontWeight: '600' }}>{proj.label} Forecast</div>
+            <div style={{ fontSize: '16px', fontWeight: '700', color: proj.color, marginBottom: '2px' }}>
+              {formatCompact(proj.amount)}
+            </div>
+            {proj.incoming > 0 && (
+              <div style={{ fontSize: '9px', color: '#10B981', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '2px' }}>
+                <span>▲</span> +{formatCompact(proj.incoming)}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* Investment Portfolio Value */}
+      <div style={{ 
+        background: 'rgba(139, 92, 246, 0.1)', 
+        borderRadius: '10px', 
+        padding: '12px',
+        border: '1px solid rgba(139, 92, 246, 0.2)',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center'
+      }}>
+        <div>
+          <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.5)' }}>📈 Portfolio Value</div>
+          <div style={{ fontSize: '14px', fontWeight: '700', color: '#8B5CF6' }}>{formatFull(totalInvestments)}</div>
+        </div>
+        <div style={{ textAlign: 'right' }}>
+          <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.5)' }}>💎 Net Worth</div>
+          <div style={{ fontSize: '14px', fontWeight: '700', color: '#EC4899' }}>{formatFull(totalCash + totalInvestments)}</div>
+        </div>
+      </div>
+
+      {/* Pending Commissions Count */}
+      {salesTransactions.filter(tx => tx.status === 'Under Contract').length > 0 && (
+        <div style={{ marginTop: '10px', padding: '8px', background: 'rgba(251, 191, 36, 0.1)', borderRadius: '8px', border: '1px solid rgba(251, 191, 36, 0.3)', textAlign: 'center' }}>
+          <span style={{ fontSize: '10px', color: '#FBBF24' }}>
+            📋 {salesTransactions.filter(tx => tx.status === 'Under Contract').length} deals under contract
+          </span>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // Full Width Dashboard Panel Component
 function DashboardPanel({ title, icon, color, income, expenses, transactions, recentTransactions, categoryBreakdown }) {
   const [recentSort, setRecentSort] = useState('high');
@@ -526,10 +682,10 @@ export default function HomeTab({ transactions = [], bills = [], goals = [], onN
         </div>
       </div>
 
-      {/* Top Balances Bar - Period Selector | Personal Banks | Side Hustle Banks | Investments */}
+      {/* Top Balances Bar - Cash Flow Projection | Personal Banks | Side Hustle Banks | Investments */}
       <div style={{ 
         display: 'grid', 
-        gridTemplateColumns: '1.2fr 2px 1fr 2px 1fr 2px 1fr', 
+        gridTemplateColumns: '1.4fr 2px 1fr 2px 1fr 2px 1fr', 
         gap: '0',
         background: 'rgba(30, 27, 56, 0.8)', 
         backdropFilter: 'blur(20px)', 
@@ -538,87 +694,15 @@ export default function HomeTab({ transactions = [], bills = [], goals = [], onN
         marginBottom: '24px',
         overflow: 'hidden'
       }}>
-        {/* Modern Period Selector Section */}
-        <div style={{ padding: '20px', background: 'rgba(139, 92, 246, 0.05)' }}>
-          <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span>📅</span> Period Selection
-          </div>
-          
-          {/* Year Row */}
-          <div style={{ display: 'flex', gap: '6px', marginBottom: '12px' }}>
-            {[selectedYear - 1, selectedYear, selectedYear + 1].map(year => (
-              <button key={year} onClick={() => setSelectedYear(year)}
-                style={{ 
-                  flex: 1, padding: '10px 8px', 
-                  background: selectedYear === year ? 'linear-gradient(135deg, #8B5CF6, #EC4899)' : 'rgba(255,255,255,0.05)', 
-                  border: selectedYear === year ? 'none' : '1px solid rgba(255,255,255,0.1)',
-                  borderRadius: '10px', color: 'white', fontSize: '14px', fontWeight: selectedYear === year ? '700' : '500', 
-                  cursor: 'pointer', transition: 'all 0.2s',
-                  boxShadow: selectedYear === year ? '0 4px 15px rgba(139, 92, 246, 0.4)' : 'none'
-                }}>
-                {year}
-              </button>
-            ))}
-          </div>
-          
-          {/* Month Grid - 4x3 */}
-          <div style={{ 
-            display: 'grid', 
-            gridTemplateColumns: 'repeat(4, 1fr)', 
-            gap: '6px',
-            background: 'rgba(255,255,255,0.03)',
-            borderRadius: '12px',
-            padding: '8px'
-          }}>
-            {/* All Button */}
-            <button onClick={() => setSelectedMonth(null)}
-              style={{ 
-                gridColumn: 'span 4',
-                padding: '8px', 
-                background: selectedMonth === null ? 'linear-gradient(135deg, #8B5CF6, #EC4899)' : 'rgba(255,255,255,0.08)', 
-                border: 'none', borderRadius: '8px', color: 'white', fontSize: '12px', fontWeight: '600',
-                cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
-                boxShadow: selectedMonth === null ? '0 2px 10px rgba(139, 92, 246, 0.3)' : 'none'
-              }}>
-              📆 All {selectedYear}
-            </button>
-            
-            {/* Month Buttons in 4x3 grid */}
-            {monthNames.map((m, i) => {
-              const isCurrentMonth = new Date().getMonth() === i && selectedYear === new Date().getFullYear();
-              const isSelected = selectedMonth === i;
-              return (
-                <button key={i} onClick={() => setSelectedMonth(i)}
-                  style={{ 
-                    padding: '10px 4px', 
-                    background: isSelected ? 'linear-gradient(135deg, #8B5CF6, #EC4899)' : 
-                               isCurrentMonth ? 'rgba(139, 92, 246, 0.2)' : 'rgba(255,255,255,0.05)', 
-                    border: isCurrentMonth && !isSelected ? '1px solid rgba(139, 92, 246, 0.5)' : 'none',
-                    borderRadius: '8px', color: 'white', fontSize: '11px', fontWeight: isSelected ? '700' : '500',
-                    cursor: 'pointer', transition: 'all 0.2s',
-                    boxShadow: isSelected ? '0 2px 8px rgba(139, 92, 246, 0.3)' : 'none'
-                  }}>
-                  {m}
-                </button>
-              );
-            })}
-          </div>
-          
-          {/* Current Selection Display */}
-          <div style={{ 
-            marginTop: '12px', padding: '10px', 
-            background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(236, 72, 153, 0.2))', 
-            borderRadius: '10px', textAlign: 'center',
-            border: '1px solid rgba(139, 92, 246, 0.3)'
-          }}>
-            <span style={{ color: 'white', fontWeight: '700', fontSize: '13px' }}>
-              📊 {selectedMonth !== null ? `${fullMonthNames[selectedMonth]} ${selectedYear}` : `Full Year ${selectedYear}`}
-            </span>
-          </div>
-        </div>
+        {/* Cash Flow Projection Section */}
+        <CashFlowProjection 
+          personalBanks={displayedPersonalBanks}
+          sideHustleBanks={displayedSideHustleBanks}
+          investments={investments}
+        />
 
         {/* Divider */}
-        <div style={{ background: 'linear-gradient(180deg, rgba(139, 92, 246, 0.4), rgba(236, 72, 153, 0.4))' }} />
+        <div style={{ background: 'linear-gradient(180deg, rgba(16, 185, 129, 0.6), rgba(59, 130, 246, 0.6))' }} />
 
         {/* Personal Bank Balances */}
         <div style={{ padding: '20px', position: 'relative', background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.08), rgba(16, 185, 129, 0.03))' }}>
@@ -790,7 +874,7 @@ export default function HomeTab({ transactions = [], bills = [], goals = [], onN
         background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(236, 72, 153, 0.15))',
         borderRadius: '16px',
         padding: '16px 24px',
-        marginBottom: '20px',
+        marginBottom: '16px',
         border: '1px solid rgba(139, 92, 246, 0.3)',
         display: 'flex',
         alignItems: 'center',
@@ -820,6 +904,74 @@ export default function HomeTab({ transactions = [], bills = [], goals = [], onN
           color: 'rgba(255,255,255,0.8)'
         }}>
           {filteredTransactions.length} transactions
+        </div>
+      </div>
+
+      {/* Period Selector - Now under Custom Dashboard Header */}
+      <div style={{ 
+        background: 'rgba(30, 27, 56, 0.8)', 
+        backdropFilter: 'blur(20px)', 
+        borderRadius: '16px', 
+        padding: '16px 24px', 
+        marginBottom: '20px', 
+        border: '1px solid rgba(139, 92, 246, 0.2)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: '16px',
+        flexWrap: 'wrap'
+      }}>
+        {/* Year Selection */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)' }}>📅</span>
+          {[selectedYear - 1, selectedYear, selectedYear + 1].map(year => (
+            <button key={year} onClick={() => setSelectedYear(year)}
+              style={{ 
+                padding: '8px 14px', 
+                background: selectedYear === year ? 'linear-gradient(135deg, #8B5CF6, #EC4899)' : 'rgba(255,255,255,0.05)', 
+                border: selectedYear === year ? 'none' : '1px solid rgba(255,255,255,0.1)',
+                borderRadius: '8px', color: 'white', fontSize: '13px', fontWeight: selectedYear === year ? '700' : '500', 
+                cursor: 'pointer', transition: 'all 0.2s',
+                boxShadow: selectedYear === year ? '0 2px 10px rgba(139, 92, 246, 0.3)' : 'none'
+              }}>
+              {year}
+            </button>
+          ))}
+        </div>
+        
+        {/* Divider */}
+        <div style={{ width: '1px', height: '28px', background: 'rgba(255,255,255,0.2)' }} />
+        
+        {/* Month Selection */}
+        <div style={{ display: 'flex', gap: '4px', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'center' }}>
+          <button onClick={() => setSelectedMonth(null)}
+            style={{ 
+              padding: '8px 12px', 
+              background: selectedMonth === null ? 'linear-gradient(135deg, #8B5CF6, #EC4899)' : 'rgba(255,255,255,0.05)', 
+              border: 'none', borderRadius: '8px', color: 'white', fontSize: '11px', fontWeight: '600',
+              cursor: 'pointer',
+              boxShadow: selectedMonth === null ? '0 2px 10px rgba(139, 92, 246, 0.3)' : 'none'
+            }}>
+            📆 All
+          </button>
+          {monthNames.map((m, i) => {
+            const isCurrentMonth = new Date().getMonth() === i && selectedYear === new Date().getFullYear();
+            const isSelected = selectedMonth === i;
+            return (
+              <button key={i} onClick={() => setSelectedMonth(i)}
+                style={{ 
+                  padding: '8px 10px', 
+                  background: isSelected ? 'linear-gradient(135deg, #8B5CF6, #EC4899)' : 
+                             isCurrentMonth ? 'rgba(139, 92, 246, 0.2)' : 'rgba(255,255,255,0.05)', 
+                  border: isCurrentMonth && !isSelected ? '1px solid rgba(139, 92, 246, 0.5)' : 'none',
+                  borderRadius: '8px', color: 'white', fontSize: '11px', fontWeight: isSelected ? '700' : '500',
+                  cursor: 'pointer', transition: 'all 0.2s',
+                  boxShadow: isSelected ? '0 2px 8px rgba(139, 92, 246, 0.3)' : 'none'
+                }}>
+                {m}
+              </button>
+            );
+          })}
         </div>
       </div>
 
