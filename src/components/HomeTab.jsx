@@ -433,10 +433,10 @@ export default function HomeTab({ transactions = [], bills = [], goals = [], onN
             </div>
           </div>
 
-          {/* Split Dashboard View - Full Width */}
-          <div style={{ display: 'grid', gridTemplateColumns: hasSideHustleData ? '1fr 2px 1fr' : '1fr', gap: '0' }}>
+          {/* Split Dashboard View - Always Both Panels Centered */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 2px 1fr', gap: '0', maxWidth: '1600px', margin: '0 auto' }}>
             {/* Personal Panel - Left Side */}
-            <div style={{ paddingRight: hasSideHustleData ? '24px' : '0' }}>
+            <div style={{ paddingRight: '24px' }}>
               <DashboardPanel
                 title="👤 Personal"
                 icon="🏠"
@@ -450,51 +450,25 @@ export default function HomeTab({ transactions = [], bills = [], goals = [], onN
             </div>
 
             {/* Center Divider */}
-            {hasSideHustleData && (
-              <div style={{ 
-                background: 'linear-gradient(180deg, rgba(139, 92, 246, 0.6), rgba(236, 72, 153, 0.6), rgba(139, 92, 246, 0.6))',
-                borderRadius: '2px'
-              }} />
-            )}
+            <div style={{ 
+              background: 'linear-gradient(180deg, rgba(139, 92, 246, 0.6), rgba(236, 72, 153, 0.6), rgba(139, 92, 246, 0.6))',
+              borderRadius: '2px'
+            }} />
 
             {/* Side Hustle Panel - Right Side */}
-            {hasSideHustleData && (
-              <div style={{ paddingLeft: '24px' }}>
-                <DashboardPanel
-                  title={`💼 ${sideHustleName || 'Side Hustle'}`}
-                  icon="💼"
-                  color="#EC4899"
-                  income={sideHustleStats.income}
-                  expenses={sideHustleStats.expenses}
-                  transactions={sideHustleTransactions}
-                  recentTransactions={sideHustleTransactions}
-                  categoryBreakdown={sideHustleStats.categoryBreakdown}
-                />
-              </div>
-            )}
-          </div>
-
-          {/* Tip for users without side hustle */}
-          {!hasSideHustleData && (
-            <div style={{ 
-              marginTop: '24px', 
-              padding: '16px', 
-              background: 'rgba(236, 72, 153, 0.1)', 
-              borderRadius: '12px',
-              border: '1px solid rgba(236, 72, 153, 0.2)',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '12px'
-            }}>
-              <span style={{ fontSize: '24px' }}>💼</span>
-              <div>
-                <div style={{ fontSize: '14px', fontWeight: '600', color: 'white' }}>Have a Side Hustle or Second Job?</div>
-                <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.6)' }}>
-                  Go to the Transactions tab and mark income sources as "Side Hustle" to see a split view. You can also rename "Side Hustle" to your career (e.g., "Real Estate Agent", "Hair Stylist")!
-                </div>
-              </div>
+            <div style={{ paddingLeft: '24px' }}>
+              <DashboardPanel
+                title={`💼 ${sideHustleName || 'Side Hustle'}`}
+                icon="💼"
+                color="#EC4899"
+                income={sideHustleStats.income}
+                expenses={sideHustleStats.expenses}
+                transactions={sideHustleTransactions}
+                recentTransactions={sideHustleTransactions}
+                categoryBreakdown={sideHustleStats.categoryBreakdown}
+              />
             </div>
-          )}
+          </div>
         </>
       )}
 
