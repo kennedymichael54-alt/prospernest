@@ -1,10 +1,9 @@
 import React, { useState, useMemo } from 'react';
 
 // ============================================================================
-// TRANSACTIONS TAB - Full transaction list with vendor & category management
+// TRANSACTIONS TAB - Split View: Personal vs Side Hustle Transactions
 // ============================================================================
 
-// Currency formatter helper
 const formatCurrency = (amount) => {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
@@ -14,10 +13,8 @@ const formatCurrency = (amount) => {
   }).format(Math.abs(amount));
 };
 
-// Extract vendor from description
 const extractVendor = (description) => {
   if (!description) return 'Unknown';
-  
   let vendor = description
     .replace(/^(IN \*|SQ \*|TST\*|PP\*|PAYPAL \*|VENMO\s+)/i, '')
     .replace(/\s+\d{2,}.*$/i, '')
@@ -25,166 +22,73 @@ const extractVendor = (description) => {
     .replace(/\s*#\d+.*$/i, '')
     .replace(/\s*-\s*\d+.*$/i, '')
     .trim();
-  
-  vendor = vendor.split(' ')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-    .join(' ');
-  
-  if (vendor.length > 25) {
-    vendor = vendor.substring(0, 25) + '...';
-  }
-  
-  return vendor || 'Unknown';
+  vendor = vendor.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ');
+  return vendor.length > 25 ? vendor.substring(0, 25) + '...' : vendor || 'Unknown';
 };
 
-// Default category emoji map
 const categoryEmojiMap = {
-  'Groceries': '🛒',
-  'Food': '🍔',
-  'Fast Food': '🍟',
-  'Restaurants': '🍽️',
-  'Meals': '🍽️',
-  'Gas': '⛽',
-  'Auto & Transport': '🚗',
-  'Transportation': '🚗',
-  'Shopping': '🛍️',
-  'Entertainment': '🎬',
-  'Transfer': '💸',
-  'Income': '💰',
-  'Hobbies': '🎮',
-  'Electronics & Software': '💻',
-  'Electronics': '💻',
-  'Doctor': '🏥',
-  'Healthcare': '🏥',
-  'Pharmacy': '💊',
-  'Financial': '📊',
-  'Television': '📺',
-  'Subscriptions': '📺',
-  'Housing': '🏠',
-  'Rent': '🏠',
-  'Utilities': '💡',
-  'Category Pending': '📦',
-  'Uncategorized': '📦',
-  'Personal': '👤',
-  'Education': '📚',
-  'Travel': '✈️',
-  'Fitness': '💪',
-  'Pets': '🐾',
-  'Gifts': '🎁',
-  'Insurance': '🛡️',
-  'Taxes': '📋',
-  'Investments': '📈',
-  'Savings': '🏦',
-  'Coffee': '☕',
-  'Alcohol': '🍺',
-  'Clothing': '👕',
-  'Beauty': '💄',
-  'Home': '🏡',
-  'Kids': '👶',
-  'Charity': '❤️'
+  'Groceries': '🛒', 'Food': '🍔', 'Fast Food': '🍟', 'Restaurants': '🍽️', 'Gas': '⛽',
+  'Auto & Transport': '🚗', 'Shopping': '🛍️', 'Entertainment': '🎬', 'Transfer': '💸',
+  'Income': '💰', 'Hobbies': '🎮', 'Electronics & Software': '💻', 'Doctor': '🏥',
+  'Pharmacy': '💊', 'Financial': '📊', 'Television': '📺', 'Housing': '🏠',
+  'Utilities': '💡', 'Category Pending': '📦', 'Personal': '👤', 'Education': '📚',
+  'Travel': '✈️', 'Fitness': '💪', 'Pets': '🐾', 'Gifts': '🎁', 'Coffee': '☕',
+  'Home Improvement': '🔨', 'Paycheck': '💵', 'Reimbursement': '💱', 'Cash': '💵'
 };
 
-// Income type options
-const INCOME_TYPES = [
-  { value: 'personal', label: '👤 Personal', color: '#8B5CF6' },
-  { value: 'sidehustle', label: '💼 Side Hustle', color: '#EC4899' }
-];
-
-// Default side hustle categories (auto-detected)
 const SIDE_HUSTLE_KEYWORDS = [
   'real estate', 'commission', 'freelance', 'consulting', 'hair stylist', 'salon',
   'uber', 'lyft', 'doordash', 'instacart', 'airbnb', 'etsy', 'ebay', 'amazon seller',
-  'photography', 'design', 'tutoring', 'coaching', 'client', 'invoice'
+  'photography', 'design', 'tutoring', 'coaching', 'client', 'invoice', 'gig'
 ];
 
-// Inline MonthYearSelector Component
+const DEFAULT_CATEGORIES = [
+  'Groceries', 'Food', 'Fast Food', 'Restaurants', 'Gas', 'Auto & Transport',
+  'Shopping', 'Entertainment', 'Transfer', 'Income', 'Hobbies', 'Electronics & Software',
+  'Doctor', 'Pharmacy', 'Financial', 'Television', 'Housing', 'Utilities', 'Education',
+  'Travel', 'Fitness', 'Pets', 'Gifts', 'Coffee', 'Home Improvement', 'Paycheck'
+];
+
+// Compact Month/Year Selector
 function MonthYearSelector({ selectedYear, setSelectedYear, selectedMonth, setSelectedMonth }) {
   const currentYear = new Date().getFullYear();
   const currentMonth = new Date().getMonth();
   const years = [currentYear - 2, currentYear - 1, currentYear, currentYear + 1];
-  
   const months = [
     { num: 0, short: 'Jan' }, { num: 1, short: 'Feb' }, { num: 2, short: 'Mar' }, { num: 3, short: 'Apr' },
     { num: 4, short: 'May' }, { num: 5, short: 'Jun' }, { num: 6, short: 'Jul' }, { num: 7, short: 'Aug' },
     { num: 8, short: 'Sep' }, { num: 9, short: 'Oct' }, { num: 10, short: 'Nov' }, { num: 11, short: 'Dec' }
   ];
-
   const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
   return (
-    <div style={{ background: 'rgba(30, 27, 56, 0.8)', backdropFilter: 'blur(20px)', borderRadius: '20px', padding: '24px', marginBottom: '24px', border: '1px solid rgba(255,255,255,0.1)' }}>
-      <div style={{ marginBottom: '16px' }}>
-        <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '1px' }}>Select Year</div>
-        <div style={{ display: 'flex', gap: '8px' }}>
+    <div style={{ background: 'rgba(30, 27, 56, 0.8)', borderRadius: '16px', padding: '16px', marginBottom: '20px', border: '1px solid rgba(255,255,255,0.1)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '16px', justifyContent: 'center', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: '6px' }}>
           {years.map(year => (
-            <button
-              key={year}
-              onClick={() => setSelectedYear(year)}
-              style={{
-                padding: '10px 20px',
-                background: selectedYear === year ? 'linear-gradient(135deg, #8B5CF6, #EC4899)' : 'rgba(255,255,255,0.1)',
-                border: 'none',
-                borderRadius: '10px',
-                color: 'white',
-                fontSize: '14px',
-                fontWeight: selectedYear === year ? '600' : '400',
-                cursor: 'pointer',
-                transition: 'all 0.2s ease'
-              }}
-            >
+            <button key={year} onClick={() => setSelectedYear(year)}
+              style={{ padding: '8px 14px', background: selectedYear === year ? 'linear-gradient(135deg, #8B5CF6, #EC4899)' : 'rgba(255,255,255,0.1)', border: 'none', borderRadius: '8px', color: 'white', fontSize: '13px', fontWeight: selectedYear === year ? '600' : '400', cursor: 'pointer' }}>
               {year}
             </button>
           ))}
         </div>
-      </div>
-
-      <div style={{ marginBottom: '16px' }}>
-        <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '1px' }}>Select Month</div>
-        <button
-          onClick={() => setSelectedMonth(null)}
-          style={{
-            width: '100%',
-            padding: '12px',
-            background: selectedMonth === null ? 'linear-gradient(135deg, #8B5CF6, #EC4899)' : 'rgba(255,255,255,0.05)',
-            border: '1px solid rgba(255,255,255,0.1)',
-            borderRadius: '10px',
-            color: 'white',
-            fontSize: '14px',
-            cursor: 'pointer',
-            marginBottom: '12px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '8px'
-          }}
-        >
-          <span>📅</span> Entire Year {selectedYear}
-        </button>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
+        <div style={{ width: '1px', height: '28px', background: 'rgba(255,255,255,0.2)' }} />
+        <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', justifyContent: 'center' }}>
+          <button onClick={() => setSelectedMonth(null)}
+            style={{ padding: '8px 10px', background: selectedMonth === null ? 'linear-gradient(135deg, #8B5CF6, #EC4899)' : 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: 'white', fontSize: '11px', cursor: 'pointer' }}>
+            📅 All
+          </button>
           {months.map(month => (
-            <button
-              key={month.num}
-              onClick={() => setSelectedMonth(month.num)}
-              style={{
-                padding: '12px',
-                background: selectedMonth === month.num ? 'linear-gradient(135deg, #8B5CF6, #EC4899)' : 'rgba(255,255,255,0.05)',
-                border: currentMonth === month.num && selectedYear === currentYear ? '2px solid rgba(139, 92, 246, 0.5)' : '1px solid rgba(255,255,255,0.1)',
-                borderRadius: '10px',
-                color: 'white',
-                fontSize: '14px',
-                cursor: 'pointer',
-                transition: 'all 0.2s ease'
-              }}
-            >
+            <button key={month.num} onClick={() => setSelectedMonth(month.num)}
+              style={{ padding: '8px 10px', background: selectedMonth === month.num ? 'linear-gradient(135deg, #8B5CF6, #EC4899)' : 'rgba(255,255,255,0.05)', border: currentMonth === month.num && selectedYear === currentYear ? '2px solid rgba(139, 92, 246, 0.5)' : '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: 'white', fontSize: '11px', cursor: 'pointer' }}>
               {month.short}
             </button>
           ))}
         </div>
       </div>
-
-      <div style={{ background: 'rgba(139, 92, 246, 0.15)', borderRadius: '10px', padding: '12px', textAlign: 'center' }}>
-        <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: '14px' }}>📊 Viewing: </span>
-        <span style={{ color: '#EC4899', fontWeight: '600', fontSize: '14px' }}>
+      <div style={{ background: 'rgba(139, 92, 246, 0.15)', borderRadius: '8px', padding: '8px', textAlign: 'center', marginTop: '10px' }}>
+        <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: '12px' }}>📊 Viewing: </span>
+        <span style={{ color: '#EC4899', fontWeight: '600', fontSize: '12px' }}>
           {selectedMonth !== null ? `${monthNames[selectedMonth]} ${selectedYear}` : `All of ${selectedYear}`}
         </span>
       </div>
@@ -192,443 +96,313 @@ function MonthYearSelector({ selectedYear, setSelectedYear, selectedMonth, setSe
   );
 }
 
-// Inline EmptyState Component  
-function EmptyState({ icon, title, message, actionLabel, onAction }) {
+// Transaction List Panel Component
+function TransactionPanel({ title, icon, color, transactions, searchTerm, setSearchTerm, typeFilter, setTypeFilter, sortBy, sortOrder, setSortBy, setSortOrder, onIncomeTypeChange, onCategoryChange, getCategoryEmoji, sideHustleName, isPersonal }) {
+  const [editingTx, setEditingTx] = useState(null);
+  const [newCategory, setNewCategory] = useState('');
+
+  const totals = useMemo(() => {
+    const income = transactions.filter(tx => parseFloat(tx.amount || tx.Amount) > 0).reduce((sum, tx) => sum + parseFloat(tx.amount || tx.Amount), 0);
+    const expenses = transactions.filter(tx => parseFloat(tx.amount || tx.Amount) < 0).reduce((sum, tx) => sum + Math.abs(parseFloat(tx.amount || tx.Amount)), 0);
+    return { income, expenses, net: income - expenses };
+  }, [transactions]);
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '60px 40px', textAlign: 'center', background: 'rgba(30, 27, 56, 0.5)', borderRadius: '20px', border: '1px dashed rgba(255,255,255,0.2)' }}>
-      <div style={{ fontSize: '64px', marginBottom: '20px', opacity: 0.8 }}>{icon}</div>
-      <h3 style={{ fontSize: '20px', fontWeight: '600', marginBottom: '8px', color: 'white' }}>{title}</h3>
-      <p style={{ fontSize: '15px', color: 'rgba(255,255,255,0.5)', maxWidth: '300px', lineHeight: 1.5, marginBottom: actionLabel ? '24px' : '0' }}>{message}</p>
-      {actionLabel && onAction && (
-        <button onClick={onAction} style={{ padding: '12px 24px', background: 'linear-gradient(135deg, #8B5CF6, #EC4899)', border: 'none', borderRadius: '12px', color: 'white', fontSize: '15px', fontWeight: '600', cursor: 'pointer' }}>
-          {actionLabel}
-        </button>
-      )}
+    <div style={{ flex: 1 }}>
+      {/* Header */}
+      <div style={{ 
+        display: 'flex', 
+        alignItems: 'center', 
+        gap: '12px', 
+        marginBottom: '16px',
+        padding: '14px 20px',
+        background: `linear-gradient(135deg, ${color}25, ${color}10)`,
+        borderRadius: '14px',
+        border: `1px solid ${color}40`
+      }}>
+        <span style={{ fontSize: '28px' }}>{icon}</span>
+        <div>
+          <h3 style={{ fontSize: '18px', fontWeight: '700', margin: 0, color: 'white' }}>{title}</h3>
+          <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.6)', margin: '2px 0 0 0' }}>
+            {transactions.length} transactions
+          </p>
+        </div>
+      </div>
+
+      {/* Stats */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px', marginBottom: '16px' }}>
+        <div style={{ background: 'rgba(30, 27, 56, 0.8)', borderRadius: '10px', padding: '12px', border: '1px solid rgba(255,255,255,0.1)' }}>
+          <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.5)' }}>📋 Transactions</div>
+          <div style={{ fontSize: '18px', fontWeight: '700' }}>{transactions.length}</div>
+        </div>
+        <div style={{ background: 'linear-gradient(135deg, #10B981, #059669)', borderRadius: '10px', padding: '12px' }}>
+          <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.8)' }}>💰 Income</div>
+          <div style={{ fontSize: '18px', fontWeight: '700' }}>{formatCurrency(totals.income)}</div>
+        </div>
+        <div style={{ background: 'linear-gradient(135deg, #EF4444, #DC2626)', borderRadius: '10px', padding: '12px' }}>
+          <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.8)' }}>💸 Expenses</div>
+          <div style={{ fontSize: '18px', fontWeight: '700' }}>{formatCurrency(totals.expenses)}</div>
+        </div>
+        <div style={{ background: `linear-gradient(135deg, ${color}, ${color}CC)`, borderRadius: '10px', padding: '12px' }}>
+          <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.8)' }}>📊 Net</div>
+          <div style={{ fontSize: '18px', fontWeight: '700' }}>{totals.net >= 0 ? '+' : ''}{formatCurrency(totals.net)}</div>
+        </div>
+      </div>
+
+      {/* Search & Filters */}
+      <div style={{ display: 'flex', gap: '8px', marginBottom: '12px', flexWrap: 'wrap' }}>
+        <input
+          type="text"
+          placeholder="🔍 Search..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          style={{ flex: 1, minWidth: '120px', padding: '10px 14px', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '10px', color: 'white', fontSize: '13px' }}
+        />
+        <div style={{ display: 'flex', gap: '4px' }}>
+          {['all', 'expense', 'income'].map(type => (
+            <button key={type} onClick={() => setTypeFilter(type)}
+              style={{ padding: '8px 12px', background: typeFilter === type ? `linear-gradient(135deg, ${color}, ${color}CC)` : 'rgba(255,255,255,0.1)', border: 'none', borderRadius: '8px', color: 'white', fontSize: '11px', cursor: 'pointer' }}>
+              {type === 'all' ? 'All' : type === 'expense' ? 'Expenses' : 'Income'}
+            </button>
+          ))}
+        </div>
+        <select value={`${sortBy}-${sortOrder}`} onChange={(e) => { const [by, order] = e.target.value.split('-'); setSortBy(by); setSortOrder(order); }}
+          style={{ padding: '8px 12px', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '8px', color: 'white', fontSize: '11px', cursor: 'pointer' }}>
+          <option value="date-desc" style={{ background: '#1e1b38' }}>Date ↓</option>
+          <option value="date-asc" style={{ background: '#1e1b38' }}>Date ↑</option>
+          <option value="amount-desc" style={{ background: '#1e1b38' }}>Amount ↓</option>
+          <option value="amount-asc" style={{ background: '#1e1b38' }}>Amount ↑</option>
+        </select>
+      </div>
+
+      {/* Transaction List */}
+      <div style={{ background: 'rgba(30, 27, 56, 0.8)', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.1)', overflow: 'hidden' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '90px 70px 1fr 120px 80px 60px', padding: '12px 16px', background: 'rgba(255,255,255,0.05)', borderBottom: '1px solid rgba(255,255,255,0.1)', fontSize: '10px', fontWeight: '600', color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase' }}>
+          <div>Type</div>
+          <div>Date</div>
+          <div>Description</div>
+          <div>Category</div>
+          <div style={{ textAlign: 'right' }}>Amount</div>
+          <div style={{ textAlign: 'center' }}>Status</div>
+        </div>
+        <div style={{ maxHeight: '50vh', overflowY: 'auto' }}>
+          {transactions.length === 0 ? (
+            <div style={{ padding: '32px', textAlign: 'center', color: 'rgba(255,255,255,0.5)', fontSize: '13px' }}>No transactions</div>
+          ) : (
+            transactions.slice(0, 500).map((tx, index) => {
+              const amount = parseFloat(tx.amount || tx.Amount);
+              const isExpense = amount < 0;
+              const date = new Date(tx.date || tx.Date);
+              const status = tx.status || tx.Status || 'Posted';
+              const incomeType = tx.incomeType || 'personal';
+
+              return (
+                <div key={tx.id || index} style={{ display: 'grid', gridTemplateColumns: '90px 70px 1fr 120px 80px 60px', padding: '10px 16px', borderBottom: '1px solid rgba(255,255,255,0.05)', alignItems: 'center' }}>
+                  <div>
+                    <select value={incomeType} onChange={(e) => onIncomeTypeChange(tx, e.target.value)}
+                      style={{ padding: '4px 6px', background: incomeType === 'personal' ? 'rgba(139, 92, 246, 0.2)' : 'rgba(236, 72, 153, 0.2)', border: `1px solid ${incomeType === 'personal' ? 'rgba(139, 92, 246, 0.4)' : 'rgba(236, 72, 153, 0.4)'}`, borderRadius: '6px', color: 'white', fontSize: '9px', cursor: 'pointer', width: '100%' }}>
+                      <option value="personal" style={{ background: '#1e1b38' }}>👤 Personal</option>
+                      <option value="sidehustle" style={{ background: '#1e1b38' }}>💼 {sideHustleName}</option>
+                    </select>
+                  </div>
+                  <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.7)' }}>{date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</div>
+                  <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    <div style={{ fontWeight: '500', fontSize: '12px' }}>{tx.vendor}</div>
+                    <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)' }}>{(tx.description || '').slice(0, 30)}</div>
+                  </div>
+                  <div onClick={() => { setEditingTx(tx); setNewCategory(tx.displayCategory); }}
+                    style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', padding: '4px 8px', borderRadius: '6px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', fontSize: '11px' }}>
+                    <span>{getCategoryEmoji(tx.displayCategory)}</span>
+                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tx.displayCategory.length > 10 ? tx.displayCategory.slice(0, 10) + '...' : tx.displayCategory}</span>
+                  </div>
+                  <div style={{ textAlign: 'right', fontWeight: '600', fontSize: '12px', color: isExpense ? '#EF4444' : '#10B981' }}>{isExpense ? '-' : '+'}{formatCurrency(amount)}</div>
+                  <div style={{ textAlign: 'center' }}>
+                    <span style={{ padding: '2px 6px', borderRadius: '4px', fontSize: '9px', background: status === 'Posted' ? 'rgba(16, 185, 129, 0.2)' : 'rgba(251, 191, 36, 0.2)', color: status === 'Posted' ? '#10B981' : '#FBBF24' }}>{status}</span>
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+      </div>
+      <div style={{ marginTop: '8px', textAlign: 'center', fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>
+        Showing {Math.min(transactions.length, 500)} of {transactions.length} transactions
+      </div>
     </div>
   );
 }
 
-export default function TransactionsTab({ 
-  transactions = [],
-  onNavigateToImport,
-  onUpdateTransactionTypes
-}) {
+export default function TransactionsTab({ transactions = [] }) {
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
-  const [searchTerm, setSearchTerm] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState('all');
-  const [typeFilter, setTypeFilter] = useState('all');
-  const [sortBy, setSortBy] = useState('date');
-  const [sortOrder, setSortOrder] = useState('desc');
-  
-  const [editingTransaction, setEditingTransaction] = useState(null);
-  const [showCategoryModal, setShowCategoryModal] = useState(false);
-  const [newCategory, setNewCategory] = useState('');
-  const [applyToAllVendor, setApplyToAllVendor] = useState(true);
-  const [customCategories, setCustomCategories] = useState(() => {
-    try {
-      const saved = localStorage.getItem('ff_custom_categories');
-      return saved ? JSON.parse(saved) : [];
-    } catch { return []; }
-  });
-  
+  const [personalSearch, setPersonalSearch] = useState('');
+  const [sideHustleSearch, setSideHustleSearch] = useState('');
+  const [personalTypeFilter, setPersonalTypeFilter] = useState('all');
+  const [sideHustleTypeFilter, setSideHustleTypeFilter] = useState('all');
+  const [personalSortBy, setPersonalSortBy] = useState('date');
+  const [personalSortOrder, setPersonalSortOrder] = useState('desc');
+  const [sideHustleSortBy, setSideHustleSortBy] = useState('date');
+  const [sideHustleSortOrder, setSideHustleSortOrder] = useState('desc');
+
   const [vendorCategoryMap, setVendorCategoryMap] = useState(() => {
-    try {
-      const saved = localStorage.getItem('ff_vendor_categories');
-      return saved ? JSON.parse(saved) : {};
-    } catch { return {}; }
+    try { return JSON.parse(localStorage.getItem('ff_vendor_categories') || '{}'); } catch { return {}; }
   });
-
-  // Income type mappings (vendor -> personal/sidehustle)
   const [incomeTypeMap, setIncomeTypeMap] = useState(() => {
-    try {
-      const saved = localStorage.getItem('ff_income_types');
-      return saved ? JSON.parse(saved) : {};
-    } catch { return {}; }
+    try { return JSON.parse(localStorage.getItem('ff_income_types') || '{}'); } catch { return {}; }
   });
-
-  // Custom side hustle name
   const [sideHustleName, setSideHustleName] = useState(() => {
-    try {
-      return localStorage.getItem('ff_sidehustle_name') || 'Side Hustle';
-    } catch { return 'Side Hustle'; }
+    try { return localStorage.getItem('ff_sidehustle_name') || 'Side Hustle'; } catch { return 'Side Hustle'; }
   });
 
-  const allCategories = useMemo(() => {
-    const defaultCats = Object.keys(categoryEmojiMap);
-    const uniqueCustom = customCategories.filter(c => !defaultCats.includes(c));
-    return [...defaultCats, ...uniqueCustom].sort();
-  }, [customCategories]);
+  const getCategoryEmoji = (category) => categoryEmojiMap[category] || '📦';
 
-  // Auto-detect side hustle based on keywords
-  const detectIncomeType = (tx) => {
-    const description = (tx.description || tx.Description || '').toLowerCase();
-    const category = (tx.category || tx.Category || '').toLowerCase();
-    const vendor = (tx.vendor || '').toLowerCase();
-    
-    const combined = `${description} ${category} ${vendor}`;
-    
-    if (SIDE_HUSTLE_KEYWORDS.some(keyword => combined.includes(keyword))) {
-      return 'sidehustle';
-    }
-    return 'personal';
+  const isSideHustle = (tx) => {
+    const vendor = extractVendor(tx.description || tx.Description || '').toLowerCase();
+    if (incomeTypeMap[vendor] === 'sidehustle') return true;
+    if (incomeTypeMap[vendor] === 'personal') return false;
+    const combined = `${tx.description || ''} ${tx.category || ''} ${vendor}`.toLowerCase();
+    return SIDE_HUSTLE_KEYWORDS.some(keyword => combined.includes(keyword));
   };
 
   const transactionsWithMappings = useMemo(() => {
     return transactions.map(tx => {
-      const vendor = extractVendor(tx.description || tx.Description || '');
-      const mappedCategory = vendorCategoryMap[vendor.toLowerCase()];
-      const mappedIncomeType = incomeTypeMap[vendor.toLowerCase()];
-      const autoIncomeType = detectIncomeType({ ...tx, vendor });
-      
-      return {
-        ...tx,
-        vendor,
-        displayCategory: mappedCategory || tx.category || tx.Category || 'Uncategorized',
-        incomeType: mappedIncomeType || autoIncomeType
-      };
+      const vendor = extractVendor(tx.description || tx.Description);
+      const displayCategory = vendorCategoryMap[vendor.toLowerCase()] || tx.category || tx.Category || 'Category Pending';
+      const incomeType = incomeTypeMap[vendor.toLowerCase()] || (isSideHustle(tx) ? 'sidehustle' : 'personal');
+      return { ...tx, vendor, displayCategory, incomeType };
     });
   }, [transactions, vendorCategoryMap, incomeTypeMap]);
 
   const filteredByDate = useMemo(() => {
     return transactionsWithMappings.filter(tx => {
       const txDate = new Date(tx.date || tx.Date);
-      if (selectedMonth === null) {
-        return txDate.getFullYear() === selectedYear;
-      }
+      if (selectedMonth === null) return txDate.getFullYear() === selectedYear;
       return txDate.getMonth() === selectedMonth && txDate.getFullYear() === selectedYear;
     });
   }, [transactionsWithMappings, selectedMonth, selectedYear]);
 
-  const categoriesInView = useMemo(() => {
-    const cats = new Set();
-    filteredByDate.forEach(tx => cats.add(tx.displayCategory));
-    return Array.from(cats).sort();
+  const { personalTransactions, sideHustleTransactions } = useMemo(() => {
+    const personal = filteredByDate.filter(tx => tx.incomeType !== 'sidehustle');
+    const sideHustle = filteredByDate.filter(tx => tx.incomeType === 'sidehustle');
+    return { personalTransactions: personal, sideHustleTransactions: sideHustle };
   }, [filteredByDate]);
 
-  const filteredTransactions = useMemo(() => {
-    let result = [...filteredByDate];
-
-    if (searchTerm) {
-      const term = searchTerm.toLowerCase();
+  const filterAndSort = (txList, search, typeFilter, sortBy, sortOrder) => {
+    let result = [...txList];
+    if (search) {
+      const term = search.toLowerCase();
       result = result.filter(tx => 
-        (tx.description || tx.Description || '').toLowerCase().includes(term) ||
-        (tx.displayCategory || '').toLowerCase().includes(term) ||
-        (tx.vendor || '').toLowerCase().includes(term)
+        tx.vendor.toLowerCase().includes(term) || 
+        (tx.description || '').toLowerCase().includes(term) ||
+        tx.displayCategory.toLowerCase().includes(term)
       );
     }
-
-    if (categoryFilter !== 'all') {
-      result = result.filter(tx => tx.displayCategory === categoryFilter);
-    }
-
-    if (typeFilter === 'expense') {
-      result = result.filter(tx => parseFloat(tx.amount || tx.Amount) < 0);
-    } else if (typeFilter === 'income') {
-      result = result.filter(tx => parseFloat(tx.amount || tx.Amount) > 0);
-    }
-
+    if (typeFilter === 'expense') result = result.filter(tx => parseFloat(tx.amount || tx.Amount) < 0);
+    if (typeFilter === 'income') result = result.filter(tx => parseFloat(tx.amount || tx.Amount) > 0);
     result.sort((a, b) => {
       let comparison = 0;
-      if (sortBy === 'date') {
-        comparison = new Date(a.date || a.Date) - new Date(b.date || b.Date);
-      } else if (sortBy === 'amount') {
-        comparison = Math.abs(parseFloat(a.amount || a.Amount)) - Math.abs(parseFloat(b.amount || b.Amount));
-      } else if (sortBy === 'category') {
-        comparison = (a.displayCategory || '').localeCompare(b.displayCategory || '');
-      } else if (sortBy === 'vendor') {
-        comparison = (a.vendor || '').localeCompare(b.vendor || '');
-      }
-      return sortOrder === 'desc' ? -comparison : comparison;
+      if (sortBy === 'date') comparison = new Date(b.date || b.Date) - new Date(a.date || a.Date);
+      else if (sortBy === 'amount') comparison = Math.abs(parseFloat(b.amount || b.Amount)) - Math.abs(parseFloat(a.amount || a.Amount));
+      return sortOrder === 'desc' ? comparison : -comparison;
     });
-
     return result;
-  }, [filteredByDate, searchTerm, categoryFilter, typeFilter, sortBy, sortOrder]);
-
-  const totals = useMemo(() => {
-    const income = filteredTransactions.filter(tx => parseFloat(tx.amount || tx.Amount) > 0).reduce((sum, tx) => sum + parseFloat(tx.amount || tx.Amount), 0);
-    const expenses = filteredTransactions.filter(tx => parseFloat(tx.amount || tx.Amount) < 0).reduce((sum, tx) => sum + Math.abs(parseFloat(tx.amount || tx.Amount)), 0);
-    return { income, expenses, net: income - expenses };
-  }, [filteredTransactions]);
-
-  const getCategoryEmoji = (category) => categoryEmojiMap[category] || '📦';
-
-  const handleCategoryChange = (transaction, newCat, applyToAll) => {
-    const vendor = transaction.vendor.toLowerCase();
-    
-    if (applyToAll) {
-      const newMapping = { ...vendorCategoryMap, [vendor]: newCat };
-      setVendorCategoryMap(newMapping);
-      localStorage.setItem('ff_vendor_categories', JSON.stringify(newMapping));
-    }
-    
-    if (!allCategories.includes(newCat)) {
-      const updatedCustom = [...customCategories, newCat];
-      setCustomCategories(updatedCustom);
-      localStorage.setItem('ff_custom_categories', JSON.stringify(updatedCustom));
-    }
-    
-    setShowCategoryModal(false);
-    setEditingTransaction(null);
-    setNewCategory('');
   };
 
-  const handleIncomeTypeChange = (transaction, newType) => {
-    const vendor = transaction.vendor.toLowerCase();
+  const filteredPersonal = useMemo(() => filterAndSort(personalTransactions, personalSearch, personalTypeFilter, personalSortBy, personalSortOrder), [personalTransactions, personalSearch, personalTypeFilter, personalSortBy, personalSortOrder]);
+  const filteredSideHustle = useMemo(() => filterAndSort(sideHustleTransactions, sideHustleSearch, sideHustleTypeFilter, sideHustleSortBy, sideHustleSortOrder), [sideHustleTransactions, sideHustleSearch, sideHustleTypeFilter, sideHustleSortBy, sideHustleSortOrder]);
+
+  const handleIncomeTypeChange = (tx, newType) => {
+    const vendor = tx.vendor.toLowerCase();
     const newMapping = { ...incomeTypeMap, [vendor]: newType };
     setIncomeTypeMap(newMapping);
     localStorage.setItem('ff_income_types', JSON.stringify(newMapping));
   };
 
-  const openCategoryModal = (transaction) => {
-    setEditingTransaction(transaction);
-    setNewCategory(transaction.displayCategory);
-    setApplyToAllVendor(true);
-    setShowCategoryModal(true);
+  const handleCategoryChange = (tx, newCat) => {
+    const vendor = tx.vendor.toLowerCase();
+    const newMapping = { ...vendorCategoryMap, [vendor]: newCat };
+    setVendorCategoryMap(newMapping);
+    localStorage.setItem('ff_vendor_categories', JSON.stringify(newMapping));
   };
 
-  const getVendorCount = (vendor) => {
-    return transactionsWithMappings.filter(tx => tx.vendor.toLowerCase() === vendor.toLowerCase()).length;
-  };
-
-  const hasData = transactions.length > 0;
+  const hasSideHustleData = sideHustleTransactions.length > 0;
 
   return (
     <div style={{ animation: 'slideIn 0.3s ease' }}>
-      <MonthYearSelector
-        selectedYear={selectedYear}
-        setSelectedYear={setSelectedYear}
-        selectedMonth={selectedMonth}
-        setSelectedMonth={setSelectedMonth}
-      />
+      <MonthYearSelector selectedYear={selectedYear} setSelectedYear={setSelectedYear} selectedMonth={selectedMonth} setSelectedMonth={setSelectedMonth} />
 
-      {!hasData ? (
-        <EmptyState
-          icon="📂"
-          title="No transactions imported"
-          message="Import your bank transactions to view your full transaction history."
-          actionLabel="📥 Import Data"
-          onAction={onNavigateToImport}
-        />
-      ) : (
-        <>
-          {/* Summary Cards */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '24px' }}>
-            <div style={{ background: 'rgba(30, 27, 56, 0.8)', borderRadius: '16px', padding: '20px', border: '1px solid rgba(255,255,255,0.1)' }}>
-              <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.5)', marginBottom: '4px' }}>📋 Transactions</div>
-              <div style={{ fontSize: '28px', fontWeight: '700', color: 'white' }}>{filteredTransactions.length.toLocaleString()}</div>
-            </div>
-            <div style={{ background: 'linear-gradient(135deg, #10B981, #059669)', borderRadius: '16px', padding: '20px' }}>
-              <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.8)', marginBottom: '4px' }}>💰 Income</div>
-              <div style={{ fontSize: '28px', fontWeight: '700', color: 'white' }}>{formatCurrency(totals.income)}</div>
-            </div>
-            <div style={{ background: 'linear-gradient(135deg, #EF4444, #DC2626)', borderRadius: '16px', padding: '20px' }}>
-              <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.8)', marginBottom: '4px' }}>💸 Expenses</div>
-              <div style={{ fontSize: '28px', fontWeight: '700', color: 'white' }}>{formatCurrency(totals.expenses)}</div>
-            </div>
-            <div style={{ background: totals.net >= 0 ? 'linear-gradient(135deg, #8B5CF6, #7C3AED)' : 'linear-gradient(135deg, #F59E0B, #D97706)', borderRadius: '16px', padding: '20px' }}>
-              <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.8)', marginBottom: '4px' }}>📊 Net</div>
-              <div style={{ fontSize: '28px', fontWeight: '700', color: 'white' }}>{totals.net >= 0 ? '+' : '-'}{formatCurrency(totals.net)}</div>
-            </div>
-          </div>
+      {/* Side Hustle Name Editor */}
+      <div style={{ background: 'rgba(236, 72, 153, 0.1)', borderRadius: '12px', padding: '12px 16px', marginBottom: '20px', border: '1px solid rgba(236, 72, 153, 0.2)', display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+        <span style={{ fontSize: '18px' }}>💼</span>
+        <span style={{ fontSize: '13px', color: 'rgba(255,255,255,0.7)' }}>Side Hustle Name:</span>
+        <input type="text" value={sideHustleName} onChange={(e) => { setSideHustleName(e.target.value); localStorage.setItem('ff_sidehustle_name', e.target.value); }}
+          placeholder="e.g., Real Estate Agent..."
+          style={{ flex: 1, minWidth: '150px', padding: '8px 12px', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(236, 72, 153, 0.3)', borderRadius: '8px', color: 'white', fontSize: '13px' }} />
+        <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>This appears in Dashboard & all tabs</span>
+      </div>
 
-          {/* Filters */}
-          <div style={{ background: 'rgba(30, 27, 56, 0.8)', borderRadius: '16px', padding: '20px', marginBottom: '24px', border: '1px solid rgba(255,255,255,0.1)', display: 'flex', gap: '16px', flexWrap: 'wrap', alignItems: 'center' }}>
-            <div style={{ flex: '1', minWidth: '200px' }}>
-              <input
-                type="text"
-                placeholder="🔍 Search transactions, vendors..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                style={{ width: '100%', padding: '12px 16px', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '10px', color: 'white', fontSize: '14px', boxSizing: 'border-box' }}
-              />
-            </div>
+      {/* Split View */}
+      <div style={{ display: 'grid', gridTemplateColumns: hasSideHustleData ? '1fr 2px 1fr' : '1fr', gap: '0' }}>
+        {/* Personal Transactions */}
+        <div style={{ paddingRight: hasSideHustleData ? '20px' : '0' }}>
+          <TransactionPanel
+            title="👤 Personal"
+            icon="🏠"
+            color="#8B5CF6"
+            transactions={filteredPersonal}
+            searchTerm={personalSearch}
+            setSearchTerm={setPersonalSearch}
+            typeFilter={personalTypeFilter}
+            setTypeFilter={setPersonalTypeFilter}
+            sortBy={personalSortBy}
+            sortOrder={personalSortOrder}
+            setSortBy={setPersonalSortBy}
+            setSortOrder={setPersonalSortOrder}
+            onIncomeTypeChange={handleIncomeTypeChange}
+            onCategoryChange={handleCategoryChange}
+            getCategoryEmoji={getCategoryEmoji}
+            sideHustleName={sideHustleName}
+            isPersonal={true}
+          />
+        </div>
 
-            <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)} style={{ padding: '12px 16px', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '10px', color: 'white', fontSize: '14px', cursor: 'pointer', minWidth: '150px' }}>
-              <option value="all" style={{ background: '#1e1b38' }}>All Categories</option>
-              {categoriesInView.map(cat => (
-                <option key={cat} value={cat} style={{ background: '#1e1b38' }}>{cat}</option>
-              ))}
-            </select>
+        {/* Divider */}
+        {hasSideHustleData && (
+          <div style={{ background: 'linear-gradient(180deg, rgba(139, 92, 246, 0.6), rgba(236, 72, 153, 0.6), rgba(139, 92, 246, 0.6))', borderRadius: '2px' }} />
+        )}
 
-            <div style={{ display: 'flex', gap: '8px' }}>
-              {[{ value: 'all', label: 'All' }, { value: 'expense', label: 'Expenses' }, { value: 'income', label: 'Income' }].map(option => (
-                <button key={option.value} onClick={() => setTypeFilter(option.value)} style={{ padding: '10px 16px', background: typeFilter === option.value ? 'linear-gradient(135deg, #8B5CF6, #EC4899)' : 'rgba(255,255,255,0.1)', border: 'none', borderRadius: '8px', color: 'white', fontSize: '13px', cursor: 'pointer', fontWeight: typeFilter === option.value ? '600' : '400' }}>
-                  {option.label}
-                </button>
-              ))}
-            </div>
-
-            <select value={`${sortBy}-${sortOrder}`} onChange={(e) => { const [by, order] = e.target.value.split('-'); setSortBy(by); setSortOrder(order); }} style={{ padding: '12px 16px', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '10px', color: 'white', fontSize: '14px', cursor: 'pointer' }}>
-              <option value="date-desc" style={{ background: '#1e1b38' }}>Date (Newest)</option>
-              <option value="date-asc" style={{ background: '#1e1b38' }}>Date (Oldest)</option>
-              <option value="amount-desc" style={{ background: '#1e1b38' }}>Amount (Highest)</option>
-              <option value="amount-asc" style={{ background: '#1e1b38' }}>Amount (Lowest)</option>
-              <option value="vendor-asc" style={{ background: '#1e1b38' }}>Vendor (A-Z)</option>
-              <option value="category-asc" style={{ background: '#1e1b38' }}>Category (A-Z)</option>
-            </select>
-          </div>
-
-          {/* Side Hustle Name Editor */}
-          <div style={{ background: 'rgba(236, 72, 153, 0.1)', borderRadius: '12px', padding: '16px', marginBottom: '24px', border: '1px solid rgba(236, 72, 153, 0.2)', display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ fontSize: '20px' }}>💼</span>
-              <span style={{ fontSize: '14px', color: 'rgba(255,255,255,0.8)' }}>Side Hustle Name:</span>
-            </div>
-            <input
-              type="text"
-              value={sideHustleName}
-              onChange={(e) => {
-                setSideHustleName(e.target.value);
-                localStorage.setItem('ff_sidehustle_name', e.target.value);
-              }}
-              placeholder="e.g., Real Estate Agent, Hair Stylist..."
-              style={{ 
-                flex: 1, 
-                minWidth: '200px',
-                padding: '10px 16px', 
-                background: 'rgba(255,255,255,0.1)', 
-                border: '1px solid rgba(236, 72, 153, 0.3)', 
-                borderRadius: '8px', 
-                color: 'white', 
-                fontSize: '14px',
-                fontWeight: '500'
-              }}
+        {/* Side Hustle Transactions */}
+        {hasSideHustleData && (
+          <div style={{ paddingLeft: '20px' }}>
+            <TransactionPanel
+              title={`💼 ${sideHustleName}`}
+              icon="💼"
+              color="#EC4899"
+              transactions={filteredSideHustle}
+              searchTerm={sideHustleSearch}
+              setSearchTerm={setSideHustleSearch}
+              typeFilter={sideHustleTypeFilter}
+              setTypeFilter={setSideHustleTypeFilter}
+              sortBy={sideHustleSortBy}
+              sortOrder={sideHustleSortOrder}
+              setSortBy={setSideHustleSortBy}
+              setSortOrder={setSideHustleSortOrder}
+              onIncomeTypeChange={handleIncomeTypeChange}
+              onCategoryChange={handleCategoryChange}
+              getCategoryEmoji={getCategoryEmoji}
+              sideHustleName={sideHustleName}
+              isPersonal={false}
             />
-            <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)' }}>
-              This name will appear in your Dashboard split view
-            </span>
           </div>
+        )}
+      </div>
 
-          {/* Transactions List with Income Type Column */}
-          <div style={{ background: 'rgba(30, 27, 56, 0.8)', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.1)', overflow: 'hidden' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '120px 80px 140px 1fr 150px 100px 70px', padding: '16px 20px', background: 'rgba(255,255,255,0.05)', borderBottom: '1px solid rgba(255,255,255,0.1)', fontSize: '11px', fontWeight: '600', color: 'rgba(255,255,255,0.6)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-              <div>Type</div>
-              <div>Date</div>
-              <div>Vendor</div>
-              <div>Description</div>
-              <div>Category</div>
-              <div style={{ textAlign: 'right' }}>Amount</div>
-              <div style={{ textAlign: 'center' }}>Status</div>
-            </div>
-
-            <div style={{ maxHeight: '70vh', overflowY: 'auto' }}>
-              {filteredTransactions.length === 0 ? (
-                <div style={{ padding: '40px', textAlign: 'center', color: 'rgba(255,255,255,0.5)' }}>No transactions match your filters</div>
-              ) : (
-                filteredTransactions.slice(0, 1000).map((tx, index) => {
-                  const amount = parseFloat(tx.amount || tx.Amount);
-                  const isExpense = amount < 0;
-                  const date = new Date(tx.date || tx.Date);
-                  const status = tx.status || tx.Status || 'Posted';
-                  const incomeType = tx.incomeType || 'personal';
-                  
-                  return (
-                    <div key={tx.id || index} style={{ display: 'grid', gridTemplateColumns: '120px 80px 140px 1fr 150px 100px 70px', padding: '12px 20px', borderBottom: '1px solid rgba(255,255,255,0.05)', alignItems: 'center' }}>
-                      {/* Income Type Selector */}
-                      <div>
-                        <select 
-                          value={incomeType}
-                          onChange={(e) => handleIncomeTypeChange(tx, e.target.value)}
-                          style={{ 
-                            padding: '6px 8px', 
-                            background: incomeType === 'personal' ? 'rgba(139, 92, 246, 0.2)' : 'rgba(236, 72, 153, 0.2)', 
-                            border: `1px solid ${incomeType === 'personal' ? 'rgba(139, 92, 246, 0.4)' : 'rgba(236, 72, 153, 0.4)'}`,
-                            borderRadius: '6px', 
-                            color: 'white', 
-                            fontSize: '10px', 
-                            cursor: 'pointer',
-                            width: '100%'
-                          }}
-                        >
-                          <option value="personal" style={{ background: '#1e1b38' }}>👤 Personal</option>
-                          <option value="sidehustle" style={{ background: '#1e1b38' }}>💼 {sideHustleName || 'Side Hustle'}</option>
-                        </select>
-                      </div>
-                      <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.7)' }}>{date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</div>
-                      <div style={{ fontWeight: '600', fontSize: '12px', color: 'white', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tx.vendor}</div>
-                      <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{(tx.description || tx.Description || '').slice(0, 35)}</div>
-                      <div onClick={() => openCategoryModal(tx)} style={{ display: 'flex', alignItems: 'center', gap: '5px', cursor: 'pointer', padding: '4px 8px', borderRadius: '6px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
-                        <span style={{ fontSize: '12px' }}>{getCategoryEmoji(tx.displayCategory)}</span>
-                        <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.8)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tx.displayCategory.length > 10 ? tx.displayCategory.slice(0, 10) + '...' : tx.displayCategory}</span>
-                        <span style={{ fontSize: '9px', color: 'rgba(255,255,255,0.4)', marginLeft: 'auto' }}>✏️</span>
-                      </div>
-                      <div style={{ textAlign: 'right', fontWeight: '600', fontSize: '13px', color: isExpense ? '#EF4444' : '#10B981' }}>{isExpense ? '-' : '+'}{formatCurrency(amount)}</div>
-                      <div style={{ textAlign: 'center' }}>
-                        <span style={{ padding: '3px 6px', borderRadius: '4px', fontSize: '9px', fontWeight: '500', background: status === 'Posted' ? 'rgba(16, 185, 129, 0.2)' : 'rgba(251, 191, 36, 0.2)', color: status === 'Posted' ? '#10B981' : '#FBBF24' }}>{status}</span>
-                      </div>
-                    </div>
-                  );
-                })
-              )}
-            </div>
-          </div>
-
-          <div style={{ marginTop: '16px', textAlign: 'center', fontSize: '13px', color: 'rgba(255,255,255,0.5)' }}>
-            Showing {Math.min(filteredTransactions.length, 1000).toLocaleString()} of {filteredTransactions.length.toLocaleString()} filtered transactions
-            {filteredTransactions.length > 1000 && (
-              <span style={{ color: '#F59E0B', marginLeft: '8px' }}>
-                (Use filters to narrow results)
-              </span>
-            )}
-          </div>
-        </>
-      )}
-
-      {/* Category Edit Modal */}
-      {showCategoryModal && editingTransaction && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, backdropFilter: 'blur(4px)' }} onClick={() => setShowCategoryModal(false)}>
-          <div style={{ background: 'rgba(30, 27, 56, 0.98)', backdropFilter: 'blur(20px)', borderRadius: '24px', padding: '32px', width: '450px', maxWidth: '90vw', border: '1px solid rgba(255,255,255,0.1)' }} onClick={e => e.stopPropagation()}>
-            <h3 style={{ fontSize: '20px', fontWeight: '600', marginBottom: '8px', color: 'white' }}>📂 Edit Category</h3>
-            
-            <div style={{ background: 'rgba(255,255,255,0.05)', borderRadius: '12px', padding: '16px', marginBottom: '24px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: '13px' }}>Vendor</span>
-                <span style={{ fontWeight: '600', color: 'white' }}>{editingTransaction.vendor}</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: '13px' }}>Amount</span>
-                <span style={{ fontWeight: '600', color: parseFloat(editingTransaction.amount) < 0 ? '#EF4444' : '#10B981' }}>{formatCurrency(editingTransaction.amount)}</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: '13px' }}>Current Category</span>
-                <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <span>{getCategoryEmoji(editingTransaction.displayCategory)}</span>
-                  <span style={{ color: 'white' }}>{editingTransaction.displayCategory}</span>
-                </span>
-              </div>
-            </div>
-
-            <div style={{ marginBottom: '16px' }}>
-              <label style={{ display: 'block', marginBottom: '8px', color: 'rgba(255,255,255,0.7)', fontSize: '14px' }}>Select Category</label>
-              <select value={newCategory} onChange={(e) => setNewCategory(e.target.value)} style={{ width: '100%', padding: '12px 16px', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '10px', color: 'white', fontSize: '14px', cursor: 'pointer', boxSizing: 'border-box' }}>
-                {allCategories.map(cat => (
-                  <option key={cat} value={cat} style={{ background: '#1e1b38' }}>{getCategoryEmoji(cat)} {cat}</option>
-                ))}
-              </select>
-            </div>
-
-            <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'block', marginBottom: '8px', color: 'rgba(255,255,255,0.7)', fontSize: '14px' }}>Or Create New Category</label>
-              <input type="text" value={newCategory} onChange={(e) => setNewCategory(e.target.value)} placeholder="e.g., Coffee, Subscriptions..." style={{ width: '100%', padding: '12px 16px', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '10px', color: 'white', fontSize: '14px', boxSizing: 'border-box' }} />
-            </div>
-
-            <div style={{ background: applyToAllVendor ? 'rgba(139, 92, 246, 0.15)' : 'rgba(255,255,255,0.05)', border: applyToAllVendor ? '1px solid rgba(139, 92, 246, 0.3)' : '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', padding: '16px', marginBottom: '24px', cursor: 'pointer' }} onClick={() => setApplyToAllVendor(!applyToAllVendor)}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <div style={{ width: '24px', height: '24px', borderRadius: '6px', border: applyToAllVendor ? 'none' : '2px solid rgba(255,255,255,0.3)', background: applyToAllVendor ? 'linear-gradient(135deg, #8B5CF6, #EC4899)' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '14px', fontWeight: 'bold' }}>
-                  {applyToAllVendor ? '✓' : ''}
-                </div>
-                <div>
-                  <div style={{ fontWeight: '600', color: 'white', fontSize: '14px' }}>Apply to all "{editingTransaction.vendor}" transactions</div>
-                  <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)', marginTop: '2px' }}>This will update {getVendorCount(editingTransaction.vendor)} transaction{getVendorCount(editingTransaction.vendor) !== 1 ? 's' : ''}</div>
-                </div>
-              </div>
-            </div>
-
-            <div style={{ display: 'flex', gap: '12px' }}>
-              <button onClick={() => setShowCategoryModal(false)} style={{ flex: 1, padding: '14px', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '12px', color: 'white', cursor: 'pointer', fontSize: '14px', fontWeight: '500' }}>Cancel</button>
-              <button onClick={() => handleCategoryChange(editingTransaction, newCategory, applyToAllVendor)} disabled={!newCategory.trim()} style={{ flex: 1, padding: '14px', background: newCategory.trim() ? 'linear-gradient(135deg, #8B5CF6, #EC4899)' : 'rgba(255,255,255,0.1)', border: 'none', borderRadius: '12px', color: 'white', fontWeight: '600', cursor: newCategory.trim() ? 'pointer' : 'not-allowed', fontSize: '14px', opacity: newCategory.trim() ? 1 : 0.5 }}>Save Category</button>
-            </div>
+      {/* Tip */}
+      {!hasSideHustleData && (
+        <div style={{ marginTop: '20px', padding: '14px', background: 'rgba(236, 72, 153, 0.1)', borderRadius: '12px', border: '1px solid rgba(236, 72, 153, 0.2)', display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <span style={{ fontSize: '20px' }}>💡</span>
+          <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.7)' }}>
+            <strong>Tip:</strong> Change the "Type" dropdown on any transaction to "Side Hustle" to see a split view with separate tracking for your business income!
           </div>
         </div>
       )}
