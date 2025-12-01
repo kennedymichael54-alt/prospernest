@@ -109,10 +109,11 @@ function TransactionPanel({ title, icon, color, transactions, searchTerm, setSea
 
   return (
     <div style={{ flex: 1 }}>
-      {/* Header */}
+      {/* Header - Centered */}
       <div style={{ 
         display: 'flex', 
-        alignItems: 'center', 
+        alignItems: 'center',
+        justifyContent: 'center',
         gap: '12px', 
         marginBottom: '16px',
         padding: '14px 20px',
@@ -121,7 +122,7 @@ function TransactionPanel({ title, icon, color, transactions, searchTerm, setSea
         border: `1px solid ${color}40`
       }}>
         <span style={{ fontSize: '28px' }}>{icon}</span>
-        <div>
+        <div style={{ textAlign: 'center' }}>
           <h3 style={{ fontSize: '18px', fontWeight: '700', margin: 0, color: 'white' }}>{title}</h3>
           <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.6)', margin: '2px 0 0 0' }}>
             {transactions.length} transactions
@@ -341,8 +342,8 @@ export default function TransactionsTab({ transactions = [] }) {
         <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>This appears in Dashboard & all tabs</span>
       </div>
 
-      {/* Split View - Always show both panels centered */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 2px 1fr', gap: '0', maxWidth: '1600px', margin: '0 auto' }}>
+      {/* Split View - Full Width with Centered Headers */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 2px 1fr', gap: '0' }}>
         {/* Personal Transactions */}
         <div style={{ paddingRight: '20px' }}>
           <TransactionPanel
