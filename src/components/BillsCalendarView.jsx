@@ -166,23 +166,19 @@ export default function BillsCalendarView() {
         </div>
       </div>
 
-      {/* Split View */}
-      <div style={{ display: 'grid', gridTemplateColumns: hasSideHustleBills || bills.length === 0 ? '1fr 2px 1fr' : '1fr 1fr', gap: '0' }}>
+      {/* Split View - Always show both panels centered */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 2px 1fr', gap: '0', maxWidth: '1600px', margin: '0 auto' }}>
         {/* Left Side - Bills Lists */}
         <div style={{ paddingRight: '20px' }}>
           <BillsPanel title="👤 Personal Bills" icon="🏠" color="#8B5CF6" billsList={personalBills} stats={personalStats} />
-          {(hasSideHustleBills || bills.length === 0) && (
-            <BillsPanel title={`💼 ${sideHustleName} Bills`} icon="💼" color="#EC4899" billsList={sideHustleBills} stats={sideHustleStats} />
-          )}
+          <BillsPanel title={`💼 ${sideHustleName} Bills`} icon="💼" color="#EC4899" billsList={sideHustleBills} stats={sideHustleStats} />
         </div>
 
         {/* Divider */}
-        {(hasSideHustleBills || bills.length === 0) && (
-          <div style={{ background: 'linear-gradient(180deg, rgba(139, 92, 246, 0.6), rgba(236, 72, 153, 0.6), rgba(139, 92, 246, 0.6))', borderRadius: '2px' }} />
-        )}
+        <div style={{ background: 'linear-gradient(180deg, rgba(139, 92, 246, 0.6), rgba(236, 72, 153, 0.6), rgba(139, 92, 246, 0.6))', borderRadius: '2px' }} />
 
         {/* Right Side - Calendar */}
-        <div style={{ paddingLeft: hasSideHustleBills || bills.length === 0 ? '20px' : '0' }}>
+        <div style={{ paddingLeft: '20px' }}>
           <div style={{ background: 'rgba(30, 27, 56, 0.8)', borderRadius: '16px', padding: '20px', border: '1px solid rgba(255,255,255,0.1)' }}>
             {/* Calendar Header */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
