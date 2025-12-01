@@ -1222,8 +1222,8 @@ function Dashboard({
         />
       )}
 
-      {/* Main Content */}
-      <main style={{ padding: '24px', maxWidth: '1400px', margin: '0 auto' }}>
+      {/* Main Content - Full Width */}
+      <main style={{ padding: '24px 40px' }}>
         {activeTab === 'home' && (
           <HomeTab 
             transactions={transactions}
