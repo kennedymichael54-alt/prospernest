@@ -132,10 +132,11 @@ function DashboardPanel({ title, icon, color, income, expenses, transactions, re
 
   return (
     <div>
-      {/* Header */}
+      {/* Header - Centered */}
       <div style={{ 
         display: 'flex', 
         alignItems: 'center', 
+        justifyContent: 'center',
         gap: '14px', 
         marginBottom: '20px',
         padding: '16px 24px',
@@ -144,7 +145,7 @@ function DashboardPanel({ title, icon, color, income, expenses, transactions, re
         border: `1px solid ${color}40`
       }}>
         <span style={{ fontSize: '32px' }}>{icon}</span>
-        <div>
+        <div style={{ textAlign: 'center' }}>
           <h3 style={{ fontSize: '20px', fontWeight: '700', margin: 0, color: 'white' }}>{title}</h3>
           <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.6)', margin: '4px 0 0 0' }}>
             {transactions.length} transactions this period
@@ -388,12 +389,6 @@ export default function HomeTab({ transactions = [], bills = [], goals = [], onN
           actionLabel="📥 Import Data"
           onAction={onNavigateToImport}
         />
-      ) : !hasFilteredData ? (
-        <EmptyState
-          icon="📅"
-          title="No data for this period"
-          message={`No transactions found for ${selectedMonth !== null ? new Date(selectedYear, selectedMonth).toLocaleString('default', { month: 'long' }) + ' ' : ''}${selectedYear}.`}
-        />
       ) : (
         <>
           {/* Combined Summary - Full Width Bar */}
@@ -433,8 +428,8 @@ export default function HomeTab({ transactions = [], bills = [], goals = [], onN
             </div>
           </div>
 
-          {/* Split Dashboard View - Always Both Panels Centered */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 2px 1fr', gap: '0', maxWidth: '1600px', margin: '0 auto' }}>
+          {/* Split Dashboard View - Full Width with Centered Headers */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 2px 1fr', gap: '0' }}>
             {/* Personal Panel - Left Side */}
             <div style={{ paddingRight: '24px' }}>
               <DashboardPanel
