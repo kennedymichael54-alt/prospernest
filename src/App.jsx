@@ -284,11 +284,25 @@ function LandingPage({ setView }) {
                 <circle cx="21" cy="18" r="1" fill="rgba(255,255,255,0.6)"/>
               </svg>
             </div>
-            <span style={{ fontSize: '20px', fontWeight: '600' }}>Family Finance</span>
+            <span style={{ fontSize: '20px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              Family Finance
+              <span style={{ 
+                fontSize: '10px', 
+                fontWeight: '700', 
+                padding: '3px 8px', 
+                background: 'linear-gradient(135deg, #F59E0B, #D97706)', 
+                borderRadius: '6px', 
+                color: 'white',
+                letterSpacing: '0.5px',
+                textTransform: 'uppercase'
+              }}>BETA</span>
+            </span>
           </div>
           <nav style={{ display: 'flex', alignItems: 'center', gap: '32px' }}>
             <a href="#features" style={{ color: 'rgba(255,255,255,0.7)', textDecoration: 'none', fontSize: '15px' }}>Features</a>
             <a href="#pricing" style={{ color: 'rgba(255,255,255,0.7)', textDecoration: 'none', fontSize: '15px' }}>Pricing</a>
+            <a href="#tutorials" style={{ color: 'rgba(255,255,255,0.7)', textDecoration: 'none', fontSize: '15px' }}>Tutorials</a>
+            <a href="#support" style={{ color: 'rgba(255,255,255,0.7)', textDecoration: 'none', fontSize: '15px' }}>Support</a>
             <button onClick={() => setView('auth')} style={{ padding: '10px 20px', background: 'transparent', border: '1px solid rgba(255,255,255,0.3)', borderRadius: '8px', color: 'white', cursor: 'pointer', fontSize: '15px' }}>
               Sign In
             </button>
@@ -678,8 +692,27 @@ function AuthPage({ setView }) {
               <circle cx="21" cy="18" r="1" fill="rgba(255,255,255,0.6)"/>
             </svg>
           </div>
-          <span style={{ fontSize: '18px', fontWeight: '600' }}>Family Finance</span>
+          <span style={{ fontSize: '18px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            Family Finance
+            <span style={{ 
+              fontSize: '9px', 
+              fontWeight: '700', 
+              padding: '2px 6px', 
+              background: 'linear-gradient(135deg, #F59E0B, #D97706)', 
+              borderRadius: '4px', 
+              color: 'white',
+              letterSpacing: '0.5px',
+              textTransform: 'uppercase'
+            }}>BETA</span>
+          </span>
         </button>
+
+        {/* Navigation Links */}
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '24px', marginBottom: '24px' }}>
+          <a href="#pricing" style={{ color: 'rgba(255,255,255,0.6)', textDecoration: 'none', fontSize: '13px' }}>Pricing</a>
+          <a href="#tutorials" style={{ color: 'rgba(255,255,255,0.6)', textDecoration: 'none', fontSize: '13px' }}>Tutorials</a>
+          <a href="#support" style={{ color: 'rgba(255,255,255,0.6)', textDecoration: 'none', fontSize: '13px' }}>Support</a>
+        </div>
 
         <div style={{ background: 'rgba(30, 27, 56, 0.8)', backdropFilter: 'blur(20px)', borderRadius: '24px', padding: '40px', border: '1px solid rgba(255,255,255,0.1)' }}>
           <h2 style={{ color: 'white', fontSize: '28px', fontWeight: '700', marginBottom: '8px', textAlign: 'center' }}>
@@ -1069,7 +1102,19 @@ function Dashboard({
             </svg>
           </button>
           <div>
-            <div style={{ fontWeight: '600', fontSize: '18px' }}>Family Finance</div>
+            <div style={{ fontWeight: '600', fontSize: '18px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              Family Finance
+              <span style={{ 
+                fontSize: '10px', 
+                fontWeight: '700', 
+                padding: '3px 8px', 
+                background: 'linear-gradient(135deg, #F59E0B, #D97706)', 
+                borderRadius: '6px', 
+                color: 'white',
+                letterSpacing: '0.5px',
+                textTransform: 'uppercase'
+              }}>BETA</span>
+            </div>
             <div style={{ fontSize: '14px', color: 'rgba(255,255,255,0.6)' }}>Welcome back, {displayName}!</div>
           </div>
         </div>
@@ -1405,19 +1450,15 @@ function GoalsTab({ goals, onUpdateGoals }) {
         </button>
       </div>
 
-      {/* Split View */}
-      <div style={{ display: 'grid', gridTemplateColumns: hasSideHustleGoals || goals.length === 0 ? '1fr 2px 1fr' : '1fr', gap: '0' }}>
-        <div style={{ paddingRight: hasSideHustleGoals || goals.length === 0 ? '20px' : '0' }}>
+      {/* Split View - Always show both panels centered */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 2px 1fr', gap: '0', maxWidth: '1600px', margin: '0 auto' }}>
+        <div style={{ paddingRight: '20px' }}>
           <GoalsPanel title="👤 Personal Goals" icon="🏠" color="#8B5CF6" goalsList={personalGoals} type="personal" />
         </div>
-        {(hasSideHustleGoals || goals.length === 0) && (
-          <>
-            <div style={{ background: 'linear-gradient(180deg, rgba(139, 92, 246, 0.6), rgba(236, 72, 153, 0.6), rgba(139, 92, 246, 0.6))', borderRadius: '2px' }} />
-            <div style={{ paddingLeft: '20px' }}>
-              <GoalsPanel title={`💼 ${sideHustleName} Goals`} icon="💼" color="#EC4899" goalsList={sideHustleGoals} type="sidehustle" />
-            </div>
-          </>
-        )}
+        <div style={{ background: 'linear-gradient(180deg, rgba(139, 92, 246, 0.6), rgba(236, 72, 153, 0.6), rgba(139, 92, 246, 0.6))', borderRadius: '2px' }} />
+        <div style={{ paddingLeft: '20px' }}>
+          <GoalsPanel title={`💼 ${sideHustleName} Goals`} icon="💼" color="#EC4899" goalsList={sideHustleGoals} type="sidehustle" />
+        </div>
       </div>
 
       {/* Add Goal Modal */}
