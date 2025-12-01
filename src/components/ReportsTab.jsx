@@ -381,35 +381,21 @@ export default function ReportsTab({ transactions = [] }) {
         </div>
       </div>
 
-      {/* Split View */}
-      <div style={{ display: 'grid', gridTemplateColumns: hasSideHustleData ? '1fr 2px 1fr' : '1fr', gap: '0' }}>
+      {/* Split View - Always show both panels centered */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 2px 1fr', gap: '0', maxWidth: '1600px', margin: '0 auto' }}>
         {/* Personal Reports */}
-        <div style={{ paddingRight: hasSideHustleData ? '20px' : '0' }}>
+        <div style={{ paddingRight: '20px' }}>
           <ReportPanel title="👤 Personal" icon="🏠" color="#8B5CF6" transactions={personalTransactions} dateRange={dateRangeLabel} />
         </div>
 
         {/* Divider */}
-        {hasSideHustleData && (
-          <div style={{ background: 'linear-gradient(180deg, rgba(139, 92, 246, 0.6), rgba(236, 72, 153, 0.6), rgba(139, 92, 246, 0.6))', borderRadius: '2px' }} />
-        )}
+        <div style={{ background: 'linear-gradient(180deg, rgba(139, 92, 246, 0.6), rgba(236, 72, 153, 0.6), rgba(139, 92, 246, 0.6))', borderRadius: '2px' }} />
 
         {/* Side Hustle Reports */}
-        {hasSideHustleData && (
-          <div style={{ paddingLeft: '20px' }}>
-            <ReportPanel title={`💼 ${sideHustleName}`} icon="💼" color="#EC4899" transactions={sideHustleTransactions} dateRange={dateRangeLabel} />
-          </div>
-        )}
-      </div>
-
-      {/* Tip */}
-      {!hasSideHustleData && (
-        <div style={{ marginTop: '20px', padding: '14px', background: 'rgba(236, 72, 153, 0.1)', borderRadius: '12px', border: '1px solid rgba(236, 72, 153, 0.2)', display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <span style={{ fontSize: '20px' }}>💡</span>
-          <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.7)' }}>
-            <strong>Tip:</strong> Go to Transactions and mark some as "Side Hustle" to see separate reports for your business income!
-          </div>
+        <div style={{ paddingLeft: '20px' }}>
+          <ReportPanel title={`💼 ${sideHustleName}`} icon="💼" color="#EC4899" transactions={sideHustleTransactions} dateRange={dateRangeLabel} />
         </div>
-      )}
+      </div>
 
       <style>{`@keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }`}</style>
     </div>
