@@ -469,9 +469,40 @@ export default function TransactionsTab({
             </select>
           </div>
 
+          {/* Side Hustle Name Editor */}
+          <div style={{ background: 'rgba(236, 72, 153, 0.1)', borderRadius: '12px', padding: '16px', marginBottom: '24px', border: '1px solid rgba(236, 72, 153, 0.2)', display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '20px' }}>💼</span>
+              <span style={{ fontSize: '14px', color: 'rgba(255,255,255,0.8)' }}>Side Hustle Name:</span>
+            </div>
+            <input
+              type="text"
+              value={sideHustleName}
+              onChange={(e) => {
+                setSideHustleName(e.target.value);
+                localStorage.setItem('ff_sidehustle_name', e.target.value);
+              }}
+              placeholder="e.g., Real Estate Agent, Hair Stylist..."
+              style={{ 
+                flex: 1, 
+                minWidth: '200px',
+                padding: '10px 16px', 
+                background: 'rgba(255,255,255,0.1)', 
+                border: '1px solid rgba(236, 72, 153, 0.3)', 
+                borderRadius: '8px', 
+                color: 'white', 
+                fontSize: '14px',
+                fontWeight: '500'
+              }}
+            />
+            <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)' }}>
+              This name will appear in your Dashboard split view
+            </span>
+          </div>
+
           {/* Transactions List with Income Type Column */}
           <div style={{ background: 'rgba(30, 27, 56, 0.8)', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.1)', overflow: 'hidden' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '110px 90px 150px 1fr 160px 110px 70px', padding: '16px 24px', background: 'rgba(255,255,255,0.05)', borderBottom: '1px solid rgba(255,255,255,0.1)', fontSize: '11px', fontWeight: '600', color: 'rgba(255,255,255,0.6)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '120px 80px 140px 1fr 150px 100px 70px', padding: '16px 20px', background: 'rgba(255,255,255,0.05)', borderBottom: '1px solid rgba(255,255,255,0.1)', fontSize: '11px', fontWeight: '600', color: 'rgba(255,255,255,0.6)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
               <div>Type</div>
               <div>Date</div>
               <div>Vendor</div>
@@ -493,7 +524,7 @@ export default function TransactionsTab({
                   const incomeType = tx.incomeType || 'personal';
                   
                   return (
-                    <div key={tx.id || index} style={{ display: 'grid', gridTemplateColumns: '110px 90px 150px 1fr 160px 110px 70px', padding: '12px 24px', borderBottom: '1px solid rgba(255,255,255,0.05)', alignItems: 'center' }}>
+                    <div key={tx.id || index} style={{ display: 'grid', gridTemplateColumns: '120px 80px 140px 1fr 150px 100px 70px', padding: '12px 20px', borderBottom: '1px solid rgba(255,255,255,0.05)', alignItems: 'center' }}>
                       {/* Income Type Selector */}
                       <div>
                         <select 
@@ -505,19 +536,19 @@ export default function TransactionsTab({
                             border: `1px solid ${incomeType === 'personal' ? 'rgba(139, 92, 246, 0.4)' : 'rgba(236, 72, 153, 0.4)'}`,
                             borderRadius: '6px', 
                             color: 'white', 
-                            fontSize: '11px', 
+                            fontSize: '10px', 
                             cursor: 'pointer',
                             width: '100%'
                           }}
                         >
                           <option value="personal" style={{ background: '#1e1b38' }}>👤 Personal</option>
-                          <option value="sidehustle" style={{ background: '#1e1b38' }}>💼 Side Hustle</option>
+                          <option value="sidehustle" style={{ background: '#1e1b38' }}>💼 {sideHustleName || 'Side Hustle'}</option>
                         </select>
                       </div>
-                      <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.7)' }}>{date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</div>
-                      <div style={{ fontWeight: '600', fontSize: '13px', color: 'white', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tx.vendor}</div>
-                      <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{(tx.description || tx.Description || '').slice(0, 40)}</div>
-                      <div onClick={() => openCategoryModal(tx)} style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', padding: '5px 8px', borderRadius: '6px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
+                      <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.7)' }}>{date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</div>
+                      <div style={{ fontWeight: '600', fontSize: '12px', color: 'white', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tx.vendor}</div>
+                      <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{(tx.description || tx.Description || '').slice(0, 35)}</div>
+                      <div onClick={() => openCategoryModal(tx)} style={{ display: 'flex', alignItems: 'center', gap: '5px', cursor: 'pointer', padding: '4px 8px', borderRadius: '6px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
                         <span style={{ fontSize: '12px' }}>{getCategoryEmoji(tx.displayCategory)}</span>
                         <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.8)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tx.displayCategory.length > 10 ? tx.displayCategory.slice(0, 10) + '...' : tx.displayCategory}</span>
                         <span style={{ fontSize: '9px', color: 'rgba(255,255,255,0.4)', marginLeft: 'auto' }}>✏️</span>
