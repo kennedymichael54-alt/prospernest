@@ -59,6 +59,15 @@ const ACCOUNTING_CATEGORIES = [
 // Flatten for easy lookup
 const ALL_ACCOUNTING_CATEGORIES = ACCOUNTING_CATEGORIES.flatMap(g => g.items);
 
+// Default spending categories
+const DEFAULT_CATEGORIES = [
+  'Groceries', 'Food', 'Fast Food', 'Restaurants', 'Gas', 'Auto & Transport',
+  'Shopping', 'Entertainment', 'Transfer', 'Income', 'Hobbies', 'Electronics & Software',
+  'Doctor', 'Pharmacy', 'Financial', 'Television', 'Housing', 'Utilities', 'Education',
+  'Travel', 'Fitness', 'Pets', 'Gifts', 'Coffee', 'Home Improvement', 'Paycheck', 
+  'Reimbursement', 'Cash', 'Category Pending', 'Personal'
+];
+
 // Compact Month/Year Selector
 function MonthYearSelector({ selectedYear, setSelectedYear, selectedMonth, setSelectedMonth }) {
   const currentYear = new Date().getFullYear();
@@ -182,7 +191,7 @@ function TransactionPanel({ title, icon, color, transactions, searchTerm, setSea
 
       {/* Transaction List */}
       <div style={{ background: 'rgba(30, 27, 56, 0.8)', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.1)', overflow: 'hidden' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '80px 55px 1fr 100px 100px 70px 60px 50px', padding: '12px 16px', background: 'rgba(255,255,255,0.05)', borderBottom: '1px solid rgba(255,255,255,0.1)', fontSize: '9px', fontWeight: '600', color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '70px 65px 1.2fr 110px 110px 75px 55px 55px', padding: '12px 16px', background: 'rgba(255,255,255,0.05)', borderBottom: '1px solid rgba(255,255,255,0.1)', fontSize: '9px', fontWeight: '600', color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase' }}>
           <div>Type</div>
           <div>Date</div>
           <div>Description</div>
@@ -204,27 +213,30 @@ function TransactionPanel({ title, icon, color, transactions, searchTerm, setSea
               const incomeType = tx.incomeType || 'personal';
 
               return (
-                <div key={tx.id || index} style={{ display: 'grid', gridTemplateColumns: '80px 55px 1fr 100px 100px 70px 60px 50px', padding: '10px 16px', borderBottom: '1px solid rgba(255,255,255,0.05)', alignItems: 'center' }}>
+                <div key={tx.id || index} style={{ display: 'grid', gridTemplateColumns: '70px 65px 1.2fr 110px 110px 75px 55px 55px', padding: '10px 16px', borderBottom: '1px solid rgba(255,255,255,0.05)', alignItems: 'center' }}>
                   <div>
                     <select value={incomeType} onChange={(e) => onIncomeTypeChange(tx, e.target.value)}
-                      style={{ padding: '4px 4px', background: incomeType === 'personal' ? 'rgba(139, 92, 246, 0.2)' : 'rgba(236, 72, 153, 0.2)', border: `1px solid ${incomeType === 'personal' ? 'rgba(139, 92, 246, 0.4)' : 'rgba(236, 72, 153, 0.4)'}`, borderRadius: '6px', color: 'white', fontSize: '8px', cursor: 'pointer', width: '100%' }}>
-                      <option value="personal" style={{ background: '#1e1b38' }}>👤 Personal</option>
-                      <option value="sidehustle" style={{ background: '#1e1b38' }}>👤 {sideHustleName}</option>
+                      style={{ padding: '6px 8px', background: incomeType === 'personal' ? 'rgba(139, 92, 246, 0.2)' : 'rgba(236, 72, 153, 0.2)', border: `1px solid ${incomeType === 'personal' ? 'rgba(139, 92, 246, 0.4)' : 'rgba(236, 72, 153, 0.4)'}`, borderRadius: '8px', color: 'white', fontSize: '11px', cursor: 'pointer', width: '100%', appearance: 'none', WebkitAppearance: 'none', backgroundImage: 'url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'white\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'%3e%3cpolyline points=\'6 9 12 15 18 9\'%3e%3c/polyline%3e%3c/svg%3e")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 4px center', backgroundSize: '12px', paddingRight: '20px' }}>
+                      <option value="personal" style={{ background: '#1e1b38', padding: '10px' }}>👤 Personal</option>
+                      <option value="sidehustle" style={{ background: '#1e1b38', padding: '10px' }}>👤 {sideHustleName}</option>
                     </select>
                   </div>
-                  <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.7)' }}>{date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</div>
-                  <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    <div style={{ fontWeight: '500', fontSize: '11px' }}>{tx.vendor}</div>
-                    <div style={{ fontSize: '9px', color: 'rgba(255,255,255,0.4)' }}>{(tx.description || '').slice(0, 25)}</div>
+                  <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.7)', paddingLeft: '4px' }}>{date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</div>
+                  <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', paddingRight: '8px' }}>
+                    <div style={{ fontWeight: '500', fontSize: '12px' }}>{tx.vendor}</div>
+                    <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)' }}>{(tx.description || '').slice(0, 30)}</div>
                   </div>
-                  <div onClick={() => setEditingTx(tx)}
-                    style={{ display: 'flex', alignItems: 'center', gap: '3px', cursor: 'pointer', padding: '3px 6px', borderRadius: '6px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', fontSize: '9px' }}>
-                    <span>{getCategoryEmoji(tx.displayCategory)}</span>
-                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tx.displayCategory.length > 8 ? tx.displayCategory.slice(0, 8) + '..' : tx.displayCategory}</span>
+                  <div>
+                    <select value={tx.displayCategory} onChange={(e) => onCategoryChange(tx, e.target.value)}
+                      style={{ padding: '6px 8px', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '8px', color: 'white', fontSize: '11px', cursor: 'pointer', width: '100%', appearance: 'none', WebkitAppearance: 'none', backgroundImage: 'url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'white\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'%3e%3cpolyline points=\'6 9 12 15 18 9\'%3e%3c/polyline%3e%3c/svg%3e")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 4px center', backgroundSize: '12px', paddingRight: '20px' }}>
+                      {DEFAULT_CATEGORIES.map(cat => (
+                        <option key={cat} value={cat} style={{ background: '#1e1b38', padding: '10px' }}>{getCategoryEmoji(cat)} {cat}</option>
+                      ))}
+                    </select>
                   </div>
                   <div>
                     <select value={tx.accountingCategory || ''} onChange={(e) => onAccountingCategoryChange(tx, e.target.value)}
-                      style={{ padding: '3px 4px', background: tx.accountingCategory ? 'rgba(59, 130, 246, 0.2)' : 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '5px', color: 'white', fontSize: '8px', width: '100%' }}>
+                      style={{ padding: '6px 8px', background: tx.accountingCategory ? 'rgba(59, 130, 246, 0.2)' : 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: 'white', fontSize: '11px', width: '100%', appearance: 'none', WebkitAppearance: 'none', backgroundImage: 'url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'white\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'%3e%3cpolyline points=\'6 9 12 15 18 9\'%3e%3c/polyline%3e%3c/svg%3e")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 4px center', backgroundSize: '12px', paddingRight: '20px' }}>
                       <option value="" style={{ background: '#1e1b38' }}>Select...</option>
                       {ACCOUNTING_CATEGORIES.map(group => (
                         <optgroup key={group.group} label={group.group} style={{ background: '#1e1b38' }}>
@@ -235,25 +247,25 @@ function TransactionPanel({ title, icon, color, transactions, searchTerm, setSea
                       ))}
                     </select>
                   </div>
-                  <div style={{ textAlign: 'right', fontWeight: '600', fontSize: '11px', color: isExpense ? '#EF4444' : '#10B981' }}>{isExpense ? '-' : '+'}{formatCurrency(amount)}</div>
+                  <div style={{ textAlign: 'right', fontWeight: '600', fontSize: '12px', color: isExpense ? '#EF4444' : '#10B981' }}>{isExpense ? '-' : '+'}{formatCurrency(amount)}</div>
                   <div style={{ textAlign: 'center' }}>
                     {amount > 0 ? (
                       tx.goalAssignment ? (
-                        <div style={{ fontSize: '8px', padding: '2px 4px', background: 'rgba(16, 185, 129, 0.2)', borderRadius: '4px', color: '#10B981' }}>
+                        <div style={{ fontSize: '9px', padding: '4px 6px', background: 'rgba(16, 185, 129, 0.2)', borderRadius: '6px', color: '#10B981' }}>
                           🎯 ${tx.goalAssignment.amount}
                         </div>
                       ) : (
                         <button onClick={() => { setShowGoalModal(tx); setGoalAmount(Math.abs(amount).toFixed(2)); }}
-                          style={{ padding: '2px 6px', background: 'rgba(139, 92, 246, 0.2)', border: '1px solid rgba(139, 92, 246, 0.3)', borderRadius: '4px', color: '#8B5CF6', fontSize: '8px', cursor: 'pointer' }}>
+                          style={{ padding: '4px 8px', background: 'rgba(139, 92, 246, 0.2)', border: '1px solid rgba(139, 92, 246, 0.3)', borderRadius: '6px', color: '#8B5CF6', fontSize: '10px', cursor: 'pointer' }}>
                           + Goal
                         </button>
                       )
                     ) : (
-                      <span style={{ fontSize: '8px', color: 'rgba(255,255,255,0.3)' }}>—</span>
+                      <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.3)' }}>—</span>
                     )}
                   </div>
                   <div style={{ textAlign: 'center' }}>
-                    <span style={{ padding: '2px 4px', borderRadius: '4px', fontSize: '8px', background: status === 'Posted' ? 'rgba(16, 185, 129, 0.2)' : 'rgba(251, 191, 36, 0.2)', color: status === 'Posted' ? '#10B981' : '#FBBF24' }}>{status.slice(0, 4)}</span>
+                    <span style={{ padding: '4px 8px', borderRadius: '6px', fontSize: '10px', background: status === 'Posted' ? 'rgba(16, 185, 129, 0.2)' : 'rgba(251, 191, 36, 0.2)', color: status === 'Posted' ? '#10B981' : '#FBBF24' }}>{status.slice(0, 4)}</span>
                   </div>
                 </div>
               );
