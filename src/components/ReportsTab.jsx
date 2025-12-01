@@ -28,7 +28,7 @@ const extractVendor = (description) => {
 
 // Sankey Diagram Component - Full Width
 function SankeyDiagram({ incomeBySource, expensesByCategory, totalIncome, color }) {
-  const width = 1000;
+  const width = 1100;
   const height = 500;
   const nodeWidth = 24;
   const nodePadding = 18;
@@ -41,9 +41,9 @@ function SankeyDiagram({ incomeBySource, expensesByCategory, totalIncome, color 
   }
 
   const totalExpenses = expenseItems.reduce((sum, [, val]) => sum + val, 0);
-  const leftX = 50;
+  const leftX = 120;
   const centerX = width / 2 - nodeWidth / 2;
-  const rightX = width - 50 - nodeWidth;
+  const rightX = width - 120 - nodeWidth;
 
   const incomeNodeHeight = Math.max(height - 100, 200);
   const expenseNodeHeight = Math.max(height - 100, 200);
@@ -63,7 +63,7 @@ function SankeyDiagram({ incomeBySource, expensesByCategory, totalIncome, color 
   const centerNode = { x: centerX, y: height / 2 - 80, height: 160, label: 'Total', value: totalIncome };
 
   return (
-    <svg viewBox={`0 0 ${width} ${height}`} style={{ width: '100%', height: 'auto', minHeight: '400px' }}>
+    <svg viewBox={`0 0 ${width} ${height}`} style={{ width: '100%', height: 'auto', minHeight: '400px', overflow: 'visible' }}>
       <defs>
         <linearGradient id={`incomeGrad-${color}`} x1="0%" y1="0%" x2="100%" y2="0%">
           <stop offset="0%" stopColor="#10B981" stopOpacity="0.8" />
@@ -234,13 +234,13 @@ function ReportPanel({ title, icon, color, transactions, dateRange }) {
 
   return (
     <div style={{ flex: 1 }}>
-      {/* Header */}
+      {/* Header - Centered */}
       <div style={{ 
-        display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px', padding: '14px 20px',
+        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', marginBottom: '16px', padding: '14px 20px',
         background: `linear-gradient(135deg, ${color}25, ${color}10)`, borderRadius: '14px', border: `1px solid ${color}40`
       }}>
         <span style={{ fontSize: '28px' }}>{icon}</span>
-        <div>
+        <div style={{ textAlign: 'center' }}>
           <h3 style={{ fontSize: '18px', fontWeight: '700', margin: 0 }}>{title}</h3>
           <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.6)', margin: '2px 0 0 0' }}>{transactions.length} transactions • {dateRange}</p>
         </div>
@@ -381,8 +381,8 @@ export default function ReportsTab({ transactions = [] }) {
         </div>
       </div>
 
-      {/* Split View - Always show both panels centered */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 2px 1fr', gap: '0', maxWidth: '1600px', margin: '0 auto' }}>
+      {/* Split View - Full Width with Centered Headers */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 2px 1fr', gap: '0' }}>
         {/* Personal Reports */}
         <div style={{ paddingRight: '20px' }}>
           <ReportPanel title="👤 Personal" icon="🏠" color="#8B5CF6" transactions={personalTransactions} dateRange={dateRangeLabel} />
