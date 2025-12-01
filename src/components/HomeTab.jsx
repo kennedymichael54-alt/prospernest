@@ -1074,6 +1074,149 @@ export default function HomeTab({ transactions = [], bills = [], goals = [], onN
               </div>
             </div>
           </div>
+
+          {/* Bills & Goals Quick Overview */}
+          <div style={{ marginTop: '32px' }}>
+            <h3 style={{ fontSize: '18px', fontWeight: '700', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+              📋 Bills & Goals Overview
+            </h3>
+            
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 2px 1fr', gap: '0' }}>
+              {/* Personal Bills & Goals */}
+              <div style={{ paddingRight: '24px' }}>
+                <div style={{ background: 'rgba(30, 27, 56, 0.8)', borderRadius: '20px', padding: '24px', border: '1px solid rgba(139, 92, 246, 0.2)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
+                    <span style={{ fontSize: '24px' }}>🏠</span>
+                    <h4 style={{ fontSize: '16px', fontWeight: '600', margin: 0 }}>Personal Overview</h4>
+                  </div>
+
+                  {/* Bills Summary */}
+                  <div style={{ marginBottom: '20px' }}>
+                    <div style={{ fontSize: '13px', fontWeight: '600', marginBottom: '12px', color: 'rgba(255,255,255,0.8)' }}>📅 Bills Status</div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
+                      <div style={{ background: 'rgba(239, 68, 68, 0.15)', borderRadius: '10px', padding: '12px', textAlign: 'center', border: '1px solid rgba(239, 68, 68, 0.3)' }}>
+                        <div style={{ fontSize: '20px', fontWeight: '700', color: '#EF4444' }}>2</div>
+                        <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.5)' }}>Overdue</div>
+                      </div>
+                      <div style={{ background: 'rgba(251, 191, 36, 0.15)', borderRadius: '10px', padding: '12px', textAlign: 'center', border: '1px solid rgba(251, 191, 36, 0.3)' }}>
+                        <div style={{ fontSize: '20px', fontWeight: '700', color: '#FBBF24' }}>5</div>
+                        <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.5)' }}>Due Soon</div>
+                      </div>
+                      <div style={{ background: 'rgba(16, 185, 129, 0.15)', borderRadius: '10px', padding: '12px', textAlign: 'center', border: '1px solid rgba(16, 185, 129, 0.3)' }}>
+                        <div style={{ fontSize: '20px', fontWeight: '700', color: '#10B981' }}>8</div>
+                        <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.5)' }}>Paid</div>
+                      </div>
+                    </div>
+                    <div style={{ marginTop: '12px', background: 'rgba(255,255,255,0.05)', borderRadius: '8px', padding: '10px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', marginBottom: '4px' }}>
+                        <span style={{ color: 'rgba(255,255,255,0.6)' }}>Next Due:</span>
+                        <span style={{ color: '#FBBF24' }}>Electric Bill - Dec 5</span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px' }}>
+                        <span style={{ color: 'rgba(255,255,255,0.6)' }}>Amount:</span>
+                        <span style={{ fontWeight: '600' }}>$142.50</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Goals Progress */}
+                  <div>
+                    <div style={{ fontSize: '13px', fontWeight: '600', marginBottom: '12px', color: 'rgba(255,255,255,0.8)' }}>🎯 Goals Progress</div>
+                    {goals && goals.length > 0 ? goals.slice(0, 3).map((goal, i) => {
+                      const progress = goal.target > 0 ? (goal.saved / goal.target * 100) : 0;
+                      return (
+                        <div key={goal.id || i} style={{ marginBottom: '12px' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', marginBottom: '4px' }}>
+                            <span>{goal.emoji || '🎯'} {goal.name}</span>
+                            <span style={{ color: '#8B5CF6' }}>{progress.toFixed(0)}%</span>
+                          </div>
+                          <div style={{ height: '6px', background: 'rgba(255,255,255,0.1)', borderRadius: '3px', overflow: 'hidden' }}>
+                            <div style={{ width: `${Math.min(progress, 100)}%`, height: '100%', background: 'linear-gradient(90deg, #8B5CF6, #EC4899)', borderRadius: '3px' }} />
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '9px', color: 'rgba(255,255,255,0.4)', marginTop: '3px' }}>
+                            <span>{formatCurrency(goal.saved || 0)}</span>
+                            <span>{formatCurrency(goal.target || 0)}</span>
+                          </div>
+                        </div>
+                      );
+                    }) : (
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '10px' }}>
+                        {[{ name: 'Emergency Fund', progress: 65, saved: 6500, target: 10000 }, { name: 'Vacation', progress: 42, saved: 840, target: 2000 }, { name: 'New Car', progress: 15, saved: 3000, target: 20000 }].map((goal, i) => (
+                          <div key={i} style={{ marginBottom: '8px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', marginBottom: '4px' }}>
+                              <span>🎯 {goal.name}</span>
+                              <span style={{ color: '#8B5CF6' }}>{goal.progress}%</span>
+                            </div>
+                            <div style={{ height: '6px', background: 'rgba(255,255,255,0.1)', borderRadius: '3px', overflow: 'hidden' }}>
+                              <div style={{ width: `${goal.progress}%`, height: '100%', background: 'linear-gradient(90deg, #8B5CF6, #EC4899)', borderRadius: '3px' }} />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Center Divider */}
+              <div style={{ background: 'linear-gradient(180deg, rgba(139, 92, 246, 0.6), rgba(236, 72, 153, 0.6), rgba(139, 92, 246, 0.6))', borderRadius: '2px' }} />
+
+              {/* Side Hustle Bills & Goals */}
+              <div style={{ paddingLeft: '24px' }}>
+                <div style={{ background: 'rgba(30, 27, 56, 0.8)', borderRadius: '20px', padding: '24px', border: '1px solid rgba(236, 72, 153, 0.2)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
+                    <span style={{ fontSize: '24px' }}>👤</span>
+                    <h4 style={{ fontSize: '16px', fontWeight: '600', margin: 0 }}>{sideHustleName} Overview</h4>
+                  </div>
+
+                  {/* Business Bills Summary */}
+                  <div style={{ marginBottom: '20px' }}>
+                    <div style={{ fontSize: '13px', fontWeight: '600', marginBottom: '12px', color: 'rgba(255,255,255,0.8)' }}>📅 Business Bills</div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
+                      <div style={{ background: 'rgba(239, 68, 68, 0.15)', borderRadius: '10px', padding: '12px', textAlign: 'center', border: '1px solid rgba(239, 68, 68, 0.3)' }}>
+                        <div style={{ fontSize: '20px', fontWeight: '700', color: '#EF4444' }}>0</div>
+                        <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.5)' }}>Overdue</div>
+                      </div>
+                      <div style={{ background: 'rgba(251, 191, 36, 0.15)', borderRadius: '10px', padding: '12px', textAlign: 'center', border: '1px solid rgba(251, 191, 36, 0.3)' }}>
+                        <div style={{ fontSize: '20px', fontWeight: '700', color: '#FBBF24' }}>2</div>
+                        <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.5)' }}>Due Soon</div>
+                      </div>
+                      <div style={{ background: 'rgba(16, 185, 129, 0.15)', borderRadius: '10px', padding: '12px', textAlign: 'center', border: '1px solid rgba(16, 185, 129, 0.3)' }}>
+                        <div style={{ fontSize: '20px', fontWeight: '700', color: '#10B981' }}>4</div>
+                        <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.5)' }}>Paid</div>
+                      </div>
+                    </div>
+                    <div style={{ marginTop: '12px', background: 'rgba(255,255,255,0.05)', borderRadius: '8px', padding: '10px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', marginBottom: '4px' }}>
+                        <span style={{ color: 'rgba(255,255,255,0.6)' }}>Next Due:</span>
+                        <span style={{ color: '#FBBF24' }}>MLS Dues - Dec 15</span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px' }}>
+                        <span style={{ color: 'rgba(255,255,255,0.6)' }}>Amount:</span>
+                        <span style={{ fontWeight: '600' }}>$89.00</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Business Goals */}
+                  <div>
+                    <div style={{ fontSize: '13px', fontWeight: '600', marginBottom: '12px', color: 'rgba(255,255,255,0.8)' }}>🎯 Business Goals</div>
+                    {[{ name: 'Q4 Revenue', progress: 78, saved: 15600, target: 20000 }, { name: 'Marketing Budget', progress: 45, saved: 900, target: 2000 }, { name: 'Equipment Fund', progress: 25, saved: 500, target: 2000 }].map((goal, i) => (
+                      <div key={i} style={{ marginBottom: '8px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', marginBottom: '4px' }}>
+                          <span>🎯 {goal.name}</span>
+                          <span style={{ color: '#EC4899' }}>{goal.progress}%</span>
+                        </div>
+                        <div style={{ height: '6px', background: 'rgba(255,255,255,0.1)', borderRadius: '3px', overflow: 'hidden' }}>
+                          <div style={{ width: `${goal.progress}%`, height: '100%', background: 'linear-gradient(90deg, #EC4899, #8B5CF6)', borderRadius: '3px' }} />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </>
       )}
 
