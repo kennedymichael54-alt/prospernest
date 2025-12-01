@@ -1291,172 +1291,161 @@ function Dashboard({
 }
 
 // ============================================================================
-// GOALS TAB
+// GOALS TAB - Split Personal/Side Hustle View
 // ============================================================================
 
 function GoalsTab({ goals, onUpdateGoals }) {
   const [showAddGoal, setShowAddGoal] = useState(false);
-  const [newGoal, setNewGoal] = useState({ name: '', target: '', current: '', emoji: '🎯', color: '#8B5CF6' });
+  const [newGoal, setNewGoal] = useState({ name: '', target: '', current: '', emoji: '🎯', color: '#8B5CF6', type: 'personal' });
 
-  const emojiOptions = ['🎯', '🏠', '🚗', '✈️', '💰', '🛡️', '📚', '💎', '🎓', '👶', '💍', '🏖️'];
+  const emojiOptions = ['🎯', '🏠', '🚗', '✈️', '💰', '🛡️', '📚', '💎', '🎓', '👶', '💍', '🏖️', '💼', '📈', '🏢'];
   const colorOptions = ['#8B5CF6', '#EC4899', '#10B981', '#F59E0B', '#3B82F6', '#EF4444'];
+  
+  const sideHustleName = React.useMemo(() => {
+    try { return localStorage.getItem('ff_sidehustle_name') || 'Side Hustle'; } catch { return 'Side Hustle'; }
+  }, []);
 
   const addGoal = () => {
     if (!newGoal.name || !newGoal.target) return;
-    
     const goal = {
       id: Date.now(),
       name: newGoal.name,
       target: parseFloat(newGoal.target),
       current: parseFloat(newGoal.current) || 0,
       emoji: newGoal.emoji,
-      color: newGoal.color
+      color: newGoal.color,
+      type: newGoal.type
     };
-    
     onUpdateGoals([...goals, goal]);
-    setNewGoal({ name: '', target: '', current: '', emoji: '🎯', color: '#8B5CF6' });
+    setNewGoal({ name: '', target: '', current: '', emoji: '🎯', color: '#8B5CF6', type: 'personal' });
     setShowAddGoal(false);
   };
 
   const updateGoalProgress = (goalId, newCurrent) => {
-    onUpdateGoals(goals.map(g => 
-      g.id === goalId ? { ...g, current: parseFloat(newCurrent) || 0 } : g
-    ));
+    onUpdateGoals(goals.map(g => g.id === goalId ? { ...g, current: parseFloat(newCurrent) || 0 } : g));
   };
 
   const deleteGoal = (goalId) => {
     onUpdateGoals(goals.filter(g => g.id !== goalId));
   };
 
+  const personalGoals = goals.filter(g => g.type !== 'sidehustle');
+  const sideHustleGoals = goals.filter(g => g.type === 'sidehustle');
+  const hasSideHustleGoals = sideHustleGoals.length > 0;
+
+  const GoalCard = ({ goal }) => {
+    const percentage = Math.min((goal.current / goal.target) * 100, 100);
+    const remaining = goal.target - goal.current;
+    const isPersonal = goal.type !== 'sidehustle';
+    const themeColor = isPersonal ? '#8B5CF6' : '#EC4899';
+    
+    return (
+      <div style={{ background: 'rgba(30, 27, 56, 0.8)', borderRadius: '16px', padding: '20px', border: `1px solid ${themeColor}30` }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '14px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <span style={{ fontSize: '28px' }}>{goal.emoji}</span>
+            <div>
+              <div style={{ fontWeight: '600', fontSize: '15px' }}>{goal.name}</div>
+              <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)' }}>{formatCurrency(goal.current)} of {formatCurrency(goal.target)}</div>
+            </div>
+          </div>
+          <div style={{ padding: '4px 10px', background: `${goal.color}20`, borderRadius: '6px', color: goal.color, fontWeight: '600', fontSize: '13px' }}>
+            {percentage.toFixed(0)}%
+          </div>
+        </div>
+        <div style={{ height: '10px', background: 'rgba(255,255,255,0.1)', borderRadius: '5px', overflow: 'hidden', marginBottom: '14px' }}>
+          <div style={{ width: `${percentage}%`, height: '100%', background: goal.color, borderRadius: '5px', transition: 'width 0.5s ease' }} />
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)' }}>{formatCurrency(remaining)} to go</span>
+          <div style={{ display: 'flex', gap: '6px' }}>
+            <input type="number" placeholder="Update" onBlur={(e) => updateGoalProgress(goal.id, e.target.value)}
+              style={{ width: '70px', padding: '5px 8px', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '6px', color: 'white', fontSize: '11px' }} />
+            <button onClick={() => deleteGoal(goal.id)}
+              style={{ padding: '5px 8px', background: 'rgba(239, 68, 68, 0.2)', border: 'none', borderRadius: '6px', color: '#EF4444', fontSize: '11px', cursor: 'pointer' }}>✕</button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const GoalsPanel = ({ title, icon, color, goalsList, type }) => (
+    <div style={{ flex: 1 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px', padding: '14px 20px', background: `linear-gradient(135deg, ${color}25, ${color}10)`, borderRadius: '14px', border: `1px solid ${color}40` }}>
+        <span style={{ fontSize: '28px' }}>{icon}</span>
+        <div>
+          <h3 style={{ fontSize: '18px', fontWeight: '700', margin: 0 }}>{title}</h3>
+          <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.6)', margin: '2px 0 0 0' }}>{goalsList.length} goals</p>
+        </div>
+        <button onClick={() => { setNewGoal({ ...newGoal, type, color }); setShowAddGoal(true); }}
+          style={{ marginLeft: 'auto', padding: '8px 14px', background: `linear-gradient(135deg, ${color}, ${color}CC)`, border: 'none', borderRadius: '8px', color: 'white', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}>
+          + Add
+        </button>
+      </div>
+      {goalsList.length === 0 ? (
+        <div style={{ textAlign: 'center', padding: '40px', background: 'rgba(30, 27, 56, 0.5)', borderRadius: '16px', border: '1px dashed rgba(255,255,255,0.2)' }}>
+          <div style={{ fontSize: '40px', marginBottom: '12px', opacity: 0.6 }}>🎯</div>
+          <div style={{ fontSize: '14px', color: 'rgba(255,255,255,0.5)' }}>No {type === 'sidehustle' ? 'business' : 'personal'} goals yet</div>
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          {goalsList.map(goal => <GoalCard key={goal.id} goal={goal} />)}
+        </div>
+      )}
+    </div>
+  );
+
   return (
     <div style={{ animation: 'slideIn 0.3s ease' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-        <h2 style={{ fontSize: '24px', fontWeight: '600' }}>🎯 Financial Goals</h2>
-        <button
-          onClick={() => setShowAddGoal(true)}
-          style={{
-            padding: '12px 24px',
-            background: 'linear-gradient(135deg, #8B5CF6, #EC4899)',
-            border: 'none',
-            borderRadius: '12px',
-            color: 'white',
-            fontSize: '14px',
-            fontWeight: '600',
-            cursor: 'pointer'
-          }}
-        >
+        <h2 style={{ fontSize: '24px', fontWeight: '600', margin: 0 }}>🎯 Financial Goals</h2>
+        <button onClick={() => setShowAddGoal(true)}
+          style={{ padding: '12px 24px', background: 'linear-gradient(135deg, #8B5CF6, #EC4899)', border: 'none', borderRadius: '12px', color: 'white', fontSize: '14px', fontWeight: '600', cursor: 'pointer' }}>
           + Add Goal
         </button>
       </div>
 
-      {goals.length === 0 ? (
-        <EmptyState
-          icon="🎯"
-          title="No goals set yet"
-          message="Create your first financial goal to start tracking your progress!"
-          actionLabel="+ Create Goal"
-          onAction={() => setShowAddGoal(true)}
-        />
-      ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '20px' }}>
-          {goals.map(goal => {
-            const percentage = Math.min((goal.current / goal.target) * 100, 100);
-            const remaining = goal.target - goal.current;
-            
-            return (
-              <div
-                key={goal.id}
-                style={{
-                  background: 'rgba(30, 27, 56, 0.8)',
-                  backdropFilter: 'blur(20px)',
-                  borderRadius: '20px',
-                  padding: '24px',
-                  border: '1px solid rgba(255,255,255,0.1)'
-                }}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <span style={{ fontSize: '32px' }}>{goal.emoji}</span>
-                    <div>
-                      <div style={{ fontWeight: '600', fontSize: '18px' }}>{goal.name}</div>
-                      <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.5)' }}>
-                        {formatCurrency(goal.current)} of {formatCurrency(goal.target)}
-                      </div>
-                    </div>
-                  </div>
-                  <div style={{ 
-                    padding: '6px 12px', 
-                    background: `${goal.color}20`, 
-                    borderRadius: '8px',
-                    color: goal.color,
-                    fontWeight: '600'
-                  }}>
-                    {percentage.toFixed(0)}%
-                  </div>
-                </div>
-
-                <div style={{ height: '12px', background: 'rgba(255,255,255,0.1)', borderRadius: '6px', overflow: 'hidden', marginBottom: '16px' }}>
-                  <div style={{ 
-                    width: `${percentage}%`, 
-                    height: '100%', 
-                    background: goal.color,
-                    borderRadius: '6px',
-                    transition: 'width 0.5s ease'
-                  }} />
-                </div>
-
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontSize: '13px', color: 'rgba(255,255,255,0.5)' }}>
-                    {formatCurrency(remaining)} to go
-                  </span>
-                  <div style={{ display: 'flex', gap: '8px' }}>
-                    <input
-                      type="number"
-                      placeholder="Update"
-                      onBlur={(e) => updateGoalProgress(goal.id, e.target.value)}
-                      style={{
-                        width: '80px',
-                        padding: '6px 10px',
-                        background: 'rgba(255,255,255,0.1)',
-                        border: '1px solid rgba(255,255,255,0.2)',
-                        borderRadius: '6px',
-                        color: 'white',
-                        fontSize: '12px'
-                      }}
-                    />
-                    <button
-                      onClick={() => deleteGoal(goal.id)}
-                      style={{
-                        padding: '6px 10px',
-                        background: 'rgba(239, 68, 68, 0.2)',
-                        border: 'none',
-                        borderRadius: '6px',
-                        color: '#EF4444',
-                        fontSize: '12px',
-                        cursor: 'pointer'
-                      }}
-                    >
-                      Delete
-                    </button>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
+      {/* Split View */}
+      <div style={{ display: 'grid', gridTemplateColumns: hasSideHustleGoals || goals.length === 0 ? '1fr 2px 1fr' : '1fr', gap: '0' }}>
+        <div style={{ paddingRight: hasSideHustleGoals || goals.length === 0 ? '20px' : '0' }}>
+          <GoalsPanel title="👤 Personal Goals" icon="🏠" color="#8B5CF6" goalsList={personalGoals} type="personal" />
         </div>
-      )}
+        {(hasSideHustleGoals || goals.length === 0) && (
+          <>
+            <div style={{ background: 'linear-gradient(180deg, rgba(139, 92, 246, 0.6), rgba(236, 72, 153, 0.6), rgba(139, 92, 246, 0.6))', borderRadius: '2px' }} />
+            <div style={{ paddingLeft: '20px' }}>
+              <GoalsPanel title={`💼 ${sideHustleName} Goals`} icon="💼" color="#EC4899" goalsList={sideHustleGoals} type="sidehustle" />
+            </div>
+          </>
+        )}
+      </div>
 
       {/* Add Goal Modal */}
       {showAddGoal && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }} onClick={() => setShowAddGoal(false)}>
-          <div style={{ background: 'rgba(30, 27, 56, 0.98)', backdropFilter: 'blur(20px)', borderRadius: '24px', padding: '32px', width: '400px', border: '1px solid rgba(255,255,255,0.1)' }} onClick={e => e.stopPropagation()}>
+          <div style={{ background: 'rgba(30, 27, 56, 0.98)', backdropFilter: 'blur(20px)', borderRadius: '24px', padding: '32px', width: '420px', border: '1px solid rgba(255,255,255,0.1)' }} onClick={e => e.stopPropagation()}>
             <h3 style={{ fontSize: '20px', fontWeight: '600', marginBottom: '24px' }}>🎯 Create New Goal</h3>
+
+            {/* Goal Type Selection */}
+            <div style={{ marginBottom: '20px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', color: 'rgba(255,255,255,0.7)', fontSize: '14px' }}>Goal Type</label>
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <button onClick={() => setNewGoal({ ...newGoal, type: 'personal', color: '#8B5CF6' })}
+                  style={{ flex: 1, padding: '12px', background: newGoal.type === 'personal' ? 'rgba(139, 92, 246, 0.3)' : 'rgba(255,255,255,0.05)', border: newGoal.type === 'personal' ? '2px solid #8B5CF6' : '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', color: 'white', cursor: 'pointer', fontSize: '14px' }}>
+                  👤 Personal
+                </button>
+                <button onClick={() => setNewGoal({ ...newGoal, type: 'sidehustle', color: '#EC4899' })}
+                  style={{ flex: 1, padding: '12px', background: newGoal.type === 'sidehustle' ? 'rgba(236, 72, 153, 0.3)' : 'rgba(255,255,255,0.05)', border: newGoal.type === 'sidehustle' ? '2px solid #EC4899' : '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', color: 'white', cursor: 'pointer', fontSize: '14px' }}>
+                  💼 {sideHustleName}
+                </button>
+              </div>
+            </div>
 
             <div style={{ marginBottom: '16px' }}>
               <label style={{ display: 'block', marginBottom: '8px', color: 'rgba(255,255,255,0.7)', fontSize: '14px' }}>Emoji</label>
               <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                 {emojiOptions.map(emoji => (
-                  <button key={emoji} onClick={() => setNewGoal({ ...newGoal, emoji })} style={{ width: '40px', height: '40px', borderRadius: '10px', border: newGoal.emoji === emoji ? '2px solid #8B5CF6' : 'none', background: newGoal.emoji === emoji ? 'rgba(139, 92, 246, 0.2)' : 'rgba(255,255,255,0.1)', fontSize: '20px', cursor: 'pointer' }}>
+                  <button key={emoji} onClick={() => setNewGoal({ ...newGoal, emoji })} style={{ width: '36px', height: '36px', borderRadius: '8px', border: newGoal.emoji === emoji ? '2px solid #8B5CF6' : 'none', background: newGoal.emoji === emoji ? 'rgba(139, 92, 246, 0.2)' : 'rgba(255,255,255,0.1)', fontSize: '18px', cursor: 'pointer' }}>
                     {emoji}
                   </button>
                 ))}
