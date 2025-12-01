@@ -32,7 +32,7 @@ const categoryEmojiMap = {
   'Education': '📚', 'Travel': '✈️', 'Fitness': '💪', 'Pets': '🐾'
 };
 
-// Inline MonthYearSelector
+// Inline MonthYearSelector - Compact centered version
 function MonthYearSelector({ selectedYear, setSelectedYear, selectedMonth, setSelectedMonth }) {
   const currentYear = new Date().getFullYear();
   const currentMonth = new Date().getMonth();
@@ -45,36 +45,38 @@ function MonthYearSelector({ selectedYear, setSelectedYear, selectedMonth, setSe
   const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
   return (
-    <div style={{ background: 'rgba(30, 27, 56, 0.8)', backdropFilter: 'blur(20px)', borderRadius: '20px', padding: '24px', marginBottom: '24px', border: '1px solid rgba(255,255,255,0.1)' }}>
-      <div style={{ marginBottom: '16px' }}>
-        <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '1px' }}>Select Year</div>
-        <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
+    <div style={{ background: 'rgba(30, 27, 56, 0.8)', backdropFilter: 'blur(20px)', borderRadius: '16px', padding: '20px', marginBottom: '20px', border: '1px solid rgba(255,255,255,0.1)', maxWidth: '700px', margin: '0 auto 20px auto' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '24px', justifyContent: 'center', flexWrap: 'wrap' }}>
+        {/* Year Selection */}
+        <div style={{ display: 'flex', gap: '6px' }}>
           {years.map(year => (
             <button key={year} onClick={() => setSelectedYear(year)}
-              style={{ padding: '10px 20px', background: selectedYear === year ? 'linear-gradient(135deg, #8B5CF6, #EC4899)' : 'rgba(255,255,255,0.1)', border: 'none', borderRadius: '10px', color: 'white', fontSize: '14px', fontWeight: selectedYear === year ? '600' : '400', cursor: 'pointer' }}>
+              style={{ padding: '8px 16px', background: selectedYear === year ? 'linear-gradient(135deg, #8B5CF6, #EC4899)' : 'rgba(255,255,255,0.1)', border: 'none', borderRadius: '8px', color: 'white', fontSize: '13px', fontWeight: selectedYear === year ? '600' : '400', cursor: 'pointer' }}>
               {year}
             </button>
           ))}
         </div>
-      </div>
-      <div style={{ marginBottom: '16px' }}>
-        <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '1px' }}>Select Month</div>
-        <button onClick={() => setSelectedMonth(null)}
-          style={{ width: '100%', padding: '12px', background: selectedMonth === null ? 'linear-gradient(135deg, #8B5CF6, #EC4899)' : 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', color: 'white', fontSize: '14px', cursor: 'pointer', marginBottom: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-          <span>📅</span> Entire Year {selectedYear}
-        </button>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
+        
+        {/* Divider */}
+        <div style={{ width: '1px', height: '30px', background: 'rgba(255,255,255,0.2)' }} />
+        
+        {/* Month Selection */}
+        <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', justifyContent: 'center' }}>
+          <button onClick={() => setSelectedMonth(null)}
+            style={{ padding: '8px 12px', background: selectedMonth === null ? 'linear-gradient(135deg, #8B5CF6, #EC4899)' : 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: 'white', fontSize: '12px', cursor: 'pointer' }}>
+            📅 All
+          </button>
           {months.map(month => (
             <button key={month.num} onClick={() => setSelectedMonth(month.num)}
-              style={{ padding: '12px', background: selectedMonth === month.num ? 'linear-gradient(135deg, #8B5CF6, #EC4899)' : 'rgba(255,255,255,0.05)', border: currentMonth === month.num && selectedYear === currentYear ? '2px solid rgba(139, 92, 246, 0.5)' : '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', color: 'white', fontSize: '14px', cursor: 'pointer' }}>
+              style={{ padding: '8px 10px', background: selectedMonth === month.num ? 'linear-gradient(135deg, #8B5CF6, #EC4899)' : 'rgba(255,255,255,0.05)', border: currentMonth === month.num && selectedYear === currentYear ? '2px solid rgba(139, 92, 246, 0.5)' : '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: 'white', fontSize: '12px', cursor: 'pointer' }}>
               {month.short}
             </button>
           ))}
         </div>
       </div>
-      <div style={{ background: 'rgba(139, 92, 246, 0.15)', borderRadius: '10px', padding: '12px', textAlign: 'center' }}>
-        <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: '14px' }}>📊 Viewing: </span>
-        <span style={{ color: '#EC4899', fontWeight: '600', fontSize: '14px' }}>
+      <div style={{ background: 'rgba(139, 92, 246, 0.15)', borderRadius: '8px', padding: '10px', textAlign: 'center', marginTop: '12px' }}>
+        <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: '13px' }}>📊 Viewing: </span>
+        <span style={{ color: '#EC4899', fontWeight: '600', fontSize: '13px' }}>
           {selectedMonth !== null ? `${monthNames[selectedMonth]} ${selectedYear}` : `All of ${selectedYear}`}
         </span>
       </div>
@@ -112,7 +114,7 @@ function DashboardPanel({ title, icon, color, income, expenses, transactions, re
     } else {
       sorted.sort((a, b) => Math.abs(parseFloat(a.amount || a.Amount)) - Math.abs(parseFloat(b.amount || b.Amount)));
     }
-    return sorted.slice(0, 5);
+    return sorted.slice(0, 6);
   }, [recentTransactions, recentSort]);
 
   const sortedCategories = useMemo(() => {
@@ -122,85 +124,91 @@ function DashboardPanel({ title, icon, color, income, expenses, transactions, re
     } else {
       sorted.sort((a, b) => a.amount - b.amount);
     }
-    return sorted.slice(0, 5);
+    return sorted.slice(0, 6);
   }, [categoryBreakdown, categorySort]);
 
   const getCategoryEmoji = (category) => categoryEmojiMap[category] || '📦';
   const maxCategoryAmount = sortedCategories.length > 0 ? Math.max(...sortedCategories.map(c => c.amount)) : 1;
 
   return (
-    <div style={{ flex: 1 }}>
+    <div>
       {/* Header */}
       <div style={{ 
         display: 'flex', 
         alignItems: 'center', 
-        gap: '12px', 
-        marginBottom: '16px',
-        padding: '14px 18px',
+        gap: '14px', 
+        marginBottom: '20px',
+        padding: '16px 24px',
         background: `linear-gradient(135deg, ${color}25, ${color}10)`,
-        borderRadius: '12px',
+        borderRadius: '14px',
         border: `1px solid ${color}40`
       }}>
-        <span style={{ fontSize: '24px' }}>{icon}</span>
+        <span style={{ fontSize: '32px' }}>{icon}</span>
         <div>
-          <h3 style={{ fontSize: '16px', fontWeight: '700', margin: 0, color: 'white' }}>{title}</h3>
-          <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.6)', margin: '2px 0 0 0' }}>
-            {transactions.length} transactions
+          <h3 style={{ fontSize: '20px', fontWeight: '700', margin: 0, color: 'white' }}>{title}</h3>
+          <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.6)', margin: '4px 0 0 0' }}>
+            {transactions.length} transactions this period
           </p>
         </div>
       </div>
 
       {/* Stats Cards - Income, Expenses, Net */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', marginBottom: '16px' }}>
-        <div style={{ background: 'linear-gradient(135deg, #10B981, #059669)', borderRadius: '12px', padding: '14px' }}>
-          <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.8)', marginBottom: '2px' }}>💰 Income</div>
-          <div style={{ fontSize: '18px', fontWeight: '700' }}>{formatCurrency(income)}</div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '20px' }}>
+        <div style={{ background: 'linear-gradient(135deg, #10B981, #059669)', borderRadius: '16px', padding: '20px' }}>
+          <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.8)', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span>💰</span> Income
+          </div>
+          <div style={{ fontSize: '28px', fontWeight: '700' }}>{formatCurrency(income)}</div>
         </div>
-        <div style={{ background: 'linear-gradient(135deg, #EF4444, #DC2626)', borderRadius: '12px', padding: '14px' }}>
-          <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.8)', marginBottom: '2px' }}>💸 Expenses</div>
-          <div style={{ fontSize: '18px', fontWeight: '700' }}>{formatCurrency(expenses)}</div>
+        <div style={{ background: 'linear-gradient(135deg, #EF4444, #DC2626)', borderRadius: '16px', padding: '20px' }}>
+          <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.8)', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span>💸</span> Expenses
+          </div>
+          <div style={{ fontSize: '28px', fontWeight: '700' }}>{formatCurrency(expenses)}</div>
         </div>
-        <div style={{ background: netCashFlow >= 0 ? `linear-gradient(135deg, ${color}, ${color}CC)` : 'linear-gradient(135deg, #F59E0B, #D97706)', borderRadius: '12px', padding: '14px' }}>
-          <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.8)', marginBottom: '2px' }}>📊 Net</div>
-          <div style={{ fontSize: '18px', fontWeight: '700' }}>{netCashFlow >= 0 ? '+' : ''}{formatCurrency(netCashFlow)}</div>
+        <div style={{ background: netCashFlow >= 0 ? `linear-gradient(135deg, ${color}, ${color}CC)` : 'linear-gradient(135deg, #F59E0B, #D97706)', borderRadius: '16px', padding: '20px' }}>
+          <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.8)', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span>📊</span> Net Cash Flow
+          </div>
+          <div style={{ fontSize: '28px', fontWeight: '700' }}>{netCashFlow >= 0 ? '+' : ''}{formatCurrency(netCashFlow)}</div>
         </div>
       </div>
 
       {/* Recent Activity and Top Categories Side by Side */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
         {/* Recent Activity */}
-        <div style={{ background: 'rgba(30, 27, 56, 0.8)', borderRadius: '14px', padding: '16px', border: '1px solid rgba(255,255,255,0.1)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '12px' }}>
-            <span style={{ fontSize: '14px' }}>💳</span>
-            <span style={{ fontWeight: '600', fontSize: '13px' }}>Recent Activity</span>
-            <div style={{ display: 'flex', gap: '3px', marginLeft: 'auto' }}>
+        <div style={{ background: 'rgba(30, 27, 56, 0.8)', borderRadius: '16px', padding: '20px', border: '1px solid rgba(255,255,255,0.1)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+            <span style={{ fontSize: '18px' }}>💳</span>
+            <span style={{ fontWeight: '600', fontSize: '15px' }}>Recent Activity</span>
+            <div style={{ display: 'flex', gap: '4px', marginLeft: 'auto' }}>
               <button onClick={() => setRecentSort('high')}
-                style={{ padding: '2px 5px', background: recentSort === 'high' ? `linear-gradient(135deg, ${color}, ${color}CC)` : 'rgba(255,255,255,0.1)', border: 'none', borderRadius: '4px', color: 'white', fontSize: '9px', cursor: 'pointer' }}>
-                ↓Hi
+                style={{ padding: '4px 8px', background: recentSort === 'high' ? `linear-gradient(135deg, ${color}, ${color}CC)` : 'rgba(255,255,255,0.1)', border: 'none', borderRadius: '6px', color: 'white', fontSize: '10px', cursor: 'pointer' }}>
+                ↓ High
               </button>
               <button onClick={() => setRecentSort('low')}
-                style={{ padding: '2px 5px', background: recentSort === 'low' ? `linear-gradient(135deg, ${color}, ${color}CC)` : 'rgba(255,255,255,0.1)', border: 'none', borderRadius: '4px', color: 'white', fontSize: '9px', cursor: 'pointer' }}>
-                ↑Lo
+                style={{ padding: '4px 8px', background: recentSort === 'low' ? `linear-gradient(135deg, ${color}, ${color}CC)` : 'rgba(255,255,255,0.1)', border: 'none', borderRadius: '6px', color: 'white', fontSize: '10px', cursor: 'pointer' }}>
+                ↑ Low
               </button>
             </div>
           </div>
           {sortedRecent.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '16px', color: 'rgba(255,255,255,0.5)', fontSize: '12px' }}>No transactions</div>
+            <div style={{ textAlign: 'center', padding: '24px', color: 'rgba(255,255,255,0.5)', fontSize: '13px' }}>No transactions</div>
           ) : (
             sortedRecent.map((tx, i) => {
               const amount = parseFloat(tx.amount || tx.Amount);
               const category = tx.category || tx.Category || 'Uncategorized';
               const description = tx.description || tx.Description || 'Unknown';
               return (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px', background: 'rgba(255,255,255,0.03)', borderRadius: '8px', marginBottom: '5px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, minWidth: 0 }}>
-                    <span style={{ fontSize: '14px' }}>{getCategoryEmoji(category)}</span>
+                <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 12px', background: 'rgba(255,255,255,0.03)', borderRadius: '10px', marginBottom: '8px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: 1, minWidth: 0 }}>
+                    <span style={{ fontSize: '18px' }}>{getCategoryEmoji(category)}</span>
                     <div style={{ minWidth: 0, flex: 1 }}>
-                      <div style={{ fontWeight: '500', fontSize: '11px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{description.length > 18 ? description.slice(0, 18) + '...' : description}</div>
-                      <div style={{ fontSize: '9px', color: 'rgba(255,255,255,0.5)' }}>{category}</div>
+                      <div style={{ fontWeight: '500', fontSize: '13px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{description.length > 22 ? description.slice(0, 22) + '...' : description}</div>
+                      <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)' }}>{category}</div>
                     </div>
                   </div>
-                  <span style={{ fontWeight: '600', fontSize: '11px', color: amount >= 0 ? '#10B981' : 'white', flexShrink: 0 }}>
+                  <span style={{ fontWeight: '600', fontSize: '13px', color: amount >= 0 ? '#10B981' : 'white', flexShrink: 0 }}>
                     {amount >= 0 ? '+' : '-'}{formatCurrency(Math.abs(amount))}
                   </span>
                 </div>
@@ -210,34 +218,34 @@ function DashboardPanel({ title, icon, color, income, expenses, transactions, re
         </div>
 
         {/* Top Categories */}
-        <div style={{ background: 'rgba(30, 27, 56, 0.8)', borderRadius: '14px', padding: '16px', border: '1px solid rgba(255,255,255,0.1)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '12px' }}>
-            <span style={{ fontSize: '14px' }}>📊</span>
-            <span style={{ fontWeight: '600', fontSize: '13px' }}>Top Categories</span>
-            <div style={{ display: 'flex', gap: '3px', marginLeft: 'auto' }}>
+        <div style={{ background: 'rgba(30, 27, 56, 0.8)', borderRadius: '16px', padding: '20px', border: '1px solid rgba(255,255,255,0.1)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+            <span style={{ fontSize: '18px' }}>📊</span>
+            <span style={{ fontWeight: '600', fontSize: '15px' }}>Top Spending Categories</span>
+            <div style={{ display: 'flex', gap: '4px', marginLeft: 'auto' }}>
               <button onClick={() => setCategorySort('high')}
-                style={{ padding: '2px 5px', background: categorySort === 'high' ? `linear-gradient(135deg, ${color}, ${color}CC)` : 'rgba(255,255,255,0.1)', border: 'none', borderRadius: '4px', color: 'white', fontSize: '9px', cursor: 'pointer' }}>
-                ↓Hi
+                style={{ padding: '4px 8px', background: categorySort === 'high' ? `linear-gradient(135deg, ${color}, ${color}CC)` : 'rgba(255,255,255,0.1)', border: 'none', borderRadius: '6px', color: 'white', fontSize: '10px', cursor: 'pointer' }}>
+                ↓ High
               </button>
               <button onClick={() => setCategorySort('low')}
-                style={{ padding: '2px 5px', background: categorySort === 'low' ? `linear-gradient(135deg, ${color}, ${color}CC)` : 'rgba(255,255,255,0.1)', border: 'none', borderRadius: '4px', color: 'white', fontSize: '9px', cursor: 'pointer' }}>
-                ↑Lo
+                style={{ padding: '4px 8px', background: categorySort === 'low' ? `linear-gradient(135deg, ${color}, ${color}CC)` : 'rgba(255,255,255,0.1)', border: 'none', borderRadius: '6px', color: 'white', fontSize: '10px', cursor: 'pointer' }}>
+                ↑ Low
               </button>
             </div>
           </div>
           {sortedCategories.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '16px', color: 'rgba(255,255,255,0.5)', fontSize: '12px' }}>No expense data</div>
+            <div style={{ textAlign: 'center', padding: '24px', color: 'rgba(255,255,255,0.5)', fontSize: '13px' }}>No expense data</div>
           ) : (
             sortedCategories.map((cat, i) => {
               const percentage = maxCategoryAmount > 0 ? (cat.amount / maxCategoryAmount) * 100 : 0;
               return (
-                <div key={cat.name} style={{ marginBottom: '10px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '3px', fontSize: '11px' }}>
-                    <span>{getCategoryEmoji(cat.name)} {cat.name.length > 12 ? cat.name.slice(0, 12) + '...' : cat.name}</span>
+                <div key={cat.name} style={{ marginBottom: '14px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px', fontSize: '13px' }}>
+                    <span>{getCategoryEmoji(cat.name)} {cat.name.length > 16 ? cat.name.slice(0, 16) + '...' : cat.name}</span>
                     <span style={{ fontWeight: '600' }}>{formatCurrency(cat.amount)}</span>
                   </div>
-                  <div style={{ height: '5px', background: 'rgba(255,255,255,0.1)', borderRadius: '3px', overflow: 'hidden' }}>
-                    <div style={{ width: `${percentage}%`, height: '100%', background: color, borderRadius: '3px', transition: 'width 0.5s ease' }} />
+                  <div style={{ height: '8px', background: 'rgba(255,255,255,0.1)', borderRadius: '4px', overflow: 'hidden' }}>
+                    <div style={{ width: `${percentage}%`, height: '100%', background: color, borderRadius: '4px', transition: 'width 0.5s ease' }} />
                   </div>
                 </div>
               );
@@ -388,54 +396,47 @@ export default function HomeTab({ transactions = [], bills = [], goals = [], onN
         />
       ) : (
         <>
-          {/* Divider Line */}
-          <div style={{ 
-            height: '1px', 
-            background: 'linear-gradient(90deg, transparent, rgba(139, 92, 246, 0.5), rgba(236, 72, 153, 0.5), transparent)',
-            marginBottom: '24px'
-          }} />
-
-          {/* Combined Summary - Full Width */}
+          {/* Combined Summary - Full Width Bar */}
           <div style={{ 
             background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(236, 72, 153, 0.15))', 
             borderRadius: '16px', 
-            padding: '20px 32px', 
+            padding: '24px 48px', 
             marginBottom: '24px',
             border: '1px solid rgba(139, 92, 246, 0.2)'
           }}>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '24px', textAlign: 'center' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '32px', textAlign: 'center' }}>
               <div>
-                <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.6)', marginBottom: '4px' }}>📊 Combined Total Income</div>
-                <div style={{ fontSize: '26px', fontWeight: '700', color: '#10B981' }}>
+                <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.6)', marginBottom: '6px' }}>📊 Combined Total Income</div>
+                <div style={{ fontSize: '32px', fontWeight: '700', color: '#10B981' }}>
                   {formatCurrency(personalStats.income + sideHustleStats.income)}
                 </div>
               </div>
               <div>
-                <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.6)', marginBottom: '4px' }}>💸 Combined Total Expenses</div>
-                <div style={{ fontSize: '26px', fontWeight: '700', color: '#EF4444' }}>
+                <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.6)', marginBottom: '6px' }}>💸 Combined Total Expenses</div>
+                <div style={{ fontSize: '32px', fontWeight: '700', color: '#EF4444' }}>
                   {formatCurrency(personalStats.expenses + sideHustleStats.expenses)}
                 </div>
               </div>
               <div>
-                <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.6)', marginBottom: '4px' }}>💎 Combined Net</div>
-                <div style={{ fontSize: '26px', fontWeight: '700', color: (personalStats.income + sideHustleStats.income - personalStats.expenses - sideHustleStats.expenses) >= 0 ? '#8B5CF6' : '#F59E0B' }}>
+                <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.6)', marginBottom: '6px' }}>💎 Combined Net</div>
+                <div style={{ fontSize: '32px', fontWeight: '700', color: (personalStats.income + sideHustleStats.income - personalStats.expenses - sideHustleStats.expenses) >= 0 ? '#8B5CF6' : '#F59E0B' }}>
                   {(personalStats.income + sideHustleStats.income - personalStats.expenses - sideHustleStats.expenses) >= 0 ? '+' : ''}
                   {formatCurrency(personalStats.income + sideHustleStats.income - personalStats.expenses - sideHustleStats.expenses)}
                 </div>
               </div>
               <div>
-                <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.6)', marginBottom: '4px' }}>📋 Total Transactions</div>
-                <div style={{ fontSize: '26px', fontWeight: '700', color: 'white' }}>
+                <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.6)', marginBottom: '6px' }}>📋 Total Transactions</div>
+                <div style={{ fontSize: '32px', fontWeight: '700', color: 'white' }}>
                   {filteredTransactions.length.toLocaleString()}
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Split Dashboard View - Full Width with Divider */}
-          <div style={{ display: 'flex', gap: '0' }}>
+          {/* Split Dashboard View - Full Width */}
+          <div style={{ display: 'grid', gridTemplateColumns: hasSideHustleData ? '1fr 2px 1fr' : '1fr', gap: '0' }}>
             {/* Personal Panel - Left Side */}
-            <div style={{ flex: 1, paddingRight: '20px' }}>
+            <div style={{ paddingRight: hasSideHustleData ? '24px' : '0' }}>
               <DashboardPanel
                 title="👤 Personal"
                 icon="🏠"
@@ -451,16 +452,14 @@ export default function HomeTab({ transactions = [], bills = [], goals = [], onN
             {/* Center Divider */}
             {hasSideHustleData && (
               <div style={{ 
-                width: '2px', 
                 background: 'linear-gradient(180deg, rgba(139, 92, 246, 0.6), rgba(236, 72, 153, 0.6), rgba(139, 92, 246, 0.6))',
-                margin: '0 8px',
                 borderRadius: '2px'
               }} />
             )}
 
             {/* Side Hustle Panel - Right Side */}
             {hasSideHustleData && (
-              <div style={{ flex: 1, paddingLeft: '20px' }}>
+              <div style={{ paddingLeft: '24px' }}>
                 <DashboardPanel
                   title={`💼 ${sideHustleName || 'Side Hustle'}`}
                   icon="💼"
