@@ -341,10 +341,10 @@ export default function TransactionsTab({ transactions = [] }) {
         <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>This appears in Dashboard & all tabs</span>
       </div>
 
-      {/* Split View */}
-      <div style={{ display: 'grid', gridTemplateColumns: hasSideHustleData ? '1fr 2px 1fr' : '1fr', gap: '0' }}>
+      {/* Split View - Always show both panels centered */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 2px 1fr', gap: '0', maxWidth: '1600px', margin: '0 auto' }}>
         {/* Personal Transactions */}
-        <div style={{ paddingRight: hasSideHustleData ? '20px' : '0' }}>
+        <div style={{ paddingRight: '20px' }}>
           <TransactionPanel
             title="👤 Personal"
             icon="🏠"
@@ -367,45 +367,31 @@ export default function TransactionsTab({ transactions = [] }) {
         </div>
 
         {/* Divider */}
-        {hasSideHustleData && (
-          <div style={{ background: 'linear-gradient(180deg, rgba(139, 92, 246, 0.6), rgba(236, 72, 153, 0.6), rgba(139, 92, 246, 0.6))', borderRadius: '2px' }} />
-        )}
+        <div style={{ background: 'linear-gradient(180deg, rgba(139, 92, 246, 0.6), rgba(236, 72, 153, 0.6), rgba(139, 92, 246, 0.6))', borderRadius: '2px' }} />
 
         {/* Side Hustle Transactions */}
-        {hasSideHustleData && (
-          <div style={{ paddingLeft: '20px' }}>
-            <TransactionPanel
-              title={`💼 ${sideHustleName}`}
-              icon="💼"
-              color="#EC4899"
-              transactions={filteredSideHustle}
-              searchTerm={sideHustleSearch}
-              setSearchTerm={setSideHustleSearch}
-              typeFilter={sideHustleTypeFilter}
-              setTypeFilter={setSideHustleTypeFilter}
-              sortBy={sideHustleSortBy}
-              sortOrder={sideHustleSortOrder}
-              setSortBy={setSideHustleSortBy}
-              setSortOrder={setSideHustleSortOrder}
-              onIncomeTypeChange={handleIncomeTypeChange}
-              onCategoryChange={handleCategoryChange}
-              getCategoryEmoji={getCategoryEmoji}
-              sideHustleName={sideHustleName}
-              isPersonal={false}
-            />
-          </div>
-        )}
-      </div>
-
-      {/* Tip */}
-      {!hasSideHustleData && (
-        <div style={{ marginTop: '20px', padding: '14px', background: 'rgba(236, 72, 153, 0.1)', borderRadius: '12px', border: '1px solid rgba(236, 72, 153, 0.2)', display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <span style={{ fontSize: '20px' }}>💡</span>
-          <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.7)' }}>
-            <strong>Tip:</strong> Change the "Type" dropdown on any transaction to "Side Hustle" to see a split view with separate tracking for your business income!
-          </div>
+        <div style={{ paddingLeft: '20px' }}>
+          <TransactionPanel
+            title={`💼 ${sideHustleName}`}
+            icon="💼"
+            color="#EC4899"
+            transactions={filteredSideHustle}
+            searchTerm={sideHustleSearch}
+            setSearchTerm={setSideHustleSearch}
+            typeFilter={sideHustleTypeFilter}
+            setTypeFilter={setSideHustleTypeFilter}
+            sortBy={sideHustleSortBy}
+            sortOrder={sideHustleSortOrder}
+            setSortBy={setSideHustleSortBy}
+            setSortOrder={setSideHustleSortOrder}
+            onIncomeTypeChange={handleIncomeTypeChange}
+            onCategoryChange={handleCategoryChange}
+            getCategoryEmoji={getCategoryEmoji}
+            sideHustleName={sideHustleName}
+            isPersonal={false}
+          />
         </div>
-      )}
+      </div>
 
       <style>{`@keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }`}</style>
     </div>
