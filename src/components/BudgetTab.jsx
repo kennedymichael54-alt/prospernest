@@ -101,6 +101,7 @@ function BudgetHealthScore({ score, label, color }) {
 function BudgetPanel({ title, icon, color, transactions, budgets, setBudgets }) {
   const [showAddCategory, setShowAddCategory] = useState(false);
   const [newCategory, setNewCategory] = useState({ name: '', budget: '' });
+  const [sortBy, setSortBy] = useState('spent-desc');
 
   const income = useMemo(() => {
     return transactions.filter(tx => parseFloat(tx.amount || tx.Amount) > 0).reduce((sum, tx) => sum + parseFloat(tx.amount || tx.Amount), 0);
@@ -120,13 +121,26 @@ function BudgetPanel({ title, icon, color, transactions, budgets, setBudgets }) 
       categories[cat].spent += Math.abs(parseFloat(tx.amount || tx.Amount));
       categories[cat].transactions.push(tx);
     });
-    return Object.entries(categories).map(([name, data]) => ({
+    let result = Object.entries(categories).map(([name, data]) => ({
       name,
       spent: data.spent,
       budget: budgets[name] || 0,
-      transactionCount: data.transactions.length
-    })).sort((a, b) => b.spent - a.spent);
-  }, [transactions, budgets]);
+      transactionCount: data.transactions.length,
+      variance: (budgets[name] || 0) - data.spent
+    }));
+    
+    // Sort based on sortBy
+    switch(sortBy) {
+      case 'spent-asc': result.sort((a, b) => a.spent - b.spent); break;
+      case 'spent-desc': result.sort((a, b) => b.spent - a.spent); break;
+      case 'name-asc': result.sort((a, b) => a.name.localeCompare(b.name)); break;
+      case 'name-desc': result.sort((a, b) => b.name.localeCompare(a.name)); break;
+      case 'variance-desc': result.sort((a, b) => a.variance - b.variance); break;
+      case 'variance-asc': result.sort((a, b) => b.variance - a.variance); break;
+      default: result.sort((a, b) => b.spent - a.spent);
+    }
+    return result;
+  }, [transactions, budgets, sortBy]);
 
   const totalBudgeted = Object.values(budgets).reduce((sum, b) => sum + (parseFloat(b) || 0), 0);
   const totalSpent = expenses;
@@ -234,7 +248,20 @@ function BudgetPanel({ title, icon, color, transactions, budgets, setBudgets }) 
 
       {/* Categories List with Budget Comparison */}
       <div style={{ background: 'rgba(30, 27, 56, 0.8)', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.1)', overflow: 'hidden' }}>
-        <div style={{ padding: '14px 18px', borderBottom: '1px solid rgba(255,255,255,0.1)', fontSize: '14px', fontWeight: '600' }}>Categories - Actual vs Budget</div>
+        <div style={{ padding: '14px 18px', borderBottom: '1px solid rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <span style={{ fontSize: '14px', fontWeight: '600' }}>Categories - Actual vs Budget</span>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}
+              style={{ padding: '6px 12px', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '8px', color: 'white', fontSize: '11px', cursor: 'pointer' }}>
+              <option value="spent-desc" style={{ background: '#1e1b38' }}>Highest Spent</option>
+              <option value="spent-asc" style={{ background: '#1e1b38' }}>Lowest Spent</option>
+              <option value="name-asc" style={{ background: '#1e1b38' }}>A-Z Name</option>
+              <option value="name-desc" style={{ background: '#1e1b38' }}>Z-A Name</option>
+              <option value="variance-desc" style={{ background: '#1e1b38' }}>Most Over Budget</option>
+              <option value="variance-asc" style={{ background: '#1e1b38' }}>Most Under Budget</option>
+            </select>
+          </div>
+        </div>
         <div style={{ maxHeight: '350px', overflowY: 'auto' }}>
           {categorySpending.length === 0 ? (
             <div style={{ padding: '32px', textAlign: 'center', color: 'rgba(255,255,255,0.4)', fontSize: '13px' }}>No spending data</div>
