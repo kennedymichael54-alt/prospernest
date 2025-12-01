@@ -264,8 +264,25 @@ function LandingPage({ setView }) {
         {/* Header */}
         <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 40px', maxWidth: '1400px', margin: '0 auto' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: 'linear-gradient(135deg, #8B5CF6, #EC4899)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <span style={{ color: 'white', fontWeight: 'bold', fontSize: '18px' }}>FF</span>
+            <div style={{ 
+              width: '48px', 
+              height: '48px', 
+              borderRadius: '14px', 
+              background: 'linear-gradient(135deg, #8B5CF6 0%, #EC4899 50%, #8B5CF6 100%)', 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center',
+              boxShadow: '0 4px 15px rgba(139, 92, 246, 0.4), inset 0 1px 0 rgba(255,255,255,0.2)',
+              position: 'relative',
+              overflow: 'hidden'
+            }}>
+              <div style={{ position: 'absolute', top: 0, left: '-50%', width: '50%', height: '100%', background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent)', transform: 'skewX(-20deg)' }} />
+              <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+                <circle cx="14" cy="14" r="12" stroke="rgba(255,255,255,0.3)" strokeWidth="1.5" fill="none"/>
+                <path d="M14 6V8M14 20V22M10 12C10 10.3431 11.7909 9 14 9C16.2091 9 18 10.3431 18 12C18 13.6569 16.2091 15 14 15C11.7909 15 10 16.3431 10 18C10 19.6569 11.7909 21 14 21C16.2091 21 18 19.6569 18 18" stroke="white" strokeWidth="2" strokeLinecap="round" fill="none"/>
+                <circle cx="7" cy="10" r="1" fill="rgba(255,255,255,0.6)"/>
+                <circle cx="21" cy="18" r="1" fill="rgba(255,255,255,0.6)"/>
+              </svg>
             </div>
             <span style={{ fontSize: '20px', fontWeight: '600' }}>Family Finance</span>
           </div>
@@ -641,8 +658,25 @@ function AuthPage({ setView }) {
 
       <div style={{ position: 'relative', zIndex: 1, width: '100%', maxWidth: '400px', padding: '20px' }}>
         <button onClick={() => setView('landing')} style={{ display: 'flex', alignItems: 'center', gap: '12px', background: 'transparent', border: 'none', color: 'white', cursor: 'pointer', marginBottom: '32px' }}>
-          <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'linear-gradient(135deg, #8B5CF6, #EC4899)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <span style={{ fontWeight: 'bold', fontSize: '20px' }}>FF</span>
+          <div style={{ 
+            width: '48px', 
+            height: '48px', 
+            borderRadius: '14px', 
+            background: 'linear-gradient(135deg, #8B5CF6 0%, #EC4899 50%, #8B5CF6 100%)', 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center',
+            boxShadow: '0 4px 15px rgba(139, 92, 246, 0.4), inset 0 1px 0 rgba(255,255,255,0.2)',
+            position: 'relative',
+            overflow: 'hidden'
+          }}>
+            <div style={{ position: 'absolute', top: 0, left: '-50%', width: '50%', height: '100%', background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent)', transform: 'skewX(-20deg)' }} />
+            <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+              <circle cx="14" cy="14" r="12" stroke="rgba(255,255,255,0.3)" strokeWidth="1.5" fill="none"/>
+              <path d="M14 6V8M14 20V22M10 12C10 10.3431 11.7909 9 14 9C16.2091 9 18 10.3431 18 12C18 13.6569 16.2091 15 14 15C11.7909 15 10 16.3431 10 18C10 19.6569 11.7909 21 14 21C16.2091 21 18 19.6569 18 18" stroke="white" strokeWidth="2" strokeLinecap="round" fill="none"/>
+              <circle cx="7" cy="10" r="1" fill="rgba(255,255,255,0.6)"/>
+              <circle cx="21" cy="18" r="1" fill="rgba(255,255,255,0.6)"/>
+            </svg>
           </div>
           <span style={{ fontSize: '18px', fontWeight: '600' }}>Family Finance</span>
         </button>
@@ -920,6 +954,26 @@ function Dashboard({
   const [showAIChat, setShowAIChat] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
   
+  // Session timer state
+  const [sessionStartTime] = useState(() => Date.now());
+  const [sessionDuration, setSessionDuration] = useState('0:00');
+  
+  // Update session timer every second
+  React.useEffect(() => {
+    const timer = setInterval(() => {
+      const elapsed = Date.now() - sessionStartTime;
+      const minutes = Math.floor(elapsed / 60000);
+      const seconds = Math.floor((elapsed % 60000) / 1000);
+      const hours = Math.floor(minutes / 60);
+      if (hours > 0) {
+        setSessionDuration(`${hours}:${String(minutes % 60).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`);
+      } else {
+        setSessionDuration(`${minutes}:${String(seconds).padStart(2, '0')}`);
+      }
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [sessionStartTime]);
+  
   // Profile state - load from localStorage
   const [profile, setProfile] = useState(() => {
     try {
@@ -1021,6 +1075,12 @@ function Dashboard({
         </div>
         
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          {/* Session Timer */}
+          <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.6)', display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 12px', background: 'rgba(16, 185, 129, 0.15)', borderRadius: '8px', border: '1px solid rgba(16, 185, 129, 0.3)' }}>
+            <span style={{ fontSize: '14px' }}>⏱️</span>
+            <span style={{ fontWeight: '500', color: '#10B981' }}>{sessionDuration}</span>
+          </div>
+
           {lastImportDate && (
             <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.6)', display: 'flex', alignItems: 'center', gap: '6px' }}>
               <span style={{ fontSize: '16px' }}>📥</span>
