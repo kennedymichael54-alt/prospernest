@@ -84,6 +84,19 @@ const categoryEmojiMap = {
   'Charity': '❤️'
 };
 
+// Income type options
+const INCOME_TYPES = [
+  { value: 'personal', label: '👤 Personal', color: '#8B5CF6' },
+  { value: 'sidehustle', label: '💼 Side Hustle', color: '#EC4899' }
+];
+
+// Default side hustle categories (auto-detected)
+const SIDE_HUSTLE_KEYWORDS = [
+  'real estate', 'commission', 'freelance', 'consulting', 'hair stylist', 'salon',
+  'uber', 'lyft', 'doordash', 'instacart', 'airbnb', 'etsy', 'ebay', 'amazon seller',
+  'photography', 'design', 'tutoring', 'coaching', 'client', 'invoice'
+];
+
 // Inline MonthYearSelector Component
 function MonthYearSelector({ selectedYear, setSelectedYear, selectedMonth, setSelectedMonth }) {
   const currentYear = new Date().getFullYear();
@@ -197,7 +210,8 @@ function EmptyState({ icon, title, message, actionLabel, onAction }) {
 
 export default function TransactionsTab({ 
   transactions = [],
-  onNavigateToImport 
+  onNavigateToImport,
+  onUpdateTransactionTypes
 }) {
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
@@ -225,23 +239,56 @@ export default function TransactionsTab({
     } catch { return {}; }
   });
 
+  // Income type mappings (vendor -> personal/sidehustle)
+  const [incomeTypeMap, setIncomeTypeMap] = useState(() => {
+    try {
+      const saved = localStorage.getItem('ff_income_types');
+      return saved ? JSON.parse(saved) : {};
+    } catch { return {}; }
+  });
+
+  // Custom side hustle name
+  const [sideHustleName, setSideHustleName] = useState(() => {
+    try {
+      return localStorage.getItem('ff_sidehustle_name') || 'Side Hustle';
+    } catch { return 'Side Hustle'; }
+  });
+
   const allCategories = useMemo(() => {
     const defaultCats = Object.keys(categoryEmojiMap);
     const uniqueCustom = customCategories.filter(c => !defaultCats.includes(c));
     return [...defaultCats, ...uniqueCustom].sort();
   }, [customCategories]);
 
+  // Auto-detect side hustle based on keywords
+  const detectIncomeType = (tx) => {
+    const description = (tx.description || tx.Description || '').toLowerCase();
+    const category = (tx.category || tx.Category || '').toLowerCase();
+    const vendor = (tx.vendor || '').toLowerCase();
+    
+    const combined = `${description} ${category} ${vendor}`;
+    
+    if (SIDE_HUSTLE_KEYWORDS.some(keyword => combined.includes(keyword))) {
+      return 'sidehustle';
+    }
+    return 'personal';
+  };
+
   const transactionsWithMappings = useMemo(() => {
     return transactions.map(tx => {
       const vendor = extractVendor(tx.description || tx.Description || '');
       const mappedCategory = vendorCategoryMap[vendor.toLowerCase()];
+      const mappedIncomeType = incomeTypeMap[vendor.toLowerCase()];
+      const autoIncomeType = detectIncomeType({ ...tx, vendor });
+      
       return {
         ...tx,
         vendor,
-        displayCategory: mappedCategory || tx.category || tx.Category || 'Uncategorized'
+        displayCategory: mappedCategory || tx.category || tx.Category || 'Uncategorized',
+        incomeType: mappedIncomeType || autoIncomeType
       };
     });
-  }, [transactions, vendorCategoryMap]);
+  }, [transactions, vendorCategoryMap, incomeTypeMap]);
 
   const filteredByDate = useMemo(() => {
     return transactionsWithMappings.filter(tx => {
@@ -324,6 +371,13 @@ export default function TransactionsTab({
     setShowCategoryModal(false);
     setEditingTransaction(null);
     setNewCategory('');
+  };
+
+  const handleIncomeTypeChange = (transaction, newType) => {
+    const vendor = transaction.vendor.toLowerCase();
+    const newMapping = { ...incomeTypeMap, [vendor]: newType };
+    setIncomeTypeMap(newMapping);
+    localStorage.setItem('ff_income_types', JSON.stringify(newMapping));
   };
 
   const openCategoryModal = (transaction) => {
@@ -415,9 +469,10 @@ export default function TransactionsTab({
             </select>
           </div>
 
-          {/* Transactions List */}
+          {/* Transactions List with Income Type Column */}
           <div style={{ background: 'rgba(30, 27, 56, 0.8)', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.1)', overflow: 'hidden' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '90px 180px 1fr 180px 120px 80px', padding: '16px 24px', background: 'rgba(255,255,255,0.05)', borderBottom: '1px solid rgba(255,255,255,0.1)', fontSize: '12px', fontWeight: '600', color: 'rgba(255,255,255,0.6)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '110px 90px 150px 1fr 160px 110px 70px', padding: '16px 24px', background: 'rgba(255,255,255,0.05)', borderBottom: '1px solid rgba(255,255,255,0.1)', fontSize: '11px', fontWeight: '600', color: 'rgba(255,255,255,0.6)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              <div>Type</div>
               <div>Date</div>
               <div>Vendor</div>
               <div>Description</div>
@@ -435,20 +490,41 @@ export default function TransactionsTab({
                   const isExpense = amount < 0;
                   const date = new Date(tx.date || tx.Date);
                   const status = tx.status || tx.Status || 'Posted';
+                  const incomeType = tx.incomeType || 'personal';
                   
                   return (
-                    <div key={tx.id || index} style={{ display: 'grid', gridTemplateColumns: '90px 180px 1fr 180px 120px 80px', padding: '14px 24px', borderBottom: '1px solid rgba(255,255,255,0.05)', alignItems: 'center' }}>
-                      <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.7)' }}>{date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</div>
-                      <div style={{ fontWeight: '600', fontSize: '14px', color: 'white' }}>{tx.vendor}</div>
-                      <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)' }}>{(tx.description || tx.Description || '').slice(0, 35)}{(tx.description || tx.Description || '').length > 35 ? '...' : ''}</div>
-                      <div onClick={() => openCategoryModal(tx)} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', padding: '6px 10px', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
-                        <span style={{ fontSize: '14px' }}>{getCategoryEmoji(tx.displayCategory)}</span>
-                        <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.8)' }}>{tx.displayCategory.length > 12 ? tx.displayCategory.slice(0, 12) + '...' : tx.displayCategory}</span>
-                        <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', marginLeft: 'auto' }}>✏️</span>
+                    <div key={tx.id || index} style={{ display: 'grid', gridTemplateColumns: '110px 90px 150px 1fr 160px 110px 70px', padding: '12px 24px', borderBottom: '1px solid rgba(255,255,255,0.05)', alignItems: 'center' }}>
+                      {/* Income Type Selector */}
+                      <div>
+                        <select 
+                          value={incomeType}
+                          onChange={(e) => handleIncomeTypeChange(tx, e.target.value)}
+                          style={{ 
+                            padding: '6px 8px', 
+                            background: incomeType === 'personal' ? 'rgba(139, 92, 246, 0.2)' : 'rgba(236, 72, 153, 0.2)', 
+                            border: `1px solid ${incomeType === 'personal' ? 'rgba(139, 92, 246, 0.4)' : 'rgba(236, 72, 153, 0.4)'}`,
+                            borderRadius: '6px', 
+                            color: 'white', 
+                            fontSize: '11px', 
+                            cursor: 'pointer',
+                            width: '100%'
+                          }}
+                        >
+                          <option value="personal" style={{ background: '#1e1b38' }}>👤 Personal</option>
+                          <option value="sidehustle" style={{ background: '#1e1b38' }}>💼 Side Hustle</option>
+                        </select>
                       </div>
-                      <div style={{ textAlign: 'right', fontWeight: '600', fontSize: '14px', color: isExpense ? '#EF4444' : '#10B981' }}>{isExpense ? '-' : '+'}{formatCurrency(amount)}</div>
+                      <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.7)' }}>{date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</div>
+                      <div style={{ fontWeight: '600', fontSize: '13px', color: 'white', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tx.vendor}</div>
+                      <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{(tx.description || tx.Description || '').slice(0, 40)}</div>
+                      <div onClick={() => openCategoryModal(tx)} style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', padding: '5px 8px', borderRadius: '6px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
+                        <span style={{ fontSize: '12px' }}>{getCategoryEmoji(tx.displayCategory)}</span>
+                        <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.8)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tx.displayCategory.length > 10 ? tx.displayCategory.slice(0, 10) + '...' : tx.displayCategory}</span>
+                        <span style={{ fontSize: '9px', color: 'rgba(255,255,255,0.4)', marginLeft: 'auto' }}>✏️</span>
+                      </div>
+                      <div style={{ textAlign: 'right', fontWeight: '600', fontSize: '13px', color: isExpense ? '#EF4444' : '#10B981' }}>{isExpense ? '-' : '+'}{formatCurrency(amount)}</div>
                       <div style={{ textAlign: 'center' }}>
-                        <span style={{ padding: '4px 8px', borderRadius: '6px', fontSize: '10px', fontWeight: '500', background: status === 'Posted' ? 'rgba(16, 185, 129, 0.2)' : 'rgba(251, 191, 36, 0.2)', color: status === 'Posted' ? '#10B981' : '#FBBF24' }}>{status}</span>
+                        <span style={{ padding: '3px 6px', borderRadius: '4px', fontSize: '9px', fontWeight: '500', background: status === 'Posted' ? 'rgba(16, 185, 129, 0.2)' : 'rgba(251, 191, 36, 0.2)', color: status === 'Posted' ? '#10B981' : '#FBBF24' }}>{status}</span>
                       </div>
                     </div>
                   );
