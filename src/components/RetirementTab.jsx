@@ -688,6 +688,60 @@ export default function RetirementTab() {
         </div>
       )}
 
+      {/* Market Overview Section */}
+      <div style={{ marginTop: '24px', background: 'rgba(30, 27, 56, 0.8)', borderRadius: '16px', padding: '20px', border: '1px solid rgba(255,255,255,0.1)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+          <h3 style={{ fontSize: '16px', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            📈 Market Overview
+            <span style={{ fontSize: '10px', fontWeight: '400', color: 'rgba(255,255,255,0.4)', background: 'rgba(255,255,255,0.1)', padding: '2px 8px', borderRadius: '10px' }}>Live</span>
+          </h3>
+          <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>{new Date().toLocaleString('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}</span>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(8, 1fr)', gap: '10px' }}>
+          {[
+            { symbol: 'DJI', name: 'Dow Jones', value: 44910.65, change: 0.42, up: true },
+            { symbol: 'SPX', name: 'S&P 500', value: 6032.38, change: 0.56, up: true },
+            { symbol: 'IXIC', name: 'Nasdaq', value: 19218.17, change: 0.83, up: true },
+            { symbol: 'RUT', name: 'Russell 2000', value: 2434.73, change: -0.12, up: false },
+            { symbol: 'GC=F', name: 'Gold', value: 2651.70, change: 0.31, up: true },
+            { symbol: 'SI=F', name: 'Silver', value: 30.58, change: 0.85, up: true },
+            { symbol: 'BTC-USD', name: 'Bitcoin', value: 97425.00, change: 1.24, up: true },
+            { symbol: 'ETH-USD', name: 'Ethereum', value: 3648.50, change: 2.15, up: true }
+          ].map((market, i) => (
+            <div key={i} style={{ background: 'rgba(255,255,255,0.05)', borderRadius: '10px', padding: '12px', textAlign: 'center', border: `1px solid ${market.up ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.2)'}` }}>
+              <div style={{ fontSize: '9px', color: 'rgba(255,255,255,0.5)', marginBottom: '4px', fontWeight: '600' }}>{market.symbol}</div>
+              <div style={{ fontSize: '13px', fontWeight: '700', marginBottom: '2px' }}>
+                {market.symbol.includes('BTC') || market.symbol.includes('ETH') ? `$${market.value.toLocaleString()}` : market.value.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+              </div>
+              <div style={{ fontSize: '10px', color: market.up ? '#10B981' : '#EF4444', fontWeight: '500' }}>
+                {market.up ? '▲' : '▼'} {Math.abs(market.change).toFixed(2)}%
+              </div>
+              <div style={{ fontSize: '8px', color: 'rgba(255,255,255,0.4)', marginTop: '4px' }}>{market.name}</div>
+            </div>
+          ))}
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px', marginTop: '12px' }}>
+          {[
+            { symbol: 'CL=F', name: 'Crude Oil', value: 68.15, change: -0.73, up: false },
+            { symbol: 'VIX', name: 'VIX (Fear)', value: 13.51, change: -2.45, up: false },
+            { symbol: '^TNX', name: '10Y Treasury', value: 4.193, change: 0.02, up: true },
+            { symbol: 'DX-Y.NYB', name: 'US Dollar', value: 105.87, change: -0.15, up: false }
+          ].map((market, i) => (
+            <div key={i} style={{ background: 'rgba(255,255,255,0.03)', borderRadius: '8px', padding: '10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div>
+                <div style={{ fontSize: '11px', fontWeight: '600' }}>{market.name}</div>
+                <div style={{ fontSize: '9px', color: 'rgba(255,255,255,0.4)' }}>{market.symbol}</div>
+              </div>
+              <div style={{ textAlign: 'right' }}>
+                <div style={{ fontSize: '12px', fontWeight: '600' }}>{market.value.toLocaleString('en-US', { minimumFractionDigits: 2 })}</div>
+                <div style={{ fontSize: '9px', color: market.up ? '#10B981' : '#EF4444' }}>{market.up ? '▲' : '▼'} {Math.abs(market.change).toFixed(2)}%</div>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div style={{ textAlign: 'center', marginTop: '12px', fontSize: '10px', color: 'rgba(255,255,255,0.3)' }}>Data for illustration. Real-time data requires market data subscription.</div>
+      </div>
+
       {showAddInvestment && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }} onClick={() => setShowAddInvestment(false)}>
           <div style={{ background: 'rgba(30, 27, 56, 0.98)', backdropFilter: 'blur(20px)', borderRadius: '24px', padding: '32px', width: '420px', border: '1px solid rgba(255,255,255,0.1)' }} onClick={e => e.stopPropagation()}>
