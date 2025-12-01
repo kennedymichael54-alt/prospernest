@@ -539,7 +539,7 @@ export default function HomeTab({ transactions = [], bills = [], goals = [], onN
         overflow: 'hidden'
       }}>
         {/* Modern Period Selector Section */}
-        <div style={{ padding: '20px' }}>
+        <div style={{ padding: '20px', background: 'rgba(139, 92, 246, 0.05)' }}>
           <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
             <span>📅</span> Period Selection
           </div>
@@ -621,10 +621,11 @@ export default function HomeTab({ transactions = [], bills = [], goals = [], onN
         <div style={{ background: 'linear-gradient(180deg, rgba(139, 92, 246, 0.4), rgba(236, 72, 153, 0.4))' }} />
 
         {/* Personal Bank Balances */}
-        <div style={{ padding: '20px', position: 'relative' }}>
+        <div style={{ padding: '20px', position: 'relative', background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.08), rgba(16, 185, 129, 0.03))' }}>
           <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)', marginBottom: '12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
               <span>🏦</span> Personal Banking
+              <span style={{ fontSize: '9px', background: 'rgba(16, 185, 129, 0.3)', padding: '2px 6px', borderRadius: '4px', color: '#10B981' }}>LIVE</span>
             </div>
             <button onClick={() => setShowBankSelector(showBankSelector === 'personal' ? null : 'personal')}
               style={{ background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: '4px', padding: '4px 8px', color: 'white', fontSize: '10px', cursor: 'pointer' }}>
@@ -673,10 +674,11 @@ export default function HomeTab({ transactions = [], bills = [], goals = [], onN
         <div style={{ background: 'linear-gradient(180deg, rgba(139, 92, 246, 0.4), rgba(236, 72, 153, 0.4))' }} />
 
         {/* Side Hustle Bank Balances */}
-        <div style={{ padding: '20px', position: 'relative' }}>
+        <div style={{ padding: '20px', position: 'relative', background: 'linear-gradient(135deg, rgba(236, 72, 153, 0.08), rgba(236, 72, 153, 0.03))' }}>
           <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)', marginBottom: '12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span>💼</span> {sideHustleName} Banking
+              <span>👤</span> {sideHustleName} Banking
+              <span style={{ fontSize: '9px', background: 'rgba(236, 72, 153, 0.3)', padding: '2px 6px', borderRadius: '4px', color: '#EC4899' }}>LIVE</span>
             </div>
             <button onClick={() => setShowBankSelector(showBankSelector === 'sidehustle' ? null : 'sidehustle')}
               style={{ background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: '4px', padding: '4px 8px', color: 'white', fontSize: '10px', cursor: 'pointer' }}>
@@ -725,10 +727,11 @@ export default function HomeTab({ transactions = [], bills = [], goals = [], onN
         <div style={{ background: 'linear-gradient(180deg, rgba(139, 92, 246, 0.4), rgba(236, 72, 153, 0.4))' }} />
 
         {/* Investment Balances */}
-        <div style={{ padding: '20px', position: 'relative' }}>
+        <div style={{ padding: '20px', position: 'relative', background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.08), rgba(139, 92, 246, 0.03))' }}>
           <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)', marginBottom: '12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
               <span>📈</span> Investments
+              <span style={{ fontSize: '9px', background: 'rgba(139, 92, 246, 0.3)', padding: '2px 6px', borderRadius: '4px', color: '#8B5CF6' }}>LIVE</span>
             </div>
             {investments.length > 0 && (
               <button onClick={() => setShowBankSelector(showBankSelector === 'investments' ? null : 'investments')}
@@ -892,8 +895,8 @@ export default function HomeTab({ transactions = [], bills = [], goals = [], onN
             {/* Side Hustle Panel - Right Side */}
             <div style={{ paddingLeft: '24px' }}>
               <DashboardPanel
-                title={`💼 ${sideHustleName || 'Side Hustle'}`}
-                icon="💼"
+                title={`👤 ${sideHustleName || 'Side Hustle'}`}
+                icon="👤"
                 color="#EC4899"
                 income={sideHustleStats.income}
                 expenses={sideHustleStats.expenses}
@@ -901,6 +904,174 @@ export default function HomeTab({ transactions = [], bills = [], goals = [], onN
                 recentTransactions={sideHustleTransactions}
                 categoryBreakdown={sideHustleStats.categoryBreakdown}
               />
+            </div>
+          </div>
+
+          {/* Financial Health Reports Section */}
+          <div style={{ marginTop: '32px' }}>
+            <h3 style={{ fontSize: '18px', fontWeight: '700', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+              📊 Financial Health Reports
+              <span style={{ fontSize: '12px', fontWeight: '400', color: 'rgba(255,255,255,0.5)' }}>
+                for {selectedMonth !== null ? `${fullMonthNames[selectedMonth]} ${selectedYear}` : `${selectedYear}`}
+              </span>
+            </h3>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 2px 1fr', gap: '0' }}>
+              {/* Personal Financial Health */}
+              <div style={{ paddingRight: '24px' }}>
+                <div style={{ background: 'rgba(30, 27, 56, 0.8)', borderRadius: '20px', padding: '24px', border: '1px solid rgba(139, 92, 246, 0.2)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
+                    <span style={{ fontSize: '24px' }}>🏠</span>
+                    <h4 style={{ fontSize: '16px', fontWeight: '600', margin: 0 }}>Personal Financial Health</h4>
+                  </div>
+
+                  {/* Key Metrics Grid */}
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px', marginBottom: '20px' }}>
+                    {/* Savings Rate */}
+                    <div style={{ background: 'rgba(255,255,255,0.05)', borderRadius: '12px', padding: '16px' }}>
+                      <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)', marginBottom: '6px' }}>💰 Savings Rate</div>
+                      <div style={{ fontSize: '24px', fontWeight: '700', color: personalStats.income > 0 && ((personalStats.income - personalStats.expenses) / personalStats.income * 100) >= 20 ? '#10B981' : '#F59E0B' }}>
+                        {personalStats.income > 0 ? ((personalStats.income - personalStats.expenses) / personalStats.income * 100).toFixed(1) : 0}%
+                      </div>
+                      <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', marginTop: '4px' }}>Target: 20%+</div>
+                    </div>
+                    {/* Expense Ratio */}
+                    <div style={{ background: 'rgba(255,255,255,0.05)', borderRadius: '12px', padding: '16px' }}>
+                      <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)', marginBottom: '6px' }}>📊 Expense Ratio</div>
+                      <div style={{ fontSize: '24px', fontWeight: '700', color: personalStats.income > 0 && (personalStats.expenses / personalStats.income * 100) <= 80 ? '#10B981' : '#EF4444' }}>
+                        {personalStats.income > 0 ? (personalStats.expenses / personalStats.income * 100).toFixed(1) : 0}%
+                      </div>
+                      <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', marginTop: '4px' }}>Target: &lt;80%</div>
+                    </div>
+                    {/* Average Daily Spend */}
+                    <div style={{ background: 'rgba(255,255,255,0.05)', borderRadius: '12px', padding: '16px' }}>
+                      <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)', marginBottom: '6px' }}>📅 Avg Daily Spend</div>
+                      <div style={{ fontSize: '24px', fontWeight: '700', color: 'white' }}>
+                        {formatCurrency(personalStats.expenses / (selectedMonth !== null ? 30 : 365))}
+                      </div>
+                      <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', marginTop: '4px' }}>per day</div>
+                    </div>
+                    {/* Transactions */}
+                    <div style={{ background: 'rgba(255,255,255,0.05)', borderRadius: '12px', padding: '16px' }}>
+                      <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)', marginBottom: '6px' }}>🧾 Transactions</div>
+                      <div style={{ fontSize: '24px', fontWeight: '700', color: 'white' }}>
+                        {personalTransactions.length}
+                      </div>
+                      <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', marginTop: '4px' }}>this period</div>
+                    </div>
+                  </div>
+
+                  {/* Income vs Expenses Progress */}
+                  <div style={{ marginBottom: '16px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                      <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.6)' }}>Income vs Expenses</span>
+                      <span style={{ fontSize: '12px', fontWeight: '600', color: (personalStats.income - personalStats.expenses) >= 0 ? '#10B981' : '#EF4444' }}>
+                        {(personalStats.income - personalStats.expenses) >= 0 ? '+' : ''}{formatCurrency(personalStats.income - personalStats.expenses)}
+                      </span>
+                    </div>
+                    <div style={{ height: '12px', background: 'rgba(255,255,255,0.1)', borderRadius: '6px', overflow: 'hidden', display: 'flex' }}>
+                      <div style={{ width: `${Math.min((personalStats.income / (personalStats.income + personalStats.expenses || 1)) * 100, 100)}%`, height: '100%', background: 'linear-gradient(90deg, #10B981, #059669)' }} />
+                      <div style={{ width: `${Math.min((personalStats.expenses / (personalStats.income + personalStats.expenses || 1)) * 100, 100)}%`, height: '100%', background: 'linear-gradient(90deg, #EF4444, #DC2626)' }} />
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '6px', fontSize: '10px', color: 'rgba(255,255,255,0.4)' }}>
+                      <span>💰 Income: {formatCurrency(personalStats.income)}</span>
+                      <span>💸 Expenses: {formatCurrency(personalStats.expenses)}</span>
+                    </div>
+                  </div>
+
+                  {/* Top 3 Categories */}
+                  <div>
+                    <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.6)', marginBottom: '10px' }}>Top Spending Areas</div>
+                    {personalStats.categoryBreakdown.sort((a, b) => b.amount - a.amount).slice(0, 3).map((cat, i) => (
+                      <div key={cat.name} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 0', borderBottom: i < 2 ? '1px solid rgba(255,255,255,0.05)' : 'none' }}>
+                        <span style={{ fontSize: '12px' }}>{categoryEmojiMap[cat.name] || '📦'} {cat.name}</span>
+                        <span style={{ fontSize: '12px', fontWeight: '600' }}>{formatCurrency(cat.amount)}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Center Divider */}
+              <div style={{ background: 'linear-gradient(180deg, rgba(139, 92, 246, 0.6), rgba(236, 72, 153, 0.6), rgba(139, 92, 246, 0.6))', borderRadius: '2px' }} />
+
+              {/* Side Hustle Financial Health */}
+              <div style={{ paddingLeft: '24px' }}>
+                <div style={{ background: 'rgba(30, 27, 56, 0.8)', borderRadius: '20px', padding: '24px', border: '1px solid rgba(236, 72, 153, 0.2)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
+                    <span style={{ fontSize: '24px' }}>👤</span>
+                    <h4 style={{ fontSize: '16px', fontWeight: '600', margin: 0 }}>{sideHustleName} Financial Health</h4>
+                  </div>
+
+                  {/* Key Metrics Grid */}
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px', marginBottom: '20px' }}>
+                    {/* Profit Margin */}
+                    <div style={{ background: 'rgba(255,255,255,0.05)', borderRadius: '12px', padding: '16px' }}>
+                      <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)', marginBottom: '6px' }}>📈 Profit Margin</div>
+                      <div style={{ fontSize: '24px', fontWeight: '700', color: sideHustleStats.income > 0 && ((sideHustleStats.income - sideHustleStats.expenses) / sideHustleStats.income * 100) >= 20 ? '#10B981' : '#F59E0B' }}>
+                        {sideHustleStats.income > 0 ? ((sideHustleStats.income - sideHustleStats.expenses) / sideHustleStats.income * 100).toFixed(1) : 0}%
+                      </div>
+                      <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', marginTop: '4px' }}>Target: 20%+</div>
+                    </div>
+                    {/* Operating Expense */}
+                    <div style={{ background: 'rgba(255,255,255,0.05)', borderRadius: '12px', padding: '16px' }}>
+                      <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)', marginBottom: '6px' }}>💼 Operating Expense</div>
+                      <div style={{ fontSize: '24px', fontWeight: '700', color: sideHustleStats.income > 0 && (sideHustleStats.expenses / sideHustleStats.income * 100) <= 80 ? '#10B981' : '#EF4444' }}>
+                        {sideHustleStats.income > 0 ? (sideHustleStats.expenses / sideHustleStats.income * 100).toFixed(1) : 0}%
+                      </div>
+                      <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', marginTop: '4px' }}>of revenue</div>
+                    </div>
+                    {/* Net Profit */}
+                    <div style={{ background: 'rgba(255,255,255,0.05)', borderRadius: '12px', padding: '16px' }}>
+                      <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)', marginBottom: '6px' }}>💵 Net Profit</div>
+                      <div style={{ fontSize: '24px', fontWeight: '700', color: (sideHustleStats.income - sideHustleStats.expenses) >= 0 ? '#10B981' : '#EF4444' }}>
+                        {formatCurrency(sideHustleStats.income - sideHustleStats.expenses)}
+                      </div>
+                      <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', marginTop: '4px' }}>this period</div>
+                    </div>
+                    {/* Transactions */}
+                    <div style={{ background: 'rgba(255,255,255,0.05)', borderRadius: '12px', padding: '16px' }}>
+                      <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)', marginBottom: '6px' }}>🧾 Transactions</div>
+                      <div style={{ fontSize: '24px', fontWeight: '700', color: 'white' }}>
+                        {sideHustleTransactions.length}
+                      </div>
+                      <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', marginTop: '4px' }}>this period</div>
+                    </div>
+                  </div>
+
+                  {/* Revenue vs Expenses Progress */}
+                  <div style={{ marginBottom: '16px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                      <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.6)' }}>Revenue vs Expenses</span>
+                      <span style={{ fontSize: '12px', fontWeight: '600', color: (sideHustleStats.income - sideHustleStats.expenses) >= 0 ? '#10B981' : '#EF4444' }}>
+                        {(sideHustleStats.income - sideHustleStats.expenses) >= 0 ? '+' : ''}{formatCurrency(sideHustleStats.income - sideHustleStats.expenses)}
+                      </span>
+                    </div>
+                    <div style={{ height: '12px', background: 'rgba(255,255,255,0.1)', borderRadius: '6px', overflow: 'hidden', display: 'flex' }}>
+                      <div style={{ width: `${Math.min((sideHustleStats.income / (sideHustleStats.income + sideHustleStats.expenses || 1)) * 100, 100)}%`, height: '100%', background: 'linear-gradient(90deg, #10B981, #059669)' }} />
+                      <div style={{ width: `${Math.min((sideHustleStats.expenses / (sideHustleStats.income + sideHustleStats.expenses || 1)) * 100, 100)}%`, height: '100%', background: 'linear-gradient(90deg, #EF4444, #DC2626)' }} />
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '6px', fontSize: '10px', color: 'rgba(255,255,255,0.4)' }}>
+                      <span>💰 Revenue: {formatCurrency(sideHustleStats.income)}</span>
+                      <span>💸 Expenses: {formatCurrency(sideHustleStats.expenses)}</span>
+                    </div>
+                  </div>
+
+                  {/* Top 3 Expense Categories */}
+                  <div>
+                    <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.6)', marginBottom: '10px' }}>Top Business Expenses</div>
+                    {sideHustleStats.categoryBreakdown.sort((a, b) => b.amount - a.amount).slice(0, 3).map((cat, i) => (
+                      <div key={cat.name} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 0', borderBottom: i < 2 ? '1px solid rgba(255,255,255,0.05)' : 'none' }}>
+                        <span style={{ fontSize: '12px' }}>{categoryEmojiMap[cat.name] || '📦'} {cat.name}</span>
+                        <span style={{ fontSize: '12px', fontWeight: '600' }}>{formatCurrency(cat.amount)}</span>
+                      </div>
+                    ))}
+                    {sideHustleStats.categoryBreakdown.length === 0 && (
+                      <div style={{ textAlign: 'center', padding: '16px', color: 'rgba(255,255,255,0.4)', fontSize: '12px' }}>No expense data</div>
+                    )}
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </>
