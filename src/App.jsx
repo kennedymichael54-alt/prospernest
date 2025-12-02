@@ -641,6 +641,18 @@ const saveProfileToDB = async (userId, profile) => {
   }
 };
 
+// Convert DB profile to app format
+const dbToAppProfile = (p) => ({
+  firstName: p?.first_name || '',
+  lastName: p?.last_name || '',
+  email: p?.email || '',
+  phone: p?.phone || '',
+  dateOfBirth: p?.date_of_birth || '',
+  gender: p?.gender || '',
+  photoUrl: p?.photo_url || '',
+  sidehustleName: p?.sidehustle_name || ''
+});
+
 // Convert DB transaction to app format
 const dbToAppTransaction = (t) => ({
   id: t.id,
@@ -730,6 +742,16 @@ function App() {
   const [bills, setBills] = useState([]);
   const [goals, setGoals] = useState([]);
   const [tasks, setTasks] = useState([]);
+  const [profile, setProfile] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    dateOfBirth: '',
+    gender: '',
+    photoUrl: '',
+    sidehustleName: ''
+  });
   const [userPreferences, setUserPreferences] = useState({
     theme: 'light',
     language: 'en',
@@ -742,7 +764,7 @@ function App() {
   });
 
   // Load user data - tries DB first, falls back to localStorage
-  const loadUserData = async (userId) => {
+  const loadUserData = async (userId, userEmail) => {
     console.log('📥 [Data] Loading user data for:', userId);
     
     // Try loading from database first
@@ -750,6 +772,19 @@ function App() {
     
     if (dbData) {
       console.log('✅ [Data] Loaded from database');
+      
+      // Load profile
+      if (dbData.profile) {
+        const loadedProfile = dbToAppProfile(dbData.profile);
+        // Use user email if profile email is empty
+        if (!loadedProfile.email && userEmail) {
+          loadedProfile.email = userEmail;
+        }
+        setProfile(loadedProfile);
+        // Also save to localStorage for immediate access
+        localStorage.setItem(`pn_profile_${userId}`, JSON.stringify(loadedProfile));
+        console.log('✅ [Data] Profile loaded from DB:', loadedProfile.firstName, loadedProfile.lastName);
+      }
       
       // Load transactions, bills, goals
       if (dbData.transactions?.length) {
@@ -786,7 +821,7 @@ function App() {
       }
       
       // If DB had any data, we're done
-      if (dbData.transactions?.length || dbData.bills?.length || dbData.goals?.length || dbData.tasks?.length) {
+      if (dbData.profile || dbData.transactions?.length || dbData.bills?.length || dbData.goals?.length || dbData.tasks?.length) {
         return;
       }
     }
@@ -794,12 +829,14 @@ function App() {
     // Fallback to localStorage
     console.log('ℹ️ [Data] No DB data, trying localStorage...');
     try {
+      const savedProfile = localStorage.getItem(`pn_profile_${userId}`);
       const savedTransactions = localStorage.getItem(`pn_transactions_${userId}`);
       const savedBills = localStorage.getItem(`pn_bills_${userId}`);
       const savedGoals = localStorage.getItem(`pn_goals_${userId}`);
       const savedTasks = localStorage.getItem('pn_tasks');
       const savedImportDate = localStorage.getItem(`pn_lastImport_${userId}`);
 
+      if (savedProfile) setProfile(JSON.parse(savedProfile));
       if (savedTransactions) setTransactions(JSON.parse(savedTransactions));
       if (savedBills) setBills(JSON.parse(savedBills));
       if (savedGoals) setGoals(JSON.parse(savedGoals));
@@ -809,6 +846,21 @@ function App() {
       console.log('✅ [Data] Loaded from localStorage');
     } catch (e) {
       console.error('❌ [Data] localStorage load error:', e);
+    }
+  };
+
+  // Save profile with sync to database
+  const handleUpdateProfile = async (newProfile) => {
+    setProfile(newProfile);
+    
+    // Save to localStorage
+    if (user?.id) {
+      localStorage.setItem(`pn_profile_${user.id}`, JSON.stringify(newProfile));
+    }
+    
+    // Sync to database
+    if (user?.id) {
+      await saveProfileToDB(user.id, newProfile);
     }
   };
 
@@ -931,7 +983,7 @@ function App() {
       if (activeSession?.user && isMounted) {
         setUser(activeSession.user);
         setView('dashboard');
-        await loadUserData(activeSession.user.id);
+        await loadUserData(activeSession.user.id, activeSession.user.email);
       }
       
       // STEP 4: Set up auth state listener
@@ -946,7 +998,7 @@ function App() {
           saveSession(session);
           setUser(session.user);
           setView('dashboard');
-          await loadUserData(session.user.id);
+          await loadUserData(session.user.id, session.user.email);
         } else if (event === 'SIGNED_OUT') {
           console.log('🚪 [Auth] Signed out - clearing session');
           saveSession(null);
@@ -1042,6 +1094,7 @@ function App() {
       bills={bills}
       goals={goals}
       tasks={tasks}
+      profile={profile}
       userPreferences={userPreferences}
       lastImportDate={lastImportDate}
       onSetLastImportDate={setLastImportDate}
@@ -1049,6 +1102,7 @@ function App() {
       onUpdateBills={handleUpdateBills}
       onUpdateGoals={handleUpdateGoals}
       onUpdateTasks={handleUpdateTasks}
+      onUpdateProfile={handleUpdateProfile}
       onUpdatePreferences={handleUpdatePreferences}
       parseCSV={parseCSV}
     />
@@ -1633,6 +1687,7 @@ function Dashboard({
   bills, 
   goals,
   tasks,
+  profile,
   userPreferences,
   lastImportDate,
   onSetLastImportDate,
@@ -1640,6 +1695,7 @@ function Dashboard({
   onUpdateBills,
   onUpdateGoals,
   onUpdateTasks,
+  onUpdateProfile,
   onUpdatePreferences,
   parseCSV
 }) {
@@ -1656,6 +1712,34 @@ function Dashboard({
   const [showPennyChat, setShowPennyChat] = useState(false);
   const [showIdleModal, setShowIdleModal] = useState(false);
   const [showManageAccountModal, setShowManageAccountModal] = useState(false);
+  
+  // Local state for editing profile (initialized from props when modal opens)
+  const [editProfile, setEditProfile] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    dateOfBirth: '',
+    gender: '',
+    photoUrl: '',
+    sidehustleName: ''
+  });
+  
+  // Update editProfile when modal opens or profile props change
+  useEffect(() => {
+    if (showManageAccountModal && profile) {
+      setEditProfile({
+        firstName: profile.firstName || '',
+        lastName: profile.lastName || '',
+        email: profile.email || user?.email || '',
+        phone: profile.phone || '',
+        dateOfBirth: profile.dateOfBirth || '',
+        gender: profile.gender || '',
+        photoUrl: profile.photoUrl || '',
+        sidehustleName: profile.sidehustleName || ''
+      });
+    }
+  }, [showManageAccountModal, profile, user?.email]);
   
   // Memoji avatar selection
   const memojiAvatars = [
@@ -1735,38 +1819,22 @@ function Dashboard({
     onUpdatePreferences({ theme: newMode ? 'dark' : 'light' });
   };
 
-  // Profile state with expanded fields
-  const [profile, setProfile] = useState(() => {
-    try {
-      const saved = localStorage.getItem(`pn_profile_${user?.id}`);
-      return saved ? JSON.parse(saved) : { 
-        firstName: '', 
-        lastName: '', 
-        email: user?.email || '',
-        phone: '',
-        dateOfBirth: '',
-        gender: '',
-        photoUrl: ''
-      };
-    } catch { 
-      return { 
-        firstName: '', 
-        lastName: '', 
-        email: user?.email || '',
-        phone: '',
-        dateOfBirth: '',
-        gender: '',
-        photoUrl: ''
-      }; 
-    }
-  });
+  // Profile comes from props (synced across devices)
+  // Use default values if profile is undefined
+  const currentProfile = profile || {
+    firstName: '',
+    lastName: '',
+    email: user?.email || '',
+    phone: '',
+    dateOfBirth: '',
+    gender: '',
+    photoUrl: '',
+    sidehustleName: ''
+  };
 
-  // Save profile to localStorage
+  // Save profile - syncs to database
   const saveProfile = (newProfile) => {
-    setProfile(newProfile);
-    if (user?.id) {
-      localStorage.setItem(`pn_profile_${user.id}`, JSON.stringify(newProfile));
-    }
+    onUpdateProfile(newProfile);
   };
 
   const handleSignOut = async () => {
@@ -1790,11 +1858,11 @@ function Dashboard({
     }
   };
 
-  const displayName = profile.firstName || user?.user_metadata?.full_name?.split(' ')[0] || user?.email?.split('@')[0] || 'User';
+  const displayName = currentProfile.firstName || user?.user_metadata?.full_name?.split(' ')[0] || user?.email?.split('@')[0] || 'User';
 
   const getInitials = () => {
-    if (profile.firstName && profile.lastName) {
-      return `${profile.firstName[0]}${profile.lastName[0]}`.toUpperCase();
+    if (currentProfile.firstName && currentProfile.lastName) {
+      return `${currentProfile.firstName[0]}${currentProfile.lastName[0]}`.toUpperCase();
     }
     return user?.email?.[0]?.toUpperCase() || 'U';
   };
@@ -2670,8 +2738,8 @@ function Dashboard({
                 <label style={{ display: 'block', fontSize: '14px', color: theme.textSecondary, marginBottom: '6px' }}>First Name</label>
                 <input 
                   type="text" 
-                  value={profile.firstName}
-                  onChange={(e) => setProfile({...profile, firstName: e.target.value})}
+                  value={editProfile.firstName}
+                  onChange={(e) => setEditProfile({...editProfile, firstName: e.target.value})}
                   placeholder="Enter your first name"
                   style={{ width: '100%', padding: '12px', background: theme.inputBg, border: `1px solid ${theme.border}`, borderRadius: '8px', color: theme.textPrimary, fontSize: '14px', boxSizing: 'border-box' }}
                 />
@@ -2680,8 +2748,8 @@ function Dashboard({
                 <label style={{ display: 'block', fontSize: '14px', color: theme.textSecondary, marginBottom: '6px' }}>Last Name</label>
                 <input 
                   type="text" 
-                  value={profile.lastName}
-                  onChange={(e) => setProfile({...profile, lastName: e.target.value})}
+                  value={editProfile.lastName}
+                  onChange={(e) => setEditProfile({...editProfile, lastName: e.target.value})}
                   placeholder="Enter your last name"
                   style={{ width: '100%', padding: '12px', background: theme.inputBg, border: `1px solid ${theme.border}`, borderRadius: '8px', color: theme.textPrimary, fontSize: '14px', boxSizing: 'border-box' }}
                 />
@@ -2693,8 +2761,8 @@ function Dashboard({
                 <label style={{ display: 'block', fontSize: '14px', color: theme.textSecondary, marginBottom: '6px' }}>Your email</label>
                 <input 
                   type="email" 
-                  value={profile.email || user?.email || ''}
-                  onChange={(e) => setProfile({...profile, email: e.target.value})}
+                  value={editProfile.email || user?.email || ''}
+                  onChange={(e) => setEditProfile({...editProfile, email: e.target.value})}
                   placeholder="Enter your email"
                   style={{ width: '100%', padding: '12px', background: theme.inputBg, border: `1px solid ${theme.border}`, borderRadius: '8px', color: theme.textPrimary, fontSize: '14px', boxSizing: 'border-box' }}
                 />
@@ -2703,8 +2771,8 @@ function Dashboard({
                 <label style={{ display: 'block', fontSize: '14px', color: theme.textSecondary, marginBottom: '6px' }}>Phone Number</label>
                 <input 
                   type="tel" 
-                  value={profile.phone}
-                  onChange={(e) => setProfile({...profile, phone: e.target.value})}
+                  value={editProfile.phone}
+                  onChange={(e) => setEditProfile({...editProfile, phone: e.target.value})}
                   placeholder="Enter your phone number"
                   style={{ width: '100%', padding: '12px', background: theme.inputBg, border: `1px solid ${theme.border}`, borderRadius: '8px', color: theme.textPrimary, fontSize: '14px', boxSizing: 'border-box' }}
                 />
@@ -2716,16 +2784,16 @@ function Dashboard({
                 <label style={{ display: 'block', fontSize: '14px', color: theme.textSecondary, marginBottom: '6px' }}>Date of Birth</label>
                 <input 
                   type="date" 
-                  value={profile.dateOfBirth}
-                  onChange={(e) => setProfile({...profile, dateOfBirth: e.target.value})}
+                  value={editProfile.dateOfBirth}
+                  onChange={(e) => setEditProfile({...editProfile, dateOfBirth: e.target.value})}
                   style={{ width: '100%', padding: '12px', background: theme.inputBg, border: `1px solid ${theme.border}`, borderRadius: '8px', color: theme.textPrimary, fontSize: '14px', boxSizing: 'border-box' }}
                 />
               </div>
               <div>
                 <label style={{ display: 'block', fontSize: '14px', color: theme.textSecondary, marginBottom: '6px' }}>Gender</label>
                 <select 
-                  value={profile.gender}
-                  onChange={(e) => setProfile({...profile, gender: e.target.value})}
+                  value={editProfile.gender}
+                  onChange={(e) => setEditProfile({...editProfile, gender: e.target.value})}
                   style={{ width: '100%', padding: '12px', background: theme.inputBg, border: `1px solid ${theme.border}`, borderRadius: '8px', color: theme.textPrimary, fontSize: '14px', boxSizing: 'border-box' }}
                 >
                   <option value="">Select</option>
@@ -2739,7 +2807,7 @@ function Dashboard({
             
             {/* Save Button */}
             <button 
-              onClick={() => { saveProfile(profile); setShowManageAccountModal(false); setShowAvatarPicker(false); }}
+              onClick={() => { saveProfile(editProfile); setShowManageAccountModal(false); setShowAvatarPicker(false); }}
               style={{ width: '100%', padding: '14px', background: theme.primary, color: 'white', border: 'none', borderRadius: '10px', fontSize: '16px', fontWeight: '600', cursor: 'pointer', marginBottom: '16px' }}
             >
               Save Changes
