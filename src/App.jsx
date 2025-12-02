@@ -176,6 +176,30 @@ const Icons = {
     </svg>
   ),
 };
+// ============================================================================
+// PENNY LOGO COMPONENT
+// ============================================================================
+const PennyLogo = ({ size = 48 }) => (
+  <svg width={size} height={size} viewBox="0 0 64 64" fill="none">
+    <defs>
+      <linearGradient id="coinGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stopColor="#FFD700" />
+        <stop offset="50%" stopColor="#FFEC8B" />
+        <stop offset="100%" stopColor="#DAA520" />
+      </linearGradient>
+    </defs>
+    <circle cx="32" cy="32" r="28" fill="url(#coinGrad)" stroke="#B8860B" strokeWidth="2"/>
+    <circle cx="32" cy="32" r="22" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth="2"/>
+    <ellipse cx="24" cy="26" rx="3" ry="4" fill="#1a1a1a"/>
+    <ellipse cx="40" cy="26" rx="3" ry="4" fill="#1a1a1a"/>
+    <ellipse cx="25" cy="25" rx="1" ry="1.5" fill="#FFFFFF"/>
+    <ellipse cx="41" cy="25" rx="1" ry="1.5" fill="#FFFFFF"/>
+    <path d="M24 38 Q32 44 40 38" stroke="#1a1a1a" strokeWidth="2.5" fill="none" strokeLinecap="round"/>
+    <ellipse cx="18" cy="32" rx="3" ry="2" fill="#FFB6C1" opacity="0.6"/>
+    <ellipse cx="46" cy="32" rx="3" ry="2" fill="#FFB6C1" opacity="0.6"/>
+  </svg>
+);
+
 // Language options
 const languages = [
   { code: 'en', name: 'English', flag: '🇺🇸' },
@@ -367,8 +391,8 @@ function App() {
     return (
       <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: theme.bgMain }}>
         <div style={{ textAlign: 'center' }}>
-          <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: `linear-gradient(135deg, ${theme.primary}, ${theme.secondary})`, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto', animation: 'pulse 2s infinite' }}>
-            <span style={{ color: 'white', fontWeight: 'bold', fontSize: '18px' }}>PN</span>
+          <div style={{ animation: 'pulse 2s infinite' }}>
+            <PennyLogo size={64} />
           </div>
           <p style={{ marginTop: '16px', color: theme.textSecondary }}>Loading ProsperNest...</p>
         </div>
@@ -728,6 +752,46 @@ function Dashboard({
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedLanguage, setSelectedLanguage] = useState(languages[0]);
   const [showLangDropdown, setShowLangDropdown] = useState(false);
+  const [showPennyChat, setShowPennyChat] = useState(false);
+  const [showIdleModal, setShowIdleModal] = useState(false);
+  const [chatMessages, setChatMessages] = useState([
+    { from: 'penny', text: "Hi! I'm Penny, your financial assistant! 🪙 How can I help you today?" }
+  ]);
+  const [chatInput, setChatInput] = useState('');
+  const idleTimerRef = useRef(null);
+
+  // Idle timeout - 15 minutes
+  useEffect(() => {
+    const IDLE_TIMEOUT = 15 * 60 * 1000; // 15 minutes
+    
+    const resetIdleTimer = () => {
+      if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
+      idleTimerRef.current = setTimeout(() => {
+        setShowIdleModal(true);
+      }, IDLE_TIMEOUT);
+    };
+    
+    const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'];
+    events.forEach(event => window.addEventListener(event, resetIdleTimer));
+    resetIdleTimer();
+    
+    return () => {
+      if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
+      events.forEach(event => window.removeEventListener(event, resetIdleTimer));
+    };
+  }, []);
+
+  const handleSendChat = () => {
+    if (!chatInput.trim()) return;
+    setChatMessages(prev => [...prev, { from: 'user', text: chatInput }]);
+    setChatInput('');
+    setTimeout(() => {
+      setChatMessages(prev => [...prev, { 
+        from: 'penny', 
+        text: "Thanks for your message! I'm still learning, but I'm here to help with budgeting tips, goal tracking, and navigating ProsperNest! 💰" 
+      }]);
+    }, 1000);
+  };
 
   // Theme state - persist in localStorage
   const [isDarkMode, setIsDarkMode] = useState(() => {
@@ -805,7 +869,7 @@ function Dashboard({
       case 'reports':
         return <ReportsTab transactions={transactions} onNavigateToImport={() => setActiveTab('import')} theme={theme} />;
       case 'settings':
-        return <SettingsTabDS theme={theme} />;
+        return <SettingsTabDS theme={theme} isDarkMode={isDarkMode} onToggleTheme={toggleTheme} />;
       case 'import':
         return <ImportTabDS onImport={onImportTransactions} parseCSV={parseCSV} transactionCount={transactions.length} theme={theme} />;
       default:
@@ -828,25 +892,23 @@ function Dashboard({
         zIndex: 100
       }}>
         {/* Logo */}
-        <div style={{ padding: '20px 24px', borderBottom: `1px solid ${theme.borderLight}` }}>
+        <div 
+          onClick={() => setActiveTab('home')}
+          style={{ padding: '20px 24px', borderBottom: `1px solid ${theme.borderLight}`, cursor: 'pointer' }}
+        >
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <div style={{
-              width: '36px',
-              height: '36px',
-              background: `linear-gradient(135deg, ${theme.primary}, ${theme.secondary})`,
-              borderRadius: '10px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontWeight: '700',
-              fontSize: '14px',
-              color: 'white'
-            }}>
-              PN
-            </div>
+            <PennyLogo size={36} />
             <span style={{ fontWeight: '700', fontSize: '18px', color: theme.textPrimary }}>
               Prosper<span style={{ color: theme.primary }}>Nest</span>
             </span>
+            <span style={{ 
+              background: '#007AFF', 
+              padding: '2px 6px', 
+              borderRadius: '4px', 
+              fontSize: '9px', 
+              fontWeight: '600', 
+              color: 'white' 
+            }}>Beta</span>
           </div>
         </div>
 
@@ -1194,6 +1256,108 @@ function Dashboard({
           {renderContent()}
         </div>
       </main>
+
+      {/* Penny AI Chat Widget */}
+      <div style={{ position: 'fixed', bottom: '24px', right: '24px', zIndex: 1000 }}>
+        {showPennyChat && (
+          <div style={{
+            position: 'absolute',
+            bottom: '70px',
+            right: 0,
+            width: '340px',
+            height: '440px',
+            background: theme.bgCard,
+            borderRadius: '16px',
+            boxShadow: '0 10px 40px rgba(0,0,0,0.2)',
+            border: `1px solid ${theme.border}`,
+            display: 'flex',
+            flexDirection: 'column',
+            overflow: 'hidden'
+          }}>
+            <div style={{ padding: '16px', background: 'linear-gradient(135deg, #007AFF, #5856D6)', color: 'white', display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <PennyLogo size={32} />
+              <div>
+                <div style={{ fontWeight: '600', fontSize: '14px' }}>Penny</div>
+                <div style={{ fontSize: '11px', opacity: 0.9 }}>Your AI Assistant</div>
+              </div>
+              <button onClick={() => setShowPennyChat(false)} style={{ marginLeft: 'auto', background: 'none', border: 'none', color: 'white', fontSize: '20px', cursor: 'pointer' }}>×</button>
+            </div>
+            <div style={{ flex: 1, padding: '16px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {chatMessages.map((msg, i) => (
+                <div key={i} style={{ 
+                  alignSelf: msg.from === 'user' ? 'flex-end' : 'flex-start',
+                  background: msg.from === 'user' ? theme.primary : theme.bgMain,
+                  color: msg.from === 'user' ? 'white' : theme.textPrimary,
+                  padding: '10px 14px',
+                  borderRadius: '12px',
+                  maxWidth: '80%',
+                  fontSize: '13px',
+                  lineHeight: 1.4
+                }}>
+                  {msg.text}
+                </div>
+              ))}
+            </div>
+            <div style={{ padding: '12px', borderTop: `1px solid ${theme.border}`, display: 'flex', gap: '8px' }}>
+              <input
+                value={chatInput}
+                onChange={(e) => setChatInput(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && handleSendChat()}
+                placeholder="Ask Penny anything..."
+                style={{ flex: 1, padding: '10px 14px', background: theme.bgMain, border: `1px solid ${theme.border}`, borderRadius: '20px', fontSize: '13px', outline: 'none', color: theme.textPrimary }}
+              />
+              <button onClick={handleSendChat} style={{ width: '36px', height: '36px', background: theme.primary, border: 'none', borderRadius: '50%', color: 'white', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                ➤
+              </button>
+            </div>
+          </div>
+        )}
+        <button
+          onClick={() => setShowPennyChat(!showPennyChat)}
+          style={{
+            width: '56px',
+            height: '56px',
+            borderRadius: '50%',
+            background: 'linear-gradient(135deg, #007AFF, #5856D6)',
+            border: 'none',
+            cursor: 'pointer',
+            boxShadow: '0 4px 20px rgba(0, 122, 255, 0.4)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            transition: 'transform 0.2s ease'
+          }}
+          onMouseEnter={(e) => e.target.style.transform = 'scale(1.1)'}
+          onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
+        >
+          <PennyLogo size={36} />
+        </button>
+      </div>
+
+      {/* Idle Timeout Modal */}
+      {showIdleModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000 }}>
+          <div style={{ background: theme.bgCard, borderRadius: '20px', padding: '32px', textAlign: 'center', maxWidth: '360px', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}>
+            <PennyLogo size={64} />
+            <h2 style={{ fontSize: '22px', fontWeight: '700', color: theme.textPrimary, margin: '16px 0 8px' }}>Still there? 👋</h2>
+            <p style={{ color: theme.textMuted, fontSize: '14px', marginBottom: '24px' }}>Need help exploring ProsperNest?</p>
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <button 
+                onClick={() => setShowIdleModal(false)}
+                style={{ flex: 1, padding: '12px 20px', background: theme.bgMain, border: `1px solid ${theme.border}`, borderRadius: '10px', color: theme.textPrimary, fontSize: '14px', fontWeight: '600', cursor: 'pointer' }}
+              >
+                I'm good
+              </button>
+              <button 
+                onClick={() => { setShowIdleModal(false); setShowPennyChat(true); }}
+                style={{ flex: 1, padding: '12px 20px', background: 'linear-gradient(135deg, #007AFF, #5856D6)', border: 'none', borderRadius: '10px', color: 'white', fontSize: '14px', fontWeight: '600', cursor: 'pointer' }}
+              >
+                Chat with Penny
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -1490,7 +1654,7 @@ function ImportTabDS({ onImport, parseCSV, transactionCount, theme }) {
 
   return (
     <div>
-      <h1 style={{ fontSize: '24px', fontWeight: '700', color: theme.textPrimary, marginBottom: '24px' }}>Import Data</h1>
+      <h1 style={{ fontSize: '24px', fontWeight: '700', color: theme.textPrimary, marginBottom: '24px' }}>Import Bank Transactions</h1>
 
       {/* Status Card */}
       <div style={{ background: theme.bgCard, borderRadius: '16px', padding: '24px', marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: theme.cardShadow, border: `1px solid ${theme.borderLight}` }}>
@@ -1568,44 +1732,185 @@ function ImportTabDS({ onImport, parseCSV, transactionCount, theme }) {
 // ============================================================================
 // SETTINGS TAB - DASHSTACK STYLE
 // ============================================================================
-function SettingsTabDS({ theme }) {
+function SettingsTabDS({ theme, isDarkMode, onToggleTheme }) {
+  const [showNotificationsModal, setShowNotificationsModal] = useState(false);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [notifications, setNotifications] = useState({
+    billReminders: true,
+    goalProgress: true,
+    budgetAlerts: true,
+    weeklySummary: false
+  });
+
+  const settingsItems = [
+    { icon: '🔗', title: 'Connected Accounts', desc: 'Manage your bank connections', comingSoon: true },
+    { icon: '👨‍👩‍👧‍👦', title: 'Family Members', desc: 'Invite family to collaborate', comingSoon: true },
+    { icon: '🔔', title: 'Notifications', desc: 'Bill reminders & alerts', action: () => setShowNotificationsModal(true) },
+    { icon: '🎨', title: 'Appearance', desc: 'Theme & display options', isAppearance: true },
+    { icon: '🔒', title: 'Security', desc: 'Password & 2FA settings', action: () => setShowPasswordModal(true) },
+    { icon: '📤', title: 'Export Data', desc: 'Download your financial data', comingSoon: true }
+  ];
+
   return (
     <div>
       <h1 style={{ fontSize: '24px', fontWeight: '700', color: theme.textPrimary, marginBottom: '24px' }}>Settings</h1>
 
       <div style={{ display: 'grid', gap: '16px', maxWidth: '600px' }}>
-        {[
-          { icon: '🔗', title: 'Connected Accounts', desc: 'Manage your bank connections' },
-          { icon: '👨‍👩‍👧‍👦', title: 'Family Members', desc: 'Invite family to collaborate' },
-          { icon: '🔔', title: 'Notifications', desc: 'Bill reminders & alerts' },
-          { icon: '🎨', title: 'Appearance', desc: 'Theme & display options' },
-          { icon: '🔒', title: 'Security', desc: 'Password & 2FA settings' },
-          { icon: '📤', title: 'Export Data', desc: 'Download your financial data' }
-        ].map((item, i) => (
-          <div key={i} style={{
-            background: theme.bgCard,
-            borderRadius: '12px',
-            padding: '20px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            cursor: 'pointer',
-            boxShadow: theme.cardShadow,
-            border: `1px solid ${theme.borderLight}`
-          }}>
+        {settingsItems.map((item, i) => (
+          <div 
+            key={i} 
+            onClick={item.action}
+            style={{
+              background: theme.bgCard,
+              borderRadius: '12px',
+              padding: '20px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              cursor: item.comingSoon ? 'default' : 'pointer',
+              boxShadow: theme.cardShadow,
+              border: `1px solid ${theme.borderLight}`,
+              opacity: item.comingSoon ? 0.7 : 1
+            }}
+          >
             <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
               <div style={{ width: '44px', height: '44px', borderRadius: '10px', background: theme.bgMain, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>
                 {item.icon}
               </div>
               <div>
-                <div style={{ fontWeight: '600', color: theme.textPrimary }}>{item.title}</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ fontWeight: '600', color: theme.textPrimary }}>{item.title}</span>
+                  {item.comingSoon && (
+                    <span style={{ background: theme.warning, color: 'white', padding: '2px 8px', borderRadius: '10px', fontSize: '10px', fontWeight: '600' }}>
+                      Coming Soon
+                    </span>
+                  )}
+                </div>
                 <div style={{ fontSize: '13px', color: theme.textMuted }}>{item.desc}</div>
               </div>
             </div>
-            <span style={{ color: theme.textMuted }}>›</span>
+            {item.isAppearance ? (
+              <div 
+                onClick={(e) => { e.stopPropagation(); onToggleTheme && onToggleTheme(); }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '8px 12px',
+                  background: isDarkMode ? 'rgba(139, 92, 246, 0.2)' : '#F5F6FA',
+                  border: `1px solid ${isDarkMode ? 'rgba(139, 92, 246, 0.3)' : '#E5E7EB'}`,
+                  borderRadius: '10px',
+                  cursor: 'pointer'
+                }}
+              >
+                <span>{isDarkMode ? '🌙' : '☀️'}</span>
+                <div style={{
+                  width: '36px',
+                  height: '20px',
+                  background: isDarkMode ? 'linear-gradient(135deg, #8B5CF6, #EC4899)' : '#E5E7EB',
+                  borderRadius: '10px',
+                  position: 'relative'
+                }}>
+                  <div style={{
+                    width: '16px',
+                    height: '16px',
+                    background: 'white',
+                    borderRadius: '50%',
+                    position: 'absolute',
+                    top: '2px',
+                    left: isDarkMode ? '18px' : '2px',
+                    transition: 'left 0.3s ease'
+                  }} />
+                </div>
+              </div>
+            ) : (
+              <span style={{ color: theme.textMuted }}>›</span>
+            )}
           </div>
         ))}
       </div>
+
+      {/* Notifications Modal */}
+      {showNotificationsModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+          <div style={{ background: theme.bgCard, borderRadius: '16px', padding: '24px', width: '400px', maxWidth: '90vw' }}>
+            <h3 style={{ fontSize: '18px', fontWeight: '600', color: theme.textPrimary, marginBottom: '20px' }}>🔔 Notification Settings</h3>
+            {Object.entries(notifications).map(([key, value]) => (
+              <div key={key} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 0', borderBottom: `1px solid ${theme.borderLight}` }}>
+                <span style={{ color: theme.textPrimary, fontSize: '14px' }}>
+                  {key === 'billReminders' && 'Bill Reminders'}
+                  {key === 'goalProgress' && 'Goal Progress Updates'}
+                  {key === 'budgetAlerts' && 'Budget Alerts'}
+                  {key === 'weeklySummary' && 'Weekly Summary Email'}
+                </span>
+                <div 
+                  onClick={() => setNotifications(prev => ({ ...prev, [key]: !prev[key] }))}
+                  style={{
+                    width: '44px',
+                    height: '24px',
+                    background: value ? theme.success : theme.border,
+                    borderRadius: '12px',
+                    position: 'relative',
+                    cursor: 'pointer'
+                  }}
+                >
+                  <div style={{
+                    width: '20px',
+                    height: '20px',
+                    background: 'white',
+                    borderRadius: '50%',
+                    position: 'absolute',
+                    top: '2px',
+                    left: value ? '22px' : '2px',
+                    transition: 'left 0.2s ease'
+                  }} />
+                </div>
+              </div>
+            ))}
+            <button 
+              onClick={() => setShowNotificationsModal(false)}
+              style={{ width: '100%', padding: '12px', background: theme.primary, color: 'white', border: 'none', borderRadius: '10px', fontSize: '14px', fontWeight: '600', cursor: 'pointer', marginTop: '20px' }}
+            >
+              Save Settings
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Password Change Modal */}
+      {showPasswordModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+          <div style={{ background: theme.bgCard, borderRadius: '16px', padding: '24px', width: '400px', maxWidth: '90vw' }}>
+            <h3 style={{ fontSize: '18px', fontWeight: '600', color: theme.textPrimary, marginBottom: '20px' }}>🔒 Change Password</h3>
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', fontSize: '14px', color: theme.textSecondary, marginBottom: '6px' }}>Current Password</label>
+              <input type="password" style={{ width: '100%', padding: '12px', background: theme.inputBg, border: `1px solid ${theme.border}`, borderRadius: '8px', color: theme.textPrimary, boxSizing: 'border-box' }} />
+            </div>
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', fontSize: '14px', color: theme.textSecondary, marginBottom: '6px' }}>New Password</label>
+              <input type="password" style={{ width: '100%', padding: '12px', background: theme.inputBg, border: `1px solid ${theme.border}`, borderRadius: '8px', color: theme.textPrimary, boxSizing: 'border-box' }} />
+            </div>
+            <div style={{ marginBottom: '20px' }}>
+              <label style={{ display: 'block', fontSize: '14px', color: theme.textSecondary, marginBottom: '6px' }}>Confirm New Password</label>
+              <input type="password" style={{ width: '100%', padding: '12px', background: theme.inputBg, border: `1px solid ${theme.border}`, borderRadius: '8px', color: theme.textPrimary, boxSizing: 'border-box' }} />
+            </div>
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <button 
+                onClick={() => setShowPasswordModal(false)}
+                style={{ flex: 1, padding: '12px', background: theme.bgMain, color: theme.textPrimary, border: `1px solid ${theme.border}`, borderRadius: '10px', fontSize: '14px', fontWeight: '600', cursor: 'pointer' }}
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={() => setShowPasswordModal(false)}
+                style={{ flex: 1, padding: '12px', background: theme.primary, color: 'white', border: 'none', borderRadius: '10px', fontSize: '14px', fontWeight: '600', cursor: 'pointer' }}
+              >
+                Update Password
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
