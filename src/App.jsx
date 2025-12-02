@@ -245,71 +245,69 @@ class ErrorBoundary extends React.Component {
     return this.props.children;
   }
 }
-// Supabase initialization - SINGLETON pattern for session persistence
+// ============================================================================
+// SUPABASE INITIALIZATION & DATABASE HELPERS
+// ============================================================================
 let supabase = null;
 let supabaseInitPromise = null;
 
-// Session storage key for manual backup
-const SESSION_STORAGE_KEY = 'pn_supabase_session';
+// Session storage keys
+const SESSION_KEY = 'pn_session';
+const SESSION_EXPIRY_KEY = 'pn_session_expiry';
 
-// Helper to manually save session (backup for when Supabase auto-persist fails)
-const saveSessionToStorage = (session) => {
+// Save session with expiry (7 days)
+const saveSession = (session) => {
   try {
     if (session) {
-      localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(session));
-      console.log('💾 [Session] Saved to localStorage');
+      localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+      // Set expiry to 7 days from now
+      const expiry = Date.now() + (7 * 24 * 60 * 60 * 1000);
+      localStorage.setItem(SESSION_EXPIRY_KEY, expiry.toString());
+      console.log('💾 [Session] Saved:', session.user?.email);
     } else {
-      localStorage.removeItem(SESSION_STORAGE_KEY);
-      console.log('🗑️ [Session] Removed from localStorage');
+      localStorage.removeItem(SESSION_KEY);
+      localStorage.removeItem(SESSION_EXPIRY_KEY);
+      console.log('🗑️ [Session] Cleared');
     }
   } catch (e) {
-    console.error('❌ [Session] Storage error:', e);
+    console.error('❌ [Session] Save error:', e);
   }
 };
 
-// Helper to load session from manual backup
-const loadSessionFromStorage = () => {
-  // Check primary backup
+// Load session (check expiry)
+const loadSession = () => {
   try {
-    const stored = localStorage.getItem(SESSION_STORAGE_KEY);
+    const expiry = localStorage.getItem(SESSION_EXPIRY_KEY);
+    if (expiry && Date.now() > parseInt(expiry)) {
+      console.log('⏰ [Session] Expired, clearing...');
+      localStorage.removeItem(SESSION_KEY);
+      localStorage.removeItem(SESSION_EXPIRY_KEY);
+      return null;
+    }
+    
+    const stored = localStorage.getItem(SESSION_KEY);
     if (stored) {
       const session = JSON.parse(stored);
-      console.log('📂 [Session] Loaded from primary backup:', session?.user?.email);
-      return session;
+      if (session?.user?.email) {
+        console.log('📂 [Session] Loaded:', session.user.email);
+        return session;
+      }
     }
   } catch (e) {
-    console.error('❌ [Session] Primary load error:', e);
+    console.error('❌ [Session] Load error:', e);
   }
-  
-  // Check secondary backup (pn_sb_auth)
-  try {
-    const stored2 = localStorage.getItem('pn_sb_auth');
-    if (stored2) {
-      const session = JSON.parse(stored2);
-      console.log('📂 [Session] Loaded from secondary backup:', session?.user?.email);
-      return session;
-    }
-  } catch (e) {
-    console.error('❌ [Session] Secondary load error:', e);
-  }
-  
-  console.log('ℹ️ [Session] No backup session found in localStorage');
   return null;
 };
 
 const initSupabase = () => {
-  // Return existing instance if already initialized
   if (supabase) return Promise.resolve(supabase);
-  
-  // Return existing promise if initialization is in progress
   if (supabaseInitPromise) return supabaseInitPromise;
   
-  // Create new initialization promise
   supabaseInitPromise = (async () => {
     try {
       const { createClient } = await import('@supabase/supabase-js');
       
-      // Clear empty hash from URL (leftover from OAuth)
+      // Clean URL hash from OAuth
       if (window.location.hash === '#' || window.location.hash === '') {
         window.history.replaceState(null, '', window.location.pathname + window.location.search);
       }
@@ -323,7 +321,7 @@ const initSupabase = () => {
             persistSession: true,
             detectSessionInUrl: true,
             storage: window.localStorage,
-            storageKey: 'pn_sb_auth'
+            storageKey: 'sb-auth-token'
           }
         }
       );
@@ -339,6 +337,219 @@ const initSupabase = () => {
   
   return supabaseInitPromise;
 };
+
+// ============================================================================
+// DATABASE HELPER FUNCTIONS
+// ============================================================================
+
+// Load all user data from Supabase
+const loadUserDataFromDB = async (userId) => {
+  const sb = await initSupabase();
+  if (!sb) return null;
+  
+  console.log('📥 [DB] Loading user data...');
+  
+  try {
+    const [
+      { data: profile },
+      { data: transactions },
+      { data: bills },
+      { data: goals },
+      { data: budgets },
+      { data: incomeTypes },
+      { data: categories },
+      { data: settings }
+    ] = await Promise.all([
+      sb.from('user_profiles').select('*').eq('user_id', userId).single(),
+      sb.from('transactions').select('*').eq('user_id', userId).order('date', { ascending: false }),
+      sb.from('bills').select('*').eq('user_id', userId),
+      sb.from('goals').select('*').eq('user_id', userId),
+      sb.from('budgets').select('*').eq('user_id', userId),
+      sb.from('income_types').select('*').eq('user_id', userId),
+      sb.from('accounting_categories').select('*').eq('user_id', userId),
+      sb.from('user_settings').select('*').eq('user_id', userId).single()
+    ]);
+    
+    console.log('✅ [DB] Loaded:', {
+      transactions: transactions?.length || 0,
+      bills: bills?.length || 0,
+      goals: goals?.length || 0
+    });
+    
+    return {
+      profile,
+      transactions: transactions || [],
+      bills: bills || [],
+      goals: goals || [],
+      budgets: budgets || [],
+      incomeTypes: incomeTypes || [],
+      categories: categories || [],
+      settings
+    };
+  } catch (e) {
+    console.error('❌ [DB] Load error:', e);
+    return null;
+  }
+};
+
+// Save transactions to Supabase
+const saveTransactionsToDB = async (userId, transactions) => {
+  const sb = await initSupabase();
+  if (!sb || !transactions?.length) return;
+  
+  console.log('💾 [DB] Saving transactions:', transactions.length);
+  
+  try {
+    // Delete existing and insert new (simple sync strategy)
+    await sb.from('transactions').delete().eq('user_id', userId);
+    
+    const toInsert = transactions.map(t => ({
+      user_id: userId,
+      date: t.date,
+      description: t.description,
+      original_description: t.originalDescription,
+      category: t.category,
+      amount: t.amount,
+      status: t.status,
+      account_type: t.accountType || 'personal'
+    }));
+    
+    const { error } = await sb.from('transactions').insert(toInsert);
+    if (error) throw error;
+    console.log('✅ [DB] Transactions saved');
+  } catch (e) {
+    console.error('❌ [DB] Save transactions error:', e);
+  }
+};
+
+// Save bills to Supabase
+const saveBillsToDB = async (userId, bills) => {
+  const sb = await initSupabase();
+  if (!sb) return;
+  
+  console.log('💾 [DB] Saving bills:', bills?.length || 0);
+  
+  try {
+    await sb.from('bills').delete().eq('user_id', userId);
+    
+    if (bills?.length) {
+      const toInsert = bills.map(b => ({
+        user_id: userId,
+        name: b.name,
+        amount: b.amount,
+        due_date: b.dueDate,
+        category: b.category,
+        is_paid: b.isPaid,
+        is_recurring: b.isRecurring,
+        frequency: b.frequency,
+        account_type: b.accountType || 'personal'
+      }));
+      
+      const { error } = await sb.from('bills').insert(toInsert);
+      if (error) throw error;
+    }
+    console.log('✅ [DB] Bills saved');
+  } catch (e) {
+    console.error('❌ [DB] Save bills error:', e);
+  }
+};
+
+// Save goals to Supabase
+const saveGoalsToDB = async (userId, goals) => {
+  const sb = await initSupabase();
+  if (!sb) return;
+  
+  console.log('💾 [DB] Saving goals:', goals?.length || 0);
+  
+  try {
+    await sb.from('goals').delete().eq('user_id', userId);
+    
+    if (goals?.length) {
+      const toInsert = goals.map(g => ({
+        user_id: userId,
+        name: g.name,
+        target_amount: g.targetAmount,
+        current_amount: g.currentAmount,
+        target_date: g.targetDate,
+        category: g.category,
+        priority: g.priority,
+        status: g.status,
+        account_type: g.accountType || 'personal'
+      }));
+      
+      const { error } = await sb.from('goals').insert(toInsert);
+      if (error) throw error;
+    }
+    console.log('✅ [DB] Goals saved');
+  } catch (e) {
+    console.error('❌ [DB] Save goals error:', e);
+  }
+};
+
+// Save user profile to Supabase
+const saveProfileToDB = async (userId, profile) => {
+  const sb = await initSupabase();
+  if (!sb) return;
+  
+  console.log('💾 [DB] Saving profile...');
+  
+  try {
+    const { error } = await sb.from('user_profiles').upsert({
+      user_id: userId,
+      first_name: profile.firstName,
+      last_name: profile.lastName,
+      email: profile.email,
+      phone: profile.phone,
+      date_of_birth: profile.dateOfBirth,
+      gender: profile.gender,
+      photo_url: profile.photoUrl,
+      sidehustle_name: profile.sidehustleName
+    }, { onConflict: 'user_id' });
+    
+    if (error) throw error;
+    console.log('✅ [DB] Profile saved');
+  } catch (e) {
+    console.error('❌ [DB] Save profile error:', e);
+  }
+};
+
+// Convert DB transaction to app format
+const dbToAppTransaction = (t) => ({
+  id: t.id,
+  date: t.date,
+  description: t.description,
+  originalDescription: t.original_description,
+  category: t.category,
+  amount: parseFloat(t.amount),
+  status: t.status,
+  accountType: t.account_type
+});
+
+// Convert DB bill to app format
+const dbToAppBill = (b) => ({
+  id: b.id,
+  name: b.name,
+  amount: parseFloat(b.amount),
+  dueDate: b.due_date,
+  category: b.category,
+  isPaid: b.is_paid,
+  isRecurring: b.is_recurring,
+  frequency: b.frequency,
+  accountType: b.account_type
+});
+
+// Convert DB goal to app format
+const dbToAppGoal = (g) => ({
+  id: g.id,
+  name: g.name,
+  targetAmount: parseFloat(g.target_amount),
+  currentAmount: parseFloat(g.current_amount),
+  targetDate: g.target_date,
+  category: g.category,
+  priority: g.priority,
+  status: g.status,
+  accountType: g.account_type
+});
 // CSV Parser
 const parseCSV = (csvText) => {
   const lines = csvText.split('\n');
@@ -392,22 +603,46 @@ function App() {
   const [goals, setGoals] = useState([]);
   const [lastImportDate, setLastImportDate] = useState(null);
 
+  // Load user data - tries DB first, falls back to localStorage
+  const loadUserData = async (userId) => {
+    console.log('📥 [Data] Loading user data for:', userId);
+    
+    // Try loading from database first
+    const dbData = await loadUserDataFromDB(userId);
+    
+    if (dbData && (dbData.transactions?.length || dbData.bills?.length || dbData.goals?.length)) {
+      console.log('✅ [Data] Loaded from database');
+      setTransactions(dbData.transactions.map(dbToAppTransaction));
+      setBills(dbData.bills.map(dbToAppBill));
+      setGoals(dbData.goals.map(dbToAppGoal));
+      return;
+    }
+    
+    // Fallback to localStorage
+    console.log('ℹ️ [Data] No DB data, trying localStorage...');
+    try {
+      const savedTransactions = localStorage.getItem(`pn_transactions_${userId}`);
+      const savedBills = localStorage.getItem(`pn_bills_${userId}`);
+      const savedGoals = localStorage.getItem(`pn_goals_${userId}`);
+      const savedImportDate = localStorage.getItem(`pn_lastImport_${userId}`);
+
+      if (savedTransactions) setTransactions(JSON.parse(savedTransactions));
+      if (savedBills) setBills(JSON.parse(savedBills));
+      if (savedGoals) setGoals(JSON.parse(savedGoals));
+      if (savedImportDate) setLastImportDate(new Date(savedImportDate));
+      
+      console.log('✅ [Data] Loaded from localStorage');
+    } catch (e) {
+      console.error('❌ [Data] localStorage load error:', e);
+    }
+  };
+
   useEffect(() => {
     let isMounted = true;
     let subscription = null;
     
     const init = async () => {
       console.log('🚀 [Auth] Starting initialization...');
-      
-      // Debug: List all session-related localStorage keys
-      const sessionKeys = Object.keys(localStorage).filter(k => 
-        k.includes('pn_') || k.includes('sb-') || k.includes('supabase')
-      );
-      console.log('🔑 [Debug] Session-related localStorage keys:', sessionKeys);
-      sessionKeys.forEach(k => {
-        const val = localStorage.getItem(k);
-        console.log(`   ${k}:`, val?.substring(0, 100) + (val?.length > 100 ? '...' : ''));
-      });
       
       const sb = await initSupabase();
       
@@ -417,82 +652,81 @@ function App() {
         return;
       }
       
-      // STEP 1: Check for existing session FIRST (handles refresh)
-      let foundSession = null;
+      // STEP 1: Try to get session from Supabase
+      let activeSession = null;
+      
       try {
-        console.log('🔍 [Auth] Checking for existing session...');
         const { data: { session }, error } = await sb.auth.getSession();
         
         if (error) {
           console.error('❌ [Auth] getSession error:', error);
         } else if (session?.user) {
-          console.log('✅ [Auth] Found existing session via Supabase:', session.user.email);
-          foundSession = session;
-        } else {
-          console.log('ℹ️ [Auth] No Supabase session, checking backup...');
-          // Try to restore from our manual backup
-          const backupSession = loadSessionFromStorage();
-          if (backupSession?.access_token && backupSession?.user) {
-            console.log('🔄 [Auth] Found backup session, attempting restore...');
-            // Try to set the session in Supabase
-            const { data: restored, error: restoreError } = await sb.auth.setSession({
-              access_token: backupSession.access_token,
-              refresh_token: backupSession.refresh_token
-            });
-            if (restoreError) {
-              console.error('❌ [Auth] Backup restore failed:', restoreError.message);
-              saveSessionToStorage(null); // Clear invalid backup
-            } else if (restored?.session?.user) {
-              console.log('✅ [Auth] Session restored from backup:', restored.session.user.email);
-              foundSession = restored.session;
-              // Update backup with fresh tokens
-              saveSessionToStorage(restored.session);
-            }
-          } else {
-            console.log('ℹ️ [Auth] No backup session found');
-          }
+          console.log('✅ [Auth] Found Supabase session:', session.user.email);
+          activeSession = session;
+          saveSession(session); // Update our backup
         }
-        
-        if (foundSession?.user && isMounted) {
-          setUser(foundSession.user);
-          setView('dashboard');
-          loadSavedData(foundSession.user.id);
-        }
-      } catch (err) {
-        console.error('❌ [Auth] Session check failed:', err);
+      } catch (e) {
+        console.error('❌ [Auth] getSession exception:', e);
       }
       
-      // STEP 2: Set up listener for future auth changes (login/logout)
-      const { data: { subscription: sub } } = sb.auth.onAuthStateChange((event, session) => {
+      // STEP 2: If no Supabase session, try our backup
+      if (!activeSession) {
+        console.log('🔍 [Auth] Checking backup session...');
+        const backup = loadSession();
+        
+        if (backup?.access_token && backup?.refresh_token) {
+          console.log('🔄 [Auth] Attempting to restore from backup...');
+          try {
+            const { data, error } = await sb.auth.setSession({
+              access_token: backup.access_token,
+              refresh_token: backup.refresh_token
+            });
+            
+            if (error) {
+              console.error('❌ [Auth] Restore failed:', error.message);
+              saveSession(null); // Clear invalid backup
+            } else if (data?.session?.user) {
+              console.log('✅ [Auth] Restored from backup:', data.session.user.email);
+              activeSession = data.session;
+              saveSession(data.session); // Update with fresh tokens
+            }
+          } catch (e) {
+            console.error('❌ [Auth] Restore exception:', e);
+            saveSession(null);
+          }
+        } else {
+          console.log('ℹ️ [Auth] No backup session found');
+        }
+      }
+      
+      // STEP 3: If we have a session, set up the user
+      if (activeSession?.user && isMounted) {
+        setUser(activeSession.user);
+        setView('dashboard');
+        await loadUserData(activeSession.user.id);
+      }
+      
+      // STEP 4: Set up auth state listener
+      const { data: { subscription: sub } } = sb.auth.onAuthStateChange(async (event, session) => {
         console.log('🔔 [Auth] Event:', event, '| User:', session?.user?.email || 'none');
         
         if (!isMounted) return;
         
-        if (event === 'SIGNED_IN') {
-          if (session?.user) {
-            console.log('✅ [Auth] User signed in:', session.user.email);
-            // Save session to our manual backup
-            saveSessionToStorage(session);
-            setUser(session.user);
-            setView('dashboard');
-            loadSavedData(session.user.id);
-          }
+        if (event === 'SIGNED_IN' && session?.user) {
+          saveSession(session);
+          setUser(session.user);
+          setView('dashboard');
+          await loadUserData(session.user.id);
         } else if (event === 'SIGNED_OUT') {
-          console.log('👋 [Auth] User signed out');
-          // Clear our manual backup
-          saveSessionToStorage(null);
+          saveSession(null);
           setUser(null);
           setView('landing');
           setTransactions([]);
           setBills([]);
           setGoals([]);
-        } else if (event === 'TOKEN_REFRESHED') {
-          console.log('🔄 [Auth] Token refreshed');
-          if (session?.user) {
-            // Update backup with fresh tokens
-            saveSessionToStorage(session);
-            setUser(session.user);
-          }
+        } else if (event === 'TOKEN_REFRESHED' && session) {
+          console.log('🔄 [Auth] Token refreshed, updating backup');
+          saveSession(session);
         }
       });
       subscription = sub;
@@ -513,25 +747,19 @@ function App() {
     };
   }, []);
 
-  const loadSavedData = (userId) => {
-    try {
-      const savedTransactions = localStorage.getItem(`pn_transactions_${userId}`);
-      const savedBills = localStorage.getItem(`pn_bills_${userId}`);
-      const savedGoals = localStorage.getItem(`pn_goals_${userId}`);
-      const savedImportDate = localStorage.getItem(`pn_lastImport_${userId}`);
-
-      if (savedTransactions) setTransactions(JSON.parse(savedTransactions));
-      if (savedBills) setBills(JSON.parse(savedBills));
-      if (savedGoals) setGoals(JSON.parse(savedGoals));
-      if (savedImportDate) setLastImportDate(new Date(savedImportDate));
-    } catch (e) {
-      console.error('Error loading saved data:', e);
-    }
-  };
-
-  const saveData = (userId, key, data) => {
+  // Save data to localStorage and sync to DB
+  const saveData = async (userId, key, data) => {
     try {
       localStorage.setItem(`pn_${key}_${userId}`, JSON.stringify(data));
+      
+      // Also sync to database
+      if (key === 'transactions') {
+        saveTransactionsToDB(userId, data);
+      } else if (key === 'bills') {
+        saveBillsToDB(userId, data);
+      } else if (key === 'goals') {
+        saveGoalsToDB(userId, data);
+      }
     } catch (e) {
       console.error('Error saving data:', e);
     }
@@ -726,29 +954,22 @@ function AuthPage({ setView }) {
 
     try {
       if (isLogin) {
-        // Sign in - session persistence is handled by Supabase client config
+        // Sign in
         const { data, error } = await sb.auth.signInWithPassword({ 
           email, 
           password
         });
         if (error) throw error;
         
-        // CRITICAL: Manually save session immediately after login
+        // Save session to our backup storage
         if (data?.session) {
-          console.log('💾 [Login] Saving session immediately after login');
-          saveSessionToStorage(data.session);
-          // Also manually store in localStorage as extra backup
-          try {
-            localStorage.setItem('pn_sb_auth', JSON.stringify(data.session));
-            console.log('💾 [Login] Session saved to pn_sb_auth');
-          } catch (e) {
-            console.error('❌ [Login] Failed to save to pn_sb_auth:', e);
-          }
+          console.log('💾 [Login] Saving session...');
+          saveSession(data.session);
         } else {
-          console.warn('⚠️ [Login] No session returned from signInWithPassword');
+          console.warn('⚠️ [Login] No session returned');
         }
         
-        // Remember email preference (we never store passwords for security)
+        // Remember email preference
         if (rememberMe) {
           localStorage.setItem('pn_remember_email', email);
           localStorage.setItem('pn_remember_me', 'true');
@@ -757,7 +978,7 @@ function AuthPage({ setView }) {
           localStorage.removeItem('pn_remember_me');
         }
         
-        console.log('✅ [Login] Login successful:', data?.user?.email);
+        console.log('✅ [Login] Success:', data?.user?.email);
       } else {
         const { data, error } = await sb.auth.signUp({ 
           email, 
@@ -1249,9 +1470,13 @@ function Dashboard({
   const handleSignOut = async () => {
     console.log('🚪 [Auth] Signing out...');
     try {
-      // Clear our manual backup first
-      saveSessionToStorage(null);
-      localStorage.removeItem('pn_sb_auth'); // Clear Supabase storage key too
+      // Clear our session backup
+      saveSession(null);
+      
+      // Clear any old storage keys
+      localStorage.removeItem('pn_sb_auth');
+      localStorage.removeItem('sb-auth-token');
+      localStorage.removeItem('pn_supabase_session');
       
       const sb = await initSupabase();
       if (sb) {
