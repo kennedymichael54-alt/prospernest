@@ -254,48 +254,100 @@ let supabaseInitPromise = null;
 // Session storage keys
 const SESSION_KEY = 'pn_session';
 const SESSION_EXPIRY_KEY = 'pn_session_expiry';
+const SESSION_BACKUP_KEY = 'pn_session_backup';
 
-// Save session with expiry (7 days)
+// Save session with expiry (7 days) - BULLETPROOF VERSION
 const saveSession = (session) => {
-  try {
-    if (session) {
-      localStorage.setItem(SESSION_KEY, JSON.stringify(session));
-      // Set expiry to 7 days from now
-      const expiry = Date.now() + (7 * 24 * 60 * 60 * 1000);
-      localStorage.setItem(SESSION_EXPIRY_KEY, expiry.toString());
-      console.log('💾 [Session] Saved:', session.user?.email);
-    } else {
+  console.log('💾 [Session] saveSession called with:', session ? 'valid session' : 'null');
+  
+  if (!session) {
+    // Clear all session storage
+    try {
       localStorage.removeItem(SESSION_KEY);
       localStorage.removeItem(SESSION_EXPIRY_KEY);
-      console.log('🗑️ [Session] Cleared');
+      localStorage.removeItem(SESSION_BACKUP_KEY);
+      console.log('🗑️ [Session] All session data cleared');
+    } catch (e) {
+      console.error('❌ [Session] Clear error:', e);
+    }
+    return;
+  }
+  
+  try {
+    const sessionStr = JSON.stringify(session);
+    const expiry = Date.now() + (7 * 24 * 60 * 60 * 1000); // 7 days
+    
+    // Save to primary location
+    localStorage.setItem(SESSION_KEY, sessionStr);
+    localStorage.setItem(SESSION_EXPIRY_KEY, expiry.toString());
+    
+    // Save to backup location
+    localStorage.setItem(SESSION_BACKUP_KEY, sessionStr);
+    
+    // Verify the save worked
+    const verify = localStorage.getItem(SESSION_KEY);
+    if (verify) {
+      console.log('✅ [Session] Saved & verified:', session.user?.email);
+      console.log('   Keys saved:', SESSION_KEY, SESSION_EXPIRY_KEY, SESSION_BACKUP_KEY);
+    } else {
+      console.error('❌ [Session] Save failed - verification failed!');
     }
   } catch (e) {
     console.error('❌ [Session] Save error:', e);
+    console.error('   Error details:', e.message);
+    // Try alternative storage
+    try {
+      sessionStorage.setItem(SESSION_KEY, JSON.stringify(session));
+      console.log('⚠️ [Session] Saved to sessionStorage as fallback');
+    } catch (e2) {
+      console.error('❌ [Session] Even sessionStorage failed:', e2);
+    }
   }
 };
 
-// Load session (check expiry)
+// Load session (check expiry) - tries multiple locations
 const loadSession = () => {
+  console.log('🔍 [Session] Loading session...');
+  
+  // Try primary storage
   try {
     const expiry = localStorage.getItem(SESSION_EXPIRY_KEY);
     if (expiry && Date.now() > parseInt(expiry)) {
       console.log('⏰ [Session] Expired, clearing...');
       localStorage.removeItem(SESSION_KEY);
       localStorage.removeItem(SESSION_EXPIRY_KEY);
+      localStorage.removeItem(SESSION_BACKUP_KEY);
       return null;
     }
     
-    const stored = localStorage.getItem(SESSION_KEY);
+    let stored = localStorage.getItem(SESSION_KEY);
+    
+    // Try backup if primary is empty
+    if (!stored) {
+      console.log('🔍 [Session] Primary empty, trying backup...');
+      stored = localStorage.getItem(SESSION_BACKUP_KEY);
+    }
+    
+    // Try sessionStorage as last resort
+    if (!stored) {
+      console.log('🔍 [Session] Backup empty, trying sessionStorage...');
+      stored = sessionStorage.getItem(SESSION_KEY);
+    }
+    
     if (stored) {
       const session = JSON.parse(stored);
-      if (session?.user?.email) {
-        console.log('📂 [Session] Loaded:', session.user.email);
+      if (session?.user?.email && session?.access_token) {
+        console.log('✅ [Session] Loaded:', session.user.email);
         return session;
+      } else {
+        console.log('⚠️ [Session] Found data but invalid structure');
       }
     }
   } catch (e) {
     console.error('❌ [Session] Load error:', e);
   }
+  
+  console.log('ℹ️ [Session] No valid session found');
   return null;
 };
 
@@ -708,16 +760,19 @@ function App() {
       
       // STEP 4: Set up auth state listener
       const { data: { subscription: sub } } = sb.auth.onAuthStateChange(async (event, session) => {
-        console.log('🔔 [Auth] Event:', event, '| User:', session?.user?.email || 'none');
+        console.log('🔔 [Auth] Event:', event, '| User:', session?.user?.email || 'none', '| Has Session:', !!session);
         
         if (!isMounted) return;
         
-        if (event === 'SIGNED_IN' && session?.user) {
+        // Handle all sign-in related events
+        if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session?.user) {
+          console.log('💾 [Auth] Saving session from event:', event);
           saveSession(session);
           setUser(session.user);
           setView('dashboard');
           await loadUserData(session.user.id);
         } else if (event === 'SIGNED_OUT') {
+          console.log('🚪 [Auth] Signed out - clearing session');
           saveSession(null);
           setUser(null);
           setView('landing');
@@ -955,18 +1010,32 @@ function AuthPage({ setView }) {
     try {
       if (isLogin) {
         // Sign in
+        console.log('🔐 [Login] Attempting sign in for:', email);
         const { data, error } = await sb.auth.signInWithPassword({ 
           email, 
           password
         });
+        
+        console.log('🔐 [Login] Response:', { 
+          hasData: !!data, 
+          hasSession: !!data?.session,
+          hasUser: !!data?.user,
+          error: error?.message 
+        });
+        
         if (error) throw error;
         
-        // Save session to our backup storage
+        // CRITICAL: Save session immediately
         if (data?.session) {
-          console.log('💾 [Login] Saving session...');
+          console.log('💾 [Login] Saving session NOW...');
           saveSession(data.session);
+          
+          // Double-check it saved
+          const check = localStorage.getItem('pn_session');
+          console.log('✅ [Login] Session save verified:', !!check);
         } else {
-          console.warn('⚠️ [Login] No session returned');
+          console.error('❌ [Login] NO SESSION IN RESPONSE!');
+          console.error('   data:', JSON.stringify(data, null, 2));
         }
         
         // Remember email preference
@@ -978,7 +1047,7 @@ function AuthPage({ setView }) {
           localStorage.removeItem('pn_remember_me');
         }
         
-        console.log('✅ [Login] Success:', data?.user?.email);
+        console.log('✅ [Login] Complete:', data?.user?.email);
       } else {
         const { data, error } = await sb.auth.signUp({ 
           email, 
@@ -989,6 +1058,11 @@ function AuthPage({ setView }) {
         });
         if (error) throw error;
         
+        // For signup, also save session if returned
+        if (data?.session) {
+          saveSession(data.session);
+        }
+        
         // Show success message for signup
         if (data?.user && !data?.session) {
           setError('Check your email to confirm your account!');
@@ -997,7 +1071,7 @@ function AuthPage({ setView }) {
         }
       }
     } catch (err) {
-      console.error('Auth error:', err);
+      console.error('❌ [Auth] Error:', err);
       setError(err.message);
     }
     setLoading(false);
