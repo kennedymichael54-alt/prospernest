@@ -59,9 +59,34 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
   const ADMIN_EMAIL = 'admin@prospernest.app';
   const ADMIN_PASSWORD = 'ProsperAdmin2025!';
   
-  const [signinEmail, setSigninEmail] = useState('');
+  // Load saved email from localStorage on init
+  const [signinEmail, setSigninEmail] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('pn_remember_email');
+      return saved || '';
+    }
+    return '';
+  });
   const [signinPassword, setSigninPassword] = useState('');
   const [signinError, setSigninError] = useState('');
+  const [rememberMe, setRememberMe] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('pn_remember_me') === 'true';
+    }
+    return false;
+  });
+
+  // Reload saved email whenever the signin modal opens
+  useEffect(() => {
+    if (showSignupModal && authMode === 'signin') {
+      const savedEmail = localStorage.getItem('pn_remember_email');
+      const shouldRemember = localStorage.getItem('pn_remember_me') === 'true';
+      if (savedEmail && shouldRemember) {
+        setSigninEmail(savedEmail);
+        setRememberMe(true);
+      }
+    }
+  }, [showSignupModal, authMode]);
 
   const colors = {
     blue: '#007AFF',
@@ -778,19 +803,36 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
 
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
               <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: colors.secondary, cursor: 'pointer' }}>
-                <input type="checkbox" /> Remember me
+                <input 
+                  type="checkbox" 
+                  checked={rememberMe}
+                  onChange={(e) => {
+                    setRememberMe(e.target.checked);
+                    localStorage.setItem('pn_remember_me', e.target.checked.toString());
+                    if (!e.target.checked) {
+                      localStorage.removeItem('pn_remember_email');
+                    }
+                  }}
+                /> Remember me
               </label>
               <a href="#" style={{ fontSize: '13px', color: colors.blue, textDecoration: 'none' }}>Forgot password?</a>
             </div>
 
             <button onClick={() => {
+              // Save email if Remember Me is checked
+              if (rememberMe && signinEmail) {
+                localStorage.setItem('pn_remember_email', signinEmail);
+                localStorage.setItem('pn_remember_me', 'true');
+              }
+              
               if (signinEmail === ADMIN_EMAIL && signinPassword === ADMIN_PASSWORD) {
                 setIsAdmin(true);
                 setShowSignupModal(false);
                 setSelectedPlan('family');
                 setShowOnboarding(true);
                 setOnboardingStep(0);
-                setSigninEmail('');
+                // Don't clear email if remember me is checked
+                if (!rememberMe) setSigninEmail('');
                 setSigninPassword('');
               } else if (signinEmail && signinPassword) {
                 setShowSignupModal(false);
