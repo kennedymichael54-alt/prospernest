@@ -467,6 +467,7 @@ function App() {
             // Update backup with fresh tokens
             saveSessionToStorage(session);
             setUser(session.user);
+          }
         }
       });
       subscription = sub;
