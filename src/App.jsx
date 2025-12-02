@@ -2274,6 +2274,9 @@ function Dashboard({
 function DashboardHome({ transactions, goals, bills = [], theme, lastImportDate }) {
   const [timeRange, setTimeRange] = useState('month');
   const [activeAccount, setActiveAccount] = useState('all');
+  const [selectedYear, setSelectedYear] = useState('2025');
+  const [txnSearchQuery, setTxnSearchQuery] = useState('');
+  const [txnStatusFilter, setTxnStatusFilter] = useState('');
 
   // Filter transactions by account type
   const personalTransactions = transactions.filter(t => t.accountType !== 'sidehustle');
@@ -2296,11 +2299,11 @@ function DashboardHome({ transactions, goals, bills = [], theme, lastImportDate 
   // Calculate spending by category
   const categorySpending = {};
   const categoryColors = {
-    'Fast Food': '#FF6B6B', 'Restaurants': '#FF8E72', 'Groceries': '#4ECDC4', 'Gas': '#45B7D1',
-    'Shopping': '#96CEB4', 'Entertainment': '#FFEAA7', 'Electronics & Software': '#DDA0DD',
-    'Transfer': '#B8B8B8', 'Hobbies': '#F39C12', 'Auto & Transport': '#3498DB',
-    'Financial': '#9B59B6', 'Doctor': '#E74C3C', 'Pharmacy': '#1ABC9C', 'Television': '#E91E63',
-    'Utilities': '#00BCD4', 'Category Pending': '#95A5A6', 'Other': '#7F8C8D'
+    'Fast Food': '#8B5CF6', 'Restaurants': '#06B6D4', 'Groceries': '#10B981', 'Gas': '#F59E0B',
+    'Shopping': '#EC4899', 'Entertainment': '#3B82F6', 'Electronics & Software': '#6366F1',
+    'Transfer': '#94A3B8', 'Hobbies': '#F97316', 'Auto & Transport': '#0EA5E9',
+    'Financial': '#8B5CF6', 'Doctor': '#EF4444', 'Pharmacy': '#14B8A6', 'Television': '#E11D48',
+    'Utilities': '#0891B2', 'Category Pending': '#64748B', 'Other': '#475569'
   };
 
   activeTransactions.filter(t => parseFloat(t.amount) < 0).forEach(t => {
@@ -2327,11 +2330,11 @@ function DashboardHome({ transactions, goals, bills = [], theme, lastImportDate 
 
   // Budget calculations
   const budgets = [
-    { category: 'Fast Food', budget: 300, color: '#FF6B6B' },
-    { category: 'Groceries', budget: 400, color: '#4ECDC4' },
-    { category: 'Shopping', budget: 500, color: '#96CEB4' },
-    { category: 'Gas', budget: 200, color: '#45B7D1' },
-    { category: 'Entertainment', budget: 150, color: '#FFEAA7' }
+    { category: 'Fast Food', budget: 300, color: '#8B5CF6' },
+    { category: 'Groceries', budget: 400, color: '#10B981' },
+    { category: 'Shopping', budget: 500, color: '#EC4899' },
+    { category: 'Gas', budget: 200, color: '#F59E0B' },
+    { category: 'Entertainment', budget: 150, color: '#3B82F6' }
   ].map(b => ({
     ...b, spent: categorySpending[b.category] || 0,
     percent: Math.min(100, ((categorySpending[b.category] || 0) / b.budget) * 100)
@@ -2345,6 +2348,8 @@ function DashboardHome({ transactions, goals, bills = [], theme, lastImportDate 
   const savingsRate = activeTotals.income > 0 ? ((activeTotals.net) / activeTotals.income) * 100 : 0;
   const budgetAdherence = totalBudget > 0 ? Math.max(0, 100 - ((totalSpentOnBudgeted - totalBudget) / totalBudget) * 100) : 100;
   const healthScore = Math.round(Math.min(100, Math.max(0, (savingsRate * 0.5 + budgetAdherence * 0.5))));
+  const healthyTasks = Math.round((healthScore / 100) * 50000);
+  const progressTasks = 50000 - healthyTasks;
 
   const recentTransactions = [...activeTransactions].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 5);
 
@@ -2361,200 +2366,123 @@ function DashboardHome({ transactions, goals, bills = [], theme, lastImportDate 
     { name: 'New Car', targetAmount: 15000, currentAmount: 2800, icon: '🚗', color: '#8B5CF6' }
   ];
 
-  // Mini Sparkline Chart Component for stat cards
-  const Sparkline = ({ data, color, height = 40, width = 80 }) => {
+  // Sparkline Chart Component (like OrbitNest)
+  const Sparkline = ({ data, color, height = 45, width = 80, trend = 'up' }) => {
     if (!data || data.length === 0) return null;
     const max = Math.max(...data, 1);
     const min = Math.min(...data, 0);
     const range = max - min || 1;
+    
+    // Create smooth wave-like pattern
     const points = data.map((val, i) => {
       const x = (i / (data.length - 1)) * width;
-      const y = height - ((val - min) / range) * (height - 10) - 5;
-      return `${x},${y}`;
-    }).join(' ');
+      const y = height - ((val - min) / range) * (height - 8) - 4;
+      return { x, y };
+    });
+    
+    // Create smooth curve path
+    const pathD = points.reduce((acc, point, i) => {
+      if (i === 0) return `M ${point.x} ${point.y}`;
+      const prev = points[i - 1];
+      const cp1x = prev.x + (point.x - prev.x) / 3;
+      const cp2x = prev.x + 2 * (point.x - prev.x) / 3;
+      return `${acc} C ${cp1x} ${prev.y}, ${cp2x} ${point.y}, ${point.x} ${point.y}`;
+    }, '');
     
     return (
       <svg width={width} height={height} style={{ overflow: 'visible' }}>
-        <defs>
-          <linearGradient id={`sparkGrad-${color.replace('#', '')}`} x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stopColor={color} stopOpacity="0.3" />
-            <stop offset="100%" stopColor={color} stopOpacity="0" />
-          </linearGradient>
-        </defs>
-        <polyline
-          points={points}
-          fill="none"
-          stroke={color}
-          strokeWidth="2.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-        {/* Area fill */}
-        <polygon
-          points={`0,${height} ${points} ${width},${height}`}
-          fill={`url(#sparkGrad-${color.replace('#', '')})`}
-        />
-        {/* End dot */}
-        <circle
-          cx={width}
-          cy={parseFloat(points.split(' ').pop().split(',')[1])}
-          r="4"
-          fill={color}
-        />
+        <path d={pathD} fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" />
       </svg>
     );
   };
 
-  // Modern Donut Chart with hover effects
-  const DonutChart = ({ data, size = 180 }) => {
-    const total = data.reduce((sum, [_, val]) => sum + val, 0);
-    let currentAngle = -90;
-    const radius = size / 2 - 25;
-    const innerRadius = radius * 0.65;
-    const center = size / 2;
-    
-    return (
-      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-        <defs>
-          {data.map(([category], i) => (
-            <filter key={`shadow-${i}`} id={`shadow-${i}`}>
-              <feDropShadow dx="0" dy="2" stdDeviation="3" floodColor={categoryColors[category] || '#95A5A6'} floodOpacity="0.3"/>
-            </filter>
-          ))}
-        </defs>
-        {data.map(([category, value], i) => {
-          const angle = (value / total) * 360;
-          const startAngle = currentAngle;
-          const endAngle = currentAngle + angle - 2; // Gap between segments
-          currentAngle += angle;
-          
-          const startRad = (startAngle * Math.PI) / 180;
-          const endRad = (endAngle * Math.PI) / 180;
-          
-          const x1 = center + radius * Math.cos(startRad);
-          const y1 = center + radius * Math.sin(startRad);
-          const x2 = center + radius * Math.cos(endRad);
-          const y2 = center + radius * Math.sin(endRad);
-          const ix1 = center + innerRadius * Math.cos(startRad);
-          const iy1 = center + innerRadius * Math.sin(startRad);
-          const ix2 = center + innerRadius * Math.cos(endRad);
-          const iy2 = center + innerRadius * Math.sin(endRad);
-          
-          const largeArc = angle > 180 ? 1 : 0;
-          
-          return (
-            <path
-              key={category}
-              d={`M ${x1} ${y1} A ${radius} ${radius} 0 ${largeArc} 1 ${x2} ${y2} L ${ix2} ${iy2} A ${innerRadius} ${innerRadius} 0 ${largeArc} 0 ${ix1} ${iy1} Z`}
-              fill={categoryColors[category] || '#95A5A6'}
-              style={{ transition: 'all 0.3s ease', cursor: 'pointer' }}
-              filter={`url(#shadow-${i})`}
-            />
-          );
-        })}
-        <circle cx={center} cy={center} r={innerRadius - 5} fill={theme.bgCard} />
-        <text x={center} y={center - 10} textAnchor="middle" fill={theme.textPrimary} fontSize="22" fontWeight="700">
-          {formatCurrency(total).replace('$', '')}
-        </text>
-        <text x={center} y={center + 8} textAnchor="middle" fill={theme.textMuted} fontSize="11">Total Spent</text>
-      </svg>
-    );
-  };
-
-  // Modern Line Chart with gradient fill and smooth curves
-  const LineChart = ({ data, height = 220 }) => {
-    const padding = { top: 20, right: 20, bottom: 40, left: 20 };
-    const chartWidth = 500;
+  // Modern Line Chart with smooth curves (like Image 2)
+  const LineChart = ({ data, height = 260 }) => {
+    const padding = { top: 30, right: 30, bottom: 50, left: 50 };
+    const chartWidth = 600;
     const chartHeight = height - padding.top - padding.bottom;
     
     const maxVal = Math.max(...data.map(d => Math.max(d.income, d.expenses)), 1);
-    const scaleY = (val) => chartHeight - (val / maxVal) * chartHeight + padding.top;
+    const scaleY = (val) => padding.top + chartHeight - (val / maxVal) * chartHeight;
     const scaleX = (i) => padding.left + (i / (data.length - 1)) * (chartWidth - padding.left - padding.right);
 
-    const createPath = (key) => {
-      return data.map((d, i) => {
-        const x = scaleX(i);
-        const y = scaleY(d[key]);
-        return i === 0 ? `M ${x} ${y}` : `L ${x} ${y}`;
-      }).join(' ');
+    const createSmoothPath = (key) => {
+      const points = data.map((d, i) => ({ x: scaleX(i), y: scaleY(d[key]) }));
+      return points.reduce((acc, point, i) => {
+        if (i === 0) return `M ${point.x} ${point.y}`;
+        const prev = points[i - 1];
+        const cp1x = prev.x + (point.x - prev.x) / 2;
+        const cp2x = prev.x + (point.x - prev.x) / 2;
+        return `${acc} C ${cp1x} ${prev.y}, ${cp2x} ${point.y}, ${point.x} ${point.y}`;
+      }, '');
     };
 
-    const createAreaPath = (key) => {
-      const linePath = data.map((d, i) => {
-        const x = scaleX(i);
-        const y = scaleY(d[key]);
-        return `${x},${y}`;
-      }).join(' ');
-      return `M ${scaleX(0)},${height - padding.bottom} L ${linePath} L ${scaleX(data.length - 1)},${height - padding.bottom} Z`;
-    };
+    const yTicks = [0, 25, 50, 75, maxVal > 0 ? maxVal : 100];
     
     return (
       <svg width="100%" height={height} viewBox={`0 0 ${chartWidth} ${height}`} preserveAspectRatio="xMidYMid meet">
         <defs>
-          <linearGradient id="incomeGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stopColor="#10B981" stopOpacity="0.3" />
-            <stop offset="100%" stopColor="#10B981" stopOpacity="0.02" />
+          <linearGradient id="incomeAreaGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="#06B6D4" stopOpacity="0.15" />
+            <stop offset="100%" stopColor="#06B6D4" stopOpacity="0.02" />
           </linearGradient>
-          <linearGradient id="expenseGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stopColor="#EF4444" stopOpacity="0.2" />
-            <stop offset="100%" stopColor="#EF4444" stopOpacity="0.02" />
+          <linearGradient id="expenseAreaGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="#8B5CF6" stopOpacity="0.15" />
+            <stop offset="100%" stopColor="#8B5CF6" stopOpacity="0.02" />
           </linearGradient>
-          <filter id="lineShadow">
-            <feDropShadow dx="0" dy="4" stdDeviation="4" floodOpacity="0.2"/>
-          </filter>
         </defs>
         
-        {/* Grid lines */}
-        {[0, 0.25, 0.5, 0.75, 1].map((p, i) => (
-          <line key={i} x1={padding.left} y1={padding.top + chartHeight * p} x2={chartWidth - padding.right} y2={padding.top + chartHeight * p}
-            stroke={theme.borderLight} strokeWidth="1" strokeDasharray="4,4" opacity="0.5" />
+        {/* Y-axis labels */}
+        {yTicks.map((tick, i) => (
+          <g key={i}>
+            <text x={padding.left - 10} y={scaleY(tick)} textAnchor="end" fill={theme.textMuted} fontSize="11" dominantBaseline="middle">
+              {tick > 0 ? (tick / 1000).toFixed(0) + 'k' : '0'}
+            </text>
+            <line x1={padding.left} y1={scaleY(tick)} x2={chartWidth - padding.right} y2={scaleY(tick)}
+              stroke={theme.borderLight} strokeWidth="1" opacity="0.5" />
+          </g>
         ))}
         
         {/* Area fills */}
-        <path d={createAreaPath('income')} fill="url(#incomeGrad)" />
-        <path d={createAreaPath('expenses')} fill="url(#expenseGrad)" />
+        <path d={`${createSmoothPath('income')} L ${scaleX(data.length - 1)} ${height - padding.bottom} L ${padding.left} ${height - padding.bottom} Z`} fill="url(#incomeAreaGrad)" />
+        <path d={`${createSmoothPath('expenses')} L ${scaleX(data.length - 1)} ${height - padding.bottom} L ${padding.left} ${height - padding.bottom} Z`} fill="url(#expenseAreaGrad)" />
         
         {/* Lines */}
-        <path d={createPath('income')} fill="none" stroke="#10B981" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" filter="url(#lineShadow)" />
-        <path d={createPath('expenses')} fill="none" stroke="#EF4444" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" filter="url(#lineShadow)" />
+        <path d={createSmoothPath('expenses')} fill="none" stroke="#8B5CF6" strokeWidth="3" strokeLinecap="round" />
+        <path d={createSmoothPath('income')} fill="none" stroke="#06B6D4" strokeWidth="3" strokeLinecap="round" />
         
         {/* Data points */}
         {data.map((d, i) => (
           <g key={i}>
-            <circle cx={scaleX(i)} cy={scaleY(d.income)} r="5" fill="#10B981" stroke="white" strokeWidth="2" />
-            <circle cx={scaleX(i)} cy={scaleY(d.expenses)} r="5" fill="#EF4444" stroke="white" strokeWidth="2" />
-            <text x={scaleX(i)} y={height - 15} textAnchor="middle" fill={theme.textMuted} fontSize="11" fontWeight="500">{d.month}</text>
+            <circle cx={scaleX(i)} cy={scaleY(d.income)} r="5" fill="#06B6D4" stroke="white" strokeWidth="2" />
+            <circle cx={scaleX(i)} cy={scaleY(d.expenses)} r="5" fill="#8B5CF6" stroke="white" strokeWidth="2" />
+            <text x={scaleX(i)} y={height - 20} textAnchor="middle" fill={theme.textMuted} fontSize="12" fontWeight="500">{d.month}</text>
           </g>
         ))}
       </svg>
     );
   };
 
-  // Gauge-style Health Score (Semicircle)
-  const HealthScoreGauge = ({ score, size = 180 }) => {
-    const strokeWidth = 14;
+  // Progress Semicircle Gauge (like Image 3)
+  const ProgressGauge = ({ score, size = 200 }) => {
+    const strokeWidth = 20;
     const radius = (size - strokeWidth) / 2 - 10;
-    const circumference = Math.PI * radius; // Semicircle
+    const circumference = Math.PI * radius;
     const progress = (score / 100) * circumference;
-    const color = score >= 70 ? '#10B981' : score >= 40 ? '#F59E0B' : '#EF4444';
-    const gradientId = `healthGrad-${score}`;
     
     return (
-      <svg width={size} height={size * 0.7} viewBox={`0 0 ${size} ${size * 0.7}`}>
+      <svg width={size} height={size * 0.65} viewBox={`0 0 ${size} ${size * 0.65}`}>
         <defs>
-          <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="#EF4444" />
-            <stop offset="50%" stopColor="#F59E0B" />
-            <stop offset="100%" stopColor="#10B981" />
+          <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="#8B5CF6" />
+            <stop offset="50%" stopColor="#3B82F6" />
+            <stop offset="100%" stopColor="#06B6D4" />
           </linearGradient>
-          <filter id="gaugeShadow">
-            <feDropShadow dx="0" dy="4" stdDeviation="6" floodColor={color} floodOpacity="0.4"/>
-          </filter>
         </defs>
         
         {/* Background arc */}
         <path
-          d={`M ${strokeWidth + 10} ${size * 0.6} A ${radius} ${radius} 0 0 1 ${size - strokeWidth - 10} ${size * 0.6}`}
+          d={`M ${strokeWidth + 10} ${size * 0.55} A ${radius} ${radius} 0 0 1 ${size - strokeWidth - 10} ${size * 0.55}`}
           fill="none"
           stroke={theme.borderLight}
           strokeWidth={strokeWidth}
@@ -2563,47 +2491,96 @@ function DashboardHome({ transactions, goals, bills = [], theme, lastImportDate 
         
         {/* Progress arc */}
         <path
-          d={`M ${strokeWidth + 10} ${size * 0.6} A ${radius} ${radius} 0 0 1 ${size - strokeWidth - 10} ${size * 0.6}`}
+          d={`M ${strokeWidth + 10} ${size * 0.55} A ${radius} ${radius} 0 0 1 ${size - strokeWidth - 10} ${size * 0.55}`}
           fill="none"
-          stroke={`url(#${gradientId})`}
+          stroke="url(#progressGradient)"
           strokeWidth={strokeWidth}
           strokeLinecap="round"
           strokeDasharray={circumference}
           strokeDashoffset={circumference - progress}
-          filter="url(#gaugeShadow)"
           style={{ transition: 'stroke-dashoffset 1s ease-out' }}
         />
         
-        {/* Score needle indicator */}
-        <circle
-          cx={size / 2 + (radius - 5) * Math.cos(Math.PI - (score / 100) * Math.PI)}
-          cy={size * 0.6 - (radius - 5) * Math.sin((score / 100) * Math.PI)}
-          r="8"
-          fill={color}
-          stroke="white"
-          strokeWidth="3"
-        />
-        
-        {/* Score text */}
-        <text x={size / 2} y={size * 0.45} textAnchor="middle" fill={theme.textPrimary} fontSize="36" fontWeight="700">
-          {score}
-        </text>
-        <text x={size / 2} y={size * 0.58} textAnchor="middle" fill={theme.textMuted} fontSize="12" fontWeight="500">
-          out of 100
-        </text>
-        
-        {/* Labels */}
-        <text x={20} y={size * 0.68} textAnchor="start" fill="#EF4444" fontSize="10" fontWeight="600">Poor</text>
-        <text x={size / 2} y={size * 0.12} textAnchor="middle" fill="#F59E0B" fontSize="10" fontWeight="600">Good</text>
-        <text x={size - 20} y={size * 0.68} textAnchor="end" fill="#10B981" fontSize="10" fontWeight="600">Excellent</text>
+        {/* Center icon */}
+        <circle cx={size / 2} cy={size * 0.38} r="20" fill={theme.bgCard} stroke={theme.borderLight} strokeWidth="2" />
+        <text x={size / 2} y={size * 0.42} textAnchor="middle" fontSize="16" fill={theme.textMuted}>📍</text>
       </svg>
     );
   };
 
-  // Generate sparkline data from monthly data
-  const incomeSparkData = monthlyData.map(m => m.income);
-  const expenseSparkData = monthlyData.map(m => m.expenses);
-  const netSparkData = monthlyData.map(m => m.income - m.expenses);
+  // Bar Chart for Budget (like Image 4)
+  const BarChart = ({ data, height = 240 }) => {
+    const padding = { top: 20, right: 20, bottom: 50, left: 60 };
+    const chartWidth = 500;
+    const chartHeight = height - padding.top - padding.bottom;
+    const barWidth = 24;
+    const groupWidth = barWidth * 2 + 8;
+    const maxVal = Math.max(...data.map(d => Math.max(d.income, d.expenses)), 1);
+    
+    const yTicks = [200, 400, 600, 800, 1000].filter(t => t <= maxVal * 1.2 / 1000);
+    
+    return (
+      <svg width="100%" height={height} viewBox={`0 0 ${chartWidth} ${height}`} preserveAspectRatio="xMidYMid meet">
+        {/* Y-axis labels and grid */}
+        {yTicks.map((tick, i) => {
+          const y = padding.top + chartHeight - (tick * 1000 / maxVal) * chartHeight;
+          return (
+            <g key={i}>
+              <text x={padding.left - 10} y={y} textAnchor="end" fill={theme.textMuted} fontSize="11" dominantBaseline="middle">
+                {tick}k
+              </text>
+              <line x1={padding.left} y1={y} x2={chartWidth - padding.right} y2={y}
+                stroke={theme.borderLight} strokeWidth="1" opacity="0.3" />
+            </g>
+          );
+        })}
+        
+        {/* Bars */}
+        {data.map((d, i) => {
+          const x = padding.left + 20 + i * ((chartWidth - padding.left - padding.right - 40) / (data.length - 1)) - groupWidth / 2;
+          const incomeHeight = (d.income / maxVal) * chartHeight;
+          const expenseHeight = (d.expenses / maxVal) * chartHeight;
+          
+          return (
+            <g key={i}>
+              {/* Income bar (darker) */}
+              <rect
+                x={x}
+                y={padding.top + chartHeight - incomeHeight}
+                width={barWidth}
+                height={incomeHeight}
+                fill="#6366F1"
+                rx="4"
+              />
+              {/* Expense bar (lighter) */}
+              <rect
+                x={x + barWidth + 4}
+                y={padding.top + chartHeight - expenseHeight}
+                width={barWidth}
+                height={expenseHeight}
+                fill="#C7D2FE"
+                rx="4"
+              />
+              {/* Month label */}
+              <text x={x + groupWidth / 2} y={height - 20} textAnchor="middle" fill={theme.textMuted} fontSize="12">
+                {d.month}
+              </text>
+            </g>
+          );
+        })}
+      </svg>
+    );
+  };
+
+  // Spending Category Cards (like Image 5)
+  const spendingCards = sortedCategories.slice(0, 4).map(([cat, val]) => {
+    const budget = budgets.find(b => b.category === cat)?.budget || val * 1.5;
+    const percent = Math.min(100, (val / budget) * 100);
+    const colors = ['#8B5CF6', '#10B981', '#F59E0B', '#06B6D4'];
+    const bgColors = ['#7C3AED', '#059669', '#D97706', '#0891B2'];
+    const idx = sortedCategories.findIndex(([c]) => c === cat);
+    return { category: cat, spent: val, budget, percent, color: colors[idx % 4], bgColor: bgColors[idx % 4] };
+  });
 
   return (
     <div style={{ maxWidth: '1400px' }}>
@@ -2616,14 +2593,7 @@ function DashboardHome({ transactions, goals, bills = [], theme, lastImportDate 
               {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
             </p>
             {lastImportDate && (
-              <div style={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                gap: '6px',
-                padding: '4px 10px',
-                background: '#10B98115',
-                borderRadius: '8px'
-              }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '4px 10px', background: '#10B98115', borderRadius: '8px' }}>
                 <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10B981' }} />
                 <span style={{ fontSize: '12px', color: '#10B981', fontWeight: '500' }}>
                   Last import: {new Date(lastImportDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
@@ -2644,141 +2614,435 @@ function DashboardHome({ transactions, goals, bills = [], theme, lastImportDate 
         </div>
       </div>
 
-      {/* Top Stats Row with Sparklines */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '24px' }}>
-        {/* Income Card */}
-        <div style={{ background: theme.bgCard, borderRadius: '20px', padding: '20px', boxShadow: theme.cardShadow, border: `1px solid ${theme.borderLight}`, position: 'relative', overflow: 'hidden' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+      {/* Top Stats Row - OrbitNest Style (Image 1) */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px', marginBottom: '24px' }}>
+        {/* Revenue/Income Card */}
+        <div style={{ background: theme.bgCard, borderRadius: '16px', padding: '20px', boxShadow: theme.cardShadow, border: `1px solid ${theme.borderLight}` }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+            <span style={{ fontSize: '16px' }}>💰</span>
+            <span style={{ fontSize: '14px', color: theme.textMuted, fontWeight: '500' }}>Revenue</span>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
             <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-                <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: 'linear-gradient(135deg, #10B981, #059669)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <span style={{ fontSize: '18px' }}>💰</span>
-                </div>
-                <span style={{ fontSize: '13px', color: theme.textMuted, fontWeight: '500' }}>Total Income</span>
-              </div>
-              <div style={{ fontSize: '28px', fontWeight: '700', color: theme.textPrimary, marginBottom: '6px' }}>{formatCurrency(activeTotals.income)}</div>
-              <div style={{ fontSize: '12px', color: '#10B981', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                <span>↗</span> +12.5% <span style={{ color: theme.textMuted, fontWeight: '400' }}>vs last month</span>
+              <div style={{ fontSize: '28px', fontWeight: '700', color: theme.textPrimary, marginBottom: '4px' }}>{formatCurrency(activeTotals.income)}</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '12px', color: theme.textMuted }}>From last month</span>
+                <span style={{ fontSize: '12px', color: '#10B981', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '2px' }}>
+                  <span style={{ fontSize: '10px' }}>↗</span> 25%
+                </span>
               </div>
             </div>
-            <div style={{ marginTop: '8px' }}><Sparkline data={incomeSparkData} color="#10B981" width={70} height={40} /></div>
+            <Sparkline data={monthlyData.map(m => m.income)} color="#10B981" width={70} height={40} />
           </div>
         </div>
 
-        {/* Expenses Card */}
-        <div style={{ background: theme.bgCard, borderRadius: '20px', padding: '20px', boxShadow: theme.cardShadow, border: `1px solid ${theme.borderLight}`, position: 'relative', overflow: 'hidden' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        {/* Costs/Expenses Card */}
+        <div style={{ background: theme.bgCard, borderRadius: '16px', padding: '20px', boxShadow: theme.cardShadow, border: `1px solid ${theme.borderLight}` }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+            <span style={{ fontSize: '16px' }}>💳</span>
+            <span style={{ fontSize: '14px', color: theme.textMuted, fontWeight: '500' }}>Costs</span>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
             <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-                <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: 'linear-gradient(135deg, #EF4444, #DC2626)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <span style={{ fontSize: '18px' }}>💳</span>
-                </div>
-                <span style={{ fontSize: '13px', color: theme.textMuted, fontWeight: '500' }}>Total Expenses</span>
-              </div>
-              <div style={{ fontSize: '28px', fontWeight: '700', color: theme.textPrimary, marginBottom: '6px' }}>{formatCurrency(activeTotals.expenses)}</div>
-              <div style={{ fontSize: '12px', color: '#EF4444', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                <span>↘</span> -3.2% <span style={{ color: theme.textMuted, fontWeight: '400' }}>vs last month</span>
+              <div style={{ fontSize: '28px', fontWeight: '700', color: theme.textPrimary, marginBottom: '4px' }}>{formatCurrency(activeTotals.expenses)}</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '12px', color: theme.textMuted }}>From last month</span>
+                <span style={{ fontSize: '12px', color: '#EF4444', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '2px' }}>
+                  <span style={{ fontSize: '10px' }}>↘</span> 5%
+                </span>
               </div>
             </div>
-            <div style={{ marginTop: '8px' }}><Sparkline data={expenseSparkData} color="#EF4444" width={70} height={40} /></div>
+            <Sparkline data={monthlyData.map(m => m.expenses)} color="#EF4444" width={70} height={40} />
           </div>
         </div>
 
-        {/* Net Cash Flow Card */}
-        <div style={{ background: theme.bgCard, borderRadius: '20px', padding: '20px', boxShadow: theme.cardShadow, border: `1px solid ${theme.borderLight}`, position: 'relative', overflow: 'hidden' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        {/* Profits/Net Card */}
+        <div style={{ background: theme.bgCard, borderRadius: '16px', padding: '20px', boxShadow: theme.cardShadow, border: `1px solid ${theme.borderLight}` }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+            <span style={{ fontSize: '16px' }}>📊</span>
+            <span style={{ fontSize: '14px', color: theme.textMuted, fontWeight: '500' }}>Profits</span>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
             <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-                <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: activeTotals.net >= 0 ? 'linear-gradient(135deg, #3B82F6, #2563EB)' : 'linear-gradient(135deg, #F59E0B, #D97706)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <span style={{ fontSize: '18px' }}>📈</span>
-                </div>
-                <span style={{ fontSize: '13px', color: theme.textMuted, fontWeight: '500' }}>Net Cash Flow</span>
-              </div>
-              <div style={{ fontSize: '28px', fontWeight: '700', color: activeTotals.net >= 0 ? '#3B82F6' : '#F59E0B', marginBottom: '6px' }}>{activeTotals.net >= 0 ? '+' : ''}{formatCurrency(activeTotals.net)}</div>
-              <div style={{ fontSize: '12px', color: theme.textSecondary, fontWeight: '500' }}>
-                Savings Rate: <span style={{ color: activeTotals.net >= 0 ? '#10B981' : '#EF4444' }}>{savingsRate.toFixed(1)}%</span>
+              <div style={{ fontSize: '28px', fontWeight: '700', color: theme.textPrimary, marginBottom: '4px' }}>{formatCurrency(Math.abs(activeTotals.net))}</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '12px', color: theme.textMuted }}>From last month</span>
+                <span style={{ fontSize: '12px', color: activeTotals.net >= 0 ? '#10B981' : '#EF4444', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '2px' }}>
+                  <span style={{ fontSize: '10px' }}>{activeTotals.net >= 0 ? '↗' : '↘'}</span> 15%
+                </span>
               </div>
             </div>
-            <div style={{ marginTop: '8px' }}><Sparkline data={netSparkData} color={activeTotals.net >= 0 ? '#3B82F6' : '#F59E0B'} width={70} height={40} /></div>
+            <Sparkline data={monthlyData.map(m => m.income - m.expenses)} color={activeTotals.net >= 0 ? '#10B981' : '#EF4444'} width={70} height={40} />
           </div>
         </div>
 
-        {/* Free to Spend Card */}
-        <div style={{ background: 'linear-gradient(135deg, #8B5CF6, #7C3AED)', borderRadius: '20px', padding: '20px', color: 'white', position: 'relative', overflow: 'hidden' }}>
-          <div style={{ position: 'absolute', right: '-30px', top: '-30px', width: '120px', height: '120px', borderRadius: '50%', background: 'rgba(255,255,255,0.1)' }} />
-          <div style={{ position: 'absolute', right: '20px', bottom: '-40px', width: '80px', height: '80px', borderRadius: '50%', background: 'rgba(255,255,255,0.05)' }} />
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-            <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <span style={{ fontSize: '18px' }}>✨</span>
-            </div>
-            <span style={{ fontSize: '13px', opacity: 0.9, fontWeight: '500' }}>Free to Spend</span>
+        {/* Shipments/Transactions Card */}
+        <div style={{ background: theme.bgCard, borderRadius: '16px', padding: '20px', boxShadow: theme.cardShadow, border: `1px solid ${theme.borderLight}` }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+            <span style={{ fontSize: '16px' }}>📦</span>
+            <span style={{ fontSize: '14px', color: theme.textMuted, fontWeight: '500' }}>Transactions</span>
           </div>
-          <div style={{ fontSize: '32px', fontWeight: '700', marginBottom: '8px', position: 'relative', zIndex: 1 }}>{formatCurrency(freeToSpend)}</div>
-          <div style={{ fontSize: '12px', opacity: 0.85, display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ background: 'rgba(255,255,255,0.2)', padding: '3px 10px', borderRadius: '12px' }}>This month remaining</span>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+            <div>
+              <div style={{ fontSize: '28px', fontWeight: '700', color: theme.textPrimary, marginBottom: '4px' }}>{transactions.length.toLocaleString()}</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '12px', color: theme.textMuted }}>From last month</span>
+                <span style={{ fontSize: '12px', color: '#EF4444', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '2px' }}>
+                  <span style={{ fontSize: '10px' }}>↘</span> 10%
+                </span>
+              </div>
+            </div>
+            {/* Mini bar chart for transactions */}
+            <div style={{ display: 'flex', alignItems: 'flex-end', gap: '3px', height: '40px' }}>
+              {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day, i) => (
+                <div key={i} style={{
+                  width: '8px',
+                  height: `${15 + Math.random() * 25}px`,
+                  background: i === 3 ? '#6366F1' : '#E0E7FF',
+                  borderRadius: '2px'
+                }} />
+              ))}
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Chart Row */}
+      {/* Chart Row - Line Chart + Health Gauge */}
       <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '24px', marginBottom: '24px' }}>
-        <div style={{ background: theme.bgCard, borderRadius: '20px', padding: '24px', boxShadow: theme.cardShadow, border: `1px solid ${theme.borderLight}` }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-            <div>
-              <h3 style={{ fontSize: '16px', fontWeight: '600', color: theme.textPrimary, margin: 0 }}>Income vs Expenses</h3>
-              <p style={{ fontSize: '13px', color: theme.textMuted, margin: '4px 0 0' }}>Last 6 months trend analysis</p>
-            </div>
-            <div style={{ display: 'flex', gap: '16px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><div style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#10B981' }} /><span style={{ fontSize: '12px', color: theme.textMuted }}>Income</span></div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><div style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#EF4444' }} /><span style={{ fontSize: '12px', color: theme.textMuted }}>Expenses</span></div>
+        {/* Yearly Order Rate / Income vs Expenses (Image 2) */}
+        <div style={{ background: theme.bgCard, borderRadius: '16px', padding: '24px', boxShadow: theme.cardShadow, border: `1px solid ${theme.borderLight}` }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+            <h3 style={{ fontSize: '16px', fontWeight: '600', color: theme.textPrimary, margin: 0 }}>Yearly Order Rate</h3>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#06B6D4' }} />
+                <span style={{ fontSize: '13px', color: theme.textMuted }}>Week</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#8B5CF6' }} />
+                <span style={{ fontSize: '13px', color: theme.textMuted }}>Month</span>
+              </div>
+              <select 
+                value={selectedYear} 
+                onChange={(e) => setSelectedYear(e.target.value)}
+                style={{ 
+                  padding: '6px 12px', 
+                  borderRadius: '8px', 
+                  border: `1px solid ${theme.borderLight}`, 
+                  background: theme.bgMain,
+                  fontSize: '13px',
+                  color: theme.textPrimary,
+                  cursor: 'pointer'
+                }}
+              >
+                <option>2025</option>
+                <option>2024</option>
+                <option>2023</option>
+              </select>
             </div>
           </div>
-          <LineChart data={monthlyData} height={240} />
+          <LineChart data={monthlyData} height={260} />
         </div>
-        <div style={{ background: theme.bgCard, borderRadius: '20px', padding: '24px', boxShadow: theme.cardShadow, border: `1px solid ${theme.borderLight}`, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-          <h3 style={{ fontSize: '16px', fontWeight: '600', color: theme.textPrimary, marginBottom: '16px' }}>Financial Health</h3>
-          <HealthScoreGauge score={healthScore} size={200} />
-          <div style={{ marginTop: '12px', textAlign: 'center' }}>
-            <span style={{ padding: '8px 20px', borderRadius: '25px', fontSize: '14px', fontWeight: '600', background: healthScore >= 70 ? 'linear-gradient(135deg, #D1FAE5, #A7F3D0)' : healthScore >= 40 ? 'linear-gradient(135deg, #FEF3C7, #FDE68A)' : 'linear-gradient(135deg, #FEE2E2, #FECACA)', color: healthScore >= 70 ? '#059669' : healthScore >= 40 ? '#D97706' : '#DC2626', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
-              {healthScore >= 70 ? '🌟 Excellent' : healthScore >= 40 ? '👍 Good' : '⚠️ Needs Attention'}
-            </span>
+
+        {/* Financial Health / Progress Gauge (Image 3) */}
+        <div style={{ background: theme.bgCard, borderRadius: '16px', padding: '24px', boxShadow: theme.cardShadow, border: `1px solid ${theme.borderLight}` }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+            <h3 style={{ fontSize: '16px', fontWeight: '600', color: theme.textPrimary, margin: 0 }}>Progress</h3>
+            <button style={{ background: 'none', border: 'none', color: theme.textMuted, cursor: 'pointer', fontSize: '18px' }}>⋮</button>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px' }}>
+            <ProgressGauge score={healthScore} size={200} />
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-around', padding: '0 20px' }}>
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px', justifyContent: 'center' }}>
+                <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#3B82F6' }} />
+                <span style={{ fontSize: '12px', color: theme.textMuted }}>Completed</span>
+              </div>
+              <div style={{ fontSize: '24px', fontWeight: '700', color: theme.textPrimary }}>{healthyTasks.toLocaleString()}</div>
+              <div style={{ fontSize: '12px', color: theme.textMuted }}>Total tasks</div>
+            </div>
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px', justifyContent: 'center' }}>
+                <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#06B6D4' }} />
+                <span style={{ fontSize: '12px', color: theme.textMuted }}>In Progress</span>
+              </div>
+              <div style={{ fontSize: '24px', fontWeight: '700', color: theme.textPrimary }}>{progressTasks.toLocaleString()}</div>
+              <div style={{ fontSize: '12px', color: theme.textMuted }}>Total tasks</div>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Spending, Budget, Goals Row */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '24px', marginBottom: '24px' }}>
-        <div style={{ background: theme.bgCard, borderRadius: '20px', padding: '24px', boxShadow: theme.cardShadow, border: `1px solid ${theme.borderLight}` }}>
-          <h3 style={{ fontSize: '16px', fontWeight: '600', color: theme.textPrimary, marginBottom: '20px' }}>Spending Breakdown</h3>
-          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px' }}><DonutChart data={sortedCategories} size={180} /></div>
-          <div style={{ display: 'grid', gap: '8px' }}>
-            {sortedCategories.slice(0, 5).map(([cat, val]) => (
-              <div key={cat} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><div style={{ width: '10px', height: '10px', borderRadius: '2px', background: categoryColors[cat] || '#95A5A6' }} /><span style={{ fontSize: '13px', color: theme.textSecondary }}>{cat}</span></div>
-                <span style={{ fontSize: '13px', fontWeight: '600', color: theme.textPrimary }}>{formatCurrency(val)}</span>
-              </div>
-            ))}
+      {/* Spending & Budget Row */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '24px' }}>
+        {/* Budget Progress - Bar Chart (Image 4) */}
+        <div style={{ background: theme.bgCard, borderRadius: '16px', padding: '24px', boxShadow: theme.cardShadow, border: `1px solid ${theme.borderLight}` }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
+            <div style={{ flex: 1, paddingRight: '20px' }}>
+              <p style={{ fontSize: '13px', color: theme.textMuted, margin: '0 0 12px', lineHeight: '1.5' }}>
+                Track your income vs expenses over the past 6 months to understand your financial trends.
+              </p>
+            </div>
+            <button style={{ 
+              display: 'flex', alignItems: 'center', gap: '6px',
+              padding: '8px 16px', background: theme.bgMain, border: `1px solid ${theme.borderLight}`,
+              borderRadius: '8px', fontSize: '13px', color: theme.textPrimary, cursor: 'pointer', fontWeight: '500'
+            }}>
+              Download Report <span>📥</span>
+            </button>
+          </div>
+          <BarChart data={monthlyData} height={220} />
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '30px', marginTop: '16px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#6366F1' }} />
+              <span style={{ fontSize: '13px', color: theme.textMuted }}>Income</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#C7D2FE' }} />
+              <span style={{ fontSize: '13px', color: theme.textMuted }}>Expenses</span>
+            </div>
           </div>
         </div>
-        <div style={{ background: theme.bgCard, borderRadius: '20px', padding: '24px', boxShadow: theme.cardShadow, border: `1px solid ${theme.borderLight}` }}>
+
+        {/* Spending Breakdown (Image 5) */}
+        <div style={{ background: theme.bgCard, borderRadius: '16px', padding: '24px', boxShadow: theme.cardShadow, border: `1px solid ${theme.borderLight}` }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-            <h3 style={{ fontSize: '16px', fontWeight: '600', color: theme.textPrimary, margin: 0 }}>Budget Progress</h3>
-            <span style={{ fontSize: '12px', color: theme.textMuted }}>This Month</span>
+            <h3 style={{ fontSize: '16px', fontWeight: '600', color: theme.textPrimary, margin: 0 }}>Spending</h3>
+            <button style={{ background: 'none', border: 'none', color: theme.textMuted, cursor: 'pointer', fontSize: '18px' }}>⋮</button>
           </div>
-          <div style={{ display: 'grid', gap: '16px' }}>
-            {budgets.map((b, i) => (
-              <div key={i}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}><span style={{ fontSize: '13px', color: theme.textSecondary }}>{b.category}</span><span style={{ fontSize: '12px', color: theme.textMuted }}>{formatCurrency(b.spent)} / {formatCurrency(b.budget)}</span></div>
-                <div style={{ height: '10px', background: theme.borderLight, borderRadius: '5px', overflow: 'hidden', boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.1)' }}><div style={{ height: '100%', width: `${b.percent}%`, background: b.percent > 90 ? 'linear-gradient(90deg, #EF4444, #DC2626)' : b.percent > 70 ? 'linear-gradient(90deg, #F59E0B, #D97706)' : `linear-gradient(90deg, ${b.color}, ${b.color}dd)`, borderRadius: '5px', transition: 'width 0.5s ease', boxShadow: `0 2px 6px ${b.percent > 90 ? 'rgba(239,68,68,0.4)' : b.percent > 70 ? 'rgba(245,158,11,0.4)' : `${b.color}40`}` }} /></div>
-              </div>
-            ))}
-          </div>
-          <div style={{ marginTop: '16px', padding: '12px', background: theme.bgMain, borderRadius: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontSize: '13px', color: theme.textSecondary }}>Total Budget Used</span>
-            <span style={{ fontSize: '15px', fontWeight: '700', color: theme.textPrimary }}>{((totalSpentOnBudgeted / totalBudget) * 100).toFixed(0)}%</span>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+            {/* Left side - List */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {spendingCards.map((item, i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <div style={{ width: '4px', height: '40px', borderRadius: '2px', background: item.color }} />
+                  <div>
+                    <div style={{ fontSize: '13px', color: theme.textMuted }}>{item.category}</div>
+                    <div style={{ fontSize: '16px', fontWeight: '600', color: theme.textPrimary }}>
+                      {formatCurrency(item.spent)} <span style={{ fontSize: '13px', color: theme.textMuted, fontWeight: '400' }}>/{formatCurrency(item.budget)}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            {/* Right side - Colored cards with circular progress */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+              {spendingCards.map((item, i) => (
+                <div key={i} style={{ 
+                  background: item.bgColor, 
+                  borderRadius: '12px', 
+                  padding: '16px', 
+                  display: 'flex', 
+                  flexDirection: 'column', 
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  minHeight: '100px'
+                }}>
+                  {/* Circular progress */}
+                  <svg width="50" height="50" viewBox="0 0 50 50">
+                    <circle cx="25" cy="25" r="20" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="4" />
+                    <circle 
+                      cx="25" cy="25" r="20" fill="none" stroke="white" strokeWidth="4"
+                      strokeDasharray={`${item.percent * 1.26} 126`}
+                      strokeLinecap="round"
+                      transform="rotate(-90 25 25)"
+                    />
+                    <text x="25" y="29" textAnchor="middle" fill="white" fontSize="12" fontWeight="600">{Math.round(item.percent)}%</text>
+                  </svg>
+                  <div style={{ fontSize: '11px', color: 'white', marginTop: '8px', textAlign: 'center', opacity: 0.9 }}>
+                    {item.category.length > 12 ? item.category.slice(0, 12) + '...' : item.category}
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
-        <div style={{ background: theme.bgCard, borderRadius: '20px', padding: '24px', boxShadow: theme.cardShadow, border: `1px solid ${theme.borderLight}` }}>
+      </div>
+
+      {/* Latest Transactions Table (Image 6) */}
+      <div style={{ background: theme.bgCard, borderRadius: '16px', padding: '24px', boxShadow: theme.cardShadow, border: `1px solid ${theme.borderLight}`, marginBottom: '24px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+          <h3 style={{ fontSize: '16px', fontWeight: '600', color: theme.textPrimary, margin: 0 }}>Latest Transactions</h3>
+          <button style={{ background: 'none', border: 'none', color: theme.textMuted, cursor: 'pointer', fontSize: '18px' }}>⋮</button>
+        </div>
+        
+        {/* Filter Row */}
+        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', gap: '16px', marginBottom: '20px' }}>
+          <div>
+            <label style={{ fontSize: '12px', color: theme.textMuted, display: 'block', marginBottom: '6px' }}>Search User</label>
+            <div style={{ position: 'relative' }}>
+              <span style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: theme.textMuted }}>🔍</span>
+              <input 
+                type="text" 
+                placeholder="Enter name"
+                value={txnSearchQuery}
+                onChange={(e) => setTxnSearchQuery(e.target.value)}
+                style={{ 
+                  width: '100%', 
+                  padding: '10px 12px 10px 36px', 
+                  border: `1px solid ${theme.borderLight}`, 
+                  borderRadius: '8px', 
+                  fontSize: '13px',
+                  background: theme.bgMain,
+                  color: theme.textPrimary,
+                  boxSizing: 'border-box'
+                }} 
+              />
+            </div>
+          </div>
+          <div>
+            <label style={{ fontSize: '12px', color: theme.textMuted, display: 'block', marginBottom: '6px' }}>Date</label>
+            <div style={{ 
+              display: 'flex', alignItems: 'center', gap: '8px',
+              padding: '10px 12px', border: `1px solid ${theme.borderLight}`, borderRadius: '8px', background: theme.bgMain
+            }}>
+              <span>📅</span>
+              <span style={{ fontSize: '13px', color: theme.textMuted }}>DD/MM/YYY</span>
+            </div>
+          </div>
+          <div>
+            <label style={{ fontSize: '12px', color: theme.textMuted, display: 'block', marginBottom: '6px' }}>Category</label>
+            <select style={{ 
+              width: '100%', padding: '10px 12px', border: `1px solid ${theme.borderLight}`, borderRadius: '8px', 
+              fontSize: '13px', background: theme.bgMain, color: theme.textMuted, cursor: 'pointer', boxSizing: 'border-box'
+            }}>
+              <option>Select</option>
+              {Object.keys(categorySpending).map(cat => <option key={cat}>{cat}</option>)}
+            </select>
+          </div>
+          <div>
+            <label style={{ fontSize: '12px', color: theme.textMuted, display: 'block', marginBottom: '6px' }}>Status</label>
+            <select 
+              value={txnStatusFilter}
+              onChange={(e) => setTxnStatusFilter(e.target.value)}
+              style={{ 
+                width: '100%', padding: '10px 12px', border: `1px solid ${theme.borderLight}`, borderRadius: '8px', 
+                fontSize: '13px', background: theme.bgMain, color: theme.textMuted, cursor: 'pointer', boxSizing: 'border-box'
+              }}
+            >
+              <option value="">Select</option>
+              <option value="Paid">Paid</option>
+              <option value="Pending">Pending</option>
+              <option value="Refunded">Refunded</option>
+            </select>
+          </div>
+        </div>
+        
+        {/* Table */}
+        {recentTransactions.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '40px', color: theme.textMuted }}>No transactions yet</div>
+        ) : (
+          <>
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr style={{ borderBottom: `1px solid ${theme.borderLight}` }}>
+                  <th style={{ padding: '12px 8px', textAlign: 'left', fontSize: '13px', fontWeight: '500', color: theme.textMuted, width: '40px' }}>
+                    <input type="checkbox" style={{ cursor: 'pointer' }} />
+                  </th>
+                  <th style={{ padding: '12px 8px', textAlign: 'left', fontSize: '13px', fontWeight: '500', color: theme.textMuted }}>
+                    Order ID <span style={{ opacity: 0.5 }}>⇅</span>
+                  </th>
+                  <th style={{ padding: '12px 8px', textAlign: 'left', fontSize: '13px', fontWeight: '500', color: theme.textMuted }}>
+                    Description <span style={{ opacity: 0.5 }}>⇅</span>
+                  </th>
+                  <th style={{ padding: '12px 8px', textAlign: 'left', fontSize: '13px', fontWeight: '500', color: theme.textMuted }}>Date</th>
+                  <th style={{ padding: '12px 8px', textAlign: 'left', fontSize: '13px', fontWeight: '500', color: theme.textMuted }}>
+                    Amount <span style={{ opacity: 0.5 }}>⇅</span>
+                  </th>
+                  <th style={{ padding: '12px 8px', textAlign: 'left', fontSize: '13px', fontWeight: '500', color: theme.textMuted }}>Status</th>
+                  <th style={{ padding: '12px 8px', textAlign: 'center', fontSize: '13px', fontWeight: '500', color: theme.textMuted, width: '40px' }}></th>
+                </tr>
+              </thead>
+              <tbody>
+                {recentTransactions.map((t, i) => {
+                  const isIncome = parseFloat(t.amount) > 0;
+                  const status = isIncome ? 'Paid' : (t.status || (i % 3 === 0 ? 'Pending' : i % 5 === 0 ? 'Refunded' : 'Paid'));
+                  const statusColors = {
+                    'Paid': { bg: '#D1FAE5', color: '#059669', dot: '#10B981' },
+                    'Pending': { bg: '#FEF3C7', color: '#D97706', dot: '#F59E0B' },
+                    'Refunded': { bg: '#FEE2E2', color: '#DC2626', dot: '#EF4444' }
+                  };
+                  const statusStyle = statusColors[status] || statusColors['Paid'];
+                  
+                  return (
+                    <tr key={i} style={{ borderBottom: `1px solid ${theme.borderLight}` }}>
+                      <td style={{ padding: '16px 8px' }}>
+                        <input type="checkbox" style={{ cursor: 'pointer' }} />
+                      </td>
+                      <td style={{ padding: '16px 8px' }}>
+                        <span style={{ color: theme.primary, fontWeight: '500', fontSize: '14px' }}>#{(2948592 + i).toString()}</span>
+                      </td>
+                      <td style={{ padding: '16px 8px', fontSize: '14px', color: theme.textPrimary }}>
+                        {t.description.slice(0, 30)}{t.description.length > 30 ? '...' : ''}
+                      </td>
+                      <td style={{ padding: '16px 8px', fontSize: '14px', color: theme.textMuted }}>{t.date}</td>
+                      <td style={{ padding: '16px 8px', fontSize: '14px', fontWeight: '500', color: theme.textPrimary }}>
+                        {formatCurrency(Math.abs(parseFloat(t.amount)))}
+                      </td>
+                      <td style={{ padding: '16px 8px' }}>
+                        <span style={{ 
+                          display: 'inline-flex', alignItems: 'center', gap: '6px',
+                          padding: '4px 12px', borderRadius: '20px', 
+                          background: statusStyle.bg, color: statusStyle.color, 
+                          fontSize: '12px', fontWeight: '500'
+                        }}>
+                          <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: statusStyle.dot }} />
+                          {status}
+                        </span>
+                      </td>
+                      <td style={{ padding: '16px 8px', textAlign: 'center' }}>
+                        <button style={{ background: 'none', border: 'none', color: theme.textMuted, cursor: 'pointer', fontSize: '16px' }}>ⓘ</button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+            
+            {/* Pagination */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '20px' }}>
+              <span style={{ fontSize: '13px', color: theme.textMuted }}>Showing {recentTransactions.length} of {transactions.length} data</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <button style={{ padding: '8px 12px', border: `1px solid ${theme.borderLight}`, borderRadius: '6px', background: theme.bgMain, color: theme.textMuted, fontSize: '13px', cursor: 'pointer' }}>Previous</button>
+                {[1, 2, 3, 4, 5, 6].map(n => (
+                  <button key={n} style={{ 
+                    width: '32px', height: '32px', border: n === 1 ? 'none' : `1px solid ${theme.borderLight}`, 
+                    borderRadius: '6px', background: n === 1 ? theme.primary : theme.bgMain, 
+                    color: n === 1 ? 'white' : theme.textMuted, fontSize: '13px', cursor: 'pointer', fontWeight: n === 1 ? '600' : '400'
+                  }}>{n}</button>
+                ))}
+                <button style={{ padding: '8px 12px', border: `1px solid ${theme.borderLight}`, borderRadius: '6px', background: theme.bgMain, color: theme.textMuted, fontSize: '13px', cursor: 'pointer' }}>Next</button>
+              </div>
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* Bills & Goals Row */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+        <div style={{ background: theme.bgCard, borderRadius: '16px', padding: '24px', boxShadow: theme.cardShadow, border: `1px solid ${theme.borderLight}` }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+            <h3 style={{ fontSize: '16px', fontWeight: '600', color: theme.textPrimary, margin: 0 }}>Upcoming Bills</h3>
+            <span style={{ padding: '4px 10px', background: '#FEE2E2', color: '#DC2626', borderRadius: '12px', fontSize: '12px', fontWeight: '600' }}>{upcomingBills.length} due soon</span>
+          </div>
+          <div style={{ display: 'grid', gap: '12px' }}>
+            {upcomingBills.map((bill, i) => {
+              const dueDate = new Date(bill.dueDate);
+              const daysUntil = Math.ceil((dueDate - new Date()) / (1000 * 60 * 60 * 24));
+              return (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px', borderRadius: '12px', background: theme.bgMain, border: daysUntil <= 3 ? '1px solid #FCA5A5' : 'none' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' }}>{bill.icon || '📄'}</div>
+                    <div><div style={{ fontSize: '14px', fontWeight: '500', color: theme.textPrimary }}>{bill.name}</div><div style={{ fontSize: '12px', color: daysUntil <= 3 ? '#DC2626' : theme.textMuted }}>{daysUntil <= 0 ? 'Due today!' : daysUntil === 1 ? 'Due tomorrow' : `Due in ${daysUntil} days`}</div></div>
+                  </div>
+                  <span style={{ fontSize: '15px', fontWeight: '700', color: theme.textPrimary }}>${bill.amount.toFixed(2)}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+        <div style={{ background: theme.bgCard, borderRadius: '16px', padding: '24px', boxShadow: theme.cardShadow, border: `1px solid ${theme.borderLight}` }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
             <h3 style={{ fontSize: '16px', fontWeight: '600', color: theme.textPrimary, margin: 0 }}>Savings Goals</h3>
             <button style={{ background: 'none', border: 'none', color: theme.primary, fontSize: '13px', cursor: 'pointer', fontWeight: '500' }}>View All →</button>
@@ -2801,55 +3065,8 @@ function DashboardHome({ transactions, goals, bills = [], theme, lastImportDate 
         </div>
       </div>
 
-      {/* Transactions & Bills Row */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '24px' }}>
-        <div style={{ background: theme.bgCard, borderRadius: '20px', padding: '24px', boxShadow: theme.cardShadow, border: `1px solid ${theme.borderLight}` }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-            <h3 style={{ fontSize: '16px', fontWeight: '600', color: theme.textPrimary, margin: 0 }}>Recent Transactions</h3>
-            <button style={{ background: 'none', border: 'none', color: theme.primary, fontSize: '13px', cursor: 'pointer', fontWeight: '500' }}>See All →</button>
-          </div>
-          {recentTransactions.length === 0 ? (<div style={{ textAlign: 'center', padding: '40px', color: theme.textMuted }}>No transactions yet</div>) : (
-            <div style={{ display: 'grid', gap: '4px' }}>
-              {recentTransactions.map((t, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px', borderRadius: '10px', background: theme.bgMain }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: parseFloat(t.amount) > 0 ? '#D1FAE5' : '#FEE2E2', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' }}>{parseFloat(t.amount) > 0 ? '↓' : '↑'}</div>
-                    <div><div style={{ fontSize: '14px', fontWeight: '500', color: theme.textPrimary }}>{t.description.slice(0, 25)}{t.description.length > 25 ? '...' : ''}</div><div style={{ fontSize: '12px', color: theme.textMuted }}>{t.date} • {t.category || 'Uncategorized'}</div></div>
-                  </div>
-                  <span style={{ fontSize: '15px', fontWeight: '600', color: parseFloat(t.amount) > 0 ? '#10B981' : '#EF4444' }}>{parseFloat(t.amount) > 0 ? '+' : ''}{formatCurrency(t.amount)}</span>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-        <div style={{ background: theme.bgCard, borderRadius: '20px', padding: '24px', boxShadow: theme.cardShadow, border: `1px solid ${theme.borderLight}` }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-            <h3 style={{ fontSize: '16px', fontWeight: '600', color: theme.textPrimary, margin: 0 }}>Upcoming Bills</h3>
-            <span style={{ padding: '4px 10px', background: '#FEE2E2', color: '#DC2626', borderRadius: '12px', fontSize: '12px', fontWeight: '600' }}>{upcomingBills.length} due soon</span>
-          </div>
-          <div style={{ display: 'grid', gap: '12px' }}>
-            {upcomingBills.map((bill, i) => {
-              const dueDate = new Date(bill.dueDate);
-              const daysUntil = Math.ceil((dueDate - new Date()) / (1000 * 60 * 60 * 24));
-              return (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px', borderRadius: '12px', background: theme.bgMain, border: daysUntil <= 3 ? '1px solid #FCA5A5' : 'none' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' }}>{bill.icon || '📄'}</div>
-                    <div><div style={{ fontSize: '14px', fontWeight: '500', color: theme.textPrimary }}>{bill.name}</div><div style={{ fontSize: '12px', color: daysUntil <= 3 ? '#DC2626' : theme.textMuted }}>{daysUntil <= 0 ? 'Due today!' : daysUntil === 1 ? 'Due tomorrow' : `Due in ${daysUntil} days`}</div></div>
-                  </div>
-                  <span style={{ fontSize: '15px', fontWeight: '700', color: theme.textPrimary }}>${bill.amount.toFixed(2)}</span>
-                </div>
-              );
-            })}
-          </div>
-          <div style={{ marginTop: '16px', padding: '14px', background: `linear-gradient(135deg, ${theme.primary}10, ${theme.primary}05)`, borderRadius: '12px', border: `1px solid ${theme.primary}20` }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}><span style={{ fontSize: '13px', color: theme.textSecondary }}>Total Due This Month</span><span style={{ fontSize: '18px', fontWeight: '700', color: theme.primary }}>${upcomingBills.reduce((sum, b) => sum + b.amount, 0).toFixed(2)}</span></div>
-          </div>
-        </div>
-      </div>
-
       {transactions.length === 0 && (
-        <div style={{ marginTop: '24px', background: theme.bgCard, borderRadius: '20px', padding: '60px', textAlign: 'center', boxShadow: theme.cardShadow, border: `1px solid ${theme.borderLight}` }}>
+        <div style={{ marginTop: '24px', background: theme.bgCard, borderRadius: '16px', padding: '60px', textAlign: 'center', boxShadow: theme.cardShadow, border: `1px solid ${theme.borderLight}` }}>
           <div style={{ width: '100px', height: '100px', borderRadius: '25px', background: `linear-gradient(135deg, ${theme.primary}15, ${theme.primary}25)`, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px', fontSize: '48px' }}>📊</div>
           <h3 style={{ fontSize: '24px', fontWeight: '600', color: theme.textPrimary, marginBottom: '12px' }}>Ready to Take Control?</h3>
           <p style={{ color: theme.textMuted, marginBottom: '8px', maxWidth: '400px', margin: '0 auto 20px', lineHeight: '1.6', fontSize: '15px' }}>Import your bank statements to unlock powerful insights, track your spending, and reach your financial goals.</p>
