@@ -10,6 +10,7 @@ import React, { useState, useEffect, useRef } from 'react';
 // 2. Web: Logo click scrolls to top (fixed)
 // 3. Web: "Most Popular" badge no longer cut off
 // 4. iPad/iPhone: Nav shows only Penny icon
+// 5. Terms & Privacy modals added (clickable)
 // ============================================
 
 const ProsperNestLandingV4 = ({ onNavigate }) => {
@@ -18,8 +19,10 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
   const [showAIChat, setShowAIChat] = useState(false);
   const [showSignupModal, setShowSignupModal] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState(null);
-  const [authMode, setAuthMode] = useState('signup'); // 'signup' or 'signin'
+  const [authMode, setAuthMode] = useState('signup');
   const [modalBillingCycle, setModalBillingCycle] = useState('annual');
+  const [showTermsModal, setShowTermsModal] = useState(false);
+  const [showPrivacyModal, setShowPrivacyModal] = useState(false);
   const [chatMessages, setChatMessages] = useState([
     { role: 'assistant', content: "Hi there! 👋 I'm Penny, your ProsperNest assistant. How can I help you today?" }
   ]);
@@ -33,7 +36,6 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
   const hubAnimationRef = useRef(null);
   const IDLE_TIMEOUT = 5 * 60 * 1000;
 
-  // Signup form state
   const [signupForm, setSignupForm] = useState({
     firstName: '',
     lastName: '',
@@ -44,27 +46,23 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
   });
   const [addressSuggestions, setAddressSuggestions] = useState([]);
   
-  // Onboarding flow state
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [onboardingStep, setOnboardingStep] = useState(0);
   const [onboardingData, setOnboardingData] = useState({
-    motivations: [], // Changed to array for multi-select
+    motivations: [],
     startWith: [],
     invitedMembers: ['', '', '', '', ''],
     pennyEnabled: true
   });
   
-  // Admin login state
   const [isAdmin, setIsAdmin] = useState(false);
   const ADMIN_EMAIL = 'admin@prospernest.app';
   const ADMIN_PASSWORD = 'ProsperAdmin2025!';
   
-  // Signin form state
   const [signinEmail, setSigninEmail] = useState('');
   const [signinPassword, setSigninPassword] = useState('');
   const [signinError, setSigninError] = useState('');
 
-  // Apple iOS 26 Color Palette
   const colors = {
     blue: '#007AFF',
     green: '#34C759',
@@ -84,19 +82,16 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
     secondary: '#3C3C43',
   };
 
-  // Track window width for responsive behavior
   useEffect(() => {
     const handleResize = () => setWindowWidth(window.innerWidth);
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Responsive breakpoints
   const isMobile = windowWidth <= 768;
   const isTablet = windowWidth <= 1024 && windowWidth > 768;
   const isTabletOrMobile = windowWidth <= 1024;
 
-  // Hub animation - lights up left to right
   useEffect(() => {
     hubAnimationRef.current = setInterval(() => {
       setActiveHubIndex(prev => (prev + 1) % 3);
@@ -104,7 +99,6 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
     return () => clearInterval(hubAnimationRef.current);
   }, []);
 
-  // Idle Detection
   useEffect(() => {
     const resetIdleTimer = () => {
       if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
@@ -167,7 +161,6 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
     }, 1000);
   };
 
-  // FIXED: Scroll to top function - now works reliably
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
     setMobileMenuOpen(false);
@@ -200,7 +193,6 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
 
   const handleAddressChange = (value) => {
     setSignupForm(prev => ({ ...prev, address: value }));
-    // Simulate Google Places autocomplete
     if (value.length > 3) {
       const mockSuggestions = [
         `${value}, Atlanta, GA 30301`,
@@ -219,7 +211,6 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
     setAddressSuggestions([]);
   };
 
-  // Pricing calculation - UPDATED PRICES
   const getPricing = (plan) => {
     const prices = {
       starter: { monthly: 0, annual: 0 },
@@ -229,7 +220,6 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
     return prices[plan][billingCycle];
   };
 
-  // Modal pricing calculation (uses modalBillingCycle)
   const getModalPricing = (plan) => {
     const prices = {
       starter: { monthly: 0, annual: 0 },
@@ -239,7 +229,6 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
     return prices[plan][modalBillingCycle];
   };
 
-  // Penny Logo
   const PennyLogo = ({ size = 48, animate = false }) => (
     <div style={{ display: 'inline-flex', animation: animate ? 'bounce 2s ease-in-out infinite' : 'none' }}>
       <svg width={size} height={size} viewBox="0 0 64 64" fill="none">
@@ -263,7 +252,6 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
     </div>
   );
 
-  // FIXED: Logo component with working scroll to top
   const Logo = ({ size = 40, showBeta = true, showText = true }) => (
     <div 
       onClick={scrollToTop}
@@ -306,7 +294,132 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
     </div>
   );
 
-  // Device Mockups Component - LARGER VERSION
+  // Terms of Service Modal
+  const TermsModal = () => (
+    <div style={{
+      position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(10px)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10005, padding: '20px'
+    }}>
+      <div style={{
+        background: '#FFF', borderRadius: '20px', width: '100%', maxWidth: '700px',
+        maxHeight: '85vh', overflow: 'hidden', display: 'flex', flexDirection: 'column',
+        boxShadow: '0 25px 80px rgba(0,0,0,0.3)'
+      }}>
+        <div style={{
+          padding: '20px 24px', borderBottom: `1px solid ${colors.gray5}`,
+          display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+        }}>
+          <h2 style={{ fontSize: '20px', fontWeight: '700', color: colors.label, margin: 0 }}>Terms of Service</h2>
+          <button onClick={() => setShowTermsModal(false)}
+            style={{ background: colors.gray6, border: 'none', borderRadius: '50%', width: '32px', height: '32px', cursor: 'pointer', fontSize: '16px' }}>✕</button>
+        </div>
+        <div style={{ padding: '24px', overflowY: 'auto', fontSize: '14px', lineHeight: 1.7, color: colors.secondary }}>
+          <p style={{ marginBottom: '16px' }}><strong>Last Updated:</strong> December 2, 2024</p>
+          
+          <h3 style={{ fontSize: '16px', fontWeight: '600', color: colors.label, marginTop: '20px', marginBottom: '12px' }}>1. Acceptance of Terms</h3>
+          <p style={{ marginBottom: '16px' }}>By accessing or using ProsperNest ("Service"), you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use our Service.</p>
+          
+          <h3 style={{ fontSize: '16px', fontWeight: '600', color: colors.label, marginTop: '20px', marginBottom: '12px' }}>2. Description of Service</h3>
+          <p style={{ marginBottom: '16px' }}>ProsperNest provides personal finance management tools including budget tracking, expense categorization, financial goal setting, and reporting features. We provide read-only access to your connected financial accounts through secure third-party providers.</p>
+          
+          <h3 style={{ fontSize: '16px', fontWeight: '600', color: colors.label, marginTop: '20px', marginBottom: '12px' }}>3. User Accounts</h3>
+          <p style={{ marginBottom: '16px' }}>You must be at least 18 years old to use this Service. You are responsible for maintaining the confidentiality of your account credentials and for all activities under your account.</p>
+          
+          <h3 style={{ fontSize: '16px', fontWeight: '600', color: colors.label, marginTop: '20px', marginBottom: '12px' }}>4. Financial Data</h3>
+          <p style={{ marginBottom: '16px' }}>ProsperNest only has read-only access to your financial accounts. We cannot initiate transactions or transfers on your behalf. We use bank-level 256-bit encryption to protect your data.</p>
+          
+          <h3 style={{ fontSize: '16px', fontWeight: '600', color: colors.label, marginTop: '20px', marginBottom: '12px' }}>5. Not Financial Advice</h3>
+          <p style={{ marginBottom: '16px' }}>ProsperNest is a tool for organizing your finances. We do not provide financial, investment, tax, or legal advice. Consult with qualified professionals for financial guidance.</p>
+          
+          <h3 style={{ fontSize: '16px', fontWeight: '600', color: colors.label, marginTop: '20px', marginBottom: '12px' }}>6. Subscription and Billing</h3>
+          <p style={{ marginBottom: '16px' }}>Paid plans are billed monthly or annually. You may cancel at any time and continue to have access until the end of your billing period. Refunds are provided on a case-by-case basis.</p>
+          
+          <h3 style={{ fontSize: '16px', fontWeight: '600', color: colors.label, marginTop: '20px', marginBottom: '12px' }}>7. Limitation of Liability</h3>
+          <p style={{ marginBottom: '16px' }}>ProsperNest is provided "as is" without warranties of any kind. We shall not be liable for any indirect, incidental, or consequential damages arising from your use of the Service.</p>
+          
+          <h3 style={{ fontSize: '16px', fontWeight: '600', color: colors.label, marginTop: '20px', marginBottom: '12px' }}>8. Termination</h3>
+          <p style={{ marginBottom: '16px' }}>We reserve the right to suspend or terminate your account for violations of these terms. You may delete your account at any time through your account settings.</p>
+          
+          <h3 style={{ fontSize: '16px', fontWeight: '600', color: colors.label, marginTop: '20px', marginBottom: '12px' }}>9. Contact</h3>
+          <p style={{ marginBottom: '16px' }}>For questions about these Terms, contact us at legal@prospernest.io</p>
+        </div>
+        <div style={{ padding: '16px 24px', borderTop: `1px solid ${colors.gray5}` }}>
+          <button onClick={() => setShowTermsModal(false)}
+            style={{ width: '100%', padding: '14px', background: colors.blue, color: '#FFF', border: 'none', borderRadius: '12px', fontSize: '15px', fontWeight: '600', cursor: 'pointer' }}>
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
+  // Privacy Policy Modal
+  const PrivacyModal = () => (
+    <div style={{
+      position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(10px)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10005, padding: '20px'
+    }}>
+      <div style={{
+        background: '#FFF', borderRadius: '20px', width: '100%', maxWidth: '700px',
+        maxHeight: '85vh', overflow: 'hidden', display: 'flex', flexDirection: 'column',
+        boxShadow: '0 25px 80px rgba(0,0,0,0.3)'
+      }}>
+        <div style={{
+          padding: '20px 24px', borderBottom: `1px solid ${colors.gray5}`,
+          display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+        }}>
+          <h2 style={{ fontSize: '20px', fontWeight: '700', color: colors.label, margin: 0 }}>Privacy Policy</h2>
+          <button onClick={() => setShowPrivacyModal(false)}
+            style={{ background: colors.gray6, border: 'none', borderRadius: '50%', width: '32px', height: '32px', cursor: 'pointer', fontSize: '16px' }}>✕</button>
+        </div>
+        <div style={{ padding: '24px', overflowY: 'auto', fontSize: '14px', lineHeight: 1.7, color: colors.secondary }}>
+          <p style={{ marginBottom: '16px' }}><strong>Last Updated:</strong> December 2, 2024</p>
+          
+          <div style={{ background: `${colors.green}10`, border: `1px solid ${colors.green}30`, borderRadius: '12px', padding: '16px', marginBottom: '24px' }}>
+            <p style={{ fontWeight: '600', color: colors.green, marginBottom: '10px', fontSize: '15px' }}>🔒 Quick Privacy Facts:</p>
+            <ul style={{ margin: 0, paddingLeft: '20px', color: colors.green }}>
+              <li style={{ marginBottom: '6px' }}>We NEVER sell your data</li>
+              <li style={{ marginBottom: '6px' }}>We have read-only access to your accounts</li>
+              <li style={{ marginBottom: '6px' }}>We never see your bank login credentials</li>
+              <li>256-bit encryption protects all your data</li>
+            </ul>
+          </div>
+          
+          <h3 style={{ fontSize: '16px', fontWeight: '600', color: colors.label, marginTop: '20px', marginBottom: '12px' }}>1. Information We Collect</h3>
+          <p style={{ marginBottom: '16px' }}>We collect information you provide directly (name, email, password) and financial data from connected accounts (transactions, balances, account information). We also collect usage data to improve our Service.</p>
+          
+          <h3 style={{ fontSize: '16px', fontWeight: '600', color: colors.label, marginTop: '20px', marginBottom: '12px' }}>2. How We Use Your Information</h3>
+          <p style={{ marginBottom: '16px' }}>We use your information to provide and improve our Service, send you important notifications, personalize your experience, and ensure the security of your account. We never sell your personal or financial information to third parties.</p>
+          
+          <h3 style={{ fontSize: '16px', fontWeight: '600', color: colors.label, marginTop: '20px', marginBottom: '12px' }}>3. Data Security</h3>
+          <p style={{ marginBottom: '16px' }}>We use industry-standard security measures including 256-bit SSL/TLS encryption for data in transit, AES-256 encryption for data at rest, and two-factor authentication options. Our infrastructure is hosted on SOC 2 Type II certified providers.</p>
+          
+          <h3 style={{ fontSize: '16px', fontWeight: '600', color: colors.label, marginTop: '20px', marginBottom: '12px' }}>4. Third-Party Services</h3>
+          <p style={{ marginBottom: '16px' }}>We use trusted third-party services (like Plaid) to securely connect to your financial institutions. These providers never share your login credentials with us—we only receive read-only access to your transaction data.</p>
+          
+          <h3 style={{ fontSize: '16px', fontWeight: '600', color: colors.label, marginTop: '20px', marginBottom: '12px' }}>5. Data Retention</h3>
+          <p style={{ marginBottom: '16px' }}>We retain your data for as long as your account is active. You can request deletion of your data at any time by contacting us or through your account settings.</p>
+          
+          <h3 style={{ fontSize: '16px', fontWeight: '600', color: colors.label, marginTop: '20px', marginBottom: '12px' }}>6. Your Rights</h3>
+          <p style={{ marginBottom: '16px' }}>You have the right to access, correct, or delete your personal data at any time. You can also export your data or request a copy of all information we have about you.</p>
+          
+          <h3 style={{ fontSize: '16px', fontWeight: '600', color: colors.label, marginTop: '20px', marginBottom: '12px' }}>7. Children's Privacy</h3>
+          <p style={{ marginBottom: '16px' }}>Our Service is not intended for users under 18 years of age. We do not knowingly collect personal information from children.</p>
+          
+          <h3 style={{ fontSize: '16px', fontWeight: '600', color: colors.label, marginTop: '20px', marginBottom: '12px' }}>8. Contact Us</h3>
+          <p style={{ marginBottom: '16px' }}>For privacy-related questions or requests, contact us at privacy@prospernest.io</p>
+        </div>
+        <div style={{ padding: '16px 24px', borderTop: `1px solid ${colors.gray5}` }}>
+          <button onClick={() => setShowPrivacyModal(false)}
+            style={{ width: '100%', padding: '14px', background: colors.blue, color: '#FFF', border: 'none', borderRadius: '12px', fontSize: '15px', fontWeight: '600', cursor: 'pointer' }}>
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
+  // Device Mockups Component
   const DeviceMockups = () => (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '24px' }}>
       <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'center', gap: '32px', flexWrap: 'wrap', padding: '30px 0' }}>
@@ -483,7 +596,7 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
     </div>
   );
 
-  // Feature Mockups - Dashboard, Bills, Sales Tracker - WITH HOVER EFFECTS
+  // Feature Mockups
   const FeatureMockups = () => (
     <div className="feature-mockups-wrapper" style={{ display: 'flex', gap: '24px', flexWrap: 'wrap', justifyContent: 'center' }}>
       {/* Dashboard */}
@@ -569,7 +682,6 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
   );
 
   // Signup Modal Component
-  // SignupModal - defined as JSX variable to prevent re-render focus loss
   const signupModalJSX = (
     <div style={{
       position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
@@ -596,7 +708,7 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
             style={{ background: colors.gray6, border: 'none', borderRadius: '50%', width: '32px', height: '32px', cursor: 'pointer', fontSize: '16px' }}>✕</button>
         </div>
 
-        {/* Google Sign In - Always shown at top */}
+        {/* Google Sign In */}
         <div style={{ padding: '20px', borderBottom: `1px solid ${colors.gray5}` }}>
           <button style={{
             width: '100%', padding: '14px', border: `1px solid ${colors.gray4}`,
@@ -643,9 +755,6 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
                 value={signinEmail}
                 onChange={e => { setSigninEmail(e.target.value); setSigninError(''); }}
                 autoComplete="off"
-                autoCorrect="off"
-                autoCapitalize="off"
-                spellCheck="false"
                 style={{
                   width: '100%', padding: '12px', border: `1px solid ${colors.gray4}`,
                   borderRadius: '10px', fontSize: '14px', outline: 'none', boxSizing: 'border-box'
@@ -675,17 +784,15 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
             </div>
 
             <button onClick={() => {
-              // Check for admin login
               if (signinEmail === ADMIN_EMAIL && signinPassword === ADMIN_PASSWORD) {
                 setIsAdmin(true);
                 setShowSignupModal(false);
-                setSelectedPlan('family'); // Admin gets family plan access
+                setSelectedPlan('family');
                 setShowOnboarding(true);
                 setOnboardingStep(0);
                 setSigninEmail('');
                 setSigninPassword('');
               } else if (signinEmail && signinPassword) {
-                // Regular user login
                 setShowSignupModal(false);
                 onNavigate && onNavigate('dashboard');
               } else {
@@ -788,8 +895,6 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
                     onChange={e => setSignupForm(prev => ({ ...prev, firstName: e.target.value }))}
                     placeholder="John"
                     autoComplete="off"
-                    autoCorrect="off"
-                    spellCheck="false"
                     style={{
                       width: '100%', padding: '12px', border: `1px solid ${colors.gray4}`,
                       borderRadius: '10px', fontSize: '14px', outline: 'none', boxSizing: 'border-box'
@@ -804,8 +909,6 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
                     onChange={e => setSignupForm(prev => ({ ...prev, lastName: e.target.value }))}
                     placeholder="Smith"
                     autoComplete="off"
-                    autoCorrect="off"
-                    spellCheck="false"
                     style={{
                       width: '100%', padding: '12px', border: `1px solid ${colors.gray4}`,
                       borderRadius: '10px', fontSize: '14px', outline: 'none', boxSizing: 'border-box'
@@ -822,9 +925,6 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
                   onChange={e => setSignupForm(prev => ({ ...prev, email: e.target.value }))}
                   placeholder="john@example.com"
                   autoComplete="off"
-                  autoCorrect="off"
-                  autoCapitalize="off"
-                  spellCheck="false"
                   style={{
                     width: '100%', padding: '12px', border: `1px solid ${colors.gray4}`,
                     borderRadius: '10px', fontSize: '14px', outline: 'none', boxSizing: 'border-box'
@@ -840,8 +940,6 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
                   onChange={e => handleAddressChange(e.target.value)}
                   placeholder="Start typing your address..."
                   autoComplete="off"
-                  autoCorrect="off"
-                  spellCheck="false"
                   style={{
                     width: '100%', padding: '12px', border: `1px solid ${colors.gray4}`,
                     borderRadius: '10px', fontSize: '14px', outline: 'none', boxSizing: 'border-box'
@@ -879,8 +977,6 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
                       name="card-number"
                       placeholder="Card Number"
                       autoComplete="off"
-                      autoCorrect="off"
-                      spellCheck="false"
                       style={{
                         width: '100%', padding: '12px', border: `1px solid ${colors.gray4}`,
                         borderRadius: '10px', fontSize: '14px', outline: 'none', boxSizing: 'border-box'
@@ -892,8 +988,6 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
                       name="card-expiry"
                       placeholder="MM/YY"
                       autoComplete="off"
-                      autoCorrect="off"
-                      spellCheck="false"
                       style={{
                         padding: '12px', border: `1px solid ${colors.gray4}`,
                         borderRadius: '10px', fontSize: '14px', outline: 'none'
@@ -903,8 +997,6 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
                       name="card-cvc"
                       placeholder="CVC"
                       autoComplete="off"
-                      autoCorrect="off"
-                      spellCheck="false"
                       style={{
                         padding: '12px', border: `1px solid ${colors.gray4}`,
                         borderRadius: '10px', fontSize: '14px', outline: 'none'
@@ -931,7 +1023,7 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
                     onChange={e => setSignupForm(prev => ({ ...prev, agreeToPrivacy: e.target.checked }))}
                     style={{ marginTop: '2px' }} />
                   <span style={{ fontSize: '13px', color: colors.secondary }}>
-                    I agree to the <a href="#" style={{ color: colors.blue }}>Terms of Service</a> and <a href="#" style={{ color: colors.blue }}>Privacy Policy</a> *
+                    I agree to the <button type="button" onClick={() => setShowTermsModal(true)} style={{ color: colors.blue, background: 'none', border: 'none', cursor: 'pointer', fontSize: '13px', textDecoration: 'underline', padding: 0 }}>Terms of Service</button> and <button type="button" onClick={() => setShowPrivacyModal(true)} style={{ color: colors.blue, background: 'none', border: 'none', cursor: 'pointer', fontSize: '13px', textDecoration: 'underline', padding: 0 }}>Privacy Policy</button> *
                   </span>
                 </label>
               </div>
@@ -963,7 +1055,7 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
     </div>
   );
 
-  // Onboarding Modal - Multi-step flow after signup
+  // Onboarding Modal
   const OnboardingModal = () => {
     const planName = selectedPlan?.charAt(0).toUpperCase() + selectedPlan?.slice(1);
     const isPro = selectedPlan === 'pro';
@@ -1018,7 +1110,7 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
             ))}
           </div>
 
-          {/* Step 0: Welcome & Penny Introduction */}
+          {/* Step 0: Welcome */}
           {onboardingStep === 0 && (
             <div style={{ padding: '32px 24px', textAlign: 'center' }}>
               <div style={{ marginBottom: '24px' }}>
@@ -1028,26 +1120,8 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
                 Welcome to ProsperNest! 🎉
               </h2>
               <p style={{ fontSize: '16px', color: colors.secondary, lineHeight: 1.6, marginBottom: '24px' }}>
-                Hi {signupForm.firstName || 'there'}! I'm <strong>Penny</strong>, your quirky financial sidekick. 
-                Think of me as the fun friend who actually enjoys spreadsheets! 🤓
+                Hi {signupForm.firstName || 'there'}! I'm <strong>Penny</strong>, your quirky financial sidekick.
               </p>
-              <div style={{
-                background: `${colors.blue}08`, borderRadius: '16px', padding: '20px',
-                border: `1px solid ${colors.blue}20`, textAlign: 'left', marginBottom: '24px'
-              }}>
-                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
-                  <PennyLogo size={36} />
-                  <div>
-                    <div style={{ fontSize: '14px', fontWeight: '600', marginBottom: '6px' }}>Here's what I can help with:</div>
-                    <ul style={{ fontSize: '13px', color: colors.secondary, margin: 0, paddingLeft: '16px', lineHeight: 1.8 }}>
-                      <li>Answer your money questions anytime</li>
-                      <li>Send friendly reminders before bills are due</li>
-                      <li>Celebrate your wins (even the small ones! 🎊)</li>
-                      <li>Keep you on track toward your goals</li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
               <label style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
                 fontSize: '14px', color: colors.secondary, cursor: 'pointer', marginBottom: '24px'
@@ -1066,26 +1140,19 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
                 Let's Get Started! 🚀
               </button>
               <button onClick={handleSkip}
-                style={{
-                  background: 'none', border: 'none', color: colors.gray,
-                  fontSize: '14px', cursor: 'pointer'
-                }}>
+                style={{ background: 'none', border: 'none', color: colors.gray, fontSize: '14px', cursor: 'pointer' }}>
                 Skip for now
               </button>
             </div>
           )}
 
-          {/* Step 1: Motivation - MULTI-SELECT */}
+          {/* Step 1: Motivation */}
           {onboardingStep === 1 && (
             <div style={{ padding: '32px 24px' }}>
               <div style={{ textAlign: 'center', marginBottom: '24px' }}>
                 <div style={{ fontSize: '40px', marginBottom: '12px' }}>🎯</div>
-                <h2 style={{ fontSize: '22px', fontWeight: '700', marginBottom: '8px' }}>
-                  What brings you here?
-                </h2>
-                <p style={{ fontSize: '14px', color: colors.secondary }}>
-                  Select all that apply
-                </p>
+                <h2 style={{ fontSize: '22px', fontWeight: '700', marginBottom: '8px' }}>What brings you here?</h2>
+                <p style={{ fontSize: '14px', color: colors.secondary }}>Select all that apply</p>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px', marginBottom: '24px' }}>
                 {motivations.map(m => {
@@ -1094,24 +1161,18 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
                     <button key={m.id}
                       onClick={() => {
                         const current = onboardingData.motivations;
-                        const updated = isSelected
-                          ? current.filter(x => x !== m.id)
-                          : [...current, m.id];
+                        const updated = isSelected ? current.filter(x => x !== m.id) : [...current, m.id];
                         setOnboardingData(prev => ({ ...prev, motivations: updated }));
                       }}
                       style={{
                         padding: '16px', border: `2px solid ${isSelected ? colors.blue : colors.gray5}`,
                         borderRadius: '14px', background: isSelected ? `${colors.blue}08` : '#FFF',
-                        cursor: 'pointer', textAlign: 'left', transition: 'all 0.2s',
-                        position: 'relative'
+                        cursor: 'pointer', textAlign: 'left', transition: 'all 0.2s', position: 'relative'
                       }}>
                       {isSelected && (
                         <div style={{
-                          position: 'absolute', top: '8px', right: '8px',
-                          width: '20px', height: '20px', borderRadius: '50%',
-                          background: colors.blue, color: '#FFF',
-                          display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          fontSize: '12px', fontWeight: '600'
+                          position: 'absolute', top: '8px', right: '8px', width: '20px', height: '20px', borderRadius: '50%',
+                          background: colors.blue, color: '#FFF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px'
                         }}>✓</div>
                       )}
                       <div style={{ fontSize: '24px', marginBottom: '8px' }}>{m.icon}</div>
@@ -1122,29 +1183,15 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
               </div>
               <div style={{ display: 'flex', gap: '12px' }}>
                 <button onClick={() => setOnboardingStep(0)}
-                  style={{
-                    flex: 1, padding: '14px', background: colors.gray6,
-                    border: 'none', borderRadius: '12px', fontSize: '15px', fontWeight: '500', cursor: 'pointer'
-                  }}>
-                  Back
-                </button>
+                  style={{ flex: 1, padding: '14px', background: colors.gray6, border: 'none', borderRadius: '12px', fontSize: '15px', fontWeight: '500', cursor: 'pointer' }}>Back</button>
                 <button onClick={() => setOnboardingStep(2)}
                   disabled={onboardingData.motivations.length === 0}
                   style={{
                     flex: 2, padding: '14px', background: onboardingData.motivations.length > 0 ? colors.blue : colors.gray4,
-                    border: 'none', borderRadius: '12px', color: '#FFF', fontSize: '15px',
-                    fontWeight: '600', cursor: onboardingData.motivations.length > 0 ? 'pointer' : 'not-allowed'
-                  }}>
-                  Continue
-                </button>
+                    border: 'none', borderRadius: '12px', color: '#FFF', fontSize: '15px', fontWeight: '600',
+                    cursor: onboardingData.motivations.length > 0 ? 'pointer' : 'not-allowed'
+                  }}>Continue</button>
               </div>
-              <button onClick={handleSkip}
-                style={{
-                  width: '100%', background: 'none', border: 'none', color: colors.gray,
-                  fontSize: '14px', cursor: 'pointer', marginTop: '16px'
-                }}>
-                Skip for now
-              </button>
             </div>
           )}
 
@@ -1153,250 +1200,88 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
             <div style={{ padding: '32px 24px' }}>
               <div style={{ textAlign: 'center', marginBottom: '24px' }}>
                 <div style={{ fontSize: '40px', marginBottom: '12px' }}>✨</div>
-                <h2 style={{ fontSize: '22px', fontWeight: '700', marginBottom: '8px' }}>
-                  Where would you like to start?
-                </h2>
-                <p style={{ fontSize: '14px', color: colors.secondary }}>
-                  Select one or more to get going
-                </p>
+                <h2 style={{ fontSize: '22px', fontWeight: '700', marginBottom: '8px' }}>Where would you like to start?</h2>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '24px' }}>
                 {features.map(f => (
                   <button key={f.id}
                     onClick={() => {
                       const current = onboardingData.startWith;
-                      const updated = current.includes(f.id)
-                        ? current.filter(x => x !== f.id)
-                        : [...current, f.id];
+                      const updated = current.includes(f.id) ? current.filter(x => x !== f.id) : [...current, f.id];
                       setOnboardingData(prev => ({ ...prev, startWith: updated }));
                     }}
                     style={{
                       padding: '16px', border: `2px solid ${onboardingData.startWith.includes(f.id) ? colors.blue : colors.gray5}`,
                       borderRadius: '14px', background: onboardingData.startWith.includes(f.id) ? `${colors.blue}08` : '#FFF',
-                      cursor: 'pointer', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '14px',
-                      transition: 'all 0.2s'
+                      cursor: 'pointer', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '14px'
                     }}>
-                    <div style={{
-                      width: '48px', height: '48px', borderRadius: '12px',
-                      background: `${colors.blue}15`, display: 'flex', alignItems: 'center',
-                      justifyContent: 'center', fontSize: '24px', flexShrink: 0
-                    }}>{f.icon}</div>
+                    <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: `${colors.blue}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px' }}>{f.icon}</div>
                     <div>
                       <div style={{ fontSize: '15px', fontWeight: '600' }}>{f.label}</div>
                       <div style={{ fontSize: '13px', color: colors.gray }}>{f.desc}</div>
                     </div>
-                    {onboardingData.startWith.includes(f.id) && (
-                      <div style={{
-                        marginLeft: 'auto', width: '24px', height: '24px', borderRadius: '50%',
-                        background: colors.blue, color: '#FFF', display: 'flex',
-                        alignItems: 'center', justifyContent: 'center', fontSize: '14px'
-                      }}>✓</div>
-                    )}
                   </button>
                 ))}
               </div>
               <div style={{ display: 'flex', gap: '12px' }}>
                 <button onClick={() => setOnboardingStep(1)}
-                  style={{
-                    flex: 1, padding: '14px', background: colors.gray6,
-                    border: 'none', borderRadius: '12px', fontSize: '15px', fontWeight: '500', cursor: 'pointer'
-                  }}>
-                  Back
-                </button>
+                  style={{ flex: 1, padding: '14px', background: colors.gray6, border: 'none', borderRadius: '12px', fontSize: '15px', fontWeight: '500', cursor: 'pointer' }}>Back</button>
                 <button onClick={() => setOnboardingStep(isPro || isFamily ? 3 : 4)}
-                  style={{
-                    flex: 2, padding: '14px', background: colors.blue,
-                    border: 'none', borderRadius: '12px', color: '#FFF', fontSize: '15px',
-                    fontWeight: '600', cursor: 'pointer'
-                  }}>
-                  Continue
-                </button>
+                  style={{ flex: 2, padding: '14px', background: colors.blue, border: 'none', borderRadius: '12px', color: '#FFF', fontSize: '15px', fontWeight: '600', cursor: 'pointer' }}>Continue</button>
               </div>
-              <button onClick={handleSkip}
-                style={{
-                  width: '100%', background: 'none', border: 'none', color: colors.gray,
-                  fontSize: '14px', cursor: 'pointer', marginTop: '16px'
-                }}>
-                Skip for now
-              </button>
             </div>
           )}
 
-          {/* Step 3: Invite Members (Pro/Family only) */}
+          {/* Step 3: Invite Members */}
           {onboardingStep === 3 && (isPro || isFamily) && (
             <div style={{ padding: '32px 24px' }}>
               <div style={{ textAlign: 'center', marginBottom: '24px' }}>
                 <div style={{ fontSize: '40px', marginBottom: '12px' }}>{isFamily ? '👨‍👩‍👧‍👦' : '💑'}</div>
-                <h2 style={{ fontSize: '22px', fontWeight: '700', marginBottom: '8px' }}>
-                  {isFamily ? 'Invite Your Family' : 'Invite Your Partner'}
-                </h2>
-                <p style={{ fontSize: '14px', color: colors.secondary }}>
-                  {isFamily 
-                    ? 'Add up to 5 family members to share your financial hub'
-                    : 'Share access with your spouse or partner'}
-                </p>
+                <h2 style={{ fontSize: '22px', fontWeight: '700', marginBottom: '8px' }}>{isFamily ? 'Invite Your Family' : 'Invite Your Partner'}</h2>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '20px' }}>
                 {Array.from({ length: maxMembers - 1 }).map((_, i) => (
                   <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <div style={{
-                      width: '36px', height: '36px', borderRadius: '50%',
-                      background: colors.gray6, display: 'flex', alignItems: 'center',
-                      justifyContent: 'center', fontSize: '14px', color: colors.gray, flexShrink: 0
-                    }}>
-                      {i + 2}
-                    </div>
-                    <input 
-                      type="email" 
-                      placeholder={`${isFamily ? 'Family member' : 'Partner'} email`}
+                    <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: colors.gray6, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', color: colors.gray }}>{i + 2}</div>
+                    <input type="email" placeholder={`${isFamily ? 'Family member' : 'Partner'} email`}
                       value={onboardingData.invitedMembers[i]}
                       onChange={e => {
                         const updated = [...onboardingData.invitedMembers];
                         updated[i] = e.target.value;
                         setOnboardingData(prev => ({ ...prev, invitedMembers: updated }));
                       }}
-                      style={{
-                        flex: 1, padding: '12px 14px', border: `1px solid ${colors.gray4}`,
-                        borderRadius: '10px', fontSize: '14px', outline: 'none'
-                      }}
-                    />
+                      style={{ flex: 1, padding: '12px 14px', border: `1px solid ${colors.gray4}`, borderRadius: '10px', fontSize: '14px', outline: 'none' }} />
                   </div>
                 ))}
               </div>
-              <div style={{
-                background: `${colors.green}10`, borderRadius: '12px', padding: '14px',
-                marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '12px'
-              }}>
-                <div style={{ fontSize: '20px' }}>✉️</div>
-                <div style={{ fontSize: '13px', color: colors.secondary }}>
-                  We'll send them an invite email with full access to <strong>HomeBudget Hub</strong>
-                </div>
-              </div>
               <div style={{ display: 'flex', gap: '12px' }}>
                 <button onClick={() => setOnboardingStep(2)}
-                  style={{
-                    flex: 1, padding: '14px', background: colors.gray6,
-                    border: 'none', borderRadius: '12px', fontSize: '15px', fontWeight: '500', cursor: 'pointer'
-                  }}>
-                  Back
-                </button>
+                  style={{ flex: 1, padding: '14px', background: colors.gray6, border: 'none', borderRadius: '12px', fontSize: '15px', fontWeight: '500', cursor: 'pointer' }}>Back</button>
                 <button onClick={() => setOnboardingStep(4)}
-                  style={{
-                    flex: 2, padding: '14px', background: colors.blue,
-                    border: 'none', borderRadius: '12px', color: '#FFF', fontSize: '15px',
-                    fontWeight: '600', cursor: 'pointer'
-                  }}>
+                  style={{ flex: 2, padding: '14px', background: colors.blue, border: 'none', borderRadius: '12px', color: '#FFF', fontSize: '15px', fontWeight: '600', cursor: 'pointer' }}>
                   {onboardingData.invitedMembers.some(m => m) ? 'Send Invites & Continue' : 'Skip & Continue'}
                 </button>
               </div>
             </div>
           )}
 
-          {/* Step 4: Hub Announcements & Finish */}
+          {/* Step 4: Finish */}
           {onboardingStep === 4 && (
             <div style={{ padding: '32px 24px' }}>
               <div style={{ textAlign: 'center', marginBottom: '24px' }}>
                 <div style={{ fontSize: '40px', marginBottom: '12px' }}>🏠</div>
-                <h2 style={{ fontSize: '22px', fontWeight: '700', marginBottom: '8px' }}>
-                  Your Hubs Are Ready!
-                </h2>
-                <p style={{ fontSize: '14px', color: colors.secondary }}>
-                  Here's what's available with your {planName} plan
-                </p>
+                <h2 style={{ fontSize: '22px', fontWeight: '700', marginBottom: '8px' }}>Your Hubs Are Ready!</h2>
               </div>
-              
-              {/* Available Hubs */}
-              <div style={{ marginBottom: '16px' }}>
-                <div style={{
-                  padding: '16px', border: `2px solid ${colors.green}`,
-                  borderRadius: '14px', background: `${colors.green}08`, marginBottom: '12px'
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <div style={{
-                      width: '44px', height: '44px', borderRadius: '12px',
-                      background: colors.green, display: 'flex', alignItems: 'center',
-                      justifyContent: 'center', fontSize: '20px'
-                    }}>🏠</div>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: '15px', fontWeight: '600' }}>HomeBudget Hub</div>
-                      <div style={{ fontSize: '12px', color: colors.gray }}>Personal & family finances</div>
-                    </div>
-                    <div style={{
-                      background: colors.green, color: '#FFF', padding: '4px 10px',
-                      borderRadius: '8px', fontSize: '11px', fontWeight: '600'
-                    }}>ACTIVE</div>
+              <div style={{ padding: '16px', border: `2px solid ${colors.green}`, borderRadius: '14px', background: `${colors.green}08`, marginBottom: '24px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <div style={{ width: '44px', height: '44px', borderRadius: '12px', background: colors.green, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>🏠</div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: '15px', fontWeight: '600' }}>HomeBudget Hub</div>
+                    <div style={{ fontSize: '12px', color: colors.gray }}>Personal & family finances</div>
                   </div>
+                  <div style={{ background: colors.green, color: '#FFF', padding: '4px 10px', borderRadius: '8px', fontSize: '11px', fontWeight: '600' }}>ACTIVE</div>
                 </div>
               </div>
-
-              {/* Coming Soon Hubs */}
-              <div style={{ marginBottom: '24px' }}>
-                <div style={{ fontSize: '12px', fontWeight: '600', color: colors.gray, marginBottom: '12px', textTransform: 'uppercase' }}>
-                  Coming Soon
-                </div>
-                
-                {/* BizBudget Hub - Coming soon for Pro & Family */}
-                {(isPro || isFamily) && (
-                  <div style={{
-                    padding: '16px', border: `1px solid ${colors.gray4}`,
-                    borderRadius: '14px', background: colors.gray6, marginBottom: '12px', opacity: 0.8
-                  }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      <div style={{
-                        width: '44px', height: '44px', borderRadius: '12px',
-                        background: colors.purple, display: 'flex', alignItems: 'center',
-                        justifyContent: 'center', fontSize: '20px'
-                      }}>💼</div>
-                      <div style={{ flex: 1 }}>
-                        <div style={{ fontSize: '15px', fontWeight: '600' }}>BizBudget Hub</div>
-                        <div style={{ fontSize: '12px', color: colors.gray }}>Side hustle & business tracking</div>
-                      </div>
-                      <div style={{
-                        background: colors.orange, color: '#FFF', padding: '4px 10px',
-                        borderRadius: '8px', fontSize: '11px', fontWeight: '600'
-                      }}>SOON</div>
-                    </div>
-                  </div>
-                )}
-                
-                {/* REBudget Hub - Coming soon for Family only */}
-                {isFamily && (
-                  <div style={{
-                    padding: '16px', border: `1px solid ${colors.gray4}`,
-                    borderRadius: '14px', background: colors.gray6, opacity: 0.8
-                  }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      <div style={{
-                        width: '44px', height: '44px', borderRadius: '12px',
-                        background: colors.blue, display: 'flex', alignItems: 'center',
-                        justifyContent: 'center', fontSize: '20px'
-                      }}>🏢</div>
-                      <div style={{ flex: 1 }}>
-                        <div style={{ fontSize: '15px', fontWeight: '600' }}>REBudget Hub</div>
-                        <div style={{ fontSize: '12px', color: colors.gray }}>Real estate investments</div>
-                      </div>
-                      <div style={{
-                        background: colors.orange, color: '#FFF', padding: '4px 10px',
-                        borderRadius: '8px', fontSize: '11px', fontWeight: '600'
-                      }}>SOON</div>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Penny reminder */}
-              {onboardingData.pennyEnabled && (
-                <div style={{
-                  background: `${colors.blue}08`, borderRadius: '14px', padding: '16px',
-                  marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '14px'
-                }}>
-                  <PennyLogo size={40} />
-                  <div style={{ fontSize: '14px', color: colors.secondary }}>
-                    <strong>Penny is ready!</strong> Look for me in the bottom-right corner whenever you need help. 💬
-                  </div>
-                </div>
-              )}
-
               <button onClick={handleFinishOnboarding}
                 style={{
                   width: '100%', padding: '16px', background: colors.green,
@@ -1437,202 +1322,48 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
         html { scroll-behavior: smooth; overflow-x: hidden; }
         body { overflow-x: hidden; max-width: 100vw; }
         *, *::before, *::after { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        
-        /* Scroll margin for fixed header */
         section[id] { scroll-margin-top: 100px; }
-        
-        /* ========================================
-           MOBILE RESPONSIVE - COMPLETE FIX V4
-           ======================================== */
-        
         @media (max-width: 768px) {
-          /* CRITICAL: Prevent ALL overflow */
-          html, body { 
-            overflow-x: hidden !important; 
-            width: 100% !important;
-            max-width: 100vw !important;
-          }
-          
-          /* Scroll margin for fixed header on mobile */
+          html, body { overflow-x: hidden !important; width: 100% !important; max-width: 100vw !important; }
           section[id] { scroll-margin-top: 80px; }
-          
-          /* Navigation - FIXED: Only show Penny on mobile */
           .desktop-nav { display: none !important; }
           .mobile-menu-btn { display: none !important; }
-          
-          /* Nav padding - tighter on mobile */
-          nav {
-            padding: 10px 16px !important;
-          }
-          
-          /* Section padding - CRITICAL */
-          section { 
-            padding: 40px 16px !important;
-            overflow: hidden !important;
-            width: 100% !important;
-            max-width: 100vw !important;
-          }
-          
-          /* All containers */
-          section > div {
-            max-width: 100% !important;
-            padding: 0 !important;
-          }
-          
-          /* Text overflow control */
-          h1, h2, h3, p, li, span, div {
-            word-wrap: break-word !important;
-            overflow-wrap: break-word !important;
-            max-width: 100% !important;
-          }
-          
-          /* Typography scaling - SMALLER */
+          nav { padding: 10px 16px !important; }
+          section { padding: 40px 16px !important; overflow: hidden !important; width: 100% !important; max-width: 100vw !important; }
+          section > div { max-width: 100% !important; padding: 0 !important; }
+          h1, h2, h3, p, li, span, div { word-wrap: break-word !important; overflow-wrap: break-word !important; max-width: 100% !important; }
           h1 { font-size: clamp(24px, 7vw, 32px) !important; line-height: 1.15 !important; }
           h2 { font-size: clamp(20px, 6vw, 28px) !important; line-height: 1.2 !important; }
           h3 { font-size: clamp(16px, 5vw, 22px) !important; line-height: 1.25 !important; }
           p { font-size: clamp(13px, 4vw, 16px) !important; line-height: 1.5 !important; }
-          
-          /* Layouts - Stack everything */
-          .pricing-grid, .hub-grid, .feature-row, .support-cards, .stats-row { 
-            flex-direction: column !important; 
-            align-items: stretch !important;
-            gap: 16px !important;
-            width: 100% !important;
-          }
-          
-          /* Feature row specific fix */
-          .feature-row > div {
-            min-width: unset !important;
-            width: 100% !important;
-            flex: none !important;
-          }
-          
-          /* HIDE feature mockups on mobile - they're too big */
-          .feature-mockups-wrapper {
-            display: none !important;
-          }
-          
-          /* Pricing cards - CRITICAL FIX - Allow badge overflow */
-          .pricing-grid {
-            padding: 20px 0 0 0 !important;
-            gap: 20px !important;
-            overflow: visible !important;
-          }
-          .pricing-grid > div,
-          .pricing-card {
-            max-width: 100% !important;
-            width: 100% !important;
-            flex: none !important;
-            margin: 0 !important;
-            transform: none !important;
-            border-radius: 16px !important;
-            padding: 24px !important;
-            min-width: unset !important;
-            overflow: visible !important;
-          }
-          
-          /* Stats - 2x2 grid on mobile */
-          .stats-row {
-            display: grid !important;
-            grid-template-columns: 1fr 1fr !important;
-            gap: 16px !important;
-            width: 100% !important;
-          }
-          .stats-row > div {
-            text-align: center !important;
-          }
-          
-          /* Hub cards */
-          .hub-grid > div,
-          .hub-card {
-            max-width: 100% !important;
-            width: 100% !important;
-            flex: none !important;
-            min-width: unset !important;
-            padding: 20px !important;
-          }
-          
-          /* Support cards */
-          .support-cards > div {
-            max-width: 100% !important;
-            width: 100% !important;
-          }
-          
-          /* Device mockups - Hide completely */
-          .device-mockups { 
-            display: none !important;
-          }
-          .mobile-hero-image {
-            display: block !important;
-          }
-          
-          /* Buttons - Full width */
-          .hero-buttons { 
-            flex-direction: column !important; 
-            width: 100% !important;
-            padding: 0 !important;
-          }
-          .hero-buttons button {
-            width: 100% !important;
-            padding: 14px 20px !important;
-            font-size: 15px !important;
-          }
-          
-          /* Hero logo smaller on mobile */
-          .hero-logo svg {
-            width: 56px !important;
-            height: 56px !important;
-          }
-          
-          /* Tutorial grid */
-          .tutorials-grid {
-            grid-template-columns: 1fr !important;
-          }
-          
-          /* Cookie banner */
-          .cookie-banner {
-            flex-direction: column !important;
-            text-align: center !important;
-            padding: 16px !important;
-            gap: 12px !important;
-          }
-          .cookie-banner > div:first-child {
-            flex-direction: column !important;
-            align-items: center !important;
-          }
-          .cookie-buttons {
-            width: 100% !important;
-            flex-direction: column !important;
-          }
-          .cookie-buttons button {
-            width: 100% !important;
-          }
-          
-          /* Glow effects - hide on mobile */
-          .glow-effect {
-            display: none !important;
-          }
+          .pricing-grid, .hub-grid, .feature-row, .support-cards, .stats-row { flex-direction: column !important; align-items: stretch !important; gap: 16px !important; width: 100% !important; }
+          .feature-row > div { min-width: unset !important; width: 100% !important; flex: none !important; }
+          .feature-mockups-wrapper { display: none !important; }
+          .pricing-grid { padding: 20px 0 0 0 !important; gap: 20px !important; overflow: visible !important; }
+          .pricing-grid > div, .pricing-card { max-width: 100% !important; width: 100% !important; flex: none !important; margin: 0 !important; transform: none !important; border-radius: 16px !important; padding: 24px !important; min-width: unset !important; overflow: visible !important; }
+          .stats-row { display: grid !important; grid-template-columns: 1fr 1fr !important; gap: 16px !important; width: 100% !important; }
+          .stats-row > div { text-align: center !important; }
+          .hub-grid > div, .hub-card { max-width: 100% !important; width: 100% !important; flex: none !important; min-width: unset !important; padding: 20px !important; }
+          .support-cards > div { max-width: 100% !important; width: 100% !important; }
+          .device-mockups { display: none !important; }
+          .mobile-hero-image { display: block !important; }
+          .hero-buttons { flex-direction: column !important; width: 100% !important; padding: 0 !important; }
+          .hero-buttons button { width: 100% !important; padding: 14px 20px !important; font-size: 15px !important; }
+          .hero-logo svg { width: 56px !important; height: 56px !important; }
+          .tutorials-grid { grid-template-columns: 1fr !important; }
+          .cookie-banner { flex-direction: column !important; text-align: center !important; padding: 16px !important; gap: 12px !important; }
+          .cookie-banner > div:first-child { flex-direction: column !important; align-items: center !important; }
+          .cookie-buttons { width: 100% !important; flex-direction: column !important; }
+          .cookie-buttons button { width: 100% !important; }
+          .glow-effect { display: none !important; }
         }
-        
-        /* TABLET (iPad) - Only show Penny icon */
         @media (max-width: 1024px) and (min-width: 769px) {
           .desktop-nav { display: none !important; }
           .mobile-menu-btn { display: none !important; }
-          
-          nav {
-            padding: 12px 24px !important;
-          }
-          
-          /* Pricing overflow fix for tablet */
-          .pricing-grid {
-            overflow: visible !important;
-            padding-top: 20px !important;
-          }
-          .pricing-card {
-            overflow: visible !important;
-          }
+          nav { padding: 12px 24px !important; }
+          .pricing-grid { overflow: visible !important; padding-top: 20px !important; }
+          .pricing-card { overflow: visible !important; }
         }
-        
         @media (max-width: 480px) {
           section { padding: 32px 12px !important; }
           h1 { font-size: clamp(22px, 6vw, 28px) !important; }
@@ -1640,20 +1371,21 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
           h3 { font-size: clamp(15px, 4vw, 20px) !important; }
           nav { padding: 8px 12px !important; }
         }
-        
         @media (min-width: 1025px) {
           .mobile-menu-btn { display: none !important; }
           .mobile-menu { display: none !important; }
           .mobile-hero-image { display: none !important; }
         }
-        
-        /* Touch-friendly - iOS HIG 44pt minimum */
         @media (hover: none) and (pointer: coarse) {
-          button, a, .clickable { 
-            min-height: 44px; 
-          }
+          button, a, .clickable { min-height: 44px; }
         }
       `}</style>
+
+      {/* Terms Modal */}
+      {showTermsModal && <TermsModal />}
+      
+      {/* Privacy Modal */}
+      {showPrivacyModal && <PrivacyModal />}
 
       {/* Cookie Consent */}
       {showCookieConsent && (
@@ -1754,7 +1486,7 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
       {showSignupModal && signupModalJSX}
       {showOnboarding && <OnboardingModal />}
 
-      {/* Navigation - FIXED: Shows only Penny on iPad/iPhone */}
+      {/* Navigation */}
       <nav style={{
         position: 'fixed', top: 0, left: 0, right: 0, 
         padding: isTabletOrMobile ? '12px 20px' : '16px 40px',
@@ -1764,14 +1496,8 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
         borderBottom: isScrolled ? `0.5px solid ${colors.gray5}` : 'none',
         transition: 'all 0.3s ease', zIndex: 1000
       }}>
-        {/* FIXED: On tablet/mobile, only show Penny icon that scrolls to top */}
-        <Logo 
-          size={isTabletOrMobile ? 40 : 44} 
-          showBeta={!isTabletOrMobile} 
-          showText={!isTabletOrMobile}
-        />
+        <Logo size={isTabletOrMobile ? 40 : 44} showBeta={!isTabletOrMobile} showText={!isTabletOrMobile} />
         
-        {/* Desktop Navigation Links - Hidden on tablet/mobile */}
         {!isTabletOrMobile && (
           <div className="desktop-nav" style={{ display: 'flex', gap: '36px', alignItems: 'center' }}>
             {[
@@ -1795,8 +1521,6 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
               style={{ padding: '12px 24px', background: colors.blue, border: 'none', borderRadius: '14px', color: '#FFF', fontSize: '15px', fontWeight: '600' }}>Get Started</button>
           </div>
         )}
-
-        {/* NO hamburger menu on tablet - just Penny icon */}
       </nav>
 
       {/* Hero Section */}
@@ -1838,12 +1562,10 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
             </button>
           </div>
           
-          {/* Desktop Device Mockups */}
           <div className="device-mockups" style={{ display: isMobile ? 'none' : 'block' }}>
             <DeviceMockups />
           </div>
           
-          {/* Mobile Hero Image - Simplified dashboard preview */}
           <div className="mobile-hero-image" style={{ display: isMobile ? 'block' : 'none', padding: '0 4px' }}>
             <div style={{
               background: '#FFF', borderRadius: '16px', padding: '16px',
@@ -1892,7 +1614,7 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
         </div>
       </section>
 
-      {/* Hub Cards with Animation */}
+      {/* Hub Cards */}
       <section id="products" style={{ padding: isMobile ? '50px 16px' : '80px 40px', background: colors.gray6, overflow: 'hidden' }}>
         <div style={{ maxWidth: '1400px', margin: '0 auto', width: '100%' }}>
           <div style={{ textAlign: 'center', marginBottom: isMobile ? '28px' : '40px' }}>
@@ -1911,16 +1633,13 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
                 flex: '1 1 280px', maxWidth: isMobile ? '100%' : '420px', position: 'relative', width: '100%',
                 boxShadow: activeHubIndex === i ? `0 8px 40px ${hub.color}40` : '0 4px 20px rgba(0,0,0,0.06)',
                 border: activeHubIndex === i || hub.available ? `2px solid ${hub.color}` : `1px solid ${colors.gray5}`,
-                opacity: hub.available ? 1 : 0.85,
-                transition: 'all 0.5s ease',
-                overflow: 'visible'
+                opacity: hub.available ? 1 : 0.85, transition: 'all 0.5s ease', overflow: 'visible'
               }}>
                 {hub.badge && (
                   <div style={{
                     position: 'absolute', top: '-12px', left: '50%', transform: 'translateX(-50%)',
                     background: hub.available ? colors.orange : colors.gray,
-                    padding: '5px 14px', borderRadius: '12px', fontSize: '11px', fontWeight: '600', color: '#FFF', whiteSpace: 'nowrap',
-                    zIndex: 5
+                    padding: '5px 14px', borderRadius: '12px', fontSize: '11px', fontWeight: '600', color: '#FFF', whiteSpace: 'nowrap', zIndex: 5
                   }}>{hub.badge}</div>
                 )}
                 <div style={{
@@ -1946,27 +1665,8 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
       <section id="features" style={{ 
         padding: isMobile ? '50px 16px' : '100px 40px', 
         background: `linear-gradient(180deg, ${colors.background} 0%, ${colors.gray6} 50%, ${colors.background} 100%)`,
-        position: 'relative',
-        overflow: 'hidden'
+        position: 'relative', overflow: 'hidden'
       }}>
-        {/* Subtle glow effects - hidden on mobile */}
-        {!isMobile && (
-          <>
-            <div className="glow-effect" style={{
-              position: 'absolute', top: '20%', left: '10%',
-              width: '400px', height: '400px',
-              background: `radial-gradient(circle, ${colors.blue}15 0%, transparent 70%)`,
-              borderRadius: '50%', filter: 'blur(60px)', pointerEvents: 'none'
-            }}/>
-            <div className="glow-effect" style={{
-              position: 'absolute', bottom: '20%', right: '10%',
-              width: '300px', height: '300px',
-              background: `radial-gradient(circle, ${colors.purple}15 0%, transparent 70%)`,
-              borderRadius: '50%', filter: 'blur(60px)', pointerEvents: 'none'
-            }}/>
-          </>
-        )}
-        
         <div style={{ maxWidth: '1400px', margin: '0 auto', position: 'relative', zIndex: 1, width: '100%' }}>
           <div style={{ textAlign: 'center', marginBottom: isMobile ? '28px' : '40px' }}>
             <h2 style={{ fontSize: isMobile ? 'clamp(22px, 7vw, 32px)' : 'clamp(24px, 5vw, 52px)', fontWeight: '700', marginBottom: '16px' }}>All your accounts in one place</h2>
@@ -2006,8 +1706,7 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
       <section id="tutorials" style={{ 
         padding: isMobile ? '50px 16px' : '100px 40px', 
         background: `linear-gradient(180deg, ${colors.gray6} 0%, ${colors.background} 50%, ${colors.gray6} 100%)`,
-        position: 'relative',
-        overflow: 'hidden'
+        position: 'relative', overflow: 'hidden'
       }}>
         <div style={{ maxWidth: '1200px', margin: '0 auto', position: 'relative', zIndex: 1 }}>
           <div style={{ textAlign: 'center', marginBottom: isMobile ? '36px' : '60px' }}>
@@ -2045,10 +1744,10 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
           <div style={{ fontSize: isMobile ? '60px' : '80px', marginBottom: '24px' }}>🔥</div>
           <h2 style={{ fontSize: isMobile ? 'clamp(28px, 8vw, 40px)' : 'clamp(36px, 5vw, 52px)', fontWeight: '700', marginBottom: '20px' }}>Your path to FIRE</h2>
           <p style={{ fontSize: isMobile ? '16px' : '20px', opacity: 0.9, marginBottom: '50px', maxWidth: '700px', margin: '0 auto 40px', lineHeight: 1.7, padding: '0 8px' }}>
-            Financial Independence, Retire Early isn't just a dream. See exactly when you'll hit your number, and how your side hustle accelerates the journey.
+            Financial Independence, Retire Early isn't just a dream. See exactly when you'll hit your number.
           </p>
           
-          <div className="hover-lift" style={{ background: 'rgba(255,255,255,0.1)', borderRadius: isMobile ? '20px' : '28px', padding: isMobile ? '24px 16px' : '44px', backdropFilter: 'blur(10px)', marginBottom: isMobile ? '32px' : '50px', cursor: 'pointer', transition: 'transform 0.3s ease, box-shadow 0.3s ease' }}>
+          <div className="hover-lift" style={{ background: 'rgba(255,255,255,0.1)', borderRadius: isMobile ? '20px' : '28px', padding: isMobile ? '24px 16px' : '44px', backdropFilter: 'blur(10px)', marginBottom: isMobile ? '32px' : '50px', cursor: 'pointer' }}>
             <div style={{ display: 'flex', justifyContent: 'space-around', flexWrap: 'wrap', gap: isMobile ? '20px' : '32px', marginBottom: '32px' }}>
               <div><div style={{ fontSize: '15px', opacity: 0.8, marginBottom: '8px' }}>FIRE Number</div><div style={{ fontSize: isMobile ? 'clamp(28px, 10vw, 40px)' : 'clamp(36px, 5vw, 52px)', fontWeight: '700' }}>$1.2M</div></div>
               <div><div style={{ fontSize: '15px', opacity: 0.8, marginBottom: '8px' }}>Current Progress</div><div style={{ fontSize: isMobile ? 'clamp(28px, 10vw, 40px)' : 'clamp(36px, 5vw, 52px)', fontWeight: '700' }}>$291K</div></div>
@@ -2059,23 +1758,10 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
             </div>
             <div style={{ fontSize: isMobile ? '14px' : '17px', opacity: 0.9 }}>24.3% complete • Side hustle adds <strong>$6,250/mo</strong> → saves you <strong>4 years</strong></div>
           </div>
-
-          <div style={{ background: 'rgba(255,255,255,0.05)', borderRadius: '24px', padding: isMobile ? '24px 16px' : '44px', textAlign: 'left' }}>
-            <h3 style={{ fontSize: isMobile ? '22px' : '28px', fontWeight: '600', marginBottom: '20px', textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
-              Why We Built ProsperNest <PennyLogo size={28} />
-            </h3>
-            <p style={{ fontSize: isMobile ? '15px' : '17px', lineHeight: 1.8, opacity: 0.9, marginBottom: '20px' }}>
-              We founded ProsperNest on a simple belief: <strong>life is short</strong>, and you deserve to enjoy it—not spend it stressed about money.
-            </p>
-            <p style={{ fontSize: isMobile ? '15px' : '17px', lineHeight: 1.8, opacity: 0.9 }}>
-              We built this to help you set <strong>realistic goals</strong>, track <strong>every income stream</strong>, and create a path to retire early so you can focus on <strong>family, travel, experiences, and living life on your terms</strong>.
-              Life is tough already. <strong>Let ProsperNest handle the heavy lifting.</strong> 💪
-            </p>
-          </div>
         </div>
       </section>
 
-      {/* Pricing Section - FIXED: overflow visible for badge */}
+      {/* Pricing Section */}
       <section id="pricing" style={{ padding: isMobile ? '50px 16px' : '100px 40px', background: colors.gray6, overflow: 'visible' }}>
         <div style={{ maxWidth: '1200px', margin: '0 auto', width: '100%', overflow: 'visible' }}>
           <div style={{ textAlign: 'center', marginBottom: isMobile ? '32px' : '50px' }}>
@@ -2100,7 +1786,6 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
             </div>
           </div>
           
-          {/* FIXED: Added paddingTop and overflow:visible for badge */}
           <div className="pricing-grid" style={{ 
             display: 'flex', gap: '20px', justifyContent: 'center', flexWrap: 'wrap', width: '100%',
             overflow: 'visible', paddingTop: '20px'
@@ -2123,23 +1808,13 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
                 position: 'relative',
                 border: plan.highlighted ? 'none' : `1px solid ${colors.gray5}`,
                 borderTop: !plan.highlighted ? `4px solid ${plan.color}` : 'none',
-                overflow: 'visible' // FIXED: Allow badge to show
+                overflow: 'visible'
               }}>
-                {/* FIXED: Badge positioning */}
                 {plan.highlighted && (
                   <div style={{ 
-                    position: 'absolute', 
-                    top: '-14px', 
-                    left: '50%', 
-                    transform: 'translateX(-50%)', 
-                    background: colors.orange, 
-                    padding: '6px 16px', 
-                    borderRadius: '12px', 
-                    fontSize: '12px', 
-                    fontWeight: '600', 
-                    color: '#FFF', 
-                    whiteSpace: 'nowrap',
-                    zIndex: 10,
+                    position: 'absolute', top: '-14px', left: '50%', transform: 'translateX(-50%)', 
+                    background: colors.orange, padding: '6px 16px', borderRadius: '12px', 
+                    fontSize: '12px', fontWeight: '600', color: '#FFF', whiteSpace: 'nowrap', zIndex: 10,
                     boxShadow: '0 2px 8px rgba(255, 149, 0, 0.3)'
                   }}>Most Popular</div>
                 )}
@@ -2148,19 +1823,7 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
                   <span style={{ fontSize: isMobile ? 'clamp(32px, 10vw, 44px)' : 'clamp(36px, 6vw, 52px)', fontWeight: '700' }}>{plan.price === 0 ? 'Free' : `$${plan.price.toFixed(2)}`}</span>
                   {plan.price > 0 && <span style={{ fontSize: isMobile ? '14px' : 'clamp(14px, 2vw, 18px)', opacity: 0.8 }}>/mo</span>}
                   {plan.showTrial && (
-                    <span style={{ 
-                      background: `${colors.green}20`, 
-                      color: colors.green, 
-                      padding: '4px 10px', 
-                      borderRadius: '8px', 
-                      fontSize: '11px', 
-                      fontWeight: '600',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '4px'
-                    }}>
-                      🎁 14-day trial
-                    </span>
+                    <span style={{ background: `${colors.green}20`, color: colors.green, padding: '4px 10px', borderRadius: '8px', fontSize: '11px', fontWeight: '600' }}>🎁 14-day trial</span>
                   )}
                 </div>
                 <div style={{ fontSize: isMobile ? '13px' : 'clamp(13px, 2vw, 15px)', opacity: 0.8, marginBottom: '24px' }}>{plan.desc}</div>
@@ -2175,8 +1838,7 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
                   style={{
                     width: '100%', padding: '16px', border: 'none', borderRadius: '12px', fontSize: '15px', fontWeight: '600',
                     background: plan.highlighted ? '#FFF' : colors.blue,
-                    color: plan.highlighted ? colors.blue : '#FFF',
-                    minHeight: '44px'
+                    color: plan.highlighted ? colors.blue : '#FFF', minHeight: '44px'
                   }}>{plan.cta}</button>
               </div>
             ))}
@@ -2223,15 +1885,33 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
         </div>
       </section>
 
-      {/* Footer */}
+      {/* Footer - FIXED: Clickable Terms & Privacy links */}
       <footer style={{ padding: '32px 20px', background: '#000', color: colors.gray }}>
         <div style={{ maxWidth: '900px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px', fontSize: '13px' }}>
           <div>© 2024 ProsperNest. All rights reserved.</div>
           <div style={{ display: 'flex', gap: '20px' }}>
-            {['Privacy', 'Terms', 'Contact'].map((link, i) => (
-              <a key={i} href="#" style={{ color: colors.gray, textDecoration: 'none' }}
-                onMouseOver={e => e.target.style.color = '#FFF'} onMouseOut={e => e.target.style.color = colors.gray}>{link}</a>
-            ))}
+            <button 
+              onClick={() => setShowPrivacyModal(true)}
+              style={{ background: 'none', border: 'none', color: colors.gray, cursor: 'pointer', fontSize: '13px', padding: 0 }}
+              onMouseOver={e => e.target.style.color = '#FFF'} 
+              onMouseOut={e => e.target.style.color = colors.gray}
+            >
+              Privacy
+            </button>
+            <button 
+              onClick={() => setShowTermsModal(true)}
+              style={{ background: 'none', border: 'none', color: colors.gray, cursor: 'pointer', fontSize: '13px', padding: 0 }}
+              onMouseOver={e => e.target.style.color = '#FFF'} 
+              onMouseOut={e => e.target.style.color = colors.gray}
+            >
+              Terms
+            </button>
+            <a href="mailto:support@prospernest.app" style={{ color: colors.gray, textDecoration: 'none' }}
+              onMouseOver={e => e.target.style.color = '#FFF'} 
+              onMouseOut={e => e.target.style.color = colors.gray}
+            >
+              Contact
+            </a>
           </div>
         </div>
       </footer>
