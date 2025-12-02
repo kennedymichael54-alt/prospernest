@@ -569,7 +569,8 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
   );
 
   // Signup Modal Component
-  const SignupModal = () => (
+  // SignupModal - defined as JSX variable to prevent re-render focus loss
+  const signupModalJSX = (
     <div style={{
       position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
       background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(10px)',
@@ -1731,7 +1732,7 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
       )}
 
       {/* Signup Modal */}
-      {showSignupModal && <SignupModal />}
+      {showSignupModal && signupModalJSX}
       {showOnboarding && <OnboardingModal />}
 
       {/* Navigation - FIXED: Shows only Penny on iPad/iPhone */}
