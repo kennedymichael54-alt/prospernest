@@ -249,6 +249,39 @@ class ErrorBoundary extends React.Component {
 let supabase = null;
 let supabaseInitPromise = null;
 
+// Session storage key for manual backup
+const SESSION_STORAGE_KEY = 'pn_supabase_session';
+
+// Helper to manually save session (backup for when Supabase auto-persist fails)
+const saveSessionToStorage = (session) => {
+  try {
+    if (session) {
+      localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(session));
+      console.log('💾 [Session] Saved to localStorage');
+    } else {
+      localStorage.removeItem(SESSION_STORAGE_KEY);
+      console.log('🗑️ [Session] Removed from localStorage');
+    }
+  } catch (e) {
+    console.error('❌ [Session] Storage error:', e);
+  }
+};
+
+// Helper to load session from manual backup
+const loadSessionFromStorage = () => {
+  try {
+    const stored = localStorage.getItem(SESSION_STORAGE_KEY);
+    if (stored) {
+      const session = JSON.parse(stored);
+      console.log('📂 [Session] Loaded from localStorage:', session?.user?.email);
+      return session;
+    }
+  } catch (e) {
+    console.error('❌ [Session] Load error:', e);
+  }
+  return null;
+};
+
 const initSupabase = () => {
   // Return existing instance if already initialized
   if (supabase) return Promise.resolve(supabase);
@@ -273,7 +306,9 @@ const initSupabase = () => {
           auth: {
             autoRefreshToken: true,
             persistSession: true,
-            detectSessionInUrl: true
+            detectSessionInUrl: true,
+            storage: window.localStorage,
+            storageKey: 'pn_sb_auth'
           }
         }
       );
@@ -358,6 +393,7 @@ function App() {
       }
       
       // STEP 1: Check for existing session FIRST (handles refresh)
+      let foundSession = null;
       try {
         console.log('🔍 [Auth] Checking for existing session...');
         const { data: { session }, error } = await sb.auth.getSession();
@@ -365,14 +401,37 @@ function App() {
         if (error) {
           console.error('❌ [Auth] getSession error:', error);
         } else if (session?.user) {
-          console.log('✅ [Auth] Found existing session:', session.user.email);
-          if (isMounted) {
-            setUser(session.user);
-            setView('dashboard');
-            loadSavedData(session.user.id);
-          }
+          console.log('✅ [Auth] Found existing session via Supabase:', session.user.email);
+          foundSession = session;
         } else {
-          console.log('ℹ️ [Auth] No existing session found');
+          console.log('ℹ️ [Auth] No Supabase session, checking backup...');
+          // Try to restore from our manual backup
+          const backupSession = loadSessionFromStorage();
+          if (backupSession?.access_token && backupSession?.user) {
+            console.log('🔄 [Auth] Found backup session, attempting restore...');
+            // Try to set the session in Supabase
+            const { data: restored, error: restoreError } = await sb.auth.setSession({
+              access_token: backupSession.access_token,
+              refresh_token: backupSession.refresh_token
+            });
+            if (restoreError) {
+              console.error('❌ [Auth] Backup restore failed:', restoreError.message);
+              saveSessionToStorage(null); // Clear invalid backup
+            } else if (restored?.session?.user) {
+              console.log('✅ [Auth] Session restored from backup:', restored.session.user.email);
+              foundSession = restored.session;
+              // Update backup with fresh tokens
+              saveSessionToStorage(restored.session);
+            }
+          } else {
+            console.log('ℹ️ [Auth] No backup session found');
+          }
+        }
+        
+        if (foundSession?.user && isMounted) {
+          setUser(foundSession.user);
+          setView('dashboard');
+          loadSavedData(foundSession.user.id);
         }
       } catch (err) {
         console.error('❌ [Auth] Session check failed:', err);
@@ -387,12 +446,16 @@ function App() {
         if (event === 'SIGNED_IN') {
           if (session?.user) {
             console.log('✅ [Auth] User signed in:', session.user.email);
+            // Save session to our manual backup
+            saveSessionToStorage(session);
             setUser(session.user);
             setView('dashboard');
             loadSavedData(session.user.id);
           }
         } else if (event === 'SIGNED_OUT') {
           console.log('👋 [Auth] User signed out');
+          // Clear our manual backup
+          saveSessionToStorage(null);
           setUser(null);
           setView('landing');
           setTransactions([]);
@@ -401,8 +464,9 @@ function App() {
         } else if (event === 'TOKEN_REFRESHED') {
           console.log('🔄 [Auth] Token refreshed');
           if (session?.user) {
+            // Update backup with fresh tokens
+            saveSessionToStorage(session);
             setUser(session.user);
-          }
         }
       });
       subscription = sub;
@@ -1144,6 +1208,10 @@ function Dashboard({
   const handleSignOut = async () => {
     console.log('🚪 [Auth] Signing out...');
     try {
+      // Clear our manual backup first
+      saveSessionToStorage(null);
+      localStorage.removeItem('pn_sb_auth'); // Clear Supabase storage key too
+      
       const sb = await initSupabase();
       if (sb) {
         await sb.auth.signOut();
