@@ -14,82 +14,109 @@ import RetirementTab from './components/RetirementTab';
 import SalesTrackerTab from './components/SalesTrackerTab';
 
 // ============================================================================
-// FAMILY FINANCE - COMPREHENSIVE APP WITH REAL DATA SUPPORT
+// PROSPERNEST - DASHSTACK UI DESIGN
 // ============================================================================
 
+// Theme colors - DashStack inspired
+const theme = {
+  primary: '#4F46E5',      // Indigo/Blue
+  primaryLight: '#818CF8',
+  primaryDark: '#3730A3',
+  secondary: '#EC4899',    // Pink
+  success: '#10B981',
+  warning: '#F59E0B',
+  danger: '#EF4444',
+  info: '#3B82F6',
+  
+  // Backgrounds
+  bgMain: '#F5F6FA',
+  bgWhite: '#FFFFFF',
+  bgCard: '#FFFFFF',
+  
+  // Text
+  textPrimary: '#1F2937',
+  textSecondary: '#6B7280',
+  textMuted: '#9CA3AF',
+  
+  // Borders
+  border: '#E5E7EB',
+  borderLight: '#F3F4F6',
+  
+  // Sidebar
+  sidebarBg: '#FFFFFF',
+  sidebarActive: '#4F46E5',
+  sidebarText: '#6B7280',
+  sidebarActiveText: '#FFFFFF',
+};
+
 // ============================================================================
-// SIDEBAR ICONS
+// SIDEBAR ICONS - Line style matching DashStack
 // ============================================================================
 
 const Icons = {
   Dashboard: () => (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/>
-    </svg>
-  ),
-  Sales: () => (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
       <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
     </svg>
   ),
+  Sales: () => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/>
+    </svg>
+  ),
   Budget: () => (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/>
     </svg>
   ),
   Transactions: () => (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/>
     </svg>
   ),
   Calendar: () => (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
       <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
     </svg>
   ),
   Goals: () => (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
       <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>
     </svg>
   ),
   Retirement: () => (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
       <path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/>
     </svg>
   ),
   Reports: () => (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/>
     </svg>
   ),
   Settings: () => (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
       <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
     </svg>
   ),
   Import: () => (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
       <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
     </svg>
   ),
   Search: () => (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
       <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
     </svg>
   ),
   Bell: () => (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
       <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
     </svg>
   ),
-  ChevronLeft: () => (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <polyline points="15 18 9 12 15 6"/>
-    </svg>
-  ),
-  ChevronRight: () => (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <polyline points="9 18 15 12 9 6"/>
+  Menu: () => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/>
     </svg>
   ),
   ChevronDown: () => (
@@ -97,19 +124,29 @@ const Icons = {
       <polyline points="6 9 12 15 18 9"/>
     </svg>
   ),
-  Menu: () => (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/>
+  SignOut: () => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
     </svg>
   ),
-  SignOut: () => (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
+  User: () => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+    </svg>
+  ),
+  Filter: () => (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+    </svg>
+  ),
+  Refresh: () => (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
     </svg>
   ),
 };
 
-// Language options for selector
+// Language options
 const languages = [
   { code: 'en', name: 'English', flag: '🇺🇸' },
   { code: 'es', name: 'Español', flag: '🇪🇸' },
@@ -121,7 +158,7 @@ const languages = [
   { code: 'ko', name: '한국어', flag: '🇰🇷' },
 ];
 
-// Currency formatter helper - consistent $1,000.00 format
+// Currency formatter
 const formatCurrency = (amount) => {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
@@ -143,10 +180,10 @@ class ErrorBoundary extends React.Component {
   render() {
     if (this.state.hasError) {
       return (
-        <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0c0a1d', color: 'white' }}>
-          <div style={{ textAlign: 'center' }}>
-            <h1>Something went wrong</h1>
-            <button onClick={() => window.location.reload()} style={{ padding: '12px 24px', background: 'linear-gradient(135deg, #8B5CF6, #EC4899)', border: 'none', borderRadius: '8px', color: 'white', cursor: 'pointer', marginTop: '16px' }}>
+        <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: theme.bgMain }}>
+          <div style={{ textAlign: 'center', padding: '40px', background: 'white', borderRadius: '16px', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }}>
+            <h1 style={{ color: theme.textPrimary }}>Something went wrong</h1>
+            <button onClick={() => window.location.reload()} style={{ padding: '12px 24px', background: theme.primary, border: 'none', borderRadius: '8px', color: 'white', cursor: 'pointer', marginTop: '16px' }}>
               Reload App
             </button>
           </div>
@@ -174,21 +211,16 @@ const initSupabase = async () => {
   }
 };
 
-// ============================================================================
-// CSV PARSER UTILITY
-// ============================================================================
-
+// CSV Parser
 const parseCSV = (csvText) => {
   const lines = csvText.split('\n');
   const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
-  
   const transactions = [];
   
   for (let i = 1; i < lines.length; i++) {
     const line = lines[i].trim();
     if (!line) continue;
     
-    // Handle CSV with quoted fields
     const values = [];
     let current = '';
     let inQuotes = false;
@@ -206,7 +238,7 @@ const parseCSV = (csvText) => {
     values.push(current.trim());
     
     if (values.length >= 5) {
-      const transaction = {
+      transactions.push({
         id: i,
         date: values[0],
         description: values[1]?.replace(/"/g, '') || '',
@@ -214,8 +246,7 @@ const parseCSV = (csvText) => {
         category: values[3]?.replace(/"/g, '') || 'Uncategorized',
         amount: parseFloat(values[4]) || 0,
         status: values[5]?.replace(/"/g, '') || 'Posted'
-      };
-      transactions.push(transaction);
+      });
     }
   }
   
@@ -230,8 +261,6 @@ function App() {
   const [view, setView] = useState('landing');
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  
-  // Real data state - starts empty
   const [transactions, setTransactions] = useState([]);
   const [bills, setBills] = useState([]);
   const [goals, setGoals] = useState([]);
@@ -245,7 +274,6 @@ function App() {
         if (session?.user) {
           setUser(session.user);
           setView('dashboard');
-          // Load saved data from localStorage
           loadSavedData(session.user.id);
         }
         sb.auth.onAuthStateChange((event, session) => {
@@ -264,13 +292,12 @@ function App() {
     init();
   }, []);
 
-  // Load saved data from localStorage (per user)
   const loadSavedData = (userId) => {
     try {
-      const savedTransactions = localStorage.getItem(`ff_transactions_${userId}`);
-      const savedBills = localStorage.getItem(`ff_bills_${userId}`);
-      const savedGoals = localStorage.getItem(`ff_goals_${userId}`);
-      const savedImportDate = localStorage.getItem(`ff_lastImport_${userId}`);
+      const savedTransactions = localStorage.getItem(`pn_transactions_${userId}`);
+      const savedBills = localStorage.getItem(`pn_bills_${userId}`);
+      const savedGoals = localStorage.getItem(`pn_goals_${userId}`);
+      const savedImportDate = localStorage.getItem(`pn_lastImport_${userId}`);
       
       if (savedTransactions) setTransactions(JSON.parse(savedTransactions));
       if (savedBills) setBills(JSON.parse(savedBills));
@@ -281,49 +308,45 @@ function App() {
     }
   };
 
-  // Save data to localStorage (per user)
   const saveData = (userId, key, data) => {
     try {
-      localStorage.setItem(`ff_${key}_${userId}`, JSON.stringify(data));
+      localStorage.setItem(`pn_${key}_${userId}`, JSON.stringify(data));
     } catch (e) {
       console.error('Error saving data:', e);
     }
   };
 
-  // Handle CSV import
   const handleImportTransactions = (newTransactions) => {
     const userId = user?.id;
     if (!userId) return;
-    
     setTransactions(newTransactions);
     setLastImportDate(new Date());
     saveData(userId, 'transactions', newTransactions);
-    localStorage.setItem(`ff_lastImport_${userId}`, new Date().toISOString());
+    localStorage.setItem(`pn_lastImport_${userId}`, new Date().toISOString());
   };
 
-  // Handle bills update
   const handleUpdateBills = (newBills) => {
     const userId = user?.id;
     if (!userId) return;
-    
     setBills(newBills);
     saveData(userId, 'bills', newBills);
   };
 
-  // Handle goals update
   const handleUpdateGoals = (newGoals) => {
     const userId = user?.id;
     if (!userId) return;
-    
     setGoals(newGoals);
     saveData(userId, 'goals', newGoals);
   };
 
   if (loading) {
     return (
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0c0a1d' }}>
-        <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'linear-gradient(135deg, #8B5CF6, #EC4899)', display: 'flex', alignItems: 'center', justifyContent: 'center', animation: 'pulse 2s infinite' }}>
-          <span style={{ color: 'white', fontWeight: 'bold', fontSize: '20px' }}>FF</span>
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: theme.bgMain }}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: `linear-gradient(135deg, ${theme.primary}, ${theme.secondary})`, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto', animation: 'pulse 2s infinite' }}>
+            <span style={{ color: 'white', fontWeight: 'bold', fontSize: '18px' }}>PN</span>
+          </div>
+          <p style={{ marginTop: '16px', color: theme.textSecondary }}>Loading ProsperNest...</p>
         </div>
         <style>{`@keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.7; transform: scale(0.95); } }`}</style>
       </div>
@@ -349,383 +372,117 @@ function App() {
 }
 
 // ============================================================================
-// LANDING PAGE
+// LANDING PAGE - PROSPERNEST
 // ============================================================================
 
 function LandingPage({ setView }) {
-  const [chatOpen, setChatOpen] = useState(false);
-
   return (
-    <div style={{ minHeight: '100vh', background: '#0c0a1d', color: 'white', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', position: 'relative', overflow: 'hidden' }}>
-      {/* Background Image */}
-      <div style={{ position: 'absolute', inset: 0, backgroundImage: 'url(https://images.unsplash.com/photo-1511895426328-dc8714191300?w=1920)', backgroundSize: 'cover', backgroundPosition: 'center', opacity: 0.15 }} />
-      
-      {/* Purple Glows */}
-      <div style={{ position: 'absolute', top: '10%', right: '10%', width: '400px', height: '400px', background: 'rgba(139, 92, 246, 0.4)', borderRadius: '50%', filter: 'blur(60px)' }} />
-      <div style={{ position: 'absolute', bottom: '20%', right: '5%', width: '300px', height: '300px', background: 'rgba(236, 72, 153, 0.3)', borderRadius: '50%', filter: 'blur(60px)' }} />
-      <div style={{ position: 'absolute', top: '40%', left: '5%', width: '250px', height: '250px', background: 'rgba(139, 92, 246, 0.2)', borderRadius: '50%', filter: 'blur(50px)' }} />
+    <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4c1d95 100%)', color: 'white', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}>
+      {/* Background effects */}
+      <div style={{ position: 'absolute', top: '10%', right: '10%', width: '400px', height: '400px', background: 'rgba(139, 92, 246, 0.3)', borderRadius: '50%', filter: 'blur(80px)' }} />
+      <div style={{ position: 'absolute', bottom: '20%', left: '10%', width: '300px', height: '300px', background: 'rgba(236, 72, 153, 0.2)', borderRadius: '50%', filter: 'blur(60px)' }} />
 
-      {/* Content */}
       <div style={{ position: 'relative', zIndex: 1 }}>
         {/* Header */}
         <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 40px', maxWidth: '1400px', margin: '0 auto' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <div style={{ 
-              width: '48px', 
-              height: '48px', 
-              borderRadius: '14px', 
-              background: 'linear-gradient(135deg, #8B5CF6 0%, #EC4899 50%, #8B5CF6 100%)', 
-              display: 'flex', 
-              alignItems: 'center', 
-              justifyContent: 'center',
-              boxShadow: '0 4px 15px rgba(139, 92, 246, 0.4), inset 0 1px 0 rgba(255,255,255,0.2)',
-              position: 'relative',
-              overflow: 'hidden'
-            }}>
-              <div style={{ position: 'absolute', top: 0, left: '-50%', width: '50%', height: '100%', background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent)', transform: 'skewX(-20deg)' }} />
-              <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-                <circle cx="14" cy="14" r="12" stroke="rgba(255,255,255,0.3)" strokeWidth="1.5" fill="none"/>
-                <path d="M14 6V8M14 20V22M10 12C10 10.3431 11.7909 9 14 9C16.2091 9 18 10.3431 18 12C18 13.6569 16.2091 15 14 15C11.7909 15 10 16.3431 10 18C10 19.6569 11.7909 21 14 21C16.2091 21 18 19.6569 18 18" stroke="white" strokeWidth="2" strokeLinecap="round" fill="none"/>
-                <circle cx="7" cy="10" r="1" fill="rgba(255,255,255,0.6)"/>
-                <circle cx="21" cy="18" r="1" fill="rgba(255,255,255,0.6)"/>
-              </svg>
+            <div style={{ width: '44px', height: '44px', borderRadius: '12px', background: 'linear-gradient(135deg, #8B5CF6, #EC4899)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '700', fontSize: '16px' }}>
+              PN
             </div>
-            <span style={{ fontSize: '20px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              Family Finance
-              <span style={{ 
-                fontSize: '10px', 
-                fontWeight: '700', 
-                padding: '3px 8px', 
-                background: 'linear-gradient(135deg, #F59E0B, #D97706)', 
-                borderRadius: '6px', 
-                color: 'white',
-                letterSpacing: '0.5px',
-                textTransform: 'uppercase'
-              }}>BETA</span>
+            <span style={{ fontSize: '22px', fontWeight: '700' }}>
+              Prosper<span style={{ color: '#A78BFA' }}>Nest</span>
             </span>
           </div>
           <nav style={{ display: 'flex', alignItems: 'center', gap: '32px' }}>
-            <a href="#features" style={{ color: 'rgba(255,255,255,0.7)', textDecoration: 'none', fontSize: '15px' }}>Features</a>
-            <a href="#pricing" style={{ color: 'rgba(255,255,255,0.7)', textDecoration: 'none', fontSize: '15px' }}>Pricing</a>
-            <a href="#tutorials" style={{ color: 'rgba(255,255,255,0.7)', textDecoration: 'none', fontSize: '15px' }}>Tutorials</a>
-            <a href="#support" style={{ color: 'rgba(255,255,255,0.7)', textDecoration: 'none', fontSize: '15px' }}>Support</a>
-            <button onClick={() => setView('auth')} style={{ padding: '10px 20px', background: 'transparent', border: '1px solid rgba(255,255,255,0.3)', borderRadius: '8px', color: 'white', cursor: 'pointer', fontSize: '15px' }}>
+            <a href="#features" style={{ color: 'rgba(255,255,255,0.8)', textDecoration: 'none', fontSize: '15px', fontWeight: '500' }}>Features</a>
+            <a href="#pricing" style={{ color: 'rgba(255,255,255,0.8)', textDecoration: 'none', fontSize: '15px', fontWeight: '500' }}>Pricing</a>
+            <a href="#about" style={{ color: 'rgba(255,255,255,0.8)', textDecoration: 'none', fontSize: '15px', fontWeight: '500' }}>About</a>
+            <button onClick={() => setView('auth')} style={{ padding: '10px 24px', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '8px', color: 'white', cursor: 'pointer', fontSize: '15px', fontWeight: '500', backdropFilter: 'blur(10px)' }}>
               Sign In
+            </button>
+            <button onClick={() => setView('auth')} style={{ padding: '10px 24px', background: 'linear-gradient(135deg, #8B5CF6, #EC4899)', border: 'none', borderRadius: '8px', color: 'white', cursor: 'pointer', fontSize: '15px', fontWeight: '600' }}>
+              Get Started
             </button>
           </nav>
         </header>
 
         {/* Hero Section */}
-        <section style={{ maxWidth: '1400px', margin: '0 auto', padding: '60px 40px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '60px', alignItems: 'center' }}>
-          <div>
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '8px 16px', background: 'rgba(16, 185, 129, 0.15)', borderRadius: '20px', marginBottom: '24px' }}>
-              <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#10B981', animation: 'pulse 2s infinite' }} />
-              <span style={{ color: '#10B981', fontSize: '14px' }}>Trusted by 10,000+ families</span>
-            </div>
-            
-            <h1 style={{ fontSize: '56px', fontWeight: '700', lineHeight: 1.1, marginBottom: '24px' }}>
-              Your Family's{' '}
-              <span style={{ background: 'linear-gradient(135deg, #8B5CF6, #EC4899)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-                Financial Command Center
-              </span>
-            </h1>
-            
-            <p style={{ fontSize: '18px', color: 'rgba(255,255,255,0.7)', lineHeight: 1.6, marginBottom: '32px', maxWidth: '500px' }}>
-              Three powerful hubs. One simple app. Take control of your home budget, track investments, and analyze real estate—all in one place.
-            </p>
+        <section style={{ maxWidth: '1200px', margin: '0 auto', padding: '80px 40px', textAlign: 'center' }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '8px 16px', background: 'rgba(16, 185, 129, 0.15)', borderRadius: '20px', marginBottom: '24px', border: '1px solid rgba(16, 185, 129, 0.3)' }}>
+            <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#10B981' }} />
+            <span style={{ color: '#10B981', fontSize: '14px', fontWeight: '500' }}>Trusted by 10,000+ families</span>
+          </div>
+          
+          <h1 style={{ fontSize: '64px', fontWeight: '800', lineHeight: 1.1, marginBottom: '24px', maxWidth: '900px', margin: '0 auto 24px' }}>
+            Your Financial Future,{' '}
+            <span style={{ background: 'linear-gradient(135deg, #A78BFA, #F472B6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+              Simplified
+            </span>
+          </h1>
+          
+          <p style={{ fontSize: '20px', color: 'rgba(255,255,255,0.7)', lineHeight: 1.6, marginBottom: '40px', maxWidth: '600px', margin: '0 auto 40px' }}>
+            Track your personal finances and side hustle income in one beautiful dashboard. Make smarter decisions with real-time insights.
+          </p>
 
-            <div style={{ display: 'flex', gap: '16px', marginBottom: '48px' }}>
-              <button onClick={() => setView('auth')} style={{ padding: '16px 32px', background: 'linear-gradient(135deg, #8B5CF6, #EC4899)', border: 'none', borderRadius: '12px', color: 'white', fontSize: '16px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                Start Free Trial <span>→</span>
-              </button>
-              <button style={{ padding: '16px 32px', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '12px', color: 'white', fontSize: '16px', fontWeight: '500', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', opacity: 0.7 }}>
-                <span>▶</span> Coming Soon
-              </button>
-            </div>
-
-            <div style={{ display: 'flex', gap: '40px' }}>
-              <div>
-                <div style={{ fontSize: '32px', fontWeight: '700' }}>$2.4B+</div>
-                <div style={{ fontSize: '14px', color: 'rgba(255,255,255,0.5)' }}>Assets Tracked</div>
-              </div>
-              <div>
-                <div style={{ fontSize: '32px', fontWeight: '700' }}>4.9<span style={{ color: '#FBBF24' }}>★</span></div>
-                <div style={{ fontSize: '14px', color: 'rgba(255,255,255,0.5)' }}>App Store</div>
-              </div>
-              <div>
-                <div style={{ fontSize: '32px', fontWeight: '700' }}>256-bit</div>
-                <div style={{ fontSize: '14px', color: 'rgba(255,255,255,0.5)' }}>Encryption</div>
-              </div>
-            </div>
+          <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', marginBottom: '60px' }}>
+            <button onClick={() => setView('auth')} style={{ padding: '16px 40px', background: 'white', border: 'none', borderRadius: '12px', color: '#1e1b4b', fontSize: '16px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              Start Free Trial <span>→</span>
+            </button>
+            <button style={{ padding: '16px 40px', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '12px', color: 'white', fontSize: '16px', fontWeight: '500', cursor: 'pointer', backdropFilter: 'blur(10px)' }}>
+              Watch Demo
+            </button>
           </div>
 
-          {/* Dashboard Preview */}
-          <div style={{ background: 'rgba(30, 27, 56, 0.8)', backdropFilter: 'blur(20px)', borderRadius: '24px', padding: '24px', border: '1px solid rgba(255,255,255,0.1)', maxWidth: '340px', marginLeft: 'auto' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px' }}>
-              <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#8B5CF6' }} />
-              <span style={{ fontSize: '13px', color: 'rgba(255,255,255,0.6)' }}>Dashboard</span>
+          {/* Stats */}
+          <div style={{ display: 'flex', gap: '60px', justifyContent: 'center' }}>
+            <div>
+              <div style={{ fontSize: '36px', fontWeight: '700' }}>$2.4B+</div>
+              <div style={{ fontSize: '14px', color: 'rgba(255,255,255,0.5)' }}>Assets Tracked</div>
             </div>
-            <div style={{ background: 'rgba(139, 92, 246, 0.2)', borderRadius: '16px', padding: '20px', marginBottom: '16px' }}>
-              <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)', marginBottom: '4px' }}>Net Worth</div>
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: '12px' }}>
-                <span style={{ fontSize: '28px', fontWeight: '700' }}>$847,320</span>
-                <span style={{ color: '#10B981', fontSize: '14px' }}>+12.4%</span>
-              </div>
+            <div>
+              <div style={{ fontSize: '36px', fontWeight: '700' }}>4.9<span style={{ color: '#FBBF24' }}>★</span></div>
+              <div style={{ fontSize: '14px', color: 'rgba(255,255,255,0.5)' }}>App Store Rating</div>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-              {['🏠', '📈', '💳', '🎯'].map((emoji, i) => (
-                <div key={i} style={{ background: 'rgba(255,255,255,0.05)', borderRadius: '12px', padding: '16px', textAlign: 'center', fontSize: '24px' }}>
-                  {emoji}
+            <div>
+              <div style={{ fontSize: '36px', fontWeight: '700' }}>256-bit</div>
+              <div style={{ fontSize: '14px', color: 'rgba(255,255,255,0.5)' }}>Bank-Level Security</div>
+            </div>
+          </div>
+        </section>
+
+        {/* Features Preview */}
+        <section style={{ maxWidth: '1200px', margin: '0 auto', padding: '40px' }}>
+          <div style={{ background: 'rgba(255,255,255,0.05)', backdropFilter: 'blur(20px)', borderRadius: '24px', padding: '40px', border: '1px solid rgba(255,255,255,0.1)' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '24px' }}>
+              {[
+                { icon: '📊', title: 'Smart Dashboard', desc: 'Real-time overview of all your finances' },
+                { icon: '💼', title: 'Side Hustle Tracking', desc: 'Separate tracking for your business income' },
+                { icon: '🎯', title: 'Goal Setting', desc: 'Set and track your financial goals' },
+                { icon: '📈', title: 'Analytics', desc: 'Deep insights into spending patterns' },
+                { icon: '🔔', title: 'Bill Reminders', desc: 'Never miss a payment again' },
+                { icon: '🔒', title: 'Bank Security', desc: '256-bit encryption keeps you safe' },
+              ].map((feature, i) => (
+                <div key={i} style={{ padding: '24px', background: 'rgba(255,255,255,0.05)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.1)' }}>
+                  <div style={{ fontSize: '32px', marginBottom: '12px' }}>{feature.icon}</div>
+                  <h3 style={{ fontSize: '18px', fontWeight: '600', marginBottom: '8px' }}>{feature.title}</h3>
+                  <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.6)', lineHeight: 1.5 }}>{feature.desc}</p>
                 </div>
               ))}
             </div>
           </div>
         </section>
 
-        {/* Products Section */}
-        <section id="features">
-          <ProductShowcase />
-        </section>
-
-        {/* Pricing Section */}
-        <PricingSection setView={setView} />
-
         {/* Footer */}
-        <footer style={{ maxWidth: '1400px', margin: '0 auto', padding: '40px', borderTop: '1px solid rgba(255,255,255,0.1)', textAlign: 'center' }}>
-          <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '14px' }}>© 2024 Family Finance. All rights reserved.</p>
+        <footer style={{ maxWidth: '1400px', margin: '0 auto', padding: '40px', borderTop: '1px solid rgba(255,255,255,0.1)', textAlign: 'center', marginTop: '60px' }}>
+          <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '14px' }}>© 2024 ProsperNest. All rights reserved. www.prospernest.io</p>
         </footer>
       </div>
-
-      {/* AI Chatbot */}
-      <AIChatbot open={chatOpen} setOpen={setChatOpen} />
-
-      <style>{`
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
-        @media (max-width: 1024px) {
-          section { grid-template-columns: 1fr !important; }
-        }
-        @media (max-width: 768px) {
-          nav { display: none !important; }
-          h1 { font-size: 36px !important; }
-        }
-      `}</style>
     </div>
   );
 }
 
 // ============================================================================
-// PRICING SECTION
-// ============================================================================
-
-function PricingSection({ setView }) {
-  const [isAnnual, setIsAnnual] = useState(true);
-  const [openFaq, setOpenFaq] = useState(null);
-
-  const faqs = [
-    { q: 'How does the 14-day free trial work?', a: 'Start using Family Finance immediately with full access to all features. No credit card required for the first 14 days. Cancel anytime before the trial ends and you won\'t be charged.' },
-    { q: 'Can I share with my family?', a: 'Yes! Family sharing is included in your subscription. You can invite up to 5 family members to view and manage your shared finances together.' },
-    { q: 'Is my financial data secure?', a: 'Absolutely. We use 256-bit encryption (the same as banks), and we never sell your data. Your information is protected with bank-level security measures.' },
-    { q: 'Can I cancel anytime?', a: 'Yes, you can cancel your subscription at any time. If you cancel, you\'ll continue to have access until the end of your billing period.' },
-    { q: 'What banks do you support?', a: 'We support over 10,000 financial institutions in the US, Canada, and UK including all major banks, credit unions, and investment accounts through our secure Plaid integration.' }
-  ];
-
-  return (
-    <section id="pricing" style={{ maxWidth: '1400px', margin: '0 auto', padding: '80px 40px' }}>
-      <div style={{ textAlign: 'center', marginBottom: '60px' }}>
-        <h2 style={{ fontSize: '40px', fontWeight: '700', marginBottom: '16px', color: 'white' }}>Simple, Transparent Pricing</h2>
-        <p style={{ fontSize: '18px', color: 'rgba(255,255,255,0.6)' }}>Start free, upgrade when you're ready</p>
-      </div>
-
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '40px', alignItems: 'start' }}>
-        {/* Pricing Card */}
-        <div style={{ background: 'rgba(30, 27, 56, 0.8)', backdropFilter: 'blur(20px)', borderRadius: '24px', padding: '32px', border: '1px solid rgba(139, 92, 246, 0.3)' }}>
-          {/* Toggle */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', marginBottom: '32px' }}>
-            <span style={{ color: !isAnnual ? 'white' : 'rgba(255,255,255,0.5)', fontSize: '14px' }}>Monthly</span>
-            <div 
-              onClick={() => setIsAnnual(!isAnnual)}
-              style={{ width: '50px', height: '28px', background: isAnnual ? 'linear-gradient(135deg, #8B5CF6, #EC4899)' : 'rgba(255,255,255,0.2)', borderRadius: '14px', cursor: 'pointer', position: 'relative', transition: 'all 0.3s ease' }}
-            >
-              <div style={{ width: '22px', height: '22px', background: 'white', borderRadius: '50%', position: 'absolute', top: '3px', left: isAnnual ? '25px' : '3px', transition: 'all 0.3s ease' }} />
-            </div>
-            <span style={{ color: isAnnual ? 'white' : 'rgba(255,255,255,0.5)', fontSize: '14px' }}>Annual</span>
-            {isAnnual && <span style={{ background: 'rgba(16, 185, 129, 0.2)', color: '#10B981', padding: '4px 8px', borderRadius: '6px', fontSize: '12px' }}>Save 17%</span>}
-          </div>
-
-          {/* Price */}
-          <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-            <div style={{ fontSize: '48px', fontWeight: '700', color: 'white' }}>
-              ${isAnnual ? '8.29' : '9.99'}<span style={{ fontSize: '18px', color: 'rgba(255,255,255,0.5)' }}>/mo</span>
-            </div>
-            {isAnnual && <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: '14px' }}>Billed $99/year</div>}
-          </div>
-
-          {/* Products */}
-          <div style={{ marginBottom: '24px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 0', borderBottom: '1px solid rgba(255,255,255,0.1)', color: 'white' }}>
-              <span>🏠 HomeBudget Hub</span>
-              <span style={{ background: 'rgba(16, 185, 129, 0.2)', color: '#10B981', padding: '4px 12px', borderRadius: '6px', fontSize: '13px' }}>Included</span>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 0', borderBottom: '1px solid rgba(255,255,255,0.1)', color: 'white' }}>
-              <span style={{ color: 'rgba(255,255,255,0.6)' }}>💼 BizBudget Hub</span>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: '13px' }}>+$4.99/mo</span>
-                <span style={{ background: 'rgba(251, 191, 36, 0.2)', color: '#FBBF24', padding: '2px 8px', borderRadius: '4px', fontSize: '11px' }}>Soon</span>
-              </div>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 0', color: 'white' }}>
-              <span style={{ color: 'rgba(255,255,255,0.6)' }}>🏢 REBudget Hub</span>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: '13px' }}>+$6.99/mo</span>
-                <span style={{ background: 'rgba(251, 191, 36, 0.2)', color: '#FBBF24', padding: '2px 8px', borderRadius: '4px', fontSize: '11px' }}>Soon</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Features */}
-          <div style={{ marginBottom: '24px' }}>
-            {['All 3 Hubs when available', 'Unlimited bank connections', 'Family sharing (5 members)', 'Real-time sync', 'Advanced analytics', 'Priority support', 'Data export'].map((f, i) => (
-              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 0', fontSize: '14px', color: 'rgba(255,255,255,0.8)' }}>
-                <span style={{ color: '#8B5CF6' }}>✓</span> {f}
-              </div>
-            ))}
-          </div>
-
-          <button onClick={() => setView('auth')} style={{ width: '100%', padding: '16px', background: 'linear-gradient(135deg, #8B5CF6, #EC4899)', border: 'none', borderRadius: '12px', color: 'white', fontSize: '16px', fontWeight: '600', cursor: 'pointer', marginBottom: '16px' }}>
-            Start 14-Day Free Trial
-          </button>
-
-          <p style={{ textAlign: 'center', fontSize: '13px', color: 'rgba(255,255,255,0.4)' }}>
-            Alternate products: Monarch ($14.99), YNAB ($14.99), Quicken ($5.99)
-          </p>
-        </div>
-
-        {/* FAQ */}
-        <div>
-          <h3 style={{ fontSize: '24px', fontWeight: '600', marginBottom: '24px', color: 'white' }}>Frequently Asked Questions</h3>
-          {faqs.map((faq, i) => (
-            <div key={i} style={{ borderBottom: '1px solid rgba(255,255,255,0.1)', marginBottom: '8px' }}>
-              <button
-                onClick={() => setOpenFaq(openFaq === i ? null : i)}
-                style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 0', background: 'transparent', border: 'none', color: 'white', cursor: 'pointer', textAlign: 'left', fontSize: '15px' }}
-              >
-                {faq.q}
-                <span style={{ transform: openFaq === i ? 'rotate(45deg)' : 'none', transition: 'transform 0.3s ease', fontSize: '20px' }}>+</span>
-              </button>
-              {openFaq === i && (
-                <div style={{ padding: '0 0 16px', color: 'rgba(255,255,255,0.6)', fontSize: '14px', lineHeight: 1.6 }}>
-                  {faq.a}
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-// ============================================================================
-// AI CHATBOT (Landing Page)
-// ============================================================================
-
-function AIChatbot({ open, setOpen }) {
-  const [messages, setMessages] = useState([
-    { role: 'assistant', content: 'Hi! 👋 I\'m your Family Finance assistant. How can I help you today?' }
-  ]);
-  const [input, setInput] = useState('');
-
-  const sendMessage = () => {
-    if (!input.trim()) return;
-    
-    const userMsg = { role: 'user', content: input };
-    setMessages(prev => [...prev, userMsg]);
-    
-    let response = 'I\'d be happy to help with that! Feel free to ask me about pricing, features, or how to get started.';
-    const lower = input.toLowerCase();
-    
-    if (lower.includes('price') || lower.includes('cost')) {
-      response = '💰 Our pricing starts at $8.29/mo (billed annually) or $9.99/mo monthly. The HomeBudget Hub is included, with BizBudget (+$4.99) and REBudget (+$6.99) coming soon as add-ons!';
-    } else if (lower.includes('trial') || lower.includes('free')) {
-      response = '🎉 Yes! We offer a 14-day free trial with full access to all features. No credit card required to start!';
-    } else if (lower.includes('family') || lower.includes('share')) {
-      response = '👨‍👩‍👧‍👦 Family sharing is included! You can invite up to 5 family members to collaborate on your finances together.';
-    } else if (lower.includes('secure') || lower.includes('safe') || lower.includes('security')) {
-      response = '🔒 Your data is protected with 256-bit encryption (same as banks). We never sell your data and use bank-level security measures.';
-    } else if (lower.includes('bank') || lower.includes('connect')) {
-      response = '🏦 We support over 10,000 financial institutions through secure Plaid integration, including all major US banks, credit unions, and investment accounts.';
-    }
-    
-    setTimeout(() => {
-      setMessages(prev => [...prev, { role: 'assistant', content: response }]);
-    }, 500);
-    
-    setInput('');
-  };
-
-  return (
-    <>
-      <button
-        onClick={() => setOpen(!open)}
-        style={{
-          position: 'fixed', bottom: '24px', right: '24px', width: '60px', height: '60px',
-          borderRadius: '50%', background: 'linear-gradient(135deg, #8B5CF6, #EC4899)',
-          border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: '24px', boxShadow: '0 4px 20px rgba(139, 92, 246, 0.4)', zIndex: 1000
-        }}
-      >
-        {open ? '×' : '💬'}
-      </button>
-
-      {open && (
-        <div style={{
-          position: 'fixed', bottom: '100px', right: '24px', width: '340px',
-          background: 'rgba(30, 27, 56, 0.95)', backdropFilter: 'blur(20px)',
-          borderRadius: '20px', border: '1px solid rgba(255,255,255,0.1)',
-          overflow: 'hidden', zIndex: 1000, boxShadow: '0 10px 40px rgba(0,0,0,0.3)'
-        }}>
-          <div style={{ padding: '16px 20px', background: 'linear-gradient(135deg, #8B5CF6, #EC4899)', display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <span style={{ fontSize: '20px' }}>🤖</span>
-            <span style={{ fontWeight: '600', color: 'white' }}>AI Assistant</span>
-          </div>
-
-          <div style={{ height: '280px', overflowY: 'auto', padding: '16px' }}>
-            {messages.map((msg, i) => (
-              <div key={i} style={{ marginBottom: '12px', display: 'flex', justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start' }}>
-                <div style={{
-                  maxWidth: '85%', padding: '10px 14px', borderRadius: '16px',
-                  background: msg.role === 'user' ? 'linear-gradient(135deg, #8B5CF6, #EC4899)' : 'rgba(255,255,255,0.1)',
-                  color: 'white', fontSize: '14px', lineHeight: 1.5
-                }}>
-                  {msg.content}
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div style={{ padding: '16px', borderTop: '1px solid rgba(255,255,255,0.1)', display: 'flex', gap: '8px' }}>
-            <input
-              value={input}
-              onChange={e => setInput(e.target.value)}
-              onKeyPress={e => e.key === 'Enter' && sendMessage()}
-              placeholder="Ask me anything..."
-              style={{
-                flex: 1, padding: '12px', background: 'rgba(255,255,255,0.1)',
-                border: 'none', borderRadius: '12px', color: 'white', fontSize: '14px', outline: 'none'
-              }}
-            />
-            <button onClick={sendMessage} style={{ padding: '12px 16px', background: 'linear-gradient(135deg, #8B5CF6, #EC4899)', border: 'none', borderRadius: '12px', color: 'white', cursor: 'pointer' }}>
-              →
-            </button>
-          </div>
-        </div>
-      )}
-    </>
-  );
-}
-
-// ============================================================================
-// AUTH PAGE
+// AUTH PAGE - DASHSTACK STYLE
 // ============================================================================
 
 function AuthPage({ setView }) {
@@ -772,63 +529,59 @@ function AuthPage({ setView }) {
   };
 
   return (
-    <div style={{ minHeight: '100vh', background: '#0c0a1d', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}>
-      <div style={{ position: 'absolute', top: '20%', right: '30%', width: '400px', height: '400px', background: 'rgba(139, 92, 246, 0.3)', borderRadius: '50%', filter: 'blur(80px)' }} />
-      <div style={{ position: 'absolute', bottom: '20%', left: '20%', width: '300px', height: '300px', background: 'rgba(236, 72, 153, 0.2)', borderRadius: '50%', filter: 'blur(60px)' }} />
-
-      <div style={{ position: 'relative', zIndex: 1, width: '100%', maxWidth: '400px', padding: '20px' }}>
-        <button onClick={() => setView('landing')} style={{ display: 'flex', alignItems: 'center', gap: '12px', background: 'transparent', border: 'none', color: 'white', cursor: 'pointer', marginBottom: '32px' }}>
-          <div style={{ 
-            width: '48px', 
-            height: '48px', 
-            borderRadius: '14px', 
-            background: 'linear-gradient(135deg, #8B5CF6 0%, #EC4899 50%, #8B5CF6 100%)', 
-            display: 'flex', 
-            alignItems: 'center', 
-            justifyContent: 'center',
-            boxShadow: '0 4px 15px rgba(139, 92, 246, 0.4), inset 0 1px 0 rgba(255,255,255,0.2)',
-            position: 'relative',
-            overflow: 'hidden'
-          }}>
-            <div style={{ position: 'absolute', top: 0, left: '-50%', width: '50%', height: '100%', background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent)', transform: 'skewX(-20deg)' }} />
-            <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-              <circle cx="14" cy="14" r="12" stroke="rgba(255,255,255,0.3)" strokeWidth="1.5" fill="none"/>
-              <path d="M14 6V8M14 20V22M10 12C10 10.3431 11.7909 9 14 9C16.2091 9 18 10.3431 18 12C18 13.6569 16.2091 15 14 15C11.7909 15 10 16.3431 10 18C10 19.6569 11.7909 21 14 21C16.2091 21 18 19.6569 18 18" stroke="white" strokeWidth="2" strokeLinecap="round" fill="none"/>
-              <circle cx="7" cy="10" r="1" fill="rgba(255,255,255,0.6)"/>
-              <circle cx="21" cy="18" r="1" fill="rgba(255,255,255,0.6)"/>
-            </svg>
+    <div style={{ minHeight: '100vh', display: 'flex', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}>
+      {/* Left side - Branding */}
+      <div style={{ flex: 1, background: 'linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4c1d95 100%)', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '60px', position: 'relative', overflow: 'hidden' }}>
+        <div style={{ position: 'absolute', top: '20%', right: '20%', width: '300px', height: '300px', background: 'rgba(139, 92, 246, 0.3)', borderRadius: '50%', filter: 'blur(80px)' }} />
+        <div style={{ position: 'absolute', bottom: '30%', left: '10%', width: '200px', height: '200px', background: 'rgba(236, 72, 153, 0.2)', borderRadius: '50%', filter: 'blur(60px)' }} />
+        
+        <div style={{ position: 'relative', zIndex: 1, textAlign: 'center', maxWidth: '400px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', justifyContent: 'center', marginBottom: '40px' }}>
+            <div style={{ width: '56px', height: '56px', borderRadius: '16px', background: 'linear-gradient(135deg, #8B5CF6, #EC4899)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '700', fontSize: '20px', color: 'white' }}>
+              PN
+            </div>
+            <span style={{ fontSize: '28px', fontWeight: '700', color: 'white' }}>
+              Prosper<span style={{ color: '#A78BFA' }}>Nest</span>
+            </span>
           </div>
-          <span style={{ fontSize: '18px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            Family Finance
-            <span style={{ 
-              fontSize: '9px', 
-              fontWeight: '700', 
-              padding: '2px 6px', 
-              background: 'linear-gradient(135deg, #F59E0B, #D97706)', 
-              borderRadius: '4px', 
-              color: 'white',
-              letterSpacing: '0.5px',
-              textTransform: 'uppercase'
-            }}>BETA</span>
-          </span>
-        </button>
-
-        {/* Navigation Links */}
-        <div style={{ display: 'flex', justifyContent: 'center', gap: '24px', marginBottom: '24px' }}>
-          <a href="#pricing" style={{ color: 'rgba(255,255,255,0.6)', textDecoration: 'none', fontSize: '13px' }}>Pricing</a>
-          <a href="#tutorials" style={{ color: 'rgba(255,255,255,0.6)', textDecoration: 'none', fontSize: '13px' }}>Tutorials</a>
-          <a href="#support" style={{ color: 'rgba(255,255,255,0.6)', textDecoration: 'none', fontSize: '13px' }}>Support</a>
-        </div>
-
-        <div style={{ background: 'rgba(30, 27, 56, 0.8)', backdropFilter: 'blur(20px)', borderRadius: '24px', padding: '40px', border: '1px solid rgba(255,255,255,0.1)' }}>
-          <h2 style={{ color: 'white', fontSize: '28px', fontWeight: '700', marginBottom: '8px', textAlign: 'center' }}>
-            {isLogin ? 'Welcome back' : 'Get started'}
-          </h2>
-          <p style={{ color: 'rgba(255,255,255,0.6)', textAlign: 'center', marginBottom: '32px' }}>
-            {isLogin ? 'Sign in to your account' : 'Create your free account'}
+          
+          <h1 style={{ fontSize: '36px', fontWeight: '700', color: 'white', marginBottom: '16px', lineHeight: 1.2 }}>
+            Take Control of Your Financial Future
+          </h1>
+          <p style={{ fontSize: '16px', color: 'rgba(255,255,255,0.7)', lineHeight: 1.6 }}>
+            Track personal finances and side hustle income in one beautiful dashboard.
           </p>
+          
+          <div style={{ marginTop: '40px', display: 'flex', gap: '24px', justifyContent: 'center' }}>
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ fontSize: '24px', fontWeight: '700', color: 'white' }}>10K+</div>
+              <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)' }}>Active Users</div>
+            </div>
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ fontSize: '24px', fontWeight: '700', color: 'white' }}>4.9★</div>
+              <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)' }}>Rating</div>
+            </div>
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ fontSize: '24px', fontWeight: '700', color: 'white' }}>$2.4B</div>
+              <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)' }}>Tracked</div>
+            </div>
+          </div>
+        </div>
+      </div>
 
-          <button onClick={handleGoogleSignIn} style={{ width: '100%', padding: '14px', background: 'white', border: 'none', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', cursor: 'pointer', marginBottom: '24px', fontSize: '15px', fontWeight: '500' }}>
+      {/* Right side - Form */}
+      <div style={{ flex: 1, background: theme.bgMain, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px' }}>
+        <div style={{ width: '100%', maxWidth: '400px' }}>
+          <div style={{ marginBottom: '32px' }}>
+            <h2 style={{ fontSize: '28px', fontWeight: '700', color: theme.textPrimary, marginBottom: '8px' }}>
+              {isLogin ? 'Welcome back' : 'Create account'}
+            </h2>
+            <p style={{ color: theme.textSecondary }}>
+              {isLogin ? 'Sign in to continue to ProsperNest' : 'Get started with your free account'}
+            </p>
+          </div>
+
+          <button onClick={handleGoogleSignIn} style={{ width: '100%', padding: '14px', background: 'white', border: `1px solid ${theme.border}`, borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', cursor: 'pointer', marginBottom: '24px', fontSize: '15px', fontWeight: '500', color: theme.textPrimary }}>
             <svg width="20" height="20" viewBox="0 0 24 24">
               <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
               <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
@@ -839,42 +592,52 @@ function AuthPage({ setView }) {
           </button>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px' }}>
-            <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.1)' }} />
-            <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: '14px' }}>or</span>
-            <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.1)' }} />
+            <div style={{ flex: 1, height: '1px', background: theme.border }} />
+            <span style={{ color: theme.textMuted, fontSize: '14px' }}>or</span>
+            <div style={{ flex: 1, height: '1px', background: theme.border }} />
           </div>
 
           {error && (
-            <div style={{ background: 'rgba(239, 68, 68, 0.2)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '8px', padding: '12px', marginBottom: '16px', color: '#EF4444', fontSize: '14px' }}>
+            <div style={{ background: '#FEE2E2', border: '1px solid #FECACA', borderRadius: '8px', padding: '12px', marginBottom: '16px', color: '#DC2626', fontSize: '14px' }}>
               {error}
             </div>
           )}
 
           <form onSubmit={handleAuth}>
-            <input
-              type="email"
-              placeholder="Email address"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              style={{ width: '100%', padding: '14px 16px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', color: 'white', fontSize: '15px', marginBottom: '12px', outline: 'none', boxSizing: 'border-box' }}
-            />
-            <input
-              type="password"
-              placeholder="Password"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              style={{ width: '100%', padding: '14px 16px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', color: 'white', fontSize: '15px', marginBottom: '24px', outline: 'none', boxSizing: 'border-box' }}
-            />
-            <button type="submit" disabled={loading} style={{ width: '100%', padding: '14px', background: 'linear-gradient(135deg, #8B5CF6, #EC4899)', border: 'none', borderRadius: '12px', color: 'white', fontSize: '16px', fontWeight: '600', cursor: 'pointer', opacity: loading ? 0.7 : 1 }}>
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', marginBottom: '6px', color: theme.textSecondary, fontSize: '14px', fontWeight: '500' }}>Email</label>
+              <input
+                type="email"
+                placeholder="Enter your email"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                style={{ width: '100%', padding: '12px 16px', background: 'white', border: `1px solid ${theme.border}`, borderRadius: '10px', fontSize: '15px', outline: 'none', boxSizing: 'border-box' }}
+              />
+            </div>
+            <div style={{ marginBottom: '24px' }}>
+              <label style={{ display: 'block', marginBottom: '6px', color: theme.textSecondary, fontSize: '14px', fontWeight: '500' }}>Password</label>
+              <input
+                type="password"
+                placeholder="Enter your password"
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                style={{ width: '100%', padding: '12px 16px', background: 'white', border: `1px solid ${theme.border}`, borderRadius: '10px', fontSize: '15px', outline: 'none', boxSizing: 'border-box' }}
+              />
+            </div>
+            <button type="submit" disabled={loading} style={{ width: '100%', padding: '14px', background: theme.primary, border: 'none', borderRadius: '10px', color: 'white', fontSize: '16px', fontWeight: '600', cursor: 'pointer', opacity: loading ? 0.7 : 1 }}>
               {loading ? 'Please wait...' : (isLogin ? 'Sign In' : 'Create Account')}
             </button>
           </form>
 
-          <p style={{ textAlign: 'center', marginTop: '24px', color: 'rgba(255,255,255,0.6)', fontSize: '14px' }}>
+          <p style={{ textAlign: 'center', marginTop: '24px', color: theme.textSecondary, fontSize: '14px' }}>
             {isLogin ? "Don't have an account? " : 'Already have an account? '}
-            <button onClick={() => setIsLogin(!isLogin)} style={{ background: 'none', border: 'none', color: '#8B5CF6', cursor: 'pointer', fontSize: '14px' }}>
+            <button onClick={() => setIsLogin(!isLogin)} style={{ background: 'none', border: 'none', color: theme.primary, cursor: 'pointer', fontSize: '14px', fontWeight: '600' }}>
               {isLogin ? 'Sign up' : 'Sign in'}
             </button>
+          </p>
+
+          <p style={{ textAlign: 'center', marginTop: '32px', color: theme.textMuted, fontSize: '12px' }}>
+            www.prospernest.io
           </p>
         </div>
       </div>
@@ -883,198 +646,7 @@ function AuthPage({ setView }) {
 }
 
 // ============================================================================
-// PROFILE MODAL
-// ============================================================================
-
-function ProfileModal({ profile, email, onSave, onClose }) {
-  const [formData, setFormData] = useState({
-    firstName: profile.firstName || '',
-    lastName: profile.lastName || '',
-    address: profile.address || ''
-  });
-
-  const handleSave = () => {
-    onSave(formData);
-    onClose();
-  };
-
-  return (
-    <div 
-      style={{ 
-        position: 'fixed', 
-        inset: 0, 
-        background: 'rgba(0,0,0,0.8)', 
-        display: 'flex', 
-        alignItems: 'center', 
-        justifyContent: 'center', 
-        zIndex: 1000,
-        backdropFilter: 'blur(4px)'
-      }} 
-      onClick={onClose}
-    >
-      <div 
-        style={{ 
-          background: 'rgba(30, 27, 56, 0.98)', 
-          backdropFilter: 'blur(20px)', 
-          borderRadius: '24px', 
-          padding: '32px', 
-          width: '450px',
-          maxWidth: '90vw',
-          border: '1px solid rgba(255,255,255,0.1)',
-          boxShadow: '0 20px 60px rgba(0,0,0,0.5)'
-        }} 
-        onClick={e => e.stopPropagation()}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px' }}>
-          <div style={{ 
-            width: '60px', 
-            height: '60px', 
-            borderRadius: '50%', 
-            background: 'linear-gradient(135deg, #8B5CF6, #EC4899)', 
-            display: 'flex', 
-            alignItems: 'center', 
-            justifyContent: 'center',
-            fontSize: '24px',
-            fontWeight: '600'
-          }}>
-            {formData.firstName && formData.lastName 
-              ? `${formData.firstName[0]}${formData.lastName[0]}`.toUpperCase()
-              : formData.firstName 
-                ? formData.firstName[0].toUpperCase() 
-                : '👤'}
-          </div>
-          <div>
-            <h3 style={{ fontSize: '20px', fontWeight: '600', margin: 0, color: 'white' }}>Your Profile</h3>
-            <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.5)', margin: '4px 0 0 0' }}>{email}</p>
-          </div>
-        </div>
-
-        <div style={{ marginBottom: '16px' }}>
-          <label style={{ display: 'block', marginBottom: '8px', color: 'rgba(255,255,255,0.7)', fontSize: '14px' }}>
-            First Name
-          </label>
-          <input
-            type="text"
-            value={formData.firstName}
-            onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-            placeholder="Enter your first name"
-            style={{
-              width: '100%',
-              padding: '12px 16px',
-              background: 'rgba(255,255,255,0.1)',
-              border: '1px solid rgba(255,255,255,0.2)',
-              borderRadius: '10px',
-              color: 'white',
-              fontSize: '14px',
-              boxSizing: 'border-box'
-            }}
-          />
-        </div>
-
-        <div style={{ marginBottom: '16px' }}>
-          <label style={{ display: 'block', marginBottom: '8px', color: 'rgba(255,255,255,0.7)', fontSize: '14px' }}>
-            Last Name
-          </label>
-          <input
-            type="text"
-            value={formData.lastName}
-            onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-            placeholder="Enter your last name"
-            style={{
-              width: '100%',
-              padding: '12px 16px',
-              background: 'rgba(255,255,255,0.1)',
-              border: '1px solid rgba(255,255,255,0.2)',
-              borderRadius: '10px',
-              color: 'white',
-              fontSize: '14px',
-              boxSizing: 'border-box'
-            }}
-          />
-        </div>
-
-        <div style={{ marginBottom: '24px' }}>
-          <label style={{ display: 'block', marginBottom: '8px', color: 'rgba(255,255,255,0.7)', fontSize: '14px' }}>
-            Address
-          </label>
-          <textarea
-            value={formData.address}
-            onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-            placeholder="Enter your address"
-            rows={3}
-            style={{
-              width: '100%',
-              padding: '12px 16px',
-              background: 'rgba(255,255,255,0.1)',
-              border: '1px solid rgba(255,255,255,0.2)',
-              borderRadius: '10px',
-              color: 'white',
-              fontSize: '14px',
-              boxSizing: 'border-box',
-              resize: 'none',
-              fontFamily: 'inherit'
-            }}
-          />
-        </div>
-
-        <div style={{ 
-          background: 'rgba(139, 92, 246, 0.1)', 
-          border: '1px solid rgba(139, 92, 246, 0.2)', 
-          borderRadius: '10px', 
-          padding: '12px 16px',
-          marginBottom: '24px',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '10px'
-        }}>
-          <span style={{ fontSize: '16px' }}>📧</span>
-          <div>
-            <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)' }}>Email (from login)</div>
-            <div style={{ fontSize: '14px', color: 'white' }}>{email}</div>
-          </div>
-        </div>
-
-        <div style={{ display: 'flex', gap: '12px' }}>
-          <button 
-            onClick={onClose} 
-            style={{ 
-              flex: 1, 
-              padding: '14px', 
-              background: 'rgba(255,255,255,0.1)', 
-              border: '1px solid rgba(255,255,255,0.2)', 
-              borderRadius: '12px', 
-              color: 'white', 
-              cursor: 'pointer',
-              fontSize: '14px',
-              fontWeight: '500'
-            }}
-          >
-            Cancel
-          </button>
-          <button 
-            onClick={handleSave}
-            style={{ 
-              flex: 1, 
-              padding: '14px', 
-              background: 'linear-gradient(135deg, #8B5CF6, #EC4899)', 
-              border: 'none', 
-              borderRadius: '12px', 
-              color: 'white', 
-              fontWeight: '600', 
-              cursor: 'pointer',
-              fontSize: '14px'
-            }}
-          >
-            Save Profile
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ============================================================================
-// DASHBOARD WITH NEW SIDEBAR UI
+// DASHBOARD - DASHSTACK STYLE (Light Theme)
 // ============================================================================
 
 function Dashboard({ 
@@ -1090,37 +662,16 @@ function Dashboard({
   parseCSV
 }) {
   const [activeTab, setActiveTab] = useState('home');
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [showAIChat, setShowAIChat] = useState(false);
-  const [showProfileModal, setShowProfileModal] = useState(false);
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedLanguage, setSelectedLanguage] = useState(languages[0]);
   const [showLangDropdown, setShowLangDropdown] = useState(false);
   
-  // Session timer state
-  const [sessionStartTime] = useState(() => Date.now());
-  const [sessionDuration, setSessionDuration] = useState('0:00');
-  
-  // Update session timer every second
-  useEffect(() => {
-    const timer = setInterval(() => {
-      const elapsed = Date.now() - sessionStartTime;
-      const minutes = Math.floor(elapsed / 60000);
-      const seconds = Math.floor((elapsed % 60000) / 1000);
-      const hours = Math.floor(minutes / 60);
-      if (hours > 0) {
-        setSessionDuration(`${hours}:${String(minutes % 60).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`);
-      } else {
-        setSessionDuration(`${minutes}:${String(seconds).padStart(2, '0')}`);
-      }
-    }, 1000);
-    return () => clearInterval(timer);
-  }, [sessionStartTime]);
-  
-  // Profile state - load from localStorage
+  // Profile state
   const [profile, setProfile] = useState(() => {
     try {
-      const saved = localStorage.getItem(`ff_profile_${user?.id}`);
+      const saved = localStorage.getItem(`pn_profile_${user?.id}`);
       return saved ? JSON.parse(saved) : { firstName: '', lastName: '', address: '' };
     } catch { return { firstName: '', lastName: '', address: '' }; }
   });
@@ -1130,56 +681,42 @@ function Dashboard({
     if (sb) await sb.auth.signOut();
   };
 
-  // Save profile to localStorage
-  const saveProfile = (newProfile) => {
-    setProfile(newProfile);
-    if (user?.id) {
-      localStorage.setItem(`ff_profile_${user.id}`, JSON.stringify(newProfile));
-    }
-  };
-
-  // Display name: use profile first name if available, otherwise email
   const displayName = profile.firstName || user?.user_metadata?.full_name?.split(' ')[0] || user?.email?.split('@')[0] || 'User';
   
-  // Get initials for profile avatar
   const getInitials = () => {
     if (profile.firstName && profile.lastName) {
       return `${profile.firstName[0]}${profile.lastName[0]}`.toUpperCase();
     }
-    if (profile.firstName) {
-      return profile.firstName[0].toUpperCase();
-    }
     return user?.email?.[0]?.toUpperCase() || 'U';
   };
 
-  // Navigation items for sidebar
+  // Navigation items
   const navItems = [
-    { id: 'home', label: 'Dashboard', icon: Icons.Dashboard, emoji: '🏠' },
-    { id: 'sales', label: 'Sales Tracker', icon: Icons.Sales, emoji: '🏠' },
-    { id: 'budget', label: 'Budget', icon: Icons.Budget, emoji: '💰' },
-    { id: 'transactions', label: 'Transactions', icon: Icons.Transactions, emoji: '📋' },
-    { id: 'bills', label: 'Bills', icon: Icons.Calendar, emoji: '📅' },
-    { id: 'goals', label: 'Goals', icon: Icons.Goals, emoji: '🎯' },
-    { id: 'retirement', label: 'Retirement', icon: Icons.Retirement, emoji: '🏖️' },
-    { id: 'reports', label: 'Reports', icon: Icons.Reports, emoji: '📊' },
+    { id: 'home', label: 'Dashboard', icon: Icons.Dashboard },
+    { id: 'sales', label: 'Sales Tracker', icon: Icons.Sales },
+    { id: 'budget', label: 'Budget', icon: Icons.Budget },
+    { id: 'transactions', label: 'Transactions', icon: Icons.Transactions },
+    { id: 'bills', label: 'Bills', icon: Icons.Calendar },
+    { id: 'goals', label: 'Goals', icon: Icons.Goals },
+    { id: 'retirement', label: 'Retirement', icon: Icons.Retirement },
+    { id: 'reports', label: 'Reports', icon: Icons.Reports },
   ];
 
   const bottomNavItems = [
-    { id: 'settings', label: 'Settings', icon: Icons.Settings, emoji: '⚙️' },
-    { id: 'import', label: 'Import', icon: Icons.Import, emoji: '📂' },
+    { id: 'settings', label: 'Settings', icon: Icons.Settings },
+    { id: 'import', label: 'Import', icon: Icons.Import },
   ];
 
-  // Render the active tab content
   const renderContent = () => {
     switch (activeTab) {
       case 'home':
-        return <HomeTab transactions={transactions} goals={goals} onNavigateToImport={() => setActiveTab('import')} />;
+        return <DashboardHome transactions={transactions} goals={goals} onNavigateToImport={() => setActiveTab('import')} />;
       case 'sales':
         return <SalesTrackerTab />;
       case 'budget':
         return <BudgetTab transactions={transactions} onNavigateToImport={() => setActiveTab('import')} />;
       case 'transactions':
-        return <TransactionsTab transactions={transactions} goals={goals} onNavigateToImport={() => setActiveTab('import')} />;
+        return <TransactionsTabDS transactions={transactions} onNavigateToImport={() => setActiveTab('import')} />;
       case 'bills':
         return <BillsCalendarView />;
       case 'goals':
@@ -1189,224 +726,135 @@ function Dashboard({
       case 'reports':
         return <ReportsTab transactions={transactions} onNavigateToImport={() => setActiveTab('import')} />;
       case 'settings':
-        return <SettingsTab />;
+        return <SettingsTabDS />;
       case 'import':
-        return <ImportTab onImport={onImportTransactions} parseCSV={parseCSV} transactionCount={transactions.length} />;
+        return <ImportTabDS onImport={onImportTransactions} parseCSV={parseCSV} transactionCount={transactions.length} />;
       default:
-        return <HomeTab transactions={transactions} goals={goals} onNavigateToImport={() => setActiveTab('import')} />;
+        return <DashboardHome transactions={transactions} goals={goals} onNavigateToImport={() => setActiveTab('import')} />;
     }
   };
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: '#0c0a1d', color: 'white', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}>
+    <div style={{ display: 'flex', minHeight: '100vh', background: theme.bgMain, fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}>
       
-      {/* ===== SIDEBAR ===== */}
+      {/* Sidebar */}
       <aside style={{
-        width: sidebarCollapsed ? '80px' : '260px',
-        background: '#1a1230',
-        borderRight: '1px solid rgba(139, 92, 246, 0.2)',
+        width: '240px',
+        background: theme.sidebarBg,
+        borderRight: `1px solid ${theme.border}`,
         display: 'flex',
         flexDirection: 'column',
-        transition: 'all 0.3s ease',
         position: 'fixed',
         height: '100vh',
         zIndex: 100
       }}>
-        {/* Sidebar Header */}
-        <div style={{ 
-          padding: '20px', 
-          display: 'flex', 
-          alignItems: 'center', 
-          justifyContent: sidebarCollapsed ? 'center' : 'space-between',
-          borderBottom: '1px solid rgba(139, 92, 246, 0.2)'
-        }}>
-          <div 
-            style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}
-            onClick={() => setActiveTab('home')}
-          >
+        {/* Logo */}
+        <div style={{ padding: '20px 24px', borderBottom: `1px solid ${theme.borderLight}` }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <div style={{
-              width: '40px',
-              height: '40px',
-              background: 'linear-gradient(135deg, #8B5CF6, #EC4899)',
-              borderRadius: '12px',
+              width: '36px',
+              height: '36px',
+              background: `linear-gradient(135deg, ${theme.primary}, ${theme.secondary})`,
+              borderRadius: '10px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               fontWeight: '700',
               fontSize: '14px',
-              boxShadow: '0 0 20px rgba(139, 92, 246, 0.4)'
+              color: 'white'
             }}>
-              FF
+              PN
             </div>
-            {!sidebarCollapsed && (
-              <span style={{
-                fontWeight: '700',
-                fontSize: '16px',
-                background: 'linear-gradient(135deg, #8B5CF6, #EC4899)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent'
-              }}>
-                Family Finance
-              </span>
-            )}
+            <span style={{ fontWeight: '700', fontSize: '18px', color: theme.textPrimary }}>
+              Prosper<span style={{ color: theme.primary }}>Nest</span>
+            </span>
           </div>
-          {!sidebarCollapsed && (
-            <button
-              onClick={() => setSidebarCollapsed(true)}
-              style={{
-                background: 'rgba(139, 92, 246, 0.2)',
-                border: '1px solid rgba(139, 92, 246, 0.3)',
-                color: 'white',
-                width: '32px',
-                height: '32px',
-                borderRadius: '8px',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}
-            >
-              <Icons.ChevronLeft />
-            </button>
-          )}
         </div>
 
-        {/* Main Navigation */}
+        {/* Navigation */}
         <nav style={{ flex: 1, padding: '16px 12px', overflowY: 'auto' }}>
           {navItems.map(item => (
             <div
               key={item.id}
               onClick={() => setActiveTab(item.id)}
-              title={sidebarCollapsed ? item.label : ''}
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 gap: '12px',
-                padding: sidebarCollapsed ? '14px' : '14px 16px',
-                borderRadius: '12px',
+                padding: '12px 16px',
+                borderRadius: '10px',
                 cursor: 'pointer',
-                color: activeTab === item.id ? 'white' : 'rgba(255,255,255,0.6)',
-                background: activeTab === item.id ? 'linear-gradient(135deg, #8B5CF6, #EC4899)' : 'transparent',
-                boxShadow: activeTab === item.id ? '0 4px 15px rgba(139, 92, 246, 0.4)' : 'none',
+                color: activeTab === item.id ? 'white' : theme.sidebarText,
+                background: activeTab === item.id ? theme.sidebarActive : 'transparent',
                 transition: 'all 0.2s ease',
                 marginBottom: '4px',
-                justifyContent: sidebarCollapsed ? 'center' : 'flex-start'
+                fontSize: '14px',
+                fontWeight: activeTab === item.id ? '600' : '500'
               }}
             >
               <item.icon />
-              {!sidebarCollapsed && <span>{item.label}</span>}
+              <span>{item.label}</span>
             </div>
           ))}
           
-          {/* Divider */}
-          <div style={{ 
-            height: '1px', 
-            background: 'rgba(139, 92, 246, 0.2)', 
-            margin: '16px 0' 
-          }} />
+          <div style={{ padding: '16px 16px 8px', color: theme.textMuted, fontSize: '11px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+            Settings
+          </div>
           
-          {/* Bottom nav items */}
           {bottomNavItems.map(item => (
             <div
               key={item.id}
               onClick={() => setActiveTab(item.id)}
-              title={sidebarCollapsed ? item.label : ''}
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 gap: '12px',
-                padding: sidebarCollapsed ? '14px' : '14px 16px',
-                borderRadius: '12px',
+                padding: '12px 16px',
+                borderRadius: '10px',
                 cursor: 'pointer',
-                color: activeTab === item.id ? 'white' : 'rgba(255,255,255,0.6)',
-                background: activeTab === item.id ? 'linear-gradient(135deg, #8B5CF6, #EC4899)' : 'transparent',
-                boxShadow: activeTab === item.id ? '0 4px 15px rgba(139, 92, 246, 0.4)' : 'none',
+                color: activeTab === item.id ? 'white' : theme.sidebarText,
+                background: activeTab === item.id ? theme.sidebarActive : 'transparent',
                 transition: 'all 0.2s ease',
                 marginBottom: '4px',
-                justifyContent: sidebarCollapsed ? 'center' : 'flex-start'
+                fontSize: '14px',
+                fontWeight: activeTab === item.id ? '600' : '500'
               }}
             >
               <item.icon />
-              {!sidebarCollapsed && <span>{item.label}</span>}
+              <span>{item.label}</span>
             </div>
           ))}
         </nav>
 
-        {/* Sidebar Footer - User Profile */}
-        <div style={{ 
-          padding: '16px', 
-          borderTop: '1px solid rgba(139, 92, 246, 0.2)',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px'
-        }}>
-          <div 
-            onClick={() => setShowProfileModal(true)}
+        {/* Logout Button */}
+        <div style={{ padding: '16px', borderTop: `1px solid ${theme.borderLight}` }}>
+          <div
+            onClick={handleSignOut}
             style={{
-              flex: 1,
               display: 'flex',
               alignItems: 'center',
               gap: '12px',
-              padding: '10px',
-              background: 'rgba(139, 92, 246, 0.1)',
-              borderRadius: '12px',
-              cursor: 'pointer'
-            }}
-          >
-            <div style={{
-              width: '36px',
-              height: '36px',
-              background: 'linear-gradient(135deg, #8B5CF6, #EC4899)',
-              borderRadius: '10px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontWeight: '600',
-              fontSize: '13px'
-            }}>
-              {getInitials()}
-            </div>
-            {!sidebarCollapsed && (
-              <div style={{ flex: 1 }}>
-                <div style={{ fontWeight: '600', fontSize: '13px' }}>{displayName}</div>
-                <div style={{ fontSize: '11px', color: '#8B5CF6' }}>Premium</div>
-              </div>
-            )}
-          </div>
-          <button
-            onClick={handleSignOut}
-            title="Sign Out"
-            style={{
-              background: 'rgba(239, 68, 68, 0.2)',
-              border: 'none',
-              color: '#EF4444',
-              width: '36px',
-              height: '36px',
+              padding: '12px 16px',
               borderRadius: '10px',
               cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
+              color: theme.danger,
+              fontSize: '14px',
+              fontWeight: '500'
             }}
           >
             <Icons.SignOut />
-          </button>
+            <span>Logout</span>
+          </div>
         </div>
       </aside>
 
-      {/* ===== MAIN CONTENT ===== */}
-      <main style={{
-        flex: 1,
-        marginLeft: sidebarCollapsed ? '80px' : '260px',
-        transition: 'all 0.3s ease',
-        display: 'flex',
-        flexDirection: 'column'
-      }}>
+      {/* Main Content */}
+      <main style={{ flex: 1, marginLeft: '240px', display: 'flex', flexDirection: 'column' }}>
         {/* Top Header */}
         <header style={{
-          height: '72px',
-          background: '#1a1230',
-          borderBottom: '1px solid rgba(139, 92, 246, 0.2)',
+          height: '70px',
+          background: theme.bgWhite,
+          borderBottom: `1px solid ${theme.border}`,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
@@ -1415,83 +863,109 @@ function Dashboard({
           top: 0,
           zIndex: 50
         }}>
-          {/* Left side */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            {sidebarCollapsed && (
-              <button
-                onClick={() => setSidebarCollapsed(false)}
-                style={{
-                  background: 'rgba(139, 92, 246, 0.2)',
-                  border: 'none',
-                  color: 'white',
-                  width: '40px',
-                  height: '40px',
-                  borderRadius: '10px',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}
-              >
-                <Icons.Menu />
-              </button>
-            )}
-            
-            {/* Search Bar */}
-            <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-              <div style={{ position: 'absolute', left: '14px', color: 'rgba(255,255,255,0.4)' }}>
-                <Icons.Search />
-              </div>
-              <input
-                type="text"
-                placeholder="Search anything..."
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-                style={{
-                  width: '300px',
-                  height: '44px',
-                  background: 'rgba(139, 92, 246, 0.1)',
-                  border: '1px solid rgba(139, 92, 246, 0.2)',
-                  borderRadius: '12px',
-                  padding: '0 16px 0 44px',
-                  color: 'white',
-                  fontSize: '14px',
-                  outline: 'none'
-                }}
-              />
+          {/* Search */}
+          <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+            <div style={{ position: 'absolute', left: '14px', color: theme.textMuted }}>
+              <Icons.Search />
             </div>
+            <input
+              type="text"
+              placeholder="Search"
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              style={{
+                width: '320px',
+                height: '42px',
+                background: theme.bgMain,
+                border: `1px solid ${theme.border}`,
+                borderRadius: '10px',
+                padding: '0 16px 0 44px',
+                fontSize: '14px',
+                outline: 'none',
+                color: theme.textPrimary
+              }}
+            />
           </div>
 
           {/* Right side */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            {/* Session Timer */}
-            <div style={{ 
-              fontSize: '13px', 
-              color: 'rgba(255,255,255,0.6)', 
-              display: 'flex', 
-              alignItems: 'center', 
-              gap: '6px', 
-              padding: '8px 12px', 
-              background: 'rgba(16, 185, 129, 0.15)', 
-              borderRadius: '8px', 
-              border: '1px solid rgba(16, 185, 129, 0.3)' 
-            }}>
-              <span style={{ fontSize: '14px' }}>⏱️</span>
-              <span style={{ fontWeight: '500', color: '#10B981' }}>{sessionDuration}</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            {/* Notifications */}
+            <div style={{ position: 'relative' }}>
+              <button
+                onClick={() => setShowNotifications(!showNotifications)}
+                style={{
+                  width: '42px',
+                  height: '42px',
+                  background: theme.bgMain,
+                  border: `1px solid ${theme.border}`,
+                  borderRadius: '10px',
+                  color: theme.textSecondary,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  position: 'relative'
+                }}
+              >
+                <Icons.Bell />
+                <span style={{
+                  position: 'absolute',
+                  top: '-4px',
+                  right: '-4px',
+                  background: theme.danger,
+                  color: 'white',
+                  fontSize: '10px',
+                  fontWeight: '600',
+                  minWidth: '18px',
+                  height: '18px',
+                  borderRadius: '9px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
+                  6
+                </span>
+              </button>
+              
+              {showNotifications && (
+                <div style={{
+                  position: 'absolute',
+                  top: 'calc(100% + 8px)',
+                  right: 0,
+                  width: '320px',
+                  background: 'white',
+                  borderRadius: '12px',
+                  boxShadow: '0 10px 40px rgba(0,0,0,0.15)',
+                  border: `1px solid ${theme.border}`,
+                  zIndex: 100
+                }}>
+                  <div style={{ padding: '16px', borderBottom: `1px solid ${theme.borderLight}`, fontWeight: '600', color: theme.textPrimary }}>
+                    Notification
+                  </div>
+                  <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
+                    {[
+                      { icon: '⚙️', title: 'Settings', desc: 'Update Dashboard', color: '#3B82F6' },
+                      { icon: '📅', title: 'Event Update', desc: 'An event date update again', color: '#10B981' },
+                      { icon: '👤', title: 'Profile', desc: 'Update your profile', color: '#F59E0B' },
+                      { icon: '⚠️', title: 'Application Error', desc: 'Check Your running application', color: '#EF4444' },
+                    ].map((item, i) => (
+                      <div key={i} style={{ padding: '12px 16px', display: 'flex', gap: '12px', alignItems: 'flex-start', borderBottom: `1px solid ${theme.borderLight}` }}>
+                        <div style={{ width: '36px', height: '36px', borderRadius: '8px', background: `${item.color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px' }}>
+                          {item.icon}
+                        </div>
+                        <div>
+                          <div style={{ fontWeight: '600', fontSize: '14px', color: theme.textPrimary }}>{item.title}</div>
+                          <div style={{ fontSize: '12px', color: theme.textMuted }}>{item.desc}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <div style={{ padding: '12px 16px', textAlign: 'center', color: theme.primary, fontSize: '14px', fontWeight: '500', cursor: 'pointer' }}>
+                    See all notification
+                  </div>
+                </div>
+              )}
             </div>
-
-            {/* Last Import Date */}
-            {lastImportDate && (
-              <div style={{ 
-                fontSize: '13px', 
-                color: 'rgba(255,255,255,0.5)', 
-                padding: '8px 12px', 
-                background: 'rgba(139, 92, 246, 0.1)', 
-                borderRadius: '8px' 
-              }}>
-                📥 {lastImportDate.toLocaleDateString()}
-              </div>
-            )}
 
             {/* Language Selector */}
             <div style={{ position: 'relative' }}>
@@ -1501,30 +975,30 @@ function Dashboard({
                   display: 'flex',
                   alignItems: 'center',
                   gap: '8px',
-                  padding: '10px 14px',
-                  background: 'rgba(139, 92, 246, 0.1)',
-                  border: '1px solid rgba(139, 92, 246, 0.2)',
+                  padding: '8px 12px',
+                  background: theme.bgMain,
+                  border: `1px solid ${theme.border}`,
                   borderRadius: '10px',
-                  color: 'white',
                   fontSize: '14px',
-                  cursor: 'pointer'
+                  cursor: 'pointer',
+                  color: theme.textPrimary
                 }}
               >
-                <span>{selectedLanguage.flag}</span>
+                <span style={{ fontSize: '18px' }}>{selectedLanguage.flag}</span>
                 <span>{selectedLanguage.name}</span>
                 <Icons.ChevronDown />
               </button>
+              
               {showLangDropdown && (
                 <div style={{
                   position: 'absolute',
                   top: 'calc(100% + 8px)',
                   right: 0,
-                  background: '#1a1230',
-                  border: '1px solid rgba(139, 92, 246, 0.2)',
+                  background: 'white',
                   borderRadius: '12px',
-                  padding: '8px',
+                  boxShadow: '0 10px 40px rgba(0,0,0,0.15)',
+                  border: `1px solid ${theme.border}`,
                   minWidth: '160px',
-                  boxShadow: '0 10px 40px rgba(0,0,0,0.3)',
                   zIndex: 100
                 }}>
                   {languages.map(lang => (
@@ -1535,13 +1009,14 @@ function Dashboard({
                         display: 'flex',
                         alignItems: 'center',
                         gap: '10px',
-                        padding: '10px 12px',
-                        borderRadius: '8px',
+                        padding: '10px 16px',
                         cursor: 'pointer',
-                        background: selectedLanguage.code === lang.code ? '#8B5CF6' : 'transparent'
+                        background: selectedLanguage.code === lang.code ? theme.bgMain : 'transparent',
+                        fontSize: '14px',
+                        color: theme.textPrimary
                       }}
                     >
-                      <span>{lang.flag}</span>
+                      <span style={{ fontSize: '18px' }}>{lang.flag}</span>
                       <span>{lang.name}</span>
                     </div>
                   ))}
@@ -1549,58 +1024,86 @@ function Dashboard({
               )}
             </div>
 
-            {/* Notifications */}
-            <button style={{
-              position: 'relative',
-              width: '44px',
-              height: '44px',
-              background: 'rgba(139, 92, 246, 0.1)',
-              border: '1px solid rgba(139, 92, 246, 0.2)',
-              borderRadius: '10px',
-              color: 'white',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}>
-              <Icons.Bell />
-              <span style={{
-                position: 'absolute',
-                top: '-4px',
-                right: '-4px',
-                background: '#EC4899',
-                color: 'white',
-                fontSize: '10px',
-                fontWeight: '600',
-                minWidth: '18px',
-                height: '18px',
-                borderRadius: '9px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}>
-                {bills.filter(b => b.status === 'pending').length || 3}
-              </span>
-            </button>
-
-            {/* Settings Button */}
-            <button
-              onClick={() => setActiveTab('settings')}
-              style={{
-                width: '44px',
-                height: '44px',
-                background: 'rgba(139, 92, 246, 0.1)',
-                border: '1px solid rgba(139, 92, 246, 0.2)',
-                borderRadius: '10px',
-                color: 'white',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}
-            >
-              <Icons.Settings />
-            </button>
+            {/* Profile */}
+            <div style={{ position: 'relative' }}>
+              <div
+                onClick={() => setShowProfileMenu(!showProfileMenu)}
+                style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}
+              >
+                <div style={{
+                  width: '42px',
+                  height: '42px',
+                  borderRadius: '50%',
+                  background: `linear-gradient(135deg, ${theme.primary}, ${theme.secondary})`,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: 'white',
+                  fontWeight: '600',
+                  fontSize: '14px'
+                }}>
+                  {getInitials()}
+                </div>
+                <div>
+                  <div style={{ fontWeight: '600', fontSize: '14px', color: theme.textPrimary }}>{displayName}</div>
+                  <div style={{ fontSize: '12px', color: theme.textMuted }}>Admin</div>
+                </div>
+                <Icons.ChevronDown />
+              </div>
+              
+              {showProfileMenu && (
+                <div style={{
+                  position: 'absolute',
+                  top: 'calc(100% + 8px)',
+                  right: 0,
+                  background: 'white',
+                  borderRadius: '12px',
+                  boxShadow: '0 10px 40px rgba(0,0,0,0.15)',
+                  border: `1px solid ${theme.border}`,
+                  minWidth: '180px',
+                  zIndex: 100
+                }}>
+                  {[
+                    { icon: '👤', label: 'Manage Account' },
+                    { icon: '🔑', label: 'Change Password' },
+                    { icon: '📋', label: 'Activity Log' },
+                  ].map((item, i) => (
+                    <div
+                      key={i}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '10px',
+                        padding: '12px 16px',
+                        cursor: 'pointer',
+                        fontSize: '14px',
+                        color: theme.textPrimary,
+                        borderBottom: i < 2 ? `1px solid ${theme.borderLight}` : 'none'
+                      }}
+                    >
+                      <span>{item.icon}</span>
+                      <span>{item.label}</span>
+                    </div>
+                  ))}
+                  <div
+                    onClick={handleSignOut}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '10px',
+                      padding: '12px 16px',
+                      cursor: 'pointer',
+                      fontSize: '14px',
+                      color: theme.danger,
+                      borderTop: `1px solid ${theme.borderLight}`
+                    }}
+                  >
+                    <span>🚪</span>
+                    <span>Log out</span>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </header>
 
@@ -1609,255 +1112,281 @@ function Dashboard({
           {renderContent()}
         </div>
       </main>
-
-      {/* Profile Modal */}
-      {showProfileModal && (
-        <ProfileModal 
-          profile={profile} 
-          email={user?.email} 
-          onSave={saveProfile} 
-          onClose={() => setShowProfileModal(false)} 
-        />
-      )}
-
-      {/* AI Assistant Button */}
-      <button
-        onClick={() => setShowAIChat(true)}
-        style={{
-          position: 'fixed', 
-          bottom: '24px', 
-          right: '24px',
-          width: '60px', 
-          height: '60px', 
-          borderRadius: '50%',
-          background: 'linear-gradient(135deg, #8B5CF6, #EC4899)',
-          border: 'none', 
-          cursor: 'pointer', 
-          fontSize: '28px', 
-          color: 'white',
-          boxShadow: '0 4px 20px rgba(139, 92, 246, 0.4)',
-          display: 'flex', 
-          alignItems: 'center', 
-          justifyContent: 'center',
-          zIndex: 1000
-        }}
-      >
-        🤖
-      </button>
-
-      {showAIChat && <AIAssistantModal onClose={() => setShowAIChat(false)} transactions={transactions} />}
-
-      <style>{`
-        @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        
-        /* Hide scrollbar but keep functionality */
-        nav::-webkit-scrollbar { width: 4px; }
-        nav::-webkit-scrollbar-track { background: transparent; }
-        nav::-webkit-scrollbar-thumb { background: rgba(139, 92, 246, 0.3); border-radius: 2px; }
-        
-        /* Responsive */
-        @media (max-width: 768px) {
-          aside { transform: translateX(-100%); }
-          main { margin-left: 0 !important; }
-        }
-      `}</style>
     </div>
   );
 }
 
 // ============================================================================
-// GOALS TAB - Split Personal/Side Hustle View
+// DASHBOARD HOME - DASHSTACK STYLE
 // ============================================================================
 
-function GoalsTab({ goals, onUpdateGoals }) {
-  const [showAddGoal, setShowAddGoal] = useState(false);
-  const [newGoal, setNewGoal] = useState({ name: '', target: '', current: '', emoji: '🎯', color: '#8B5CF6', type: 'personal' });
-
-  const emojiOptions = ['🎯', '🏠', '🚗', '✈️', '💰', '🛡️', '📚', '💎', '🎓', '👶', '💍', '🏖️', '💼', '📈', '🏢'];
-  const colorOptions = ['#8B5CF6', '#EC4899', '#10B981', '#F59E0B', '#3B82F6', '#EF4444'];
+function DashboardHome({ transactions, goals, onNavigateToImport }) {
+  const totalIncome = transactions.filter(t => parseFloat(t.amount) > 0).reduce((sum, t) => sum + parseFloat(t.amount), 0);
+  const totalExpenses = transactions.filter(t => parseFloat(t.amount) < 0).reduce((sum, t) => sum + Math.abs(parseFloat(t.amount)), 0);
+  const netCashFlow = totalIncome - totalExpenses;
   
-  const sideHustleName = React.useMemo(() => {
-    try { return localStorage.getItem('ff_sidehustle_name') || 'Side Hustle'; } catch { return 'Side Hustle'; }
-  }, []);
+  const statCards = [
+    { label: 'Total Income', value: formatCurrency(totalIncome), change: '+8.5%', changeType: 'up', color: '#E0E7FF', iconBg: '#4F46E5', icon: '💰' },
+    { label: 'Total Expenses', value: formatCurrency(totalExpenses), change: '+1.3%', changeType: 'up', color: '#FEF3C7', iconBg: '#F59E0B', icon: '💳' },
+    { label: 'Net Cash Flow', value: formatCurrency(netCashFlow), change: '-4.3%', changeType: 'down', color: '#D1FAE5', iconBg: '#10B981', icon: '📈' },
+    { label: 'Total Transactions', value: transactions.length.toLocaleString(), change: '+1.8%', changeType: 'up', color: '#FCE7F3', iconBg: '#EC4899', icon: '📊' },
+  ];
 
-  const addGoal = () => {
-    if (!newGoal.name || !newGoal.target) return;
-    const goal = {
-      id: Date.now(),
-      name: newGoal.name,
-      target: parseFloat(newGoal.target),
-      current: parseFloat(newGoal.current) || 0,
-      emoji: newGoal.emoji,
-      color: newGoal.color,
-      type: newGoal.type
-    };
-    onUpdateGoals([...goals, goal]);
-    setNewGoal({ name: '', target: '', current: '', emoji: '🎯', color: '#8B5CF6', type: 'personal' });
-    setShowAddGoal(false);
-  };
-
-  const updateGoalProgress = (goalId, newCurrent) => {
-    onUpdateGoals(goals.map(g => g.id === goalId ? { ...g, current: parseFloat(newCurrent) || 0 } : g));
-  };
-
-  const deleteGoal = (goalId) => {
-    onUpdateGoals(goals.filter(g => g.id !== goalId));
-  };
-
-  const personalGoals = goals.filter(g => g.type !== 'sidehustle');
-  const sideHustleGoals = goals.filter(g => g.type === 'sidehustle');
-
-  const GoalCard = ({ goal }) => {
-    const percentage = Math.min((goal.current / goal.target) * 100, 100);
-    const remaining = goal.target - goal.current;
-    const themeColor = goal.type !== 'sidehustle' ? '#8B5CF6' : '#EC4899';
-    
-    return (
-      <div style={{ background: 'rgba(30, 27, 56, 0.8)', borderRadius: '16px', padding: '20px', border: `1px solid ${themeColor}30` }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '14px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <span style={{ fontSize: '28px' }}>{goal.emoji}</span>
-            <div>
-              <div style={{ fontWeight: '600', fontSize: '15px' }}>{goal.name}</div>
-              <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)' }}>{formatCurrency(goal.current)} of {formatCurrency(goal.target)}</div>
+  return (
+    <div>
+      <h1 style={{ fontSize: '24px', fontWeight: '700', color: theme.textPrimary, marginBottom: '24px' }}>Dashboard</h1>
+      
+      {/* Stat Cards */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px', marginBottom: '24px' }}>
+        {statCards.map((card, i) => (
+          <div key={i} style={{ background: 'white', borderRadius: '16px', padding: '24px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
+              <div>
+                <div style={{ fontSize: '13px', color: theme.textMuted, marginBottom: '8px' }}>{card.label}</div>
+                <div style={{ fontSize: '28px', fontWeight: '700', color: theme.textPrimary }}>{card.value}</div>
+              </div>
+              <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: card.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px' }}>
+                {card.icon}
+              </div>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px' }}>
+              <span style={{ color: card.changeType === 'up' ? theme.success : theme.danger }}>
+                {card.changeType === 'up' ? '↗' : '↘'} {card.change}
+              </span>
+              <span style={{ color: theme.textMuted }}>from last month</span>
             </div>
           </div>
-          <div style={{ padding: '4px 10px', background: `${goal.color}20`, borderRadius: '6px', color: goal.color, fontWeight: '600', fontSize: '13px' }}>
-            {percentage.toFixed(0)}%
+        ))}
+      </div>
+
+      {/* Two Column Layout */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+        {/* Personal Section */}
+        <div style={{ background: 'white', borderRadius: '16px', padding: '24px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
+            <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: '#E0E7FF', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              👤
+            </div>
+            <div>
+              <h3 style={{ fontSize: '16px', fontWeight: '600', color: theme.textPrimary, margin: 0 }}>Personal</h3>
+              <p style={{ fontSize: '12px', color: theme.textMuted, margin: 0 }}>{transactions.length} transactions this period</p>
+            </div>
+          </div>
+          
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginBottom: '20px' }}>
+            <div style={{ background: '#10B981', borderRadius: '12px', padding: '16px', color: 'white' }}>
+              <div style={{ fontSize: '12px', opacity: 0.9, marginBottom: '4px' }}>💵 Income</div>
+              <div style={{ fontSize: '20px', fontWeight: '700' }}>{formatCurrency(totalIncome)}</div>
+            </div>
+            <div style={{ background: '#EF4444', borderRadius: '12px', padding: '16px', color: 'white' }}>
+              <div style={{ fontSize: '12px', opacity: 0.9, marginBottom: '4px' }}>💳 Expenses</div>
+              <div style={{ fontSize: '20px', fontWeight: '700' }}>{formatCurrency(totalExpenses)}</div>
+            </div>
+            <div style={{ background: '#3B82F6', borderRadius: '12px', padding: '16px', color: 'white' }}>
+              <div style={{ fontSize: '12px', opacity: 0.9, marginBottom: '4px' }}>📈 Net Cash Flow</div>
+              <div style={{ fontSize: '20px', fontWeight: '700' }}>+{formatCurrency(netCashFlow)}</div>
+            </div>
+          </div>
+
+          <div style={{ borderTop: `1px solid ${theme.borderLight}`, paddingTop: '16px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+              <span style={{ fontSize: '14px', fontWeight: '600', color: theme.textPrimary }}>📋 Recent Activity</span>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <span style={{ padding: '4px 8px', background: theme.bgMain, borderRadius: '4px', fontSize: '11px', color: theme.textMuted }}>High</span>
+                <span style={{ padding: '4px 8px', background: theme.bgMain, borderRadius: '4px', fontSize: '11px', color: theme.textMuted }}>Low</span>
+              </div>
+            </div>
+            {transactions.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '20px', color: theme.textMuted, fontSize: '14px' }}>
+                No transactions
+              </div>
+            ) : (
+              transactions.slice(0, 3).map((t, i) => (
+                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: `1px solid ${theme.borderLight}` }}>
+                  <span style={{ fontSize: '14px', color: theme.textPrimary }}>{t.description.slice(0, 30)}...</span>
+                  <span style={{ fontSize: '14px', fontWeight: '600', color: parseFloat(t.amount) > 0 ? theme.success : theme.danger }}>
+                    {parseFloat(t.amount) > 0 ? '+' : ''}{formatCurrency(t.amount)}
+                  </span>
+                </div>
+              ))
+            )}
           </div>
         </div>
-        <div style={{ height: '10px', background: 'rgba(255,255,255,0.1)', borderRadius: '5px', overflow: 'hidden', marginBottom: '14px' }}>
-          <div style={{ width: `${percentage}%`, height: '100%', background: goal.color, borderRadius: '5px', transition: 'width 0.5s ease' }} />
-        </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)' }}>{formatCurrency(remaining)} to go</span>
-          <div style={{ display: 'flex', gap: '6px' }}>
-            <input type="number" placeholder="Update" onBlur={(e) => updateGoalProgress(goal.id, e.target.value)}
-              style={{ width: '70px', padding: '5px 8px', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '6px', color: 'white', fontSize: '11px' }} />
-            <button onClick={() => deleteGoal(goal.id)}
-              style={{ padding: '5px 8px', background: 'rgba(239, 68, 68, 0.2)', border: 'none', borderRadius: '6px', color: '#EF4444', fontSize: '11px', cursor: 'pointer' }}>✕</button>
+
+        {/* Side Hustle Section */}
+        <div style={{ background: 'white', borderRadius: '16px', padding: '24px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
+            <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: '#FCE7F3', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              💼
+            </div>
+            <div>
+              <h3 style={{ fontSize: '16px', fontWeight: '600', color: theme.textPrimary, margin: 0 }}>Side Hustle</h3>
+              <p style={{ fontSize: '12px', color: theme.textMuted, margin: 0 }}>0 transactions this period</p>
+            </div>
+          </div>
+          
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginBottom: '20px' }}>
+            <div style={{ background: '#10B981', borderRadius: '12px', padding: '16px', color: 'white' }}>
+              <div style={{ fontSize: '12px', opacity: 0.9, marginBottom: '4px' }}>💵 Income</div>
+              <div style={{ fontSize: '20px', fontWeight: '700' }}>$0.00</div>
+            </div>
+            <div style={{ background: '#EF4444', borderRadius: '12px', padding: '16px', color: 'white' }}>
+              <div style={{ fontSize: '12px', opacity: 0.9, marginBottom: '4px' }}>💳 Expenses</div>
+              <div style={{ fontSize: '20px', fontWeight: '700' }}>$0.00</div>
+            </div>
+            <div style={{ background: '#3B82F6', borderRadius: '12px', padding: '16px', color: 'white' }}>
+              <div style={{ fontSize: '12px', opacity: 0.9, marginBottom: '4px' }}>📈 Net Cash Flow</div>
+              <div style={{ fontSize: '20px', fontWeight: '700' }}>+$0.00</div>
+            </div>
+          </div>
+
+          <div style={{ borderTop: `1px solid ${theme.borderLight}`, paddingTop: '16px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+              <span style={{ fontSize: '14px', fontWeight: '600', color: theme.textPrimary }}>📋 Recent Activity</span>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <span style={{ padding: '4px 8px', background: theme.bgMain, borderRadius: '4px', fontSize: '11px', color: theme.textMuted }}>High</span>
+                <span style={{ padding: '4px 8px', background: theme.bgMain, borderRadius: '4px', fontSize: '11px', color: theme.textMuted }}>Low</span>
+              </div>
+            </div>
+            <div style={{ textAlign: 'center', padding: '20px', color: theme.textMuted, fontSize: '14px' }}>
+              No transactions
+            </div>
           </div>
         </div>
       </div>
+
+      {transactions.length === 0 && (
+        <div style={{ marginTop: '24px', background: 'white', borderRadius: '16px', padding: '40px', textAlign: 'center', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+          <div style={{ fontSize: '48px', marginBottom: '16px' }}>📂</div>
+          <h3 style={{ fontSize: '18px', fontWeight: '600', color: theme.textPrimary, marginBottom: '8px' }}>No Data Yet</h3>
+          <p style={{ color: theme.textMuted, marginBottom: '20px' }}>Import your bank transactions to get started</p>
+          <button onClick={onNavigateToImport} style={{ padding: '12px 24px', background: theme.primary, color: 'white', border: 'none', borderRadius: '10px', fontSize: '14px', fontWeight: '600', cursor: 'pointer' }}>
+            Import Transactions
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ============================================================================
+// TRANSACTIONS TAB - DASHSTACK TABLE STYLE
+// ============================================================================
+
+function TransactionsTabDS({ transactions, onNavigateToImport }) {
+  const [filter, setFilter] = useState({ date: '', type: '', status: '' });
+
+  const getStatusBadge = (status) => {
+    const styles = {
+      'Posted': { bg: '#D1FAE5', color: '#059669', text: 'Completed' },
+      'Pending': { bg: '#DBEAFE', color: '#2563EB', text: 'Processing' },
+      'Failed': { bg: '#FEE2E2', color: '#DC2626', text: 'Rejected' },
+    };
+    const style = styles[status] || styles['Posted'];
+    return (
+      <span style={{ padding: '6px 12px', borderRadius: '20px', background: style.bg, color: style.color, fontSize: '12px', fontWeight: '500' }}>
+        {style.text}
+      </span>
     );
   };
 
-  const GoalsPanel = ({ title, icon, color, goalsList, type }) => (
-    <div style={{ flex: 1 }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', marginBottom: '16px', padding: '14px 20px', background: `linear-gradient(135deg, ${color}25, ${color}10)`, borderRadius: '14px', border: `1px solid ${color}40`, position: 'relative' }}>
-        <span style={{ fontSize: '28px' }}>{icon}</span>
-        <div style={{ textAlign: 'center' }}>
-          <h3 style={{ fontSize: '18px', fontWeight: '700', margin: 0 }}>{title}</h3>
-          <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.6)', margin: '2px 0 0 0' }}>{goalsList.length} goals</p>
-        </div>
-        <button onClick={() => { setNewGoal({ ...newGoal, type, color }); setShowAddGoal(true); }}
-          style={{ position: 'absolute', right: '20px', padding: '8px 14px', background: `linear-gradient(135deg, ${color}, ${color}CC)`, border: 'none', borderRadius: '8px', color: 'white', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}>
-          + Add
-        </button>
-      </div>
-      {goalsList.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '40px', background: 'rgba(30, 27, 56, 0.5)', borderRadius: '16px', border: '1px dashed rgba(255,255,255,0.2)' }}>
-          <div style={{ fontSize: '40px', marginBottom: '12px', opacity: 0.6 }}>🎯</div>
-          <div style={{ fontSize: '14px', color: 'rgba(255,255,255,0.5)' }}>No {type === 'sidehustle' ? 'business' : 'personal'} goals yet</div>
-        </div>
-      ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          {goalsList.map(goal => <GoalCard key={goal.id} goal={goal} />)}
-        </div>
-      )}
-    </div>
-  );
-
   return (
-    <div style={{ animation: 'slideIn 0.3s ease' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-        <h2 style={{ fontSize: '24px', fontWeight: '600', margin: 0 }}>🎯 Financial Goals</h2>
-        <button onClick={() => setShowAddGoal(true)}
-          style={{ padding: '12px 24px', background: 'linear-gradient(135deg, #8B5CF6, #EC4899)', border: 'none', borderRadius: '12px', color: 'white', fontSize: '14px', fontWeight: '600', cursor: 'pointer' }}>
-          + Add Goal
+    <div>
+      <h1 style={{ fontSize: '24px', fontWeight: '700', color: theme.textPrimary, marginBottom: '24px' }}>Transactions</h1>
+      
+      {/* Filter Bar */}
+      <div style={{ background: 'white', borderRadius: '12px', padding: '16px 20px', marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '16px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: theme.textSecondary }}>
+          <Icons.Filter />
+          <span style={{ fontWeight: '500' }}>Filter By</span>
+        </div>
+        
+        <select style={{ padding: '10px 16px', borderRadius: '8px', border: `1px solid ${theme.border}`, background: 'white', fontSize: '14px', color: theme.textPrimary, cursor: 'pointer' }}>
+          <option>Date</option>
+          <option>This Week</option>
+          <option>This Month</option>
+          <option>This Year</option>
+        </select>
+        
+        <select style={{ padding: '10px 16px', borderRadius: '8px', border: `1px solid ${theme.border}`, background: 'white', fontSize: '14px', color: theme.textPrimary, cursor: 'pointer' }}>
+          <option>Type</option>
+          <option>Income</option>
+          <option>Expense</option>
+        </select>
+        
+        <select style={{ padding: '10px 16px', borderRadius: '8px', border: `1px solid ${theme.border}`, background: 'white', fontSize: '14px', color: theme.textPrimary, cursor: 'pointer' }}>
+          <option>Category</option>
+          <option>Food</option>
+          <option>Shopping</option>
+          <option>Transport</option>
+        </select>
+        
+        <button style={{ display: 'flex', alignItems: 'center', gap: '6px', color: theme.danger, background: 'none', border: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: '500', marginLeft: 'auto' }}>
+          <Icons.Refresh />
+          Reset Filter
         </button>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 2px 1fr', gap: '0' }}>
-        <div style={{ paddingRight: '20px' }}>
-          <GoalsPanel title="👤 Personal Goals" icon="🏠" color="#8B5CF6" goalsList={personalGoals} type="personal" />
-        </div>
-        <div style={{ background: 'linear-gradient(180deg, rgba(139, 92, 246, 0.6), rgba(236, 72, 153, 0.6), rgba(139, 92, 246, 0.6))', borderRadius: '2px' }} />
-        <div style={{ paddingLeft: '20px' }}>
-          <GoalsPanel title={`💼 ${sideHustleName} Goals`} icon="💼" color="#EC4899" goalsList={sideHustleGoals} type="sidehustle" />
-        </div>
-      </div>
-
-      {showAddGoal && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }} onClick={() => setShowAddGoal(false)}>
-          <div style={{ background: 'rgba(30, 27, 56, 0.98)', backdropFilter: 'blur(20px)', borderRadius: '24px', padding: '32px', width: '420px', border: '1px solid rgba(255,255,255,0.1)' }} onClick={e => e.stopPropagation()}>
-            <h3 style={{ fontSize: '20px', fontWeight: '600', marginBottom: '24px' }}>🎯 Create New Goal</h3>
-
-            <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'block', marginBottom: '8px', color: 'rgba(255,255,255,0.7)', fontSize: '14px' }}>Goal Type</label>
-              <div style={{ display: 'flex', gap: '10px' }}>
-                <button onClick={() => setNewGoal({ ...newGoal, type: 'personal', color: '#8B5CF6' })}
-                  style={{ flex: 1, padding: '12px', background: newGoal.type === 'personal' ? 'rgba(139, 92, 246, 0.3)' : 'rgba(255,255,255,0.05)', border: newGoal.type === 'personal' ? '2px solid #8B5CF6' : '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', color: 'white', cursor: 'pointer', fontSize: '14px' }}>
-                  👤 Personal
-                </button>
-                <button onClick={() => setNewGoal({ ...newGoal, type: 'sidehustle', color: '#EC4899' })}
-                  style={{ flex: 1, padding: '12px', background: newGoal.type === 'sidehustle' ? 'rgba(236, 72, 153, 0.3)' : 'rgba(255,255,255,0.05)', border: newGoal.type === 'sidehustle' ? '2px solid #EC4899' : '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', color: 'white', cursor: 'pointer', fontSize: '14px' }}>
-                  💼 {sideHustleName}
-                </button>
-              </div>
-            </div>
-
-            <div style={{ marginBottom: '16px' }}>
-              <label style={{ display: 'block', marginBottom: '8px', color: 'rgba(255,255,255,0.7)', fontSize: '14px' }}>Emoji</label>
-              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                {emojiOptions.map(emoji => (
-                  <button key={emoji} onClick={() => setNewGoal({ ...newGoal, emoji })} style={{ width: '36px', height: '36px', borderRadius: '8px', border: newGoal.emoji === emoji ? '2px solid #8B5CF6' : 'none', background: newGoal.emoji === emoji ? 'rgba(139, 92, 246, 0.2)' : 'rgba(255,255,255,0.1)', fontSize: '18px', cursor: 'pointer' }}>
-                    {emoji}
+      {/* Table */}
+      <div style={{ background: 'white', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <thead>
+            <tr style={{ background: theme.bgMain }}>
+              <th style={{ padding: '16px 20px', textAlign: 'left', fontSize: '13px', fontWeight: '600', color: theme.textSecondary, textTransform: 'uppercase' }}>Date</th>
+              <th style={{ padding: '16px 20px', textAlign: 'left', fontSize: '13px', fontWeight: '600', color: theme.textSecondary, textTransform: 'uppercase' }}>Description</th>
+              <th style={{ padding: '16px 20px', textAlign: 'left', fontSize: '13px', fontWeight: '600', color: theme.textSecondary, textTransform: 'uppercase' }}>Category</th>
+              <th style={{ padding: '16px 20px', textAlign: 'right', fontSize: '13px', fontWeight: '600', color: theme.textSecondary, textTransform: 'uppercase' }}>Amount</th>
+              <th style={{ padding: '16px 20px', textAlign: 'center', fontSize: '13px', fontWeight: '600', color: theme.textSecondary, textTransform: 'uppercase' }}>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {transactions.length === 0 ? (
+              <tr>
+                <td colSpan="5" style={{ padding: '60px 20px', textAlign: 'center', color: theme.textMuted }}>
+                  <div style={{ fontSize: '48px', marginBottom: '16px' }}>📋</div>
+                  <div style={{ marginBottom: '16px' }}>No transactions yet</div>
+                  <button onClick={onNavigateToImport} style={{ padding: '10px 20px', background: theme.primary, color: 'white', border: 'none', borderRadius: '8px', fontSize: '14px', fontWeight: '500', cursor: 'pointer' }}>
+                    Import Transactions
                   </button>
-                ))}
-              </div>
-            </div>
-
-            <div style={{ marginBottom: '16px' }}>
-              <label style={{ display: 'block', marginBottom: '8px', color: 'rgba(255,255,255,0.7)', fontSize: '14px' }}>Color</label>
-              <div style={{ display: 'flex', gap: '8px' }}>
-                {colorOptions.map(color => (
-                  <button key={color} onClick={() => setNewGoal({ ...newGoal, color })} style={{ width: '32px', height: '32px', borderRadius: '8px', border: newGoal.color === color ? '3px solid white' : 'none', background: color, cursor: 'pointer' }} />
-                ))}
-              </div>
-            </div>
-
-            <div style={{ marginBottom: '16px' }}>
-              <label style={{ display: 'block', marginBottom: '8px', color: 'rgba(255,255,255,0.7)', fontSize: '14px' }}>Goal Name</label>
-              <input value={newGoal.name} onChange={e => setNewGoal({ ...newGoal, name: e.target.value })} placeholder="e.g., Emergency Fund" style={{ width: '100%', padding: '12px', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '10px', color: 'white', boxSizing: 'border-box' }} />
-            </div>
-
-            <div style={{ marginBottom: '16px' }}>
-              <label style={{ display: 'block', marginBottom: '8px', color: 'rgba(255,255,255,0.7)', fontSize: '14px' }}>Target Amount ($)</label>
-              <input type="number" value={newGoal.target} onChange={e => setNewGoal({ ...newGoal, target: e.target.value })} placeholder="10000" style={{ width: '100%', padding: '12px', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '10px', color: 'white', boxSizing: 'border-box' }} />
-            </div>
-
-            <div style={{ marginBottom: '24px' }}>
-              <label style={{ display: 'block', marginBottom: '8px', color: 'rgba(255,255,255,0.7)', fontSize: '14px' }}>Current Progress ($)</label>
-              <input type="number" value={newGoal.current} onChange={e => setNewGoal({ ...newGoal, current: e.target.value })} placeholder="0" style={{ width: '100%', padding: '12px', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '10px', color: 'white', boxSizing: 'border-box' }} />
-            </div>
-
-            <div style={{ display: 'flex', gap: '12px' }}>
-              <button onClick={() => setShowAddGoal(false)} style={{ flex: 1, padding: '14px', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '12px', color: 'white', cursor: 'pointer' }}>Cancel</button>
-              <button onClick={addGoal} style={{ flex: 1, padding: '14px', background: 'linear-gradient(135deg, #8B5CF6, #EC4899)', border: 'none', borderRadius: '12px', color: 'white', fontWeight: '600', cursor: 'pointer' }}>Create Goal</button>
+                </td>
+              </tr>
+            ) : (
+              transactions.slice(0, 10).map((t, i) => (
+                <tr key={i} style={{ borderBottom: `1px solid ${theme.borderLight}` }}>
+                  <td style={{ padding: '16px 20px', fontSize: '14px', color: theme.textPrimary }}>{t.date}</td>
+                  <td style={{ padding: '16px 20px', fontSize: '14px', color: theme.textPrimary }}>{t.description.slice(0, 40)}...</td>
+                  <td style={{ padding: '16px 20px', fontSize: '14px', color: theme.textSecondary }}>{t.category}</td>
+                  <td style={{ padding: '16px 20px', fontSize: '14px', fontWeight: '600', color: parseFloat(t.amount) > 0 ? theme.success : theme.danger, textAlign: 'right' }}>
+                    {parseFloat(t.amount) > 0 ? '+' : ''}{formatCurrency(t.amount)}
+                  </td>
+                  <td style={{ padding: '16px 20px', textAlign: 'center' }}>
+                    {getStatusBadge(t.status)}
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+        
+        {transactions.length > 0 && (
+          <div style={{ padding: '16px 20px', borderTop: `1px solid ${theme.borderLight}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ fontSize: '14px', color: theme.textMuted }}>Showing 1-{Math.min(10, transactions.length)} of {transactions.length}</span>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button style={{ width: '36px', height: '36px', border: `1px solid ${theme.border}`, borderRadius: '8px', background: 'white', cursor: 'pointer' }}>‹</button>
+              <button style={{ width: '36px', height: '36px', border: `1px solid ${theme.border}`, borderRadius: '8px', background: 'white', cursor: 'pointer' }}>›</button>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }
 
 // ============================================================================
-// IMPORT TAB
+// IMPORT TAB - DASHSTACK STYLE
 // ============================================================================
 
-function ImportTab({ onImport, parseCSV, transactionCount }) {
+function ImportTabDS({ onImport, parseCSV, transactionCount }) {
   const [dragOver, setDragOver] = useState(false);
   const [importing, setImporting] = useState(false);
   const [importResult, setImportResult] = useState(null);
@@ -1865,7 +1394,6 @@ function ImportTab({ onImport, parseCSV, transactionCount }) {
 
   const handleFile = async (file) => {
     if (!file) return;
-    
     setImporting(true);
     setImportResult(null);
 
@@ -1877,174 +1405,100 @@ function ImportTab({ onImport, parseCSV, transactionCount }) {
         onImport(transactions);
         setImportResult({ success: true, count: transactions.length });
       } else {
-        setImportResult({ success: false, error: 'No valid transactions found in file' });
+        setImportResult({ success: false, error: 'No valid transactions found' });
       }
     } catch (error) {
       setImportResult({ success: false, error: error.message });
     }
-    
     setImporting(false);
   };
 
-  const handleDrop = (e) => {
-    e.preventDefault();
-    setDragOver(false);
-    const file = e.dataTransfer.files[0];
-    if (file && file.name.endsWith('.csv')) {
-      handleFile(file);
-    }
-  };
-
-  const handleFileSelect = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      handleFile(file);
-    }
-  };
-
   return (
-    <div style={{ animation: 'slideIn 0.3s ease' }}>
-      <h2 style={{ fontSize: '24px', fontWeight: '600', marginBottom: '24px' }}>📂 Import Data</h2>
-
-      <div style={{ 
-        background: 'rgba(30, 27, 56, 0.8)', 
-        borderRadius: '16px', 
-        padding: '20px', 
-        marginBottom: '24px',
-        border: '1px solid rgba(255,255,255,0.1)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between'
-      }}>
+    <div>
+      <h1 style={{ fontSize: '24px', fontWeight: '700', color: theme.textPrimary, marginBottom: '24px' }}>Import Data</h1>
+      
+      {/* Status Card */}
+      <div style={{ background: 'white', borderRadius: '16px', padding: '24px', marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
         <div>
-          <div style={{ fontSize: '14px', color: 'rgba(255,255,255,0.6)', marginBottom: '4px' }}>Current Data</div>
-          <div style={{ fontSize: '24px', fontWeight: '700' }}>
-            {transactionCount.toLocaleString()} <span style={{ fontSize: '14px', fontWeight: '400', color: 'rgba(255,255,255,0.6)' }}>transactions</span>
-          </div>
+          <div style={{ fontSize: '14px', color: theme.textMuted, marginBottom: '4px' }}>Current Data</div>
+          <div style={{ fontSize: '32px', fontWeight: '700', color: theme.textPrimary }}>{transactionCount.toLocaleString()} <span style={{ fontSize: '16px', fontWeight: '400', color: theme.textMuted }}>transactions</span></div>
         </div>
         {transactionCount > 0 && (
-          <div style={{ background: 'rgba(16, 185, 129, 0.2)', color: '#10B981', padding: '8px 16px', borderRadius: '8px', fontSize: '14px' }}>
-            ✓ Data loaded
-          </div>
+          <span style={{ padding: '8px 16px', background: '#D1FAE5', color: '#059669', borderRadius: '20px', fontSize: '14px', fontWeight: '500' }}>✓ Data loaded</span>
         )}
       </div>
 
+      {/* Upload Area */}
       <div
         onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
         onDragLeave={() => setDragOver(false)}
-        onDrop={handleDrop}
+        onDrop={(e) => { e.preventDefault(); setDragOver(false); handleFile(e.dataTransfer.files[0]); }}
         onClick={() => fileInputRef.current?.click()}
         style={{
-          background: dragOver ? 'rgba(139, 92, 246, 0.2)' : 'rgba(30, 27, 56, 0.5)',
-          border: `2px dashed ${dragOver ? '#8B5CF6' : 'rgba(255,255,255,0.2)'}`,
-          borderRadius: '20px',
-          padding: '60px 40px',
+          background: dragOver ? '#EEF2FF' : 'white',
+          border: `2px dashed ${dragOver ? theme.primary : theme.border}`,
+          borderRadius: '16px',
+          padding: '60px',
           textAlign: 'center',
           cursor: 'pointer',
-          transition: 'all 0.3s ease',
-          marginBottom: '24px'
+          marginBottom: '24px',
+          transition: 'all 0.2s ease',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
         }}
       >
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept=".csv"
-          onChange={handleFileSelect}
-          style={{ display: 'none' }}
-        />
+        <input ref={fileInputRef} type="file" accept=".csv" onChange={(e) => handleFile(e.target.files[0])} style={{ display: 'none' }} />
         
         {importing ? (
           <>
             <div style={{ fontSize: '48px', marginBottom: '16px' }}>⏳</div>
-            <div style={{ fontSize: '18px', fontWeight: '600', marginBottom: '8px' }}>Importing...</div>
+            <div style={{ fontSize: '18px', fontWeight: '600', color: theme.textPrimary }}>Importing...</div>
           </>
         ) : (
           <>
             <div style={{ fontSize: '48px', marginBottom: '16px' }}>📄</div>
-            <div style={{ fontSize: '18px', fontWeight: '600', marginBottom: '8px' }}>
-              Drop your CSV file here
-            </div>
-            <div style={{ fontSize: '14px', color: 'rgba(255,255,255,0.5)', marginBottom: '16px' }}>
-              or click to browse
-            </div>
-            <div style={{ 
-              display: 'inline-block',
-              padding: '10px 24px', 
-              background: 'linear-gradient(135deg, #8B5CF6, #EC4899)', 
-              borderRadius: '10px',
-              fontSize: '14px',
-              fontWeight: '600'
-            }}>
+            <div style={{ fontSize: '18px', fontWeight: '600', color: theme.textPrimary, marginBottom: '8px' }}>Drop your CSV file here</div>
+            <div style={{ color: theme.textMuted, marginBottom: '20px' }}>or click to browse</div>
+            <button style={{ padding: '12px 32px', background: theme.primary, color: 'white', border: 'none', borderRadius: '10px', fontSize: '14px', fontWeight: '600', cursor: 'pointer' }}>
               Select File
-            </div>
+            </button>
           </>
         )}
       </div>
 
       {importResult && (
         <div style={{
-          background: importResult.success ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.2)',
-          border: `1px solid ${importResult.success ? 'rgba(16, 185, 129, 0.3)' : 'rgba(239, 68, 68, 0.3)'}`,
+          background: importResult.success ? '#D1FAE5' : '#FEE2E2',
+          border: `1px solid ${importResult.success ? '#A7F3D0' : '#FECACA'}`,
           borderRadius: '12px',
           padding: '16px 20px',
-          marginBottom: '24px'
+          marginBottom: '24px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '12px'
         }}>
-          {importResult.success ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', color: '#10B981' }}>
-              <span style={{ fontSize: '24px' }}>✅</span>
-              <div>
-                <div style={{ fontWeight: '600' }}>Import Successful!</div>
-                <div style={{ fontSize: '14px', opacity: 0.8 }}>{importResult.count.toLocaleString()} transactions imported</div>
-              </div>
+          <span style={{ fontSize: '24px' }}>{importResult.success ? '✅' : '❌'}</span>
+          <div>
+            <div style={{ fontWeight: '600', color: importResult.success ? '#059669' : '#DC2626' }}>
+              {importResult.success ? 'Import Successful!' : 'Import Failed'}
             </div>
-          ) : (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', color: '#EF4444' }}>
-              <span style={{ fontSize: '24px' }}>❌</span>
-              <div>
-                <div style={{ fontWeight: '600' }}>Import Failed</div>
-                <div style={{ fontSize: '14px', opacity: 0.8 }}>{importResult.error}</div>
-              </div>
+            <div style={{ fontSize: '14px', color: importResult.success ? '#047857' : '#B91C1C' }}>
+              {importResult.success ? `${importResult.count.toLocaleString()} transactions imported` : importResult.error}
             </div>
-          )}
+          </div>
         </div>
       )}
-
-      <div style={{ 
-        background: 'rgba(30, 27, 56, 0.8)', 
-        borderRadius: '16px', 
-        padding: '24px',
-        border: '1px solid rgba(255,255,255,0.1)'
-      }}>
-        <h3 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '16px' }}>📋 Supported CSV Format</h3>
-        <div style={{ fontSize: '14px', color: 'rgba(255,255,255,0.7)', lineHeight: 1.6 }}>
-          <p style={{ marginBottom: '12px' }}>Your CSV should have these columns:</p>
-          <div style={{ 
-            background: 'rgba(0,0,0,0.3)', 
-            borderRadius: '8px', 
-            padding: '12px 16px',
-            fontFamily: 'monospace',
-            fontSize: '13px',
-            overflowX: 'auto'
-          }}>
-            Date, Description, Original Description, Category, Amount, Status
-          </div>
-          <p style={{ marginTop: '12px', color: 'rgba(255,255,255,0.5)' }}>
-            Tip: Most banks allow you to export transactions as CSV. Look for "Export" or "Download" in your bank's transaction history.
-          </p>
-        </div>
-      </div>
     </div>
   );
 }
 
 // ============================================================================
-// SETTINGS TAB
+// SETTINGS TAB - DASHSTACK STYLE
 // ============================================================================
 
-function SettingsTab() {
+function SettingsTabDS() {
   return (
-    <div style={{ animation: 'slideIn 0.3s ease' }}>
-      <h2 style={{ fontSize: '24px', fontWeight: '600', marginBottom: '24px' }}>⚙️ Settings</h2>
+    <div>
+      <h1 style={{ fontSize: '24px', fontWeight: '700', color: theme.textPrimary, marginBottom: '24px' }}>Settings</h1>
       
       <div style={{ display: 'grid', gap: '16px', maxWidth: '600px' }}>
         {[
@@ -2055,120 +1509,29 @@ function SettingsTab() {
           { icon: '🔒', title: 'Security', desc: 'Password & 2FA settings' },
           { icon: '📤', title: 'Export Data', desc: 'Download your financial data' }
         ].map((item, i) => (
-          <div key={i} style={{ background: 'rgba(30, 27, 56, 0.8)', backdropFilter: 'blur(20px)', borderRadius: '16px', padding: '20px', border: '1px solid rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }}>
+          <div key={i} style={{
+            background: 'white',
+            borderRadius: '12px',
+            padding: '20px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            cursor: 'pointer',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+            border: `1px solid ${theme.border}`
+          }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-              <span style={{ fontSize: '24px' }}>{item.icon}</span>
+              <div style={{ width: '44px', height: '44px', borderRadius: '10px', background: theme.bgMain, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>
+                {item.icon}
+              </div>
               <div>
-                <div style={{ fontWeight: '600' }}>{item.title}</div>
-                <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.5)' }}>{item.desc}</div>
+                <div style={{ fontWeight: '600', color: theme.textPrimary }}>{item.title}</div>
+                <div style={{ fontSize: '13px', color: theme.textMuted }}>{item.desc}</div>
               </div>
             </div>
-            <span style={{ color: 'rgba(255,255,255,0.3)' }}>→</span>
+            <span style={{ color: theme.textMuted }}>›</span>
           </div>
         ))}
-      </div>
-    </div>
-  );
-}
-
-// ============================================================================
-// AI ASSISTANT MODAL
-// ============================================================================
-
-function AIAssistantModal({ onClose, transactions }) {
-  const [messages, setMessages] = useState([
-    { role: 'assistant', content: "Hi! 👋 I'm your Family Finance AI assistant. I can help you analyze your spending, find insights, and answer questions about your finances. What would you like to know?" }
-  ]);
-  const [input, setInput] = useState('');
-  const [loading, setLoading] = useState(false);
-  const messagesEndRef = useRef(null);
-
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
-
-  const sendMessage = () => {
-    if (!input.trim() || loading) return;
-    
-    const userMessage = input.trim();
-    setInput('');
-    setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
-    setLoading(true);
-
-    setTimeout(() => {
-      let response = "I'd be happy to help with that! ";
-      const lower = userMessage.toLowerCase();
-
-      if (transactions.length === 0) {
-        response = "📂 I don't see any transaction data yet. Please import your bank CSV file first, then I can help you analyze your spending patterns, track expenses, and provide personalized insights!";
-      } else if (lower.includes('spending') || lower.includes('spent')) {
-        const totalSpent = transactions.filter(t => parseFloat(t.amount) < 0).reduce((sum, t) => sum + Math.abs(parseFloat(t.amount)), 0);
-        response = `💸 Based on your imported data, you've spent a total of ${formatCurrency(totalSpent)} across ${transactions.filter(t => parseFloat(t.amount) < 0).length} transactions.`;
-      } else if (lower.includes('income') || lower.includes('earned')) {
-        const totalIncome = transactions.filter(t => parseFloat(t.amount) > 0).reduce((sum, t) => sum + parseFloat(t.amount), 0);
-        response = `💰 Your total income from imported transactions is ${formatCurrency(totalIncome)}.`;
-      } else if (lower.includes('categor')) {
-        const categories = {};
-        transactions.filter(t => parseFloat(t.amount) < 0).forEach(t => {
-          const cat = t.category || 'Uncategorized';
-          categories[cat] = (categories[cat] || 0) + Math.abs(parseFloat(t.amount));
-        });
-        const sorted = Object.entries(categories).sort((a, b) => b[1] - a[1]).slice(0, 5);
-        response = `📊 Your top spending categories:\n\n${sorted.map(([cat, amount], i) => `${i + 1}. ${cat}: ${formatCurrency(amount)}`).join('\n')}`;
-      } else {
-        response = `Based on your ${transactions.length} imported transactions, I can help you:\n\n• Analyze spending patterns\n• Track income vs expenses\n• View category breakdowns\n• Find savings opportunities\n\nWhat would you like to explore?`;
-      }
-
-      setMessages(prev => [...prev, { role: 'assistant', content: response }]);
-      setLoading(false);
-    }, 800);
-  };
-
-  return (
-    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1001, backdropFilter: 'blur(8px)' }} onClick={onClose}>
-      <div style={{ background: 'rgba(30, 27, 56, 0.98)', backdropFilter: 'blur(20px)', borderRadius: '24px', width: '90%', maxWidth: '600px', maxHeight: '80vh', border: '1px solid rgba(139, 92, 246, 0.3)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }} onClick={e => e.stopPropagation()}>
-        
-        <div style={{ padding: '20px 24px', background: 'linear-gradient(135deg, #8B5CF6, #EC4899)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <span style={{ fontSize: '28px' }}>🤖</span>
-            <div>
-              <h3 style={{ fontSize: '18px', fontWeight: '600', margin: 0 }}>AI Financial Assistant</h3>
-              <p style={{ fontSize: '13px', opacity: 0.8, margin: 0 }}>Powered by your data</p>
-            </div>
-          </div>
-          <button onClick={onClose} style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'rgba(255,255,255,0.2)', border: 'none', color: 'white', fontSize: '20px', cursor: 'pointer' }}>×</button>
-        </div>
-
-        <div style={{ flex: 1, overflowY: 'auto', padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          {messages.map((msg, i) => (
-            <div key={i} style={{ display: 'flex', justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start' }}>
-              <div style={{ maxWidth: '75%', padding: '12px 16px', borderRadius: '16px', background: msg.role === 'user' ? 'linear-gradient(135deg, #8B5CF6, #EC4899)' : 'rgba(255,255,255,0.08)', color: 'white', fontSize: '14px', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>
-                {msg.content}
-              </div>
-            </div>
-          ))}
-          {loading && (
-            <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
-              <div style={{ padding: '12px 16px', borderRadius: '16px', background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.6)', fontSize: '14px' }}>
-                Thinking...
-              </div>
-            </div>
-          )}
-          <div ref={messagesEndRef} />
-        </div>
-
-        <div style={{ padding: '16px 20px', borderTop: '1px solid rgba(255,255,255,0.1)', display: 'flex', gap: '12px' }}>
-          <input
-            value={input}
-            onChange={e => setInput(e.target.value)}
-            onKeyPress={e => e.key === 'Enter' && sendMessage()}
-            placeholder="Ask about your finances..."
-            style={{ flex: 1, padding: '12px 16px', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '12px', color: 'white', fontSize: '14px', outline: 'none' }}
-          />
-          <button onClick={sendMessage} disabled={loading} style={{ padding: '12px 24px', background: 'linear-gradient(135deg, #8B5CF6, #EC4899)', border: 'none', borderRadius: '12px', color: 'white', fontWeight: '600', cursor: 'pointer', opacity: loading ? 0.5 : 1 }}>
-            Send
-          </button>
-        </div>
       </div>
     </div>
   );
