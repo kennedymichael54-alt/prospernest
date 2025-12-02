@@ -696,6 +696,26 @@ function App() {
     const init = async () => {
       console.log('🚀 [Auth] Starting initialization...');
       
+      // TEST: Verify localStorage is working
+      try {
+        localStorage.setItem('pn_test', 'working');
+        const test = localStorage.getItem('pn_test');
+        console.log('🧪 [Test] localStorage test:', test === 'working' ? '✅ WORKING' : '❌ FAILED');
+        localStorage.removeItem('pn_test');
+      } catch (e) {
+        console.error('❌ [Test] localStorage NOT WORKING:', e);
+      }
+      
+      // Show all existing pn_ and sb keys
+      const allKeys = Object.keys(localStorage);
+      const sessionKeys = allKeys.filter(k => k.includes('pn_') || k.includes('sb'));
+      console.log('🔑 [Debug] All localStorage keys:', allKeys.length, 'total');
+      console.log('🔑 [Debug] Session-related keys:', sessionKeys);
+      sessionKeys.forEach(k => {
+        const v = localStorage.getItem(k);
+        console.log(`   ${k}: ${v?.substring(0, 50)}${v?.length > 50 ? '...' : ''}`);
+      });
+      
       const sb = await initSupabase();
       
       if (!sb) {
@@ -1028,11 +1048,16 @@ function AuthPage({ setView }) {
         // CRITICAL: Save session immediately
         if (data?.session) {
           console.log('💾 [Login] Saving session NOW...');
+          console.log('💾 [Login] Session object keys:', Object.keys(data.session));
           saveSession(data.session);
           
           // Double-check it saved
           const check = localStorage.getItem('pn_session');
           console.log('✅ [Login] Session save verified:', !!check);
+          
+          // Show all pn_ keys after save
+          const keysAfterSave = Object.keys(localStorage).filter(k => k.includes('pn_'));
+          console.log('🔑 [Login] Keys after save:', keysAfterSave);
         } else {
           console.error('❌ [Login] NO SESSION IN RESPONSE!');
           console.error('   data:', JSON.stringify(data, null, 2));
