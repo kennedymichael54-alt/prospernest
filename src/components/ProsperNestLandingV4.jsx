@@ -11,7 +11,55 @@ import React, { useState, useEffect, useRef } from 'react';
 // 3. Web: "Most Popular" badge no longer cut off
 // 4. iPad/iPhone: Nav shows only Penny icon
 // 5. Terms & Privacy modals added (clickable)
+// 6. REAL Supabase authentication added
 // ============================================
+
+// Supabase client for landing page auth
+let landingSupabase = null;
+const initLandingSupabase = async () => {
+  if (landingSupabase) return landingSupabase;
+  try {
+    const { createClient } = await import('@supabase/supabase-js');
+    landingSupabase = createClient(
+      import.meta.env.VITE_SUPABASE_URL,
+      import.meta.env.VITE_SUPABASE_ANON_KEY,
+      {
+        auth: {
+          autoRefreshToken: true,
+          persistSession: true,
+          detectSessionInUrl: true,
+          storage: window.localStorage,
+          storageKey: 'sb-auth-token'
+        }
+      }
+    );
+    console.log('✅ [Landing] Supabase initialized');
+    return landingSupabase;
+  } catch (e) {
+    console.error('❌ [Landing] Supabase init error:', e);
+    return null;
+  }
+};
+
+// Session storage helper for landing page
+const saveLandingSession = (session) => {
+  console.log('💾 [Landing] Saving session...');
+  try {
+    if (session) {
+      const sessionStr = JSON.stringify(session);
+      localStorage.setItem('pn_session', sessionStr);
+      localStorage.setItem('pn_session_expiry', (Date.now() + 7 * 24 * 60 * 60 * 1000).toString());
+      localStorage.setItem('pn_session_backup', sessionStr);
+      console.log('✅ [Landing] Session saved:', session.user?.email);
+      
+      // Verify
+      const check = localStorage.getItem('pn_session');
+      console.log('✅ [Landing] Session verified:', !!check);
+    }
+  } catch (e) {
+    console.error('❌ [Landing] Session save error:', e);
+  }
+};
 
 const ProsperNestLandingV4 = ({ onNavigate }) => {
   const [showCookieConsent, setShowCookieConsent] = useState(true);
@@ -69,6 +117,7 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
   });
   const [signinPassword, setSigninPassword] = useState('');
   const [signinError, setSigninError] = useState('');
+  const [signinLoading, setSigninLoading] = useState(false);
   const [rememberMe, setRememberMe] = useState(() => {
     if (typeof window !== 'undefined') {
       return localStorage.getItem('pn_remember_me') === 'true';
@@ -87,6 +136,141 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
       }
     }
   }, [showSignupModal, authMode]);
+
+  // REAL Supabase sign in handler
+  const handleRealSignIn = async () => {
+    console.log('🔐 [Landing] Sign in attempt for:', signinEmail);
+    setSigninError('');
+    setSigninLoading(true);
+    
+    // Save remember me preference
+    if (rememberMe && signinEmail) {
+      localStorage.setItem('pn_remember_email', signinEmail);
+      localStorage.setItem('pn_remember_me', 'true');
+    } else {
+      localStorage.removeItem('pn_remember_email');
+      localStorage.setItem('pn_remember_me', 'false');
+    }
+    
+    // Admin bypass for testing
+    if (signinEmail === ADMIN_EMAIL && signinPassword === ADMIN_PASSWORD) {
+      console.log('🔐 [Landing] Admin bypass');
+      setIsAdmin(true);
+      setShowSignupModal(false);
+      setSelectedPlan('family');
+      setShowOnboarding(true);
+      setOnboardingStep(0);
+      if (!rememberMe) setSigninEmail('');
+      setSigninPassword('');
+      setSigninLoading(false);
+      return;
+    }
+    
+    // Validate inputs
+    if (!signinEmail || !signinPassword) {
+      setSigninError('Please enter your email and password');
+      setSigninLoading(false);
+      return;
+    }
+    
+    try {
+      const sb = await initLandingSupabase();
+      if (!sb) {
+        setSigninError('Connection error. Please try again.');
+        setSigninLoading(false);
+        return;
+      }
+      
+      console.log('🔐 [Landing] Calling signInWithPassword...');
+      const { data, error } = await sb.auth.signInWithPassword({
+        email: signinEmail,
+        password: signinPassword
+      });
+      
+      console.log('🔐 [Landing] Response:', { 
+        hasData: !!data, 
+        hasSession: !!data?.session, 
+        hasUser: !!data?.user,
+        error: error?.message 
+      });
+      
+      if (error) {
+        setSigninError(error.message);
+        setSigninLoading(false);
+        return;
+      }
+      
+      // CRITICAL: Save session
+      if (data?.session) {
+        console.log('💾 [Landing] Saving session...');
+        saveLandingSession(data.session);
+        
+        // Verify save
+        const verify = localStorage.getItem('pn_session');
+        console.log('✅ [Landing] Session verified:', !!verify);
+        console.log('🔑 [Landing] Keys after save:', 
+          Object.keys(localStorage).filter(k => k.includes('pn_session'))
+        );
+      } else {
+        console.error('❌ [Landing] No session in response!');
+      }
+      
+      // Close modal and navigate
+      setShowSignupModal(false);
+      if (!rememberMe) setSigninEmail('');
+      setSigninPassword('');
+      
+      console.log('✅ [Landing] Sign in complete, navigating to dashboard...');
+      
+      // Small delay to ensure session is saved before navigation
+      setTimeout(() => {
+        onNavigate && onNavigate('dashboard');
+      }, 100);
+      
+    } catch (err) {
+      console.error('❌ [Landing] Sign in error:', err);
+      setSigninError(err.message || 'Sign in failed');
+    }
+    
+    setSigninLoading(false);
+  };
+
+  // Google sign in handler
+  const handleGoogleSignIn = async () => {
+    console.log('🔐 [Landing] Google sign in...');
+    setSigninError('');
+    setSigninLoading(true);
+    
+    try {
+      const sb = await initLandingSupabase();
+      if (!sb) {
+        setSigninError('Connection error. Please try again.');
+        setSigninLoading(false);
+        return;
+      }
+      
+      const { error } = await sb.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: window.location.origin,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent'
+          }
+        }
+      });
+      
+      if (error) {
+        setSigninError(error.message);
+        setSigninLoading(false);
+      }
+      // Note: OAuth will redirect, so no need to handle success here
+    } catch (err) {
+      console.error('❌ [Landing] Google sign in error:', err);
+      setSigninError(err.message || 'Google sign in failed');
+      setSigninLoading(false);
+    }
+  };
 
   const colors = {
     blue: '#007AFF',
@@ -735,14 +919,18 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
 
         {/* Google Sign In */}
         <div style={{ padding: '20px', borderBottom: `1px solid ${colors.gray5}` }}>
-          <button style={{
-            width: '100%', padding: '14px', border: `1px solid ${colors.gray4}`,
-            borderRadius: '12px', background: '#FFF', cursor: 'pointer',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px',
-            fontSize: '15px', fontWeight: '500', transition: 'all 0.2s'
-          }}
-          onMouseOver={e => e.currentTarget.style.background = colors.gray6}
-          onMouseOut={e => e.currentTarget.style.background = '#FFF'}>
+          <button 
+            onClick={handleGoogleSignIn}
+            disabled={signinLoading}
+            style={{
+              width: '100%', padding: '14px', border: `1px solid ${colors.gray4}`,
+              borderRadius: '12px', background: '#FFF', cursor: signinLoading ? 'wait' : 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px',
+              fontSize: '15px', fontWeight: '500', transition: 'all 0.2s',
+              opacity: signinLoading ? 0.7 : 1
+            }}
+            onMouseOver={e => !signinLoading && (e.currentTarget.style.background = colors.gray6)}
+            onMouseOut={e => e.currentTarget.style.background = '#FFF'}>
             <svg width="20" height="20" viewBox="0 0 24 24">
               <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
               <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
@@ -818,35 +1006,15 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
               <a href="#" style={{ fontSize: '13px', color: colors.blue, textDecoration: 'none' }}>Forgot password?</a>
             </div>
 
-            <button onClick={() => {
-              // Save email if Remember Me is checked
-              if (rememberMe && signinEmail) {
-                localStorage.setItem('pn_remember_email', signinEmail);
-                localStorage.setItem('pn_remember_me', 'true');
-              }
-              
-              if (signinEmail === ADMIN_EMAIL && signinPassword === ADMIN_PASSWORD) {
-                setIsAdmin(true);
-                setShowSignupModal(false);
-                setSelectedPlan('family');
-                setShowOnboarding(true);
-                setOnboardingStep(0);
-                // Don't clear email if remember me is checked
-                if (!rememberMe) setSigninEmail('');
-                setSigninPassword('');
-              } else if (signinEmail && signinPassword) {
-                setShowSignupModal(false);
-                onNavigate && onNavigate('dashboard');
-              } else {
-                setSigninError('Please enter your email and password');
-              }
-            }}
+            <button onClick={handleRealSignIn}
+              disabled={signinLoading}
               style={{
-                width: '100%', padding: '16px', background: colors.blue,
+                width: '100%', padding: '16px', background: signinLoading ? colors.secondary : colors.blue,
                 border: 'none', borderRadius: '12px', color: '#FFF', fontSize: '16px',
-                fontWeight: '600', cursor: 'pointer'
+                fontWeight: '600', cursor: signinLoading ? 'wait' : 'pointer',
+                opacity: signinLoading ? 0.7 : 1
               }}>
-              Sign In
+              {signinLoading ? 'Signing in...' : 'Sign In'}
             </button>
 
             <div style={{ textAlign: 'center', marginTop: '20px', fontSize: '13px', color: colors.secondary }}>
