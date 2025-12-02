@@ -1713,15 +1713,166 @@ function Dashboard({
           theme={theme} 
         />;
       default:
-        return <DashboardHome transactions={transactions} goals={goals} bills={bills} theme={theme} lastImportDate={lastImportDate} />;
+        return <DashboardHome transactions={transactions} goals={goals} bills={bills} tasks={tasks} theme={theme} lastImportDate={lastImportDate} />;
     }
   };
 
+  // Mobile menu state
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: theme.bgMain, fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}>
+    <>
+      {/* Global Responsive Styles */}
+      <style>{`
+        @media (max-width: 1024px) {
+          .dashboard-sidebar {
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+          }
+          .dashboard-sidebar.open {
+            transform: translateX(0);
+          }
+          .dashboard-main {
+            margin-left: 0 !important;
+          }
+          .dashboard-overlay {
+            display: block;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 99;
+          }
+        }
+        @media (max-width: 768px) {
+          .stat-grid-4 {
+            grid-template-columns: repeat(2, 1fr) !important;
+          }
+          .chart-grid-2-1 {
+            grid-template-columns: 1fr !important;
+          }
+          .chart-grid-1-1 {
+            grid-template-columns: 1fr !important;
+          }
+          .task-stat-grid {
+            grid-template-columns: repeat(2, 1fr) !important;
+          }
+          .spending-grid {
+            grid-template-columns: 1fr !important;
+          }
+          .filter-tabs {
+            flex-wrap: wrap;
+          }
+          .filter-tabs button {
+            flex: 1 1 45%;
+          }
+        }
+        @media (max-width: 480px) {
+          .stat-grid-4 {
+            grid-template-columns: 1fr !important;
+          }
+          .task-stat-grid {
+            grid-template-columns: 1fr !important;
+          }
+          .dashboard-header-content {
+            flex-direction: column;
+            align-items: flex-start !important;
+            gap: 16px !important;
+          }
+          .account-toggle {
+            width: 100%;
+            overflow-x: auto;
+          }
+          .filter-tabs button {
+            flex: 1 1 100%;
+          }
+        }
+        
+        /* iPhone Pro / Pro Max optimizations */
+        @media (max-width: 430px) {
+          .content-area {
+            padding: 16px !important;
+          }
+          .card-padding {
+            padding: 16px !important;
+          }
+          .header-bar {
+            padding: 0 16px !important;
+          }
+        }
+        
+        /* iPad optimizations */
+        @media (min-width: 768px) and (max-width: 1024px) {
+          .stat-grid-4 {
+            grid-template-columns: repeat(2, 1fr) !important;
+          }
+          .dashboard-sidebar {
+            width: 200px !important;
+          }
+          .dashboard-main {
+            margin-left: 200px !important;
+          }
+        }
+        
+        /* Smooth animations */
+        * {
+          -webkit-tap-highlight-color: transparent;
+        }
+        
+        /* Better scrolling on iOS */
+        .scroll-container {
+          -webkit-overflow-scrolling: touch;
+        }
+      `}</style>
+      
+      <div style={{ display: 'flex', minHeight: '100vh', background: theme.bgMain, fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}>
+
+      {/* Mobile Menu Overlay */}
+      {mobileMenuOpen && (
+        <div 
+          className="dashboard-overlay"
+          onClick={() => setMobileMenuOpen(false)}
+          style={{ display: 'none' }}
+        />
+      )}
+
+      {/* Mobile Menu Button - Only visible on mobile */}
+      <button
+        onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+        className="mobile-menu-btn"
+        style={{
+          display: 'none',
+          position: 'fixed',
+          top: '16px',
+          left: '16px',
+          zIndex: 200,
+          width: '44px',
+          height: '44px',
+          borderRadius: '12px',
+          background: theme.bgCard,
+          border: `1px solid ${theme.border}`,
+          cursor: 'pointer',
+          alignItems: 'center',
+          justifyContent: 'center',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+        }}
+      >
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={theme.textPrimary} strokeWidth="2">
+          <line x1="3" y1="12" x2="21" y2="12"/>
+          <line x1="3" y1="6" x2="21" y2="6"/>
+          <line x1="3" y1="18" x2="21" y2="18"/>
+        </svg>
+      </button>
+      <style>{`
+        @media (max-width: 1024px) {
+          .mobile-menu-btn { display: flex !important; }
+          .dashboard-overlay { display: block !important; }
+        }
+      `}</style>
 
       {/* Sidebar */}
-      <aside style={{
+      <aside 
+        className={`dashboard-sidebar ${mobileMenuOpen ? 'open' : ''}`}
+        style={{
         width: '240px',
         background: theme.sidebarBg,
         borderRight: `1px solid ${theme.border}`,
@@ -1831,9 +1982,9 @@ function Dashboard({
       </aside>
 
       {/* Main Content */}
-      <main style={{ flex: 1, marginLeft: '240px', display: 'flex', flexDirection: 'column' }}>
+      <main className="dashboard-main" style={{ flex: 1, marginLeft: '240px', display: 'flex', flexDirection: 'column' }}>
         {/* Top Header */}
-        <header style={{
+        <header className="header-bar" style={{
           height: '70px',
           background: theme.bgWhite,
           borderBottom: `1px solid ${theme.border}`,
@@ -2152,7 +2303,7 @@ function Dashboard({
         </header>
 
         {/* Content Area */}
-        <div style={{ flex: 1, padding: '24px', overflowY: 'auto' }}>
+        <div className="content-area scroll-container" style={{ flex: 1, padding: '24px', overflowY: 'auto' }}>
           {renderContent()}
         </div>
       </main>
@@ -2458,6 +2609,7 @@ function Dashboard({
         </div>
       )}
     </div>
+    </>
   );
 }
 // ============================================================================
@@ -2831,12 +2983,12 @@ function DashboardHome({ transactions, goals, bills = [], tasks = [], theme, las
   });
 
   return (
-    <div style={{ maxWidth: '1400px' }}>
+    <div style={{ width: '100%' }}>
       {/* Header with Account Toggle */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+      <div className="dashboard-header-content" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
         <div>
           <h1 style={{ fontSize: '28px', fontWeight: '700', color: theme.textPrimary, marginBottom: '4px', letterSpacing: '-0.5px' }}>Dashboard</h1>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
             <p style={{ fontSize: '14px', color: theme.textMuted, margin: 0 }}>
               {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
             </p>
@@ -2850,20 +3002,20 @@ function DashboardHome({ transactions, goals, bills = [], tasks = [], theme, las
             )}
           </div>
         </div>
-        <div style={{ display: 'flex', gap: '8px', background: theme.bgCard, padding: '4px', borderRadius: '12px', boxShadow: theme.cardShadow }}>
+        <div className="account-toggle" style={{ display: 'flex', gap: '8px', background: theme.bgCard, padding: '4px', borderRadius: '12px', boxShadow: theme.cardShadow }}>
           {[{ id: 'all', label: 'All Accounts', icon: '📊' }, { id: 'personal', label: 'Personal', icon: '👤' }, { id: 'sidehustle', label: 'Side Hustle', icon: '💼' }].map(acc => (
             <button key={acc.id} onClick={() => setActiveAccount(acc.id)} style={{
               padding: '10px 16px', border: 'none', borderRadius: '10px',
               background: activeAccount === acc.id ? theme.primary : 'transparent',
               color: activeAccount === acc.id ? 'white' : theme.textSecondary,
-              fontSize: '13px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', transition: 'all 0.2s'
+              fontSize: '13px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', transition: 'all 0.2s', whiteSpace: 'nowrap'
             }}><span>{acc.icon}</span>{acc.label}</button>
           ))}
         </div>
       </div>
 
       {/* Top Stats Row - OrbitNest Style (Image 1) */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px', marginBottom: '24px' }}>
+      <div className="stat-grid-4" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px', marginBottom: '24px' }}>
         {/* Income Card */}
         <div style={{ background: theme.bgCard, borderRadius: '16px', padding: '20px', boxShadow: theme.cardShadow, border: `1px solid ${theme.borderLight}` }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
@@ -2956,10 +3108,10 @@ function DashboardHome({ transactions, goals, bills = [], tasks = [], theme, las
       </div>
 
       {/* Chart Row - Line Chart + Health Gauge */}
-      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '24px', marginBottom: '24px' }}>
+      <div className="chart-grid-2-1" style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '24px', marginBottom: '24px' }}>
         {/* Income vs. Expenses Line Chart (Image 2) */}
         <div style={{ background: theme.bgCard, borderRadius: '16px', padding: '24px', boxShadow: theme.cardShadow, border: `1px solid ${theme.borderLight}` }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
             <h3 style={{ fontSize: '16px', fontWeight: '600', color: theme.textPrimary, margin: 0 }}>Income vs. Expenses</h3>
             <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -2972,25 +3124,25 @@ function DashboardHome({ transactions, goals, bills = [], tasks = [], theme, las
               </div>
             </div>
           </div>
-          <LineChart data={monthlyData} height={260} />
+          <LineChart data={monthlyData} height={320} />
         </div>
 
         {/* Financial Health Gauge (Image 7) */}
-        <div style={{ background: theme.bgCard, borderRadius: '16px', padding: '24px', boxShadow: theme.cardShadow, border: `1px solid ${theme.borderLight}` }}>
+        <div style={{ background: theme.bgCard, borderRadius: '16px', padding: '24px', boxShadow: theme.cardShadow, border: `1px solid ${theme.borderLight}`, display: 'flex', flexDirection: 'column' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
             <h3 style={{ fontSize: '16px', fontWeight: '600', color: theme.textPrimary, margin: 0 }}>Financial Health</h3>
             <button style={{ background: 'none', border: 'none', color: theme.textMuted, cursor: 'pointer', fontSize: '18px' }}>⋮</button>
           </div>
-          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px' }}>
-            <ProgressGauge score={healthScore} size={200} />
+          <div style={{ display: 'flex', justifyContent: 'center', flex: 1, alignItems: 'center' }}>
+            <ProgressGauge score={healthScore} size={280} />
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-around', padding: '0 20px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-around', padding: '0 10px', marginTop: '16px' }}>
             <div style={{ textAlign: 'center' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px', justifyContent: 'center' }}>
                 <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#3B82F6' }} />
                 <span style={{ fontSize: '12px', color: theme.textMuted }}>Healthy</span>
               </div>
-              <div style={{ fontSize: '24px', fontWeight: '700', color: theme.textPrimary }}>{healthScore >= 50 ? healthScore : 100 - healthScore}%</div>
+              <div style={{ fontSize: '28px', fontWeight: '700', color: theme.textPrimary }}>{healthScore >= 50 ? healthScore : 100 - healthScore}%</div>
               <div style={{ fontSize: '12px', color: theme.textMuted }}>Score</div>
             </div>
             <div style={{ textAlign: 'center' }}>
@@ -2998,7 +3150,7 @@ function DashboardHome({ transactions, goals, bills = [], tasks = [], theme, las
                 <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#06B6D4' }} />
                 <span style={{ fontSize: '12px', color: theme.textMuted }}>Savings Rate</span>
               </div>
-              <div style={{ fontSize: '24px', fontWeight: '700', color: theme.textPrimary }}>{savingsRate.toFixed(0)}%</div>
+              <div style={{ fontSize: '28px', fontWeight: '700', color: theme.textPrimary }}>{savingsRate.toFixed(0)}%</div>
               <div style={{ fontSize: '12px', color: theme.textMuted }}>of income</div>
             </div>
           </div>
@@ -3006,11 +3158,11 @@ function DashboardHome({ transactions, goals, bills = [], tasks = [], theme, las
       </div>
 
       {/* Spending & Budget Row */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '24px' }}>
+      <div className="chart-grid-1-1" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '24px' }}>
         {/* Budgeted vs. Actual Expenses - Bar Chart (Image 3/8) */}
         <div style={{ background: theme.bgCard, borderRadius: '16px', padding: '24px', boxShadow: theme.cardShadow, border: `1px solid ${theme.borderLight}` }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-            <p style={{ fontSize: '13px', color: theme.textMuted, margin: 0, lineHeight: '1.5', maxWidth: '60%' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+            <p style={{ fontSize: '13px', color: theme.textMuted, margin: 0, lineHeight: '1.5', maxWidth: '55%' }}>
               Track your budgeted vs actual expenses over the past 6 months to understand your financial trends.
             </p>
             <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
@@ -3024,7 +3176,7 @@ function DashboardHome({ transactions, goals, bills = [], tasks = [], theme, las
               </div>
             </div>
           </div>
-          <BudgetBarChart data={monthlyData} budgets={budgets} theme={theme} height={220} />
+          <BudgetBarChart data={monthlyData} budgets={budgets} theme={theme} height={280} />
         </div>
 
         {/* Spending Breakdown (Image 5) */}
@@ -3033,7 +3185,7 @@ function DashboardHome({ transactions, goals, bills = [], tasks = [], theme, las
             <h3 style={{ fontSize: '16px', fontWeight: '600', color: theme.textPrimary, margin: 0 }}>Spending</h3>
             <button style={{ background: 'none', border: 'none', color: theme.textMuted, cursor: 'pointer', fontSize: '18px' }}>⋮</button>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+          <div className="spending-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
             {/* Left side - List */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {spendingCards.map((item, i) => (
@@ -3249,7 +3401,7 @@ function DashboardHome({ transactions, goals, bills = [], tasks = [], theme, las
         </div>
         
         {/* Task Status Cards */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '20px' }}>
+        <div className="task-stat-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '20px' }}>
           {(() => {
             const todoCount = tasks.filter(t => t.status === 'todo').length;
             const inProgressCount = tasks.filter(t => t.status === 'in-progress').length;
@@ -3383,7 +3535,7 @@ function DashboardHome({ transactions, goals, bills = [], tasks = [], theme, las
       </div>
 
       {/* Bills & Goals Row */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+      <div className="chart-grid-1-1" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
         <div style={{ background: theme.bgCard, borderRadius: '16px', padding: '24px', boxShadow: theme.cardShadow, border: `1px solid ${theme.borderLight}` }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
             <h3 style={{ fontSize: '16px', fontWeight: '600', color: theme.textPrimary, margin: 0 }}>Upcoming Bills</h3>
@@ -3486,7 +3638,7 @@ function TasksTab({ tasks, onUpdateTasks, theme }) {
   };
 
   return (
-    <div style={{ maxWidth: '1200px' }}>
+    <div style={{ width: '100%' }}>
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px' }}>
         <div>
@@ -3515,7 +3667,7 @@ function TasksTab({ tasks, onUpdateTasks, theme }) {
       </div>
 
       {/* Stats Overview */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '24px' }}>
+      <div className="stat-grid-4" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '24px' }}>
         <div style={{ background: theme.bgCard, borderRadius: '16px', padding: '20px', boxShadow: theme.cardShadow, border: `1px solid ${theme.borderLight}` }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: '#EEF2FF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px' }}>📋</div>
@@ -3572,7 +3724,7 @@ function TasksTab({ tasks, onUpdateTasks, theme }) {
       </div>
 
       {/* Filter Tabs */}
-      <div style={{ display: 'flex', gap: '8px', marginBottom: '24px' }}>
+      <div className="filter-tabs" style={{ display: 'flex', gap: '8px', marginBottom: '24px', flexWrap: 'wrap' }}>
         {[
           { id: 'all', label: 'All', count: tasks.length },
           { id: 'todo', label: 'To Do', count: todoTasks.length },
