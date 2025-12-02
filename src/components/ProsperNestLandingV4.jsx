@@ -230,154 +230,174 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
     </div>
   );
 
-  // Device Mockups Component
+  // Device Mockups Component - LARGER VERSION
   const DeviceMockups = () => (
-    <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'center', gap: '20px', flexWrap: 'wrap', padding: '20px 0' }}>
+    <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'center', gap: '32px', flexWrap: 'wrap', padding: '30px 0' }}>
       {/* MacBook/Web */}
       <div style={{ position: 'relative' }}>
         <div style={{
-          background: '#1a1a1a', borderRadius: '12px 12px 0 0', padding: '8px 12px',
-          display: 'flex', gap: '6px', width: '280px'
+          background: '#1a1a1a', borderRadius: '16px 16px 0 0', padding: '10px 16px',
+          display: 'flex', gap: '8px', width: '420px'
         }}>
-          <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#FF5F57' }}/>
-          <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#FFBD2E' }}/>
-          <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#28CA41' }}/>
+          <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#FF5F57' }}/>
+          <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#FFBD2E' }}/>
+          <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#28CA41' }}/>
         </div>
         <div style={{
-          background: colors.gray6, width: '280px', height: '175px', padding: '12px',
-          borderRadius: '0 0 4px 4px', border: '2px solid #1a1a1a', borderTop: 'none'
+          background: colors.gray6, width: '420px', height: '260px', padding: '16px',
+          borderRadius: '0 0 4px 4px', border: '3px solid #1a1a1a', borderTop: 'none'
         }}>
-          <div style={{ display: 'flex', gap: '8px', height: '100%' }}>
-            <div style={{ width: '60px', background: '#1e1b38', borderRadius: '6px', padding: '8px' }}>
-              {['Dashboard', 'Sales', 'Budget', 'Bills'].map((item, i) => (
+          <div style={{ display: 'flex', gap: '12px', height: '100%' }}>
+            <div style={{ width: '90px', background: '#1e1b38', borderRadius: '8px', padding: '12px' }}>
+              {['Dashboard', 'Sales', 'Budget', 'Bills', 'Goals', 'Reports'].map((item, i) => (
                 <div key={item} style={{
-                  padding: '4px 6px', borderRadius: '4px', marginBottom: '3px', fontSize: '7px',
+                  padding: '6px 8px', borderRadius: '6px', marginBottom: '4px', fontSize: '10px',
                   color: i === 0 ? '#FFF' : 'rgba(255,255,255,0.5)',
                   background: i === 0 ? '#8B5CF6' : 'transparent'
                 }}>{item}</div>
               ))}
             </div>
             <div style={{ flex: 1 }}>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '6px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px', marginBottom: '12px' }}>
                 {[
                   { l: 'Income', v: '$12.4K', c: colors.green },
                   { l: 'Expenses', v: '$4.2K', c: colors.red },
                 ].map((s, i) => (
-                  <div key={i} style={{ background: '#FFF', borderRadius: '4px', padding: '6px' }}>
-                    <div style={{ fontSize: '6px', color: colors.gray }}>{s.l}</div>
-                    <div style={{ fontSize: '10px', fontWeight: '700', color: s.c }}>{s.v}</div>
+                  <div key={i} style={{ background: '#FFF', borderRadius: '8px', padding: '12px' }}>
+                    <div style={{ fontSize: '10px', color: colors.gray }}>{s.l}</div>
+                    <div style={{ fontSize: '18px', fontWeight: '700', color: s.c }}>{s.v}</div>
                   </div>
                 ))}
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px' }}>
+                <div style={{ background: '#FFF', borderRadius: '8px', padding: '12px' }}>
+                  <div style={{ fontSize: '10px', fontWeight: '600', marginBottom: '8px' }}>👤 Personal</div>
+                  <div style={{ background: colors.green, borderRadius: '6px', padding: '8px', color: '#FFF', fontSize: '12px' }}>
+                    <div style={{ opacity: 0.9 }}>Income</div>
+                    <div style={{ fontWeight: '700' }}>$6,200</div>
+                  </div>
+                </div>
+                <div style={{ background: '#FFF', borderRadius: '8px', padding: '12px' }}>
+                  <div style={{ fontSize: '10px', fontWeight: '600', marginBottom: '8px' }}>💼 Side Hustle</div>
+                  <div style={{ background: colors.purple, borderRadius: '6px', padding: '8px', color: '#FFF', fontSize: '12px' }}>
+                    <div style={{ opacity: 0.9 }}>Revenue</div>
+                    <div style={{ fontWeight: '700' }}>$6,250</div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         </div>
         <div style={{
-          background: '#c0c0c0', width: '320px', height: '12px', marginLeft: '-20px',
-          borderRadius: '0 0 8px 8px', boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
+          background: '#c0c0c0', width: '480px', height: '16px', marginLeft: '-30px',
+          borderRadius: '0 0 12px 12px', boxShadow: '0 4px 12px rgba(0,0,0,0.2)'
         }}/>
-        <div style={{ textAlign: 'center', fontSize: '10px', color: colors.gray, marginTop: '8px' }}>Web</div>
+        <div style={{ textAlign: 'center', fontSize: '13px', color: colors.gray, marginTop: '12px', fontWeight: '500' }}>Web</div>
       </div>
 
       {/* iPad */}
       <div style={{ position: 'relative' }}>
         <div style={{
-          background: '#1a1a1a', borderRadius: '16px', padding: '12px',
-          width: '160px', boxShadow: '0 10px 30px rgba(0,0,0,0.3)'
+          background: '#1a1a1a', borderRadius: '20px', padding: '16px',
+          width: '220px', boxShadow: '0 15px 40px rgba(0,0,0,0.3)'
         }}>
           <div style={{
-            background: colors.gray6, borderRadius: '8px', height: '210px', padding: '10px', overflow: 'hidden'
+            background: colors.gray6, borderRadius: '12px', height: '290px', padding: '14px', overflow: 'hidden'
           }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '8px', color: colors.gray, marginBottom: '8px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', color: colors.gray, marginBottom: '12px' }}>
               <span>9:41</span><span>📶 🔋</span>
             </div>
-            <div style={{ background: colors.green, borderRadius: '6px', padding: '8px', color: '#FFF', marginBottom: '8px' }}>
-              <div style={{ fontSize: '7px', opacity: 0.8 }}>Net Worth</div>
-              <div style={{ fontSize: '14px', fontWeight: '700' }}>$245,830</div>
+            <div style={{ background: colors.green, borderRadius: '10px', padding: '14px', color: '#FFF', marginBottom: '12px' }}>
+              <div style={{ fontSize: '10px', opacity: 0.8 }}>Net Worth</div>
+              <div style={{ fontSize: '24px', fontWeight: '700' }}>$245,830</div>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
-              <div style={{ background: '#FFF', borderRadius: '4px', padding: '6px' }}>
-                <div style={{ fontSize: '6px', color: colors.gray }}>Income</div>
-                <div style={{ fontSize: '9px', fontWeight: '600', color: colors.green }}>$12.4K</div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+              <div style={{ background: '#FFF', borderRadius: '8px', padding: '10px' }}>
+                <div style={{ fontSize: '9px', color: colors.gray }}>Income</div>
+                <div style={{ fontSize: '14px', fontWeight: '600', color: colors.green }}>$12.4K</div>
               </div>
-              <div style={{ background: '#FFF', borderRadius: '4px', padding: '6px' }}>
-                <div style={{ fontSize: '6px', color: colors.gray }}>Side Hustle</div>
-                <div style={{ fontSize: '9px', fontWeight: '600', color: colors.purple }}>$6.2K</div>
+              <div style={{ background: '#FFF', borderRadius: '8px', padding: '10px' }}>
+                <div style={{ fontSize: '9px', color: colors.gray }}>Side Hustle</div>
+                <div style={{ fontSize: '14px', fontWeight: '600', color: colors.purple }}>$6.2K</div>
               </div>
             </div>
           </div>
         </div>
-        <div style={{ textAlign: 'center', fontSize: '10px', color: colors.gray, marginTop: '8px' }}>iPad</div>
+        <div style={{ textAlign: 'center', fontSize: '13px', color: colors.gray, marginTop: '12px', fontWeight: '500' }}>iPad</div>
       </div>
 
       {/* iPhone */}
       <div style={{ position: 'relative' }}>
         <div style={{
-          background: '#1a1a1a', borderRadius: '24px', padding: '8px',
-          width: '100px', boxShadow: '0 10px 30px rgba(0,0,0,0.3)'
+          background: '#1a1a1a', borderRadius: '32px', padding: '12px',
+          width: '140px', boxShadow: '0 15px 40px rgba(0,0,0,0.3)'
         }}>
           <div style={{
-            background: colors.gray6, borderRadius: '18px', height: '200px', padding: '8px', overflow: 'hidden'
+            background: colors.gray6, borderRadius: '24px', height: '280px', padding: '12px', overflow: 'hidden'
           }}>
-            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '6px' }}>
-              <div style={{ width: '40px', height: '4px', background: '#1a1a1a', borderRadius: '2px' }}/>
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '10px' }}>
+              <div style={{ width: '50px', height: '6px', background: '#1a1a1a', borderRadius: '3px' }}/>
             </div>
-            <div style={{ background: colors.blue, borderRadius: '6px', padding: '8px', color: '#FFF', marginBottom: '6px' }}>
-              <div style={{ fontSize: '6px', opacity: 0.8 }}>Balance</div>
-              <div style={{ fontSize: '12px', fontWeight: '700' }}>$8,220</div>
+            <div style={{ background: colors.blue, borderRadius: '10px', padding: '14px', color: '#FFF', marginBottom: '10px' }}>
+              <div style={{ fontSize: '9px', opacity: 0.8 }}>Balance</div>
+              <div style={{ fontSize: '20px', fontWeight: '700' }}>$8,220</div>
             </div>
-            <div style={{ background: '#FFF', borderRadius: '4px', padding: '6px', marginBottom: '4px' }}>
-              <div style={{ fontSize: '6px', color: colors.gray }}>Goals</div>
-              <div style={{ background: colors.gray5, borderRadius: '2px', height: '4px', marginTop: '3px' }}>
-                <div style={{ width: '65%', height: '100%', background: colors.green, borderRadius: '2px' }}/>
+            <div style={{ background: '#FFF', borderRadius: '8px', padding: '10px', marginBottom: '8px' }}>
+              <div style={{ fontSize: '9px', color: colors.gray }}>Goals</div>
+              <div style={{ background: colors.gray5, borderRadius: '4px', height: '8px', marginTop: '6px' }}>
+                <div style={{ width: '65%', height: '100%', background: colors.green, borderRadius: '4px' }}/>
               </div>
+            </div>
+            <div style={{ background: '#FFF', borderRadius: '8px', padding: '10px' }}>
+              <div style={{ fontSize: '9px', color: colors.gray }}>This Month</div>
+              <div style={{ fontSize: '14px', fontWeight: '600', color: colors.green }}>+$3,120</div>
             </div>
           </div>
         </div>
-        <div style={{ textAlign: 'center', fontSize: '10px', color: colors.gray, marginTop: '8px' }}>iPhone</div>
+        <div style={{ textAlign: 'center', fontSize: '13px', color: colors.gray, marginTop: '12px', fontWeight: '500' }}>iPhone</div>
       </div>
 
       {/* Apple Watch */}
       <div style={{ position: 'relative' }}>
         <div style={{
-          background: '#1a1a1a', borderRadius: '12px', padding: '4px',
-          width: '56px', boxShadow: '0 8px 20px rgba(0,0,0,0.3)'
+          background: '#1a1a1a', borderRadius: '16px', padding: '6px',
+          width: '80px', boxShadow: '0 12px 30px rgba(0,0,0,0.3)'
         }}>
           <div style={{
-            background: '#000', borderRadius: '10px', height: '68px', padding: '6px',
+            background: '#000', borderRadius: '14px', height: '100px', padding: '10px',
             display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center'
           }}>
-            <PennyLogo size={20} />
-            <div style={{ color: colors.green, fontSize: '10px', fontWeight: '700', marginTop: '4px' }}>$8.2K</div>
-            <div style={{ color: colors.gray, fontSize: '5px' }}>This Month</div>
+            <PennyLogo size={28} />
+            <div style={{ color: colors.green, fontSize: '16px', fontWeight: '700', marginTop: '6px' }}>$8.2K</div>
+            <div style={{ color: colors.gray, fontSize: '8px' }}>This Month</div>
           </div>
         </div>
         <div style={{
-          position: 'absolute', right: '-6px', top: '20px',
-          width: '4px', height: '16px', background: '#1a1a1a', borderRadius: '2px'
+          position: 'absolute', right: '-8px', top: '30px',
+          width: '6px', height: '24px', background: '#1a1a1a', borderRadius: '3px'
         }}/>
-        <div style={{ textAlign: 'center', fontSize: '10px', color: colors.gray, marginTop: '8px' }}>Watch</div>
+        <div style={{ textAlign: 'center', fontSize: '13px', color: colors.gray, marginTop: '12px', fontWeight: '500' }}>Watch</div>
       </div>
     </div>
   );
 
-  // Feature Mockups - Dashboard, Bills, Sales Tracker
+  // Feature Mockups - Dashboard, Bills, Sales Tracker - LARGER
   const FeatureMockups = () => (
-    <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', justifyContent: 'center' }}>
+    <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap', justifyContent: 'center' }}>
       {/* Dashboard */}
       <div style={{
-        background: '#FFF', borderRadius: '12px', padding: '16px', width: '220px',
-        boxShadow: '0 10px 30px rgba(0,0,0,0.1)'
+        background: '#FFF', borderRadius: '16px', padding: '24px', width: '300px',
+        boxShadow: '0 15px 40px rgba(0,0,0,0.1)'
       }}>
-        <div style={{ fontSize: '11px', fontWeight: '600', marginBottom: '10px' }}>📊 Dashboard</div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+        <div style={{ fontSize: '14px', fontWeight: '600', marginBottom: '16px' }}>📊 Dashboard</div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
           {[
             { l: 'Personal', v: '$6,200', c: colors.green },
             { l: 'Side Hustle', v: '$6,250', c: colors.purple },
           ].map((s, i) => (
-            <div key={i} style={{ background: s.c, borderRadius: '6px', padding: '8px', color: '#FFF' }}>
-              <div style={{ fontSize: '8px', opacity: 0.9 }}>{s.l}</div>
-              <div style={{ fontSize: '12px', fontWeight: '700' }}>{s.v}</div>
+            <div key={i} style={{ background: s.c, borderRadius: '10px', padding: '14px', color: '#FFF' }}>
+              <div style={{ fontSize: '11px', opacity: 0.9 }}>{s.l}</div>
+              <div style={{ fontSize: '18px', fontWeight: '700' }}>{s.v}</div>
             </div>
           ))}
         </div>
@@ -385,10 +405,10 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
 
       {/* Bills */}
       <div style={{
-        background: '#FFF', borderRadius: '12px', padding: '16px', width: '220px',
-        boxShadow: '0 10px 30px rgba(0,0,0,0.1)'
+        background: '#FFF', borderRadius: '16px', padding: '24px', width: '300px',
+        boxShadow: '0 15px 40px rgba(0,0,0,0.1)'
       }}>
-        <div style={{ fontSize: '11px', fontWeight: '600', marginBottom: '10px' }}>📅 Bill Reminders</div>
+        <div style={{ fontSize: '14px', fontWeight: '600', marginBottom: '16px' }}>📅 Bill Reminders</div>
         {[
           { name: 'Rent', date: 'Dec 1', amount: '$1,500', status: 'paid' },
           { name: 'Electric', date: 'Dec 15', amount: '$120', status: 'upcoming' },
@@ -396,16 +416,16 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
         ].map((bill, i) => (
           <div key={i} style={{
             display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-            padding: '6px 0', borderBottom: i < 2 ? `1px solid ${colors.gray5}` : 'none'
+            padding: '10px 0', borderBottom: i < 2 ? `1px solid ${colors.gray5}` : 'none'
           }}>
             <div>
-              <div style={{ fontSize: '10px', fontWeight: '500' }}>{bill.name}</div>
-              <div style={{ fontSize: '8px', color: colors.gray }}>{bill.date}</div>
+              <div style={{ fontSize: '13px', fontWeight: '500' }}>{bill.name}</div>
+              <div style={{ fontSize: '11px', color: colors.gray }}>{bill.date}</div>
             </div>
             <div style={{ textAlign: 'right' }}>
-              <div style={{ fontSize: '10px', fontWeight: '600' }}>{bill.amount}</div>
+              <div style={{ fontSize: '13px', fontWeight: '600' }}>{bill.amount}</div>
               <div style={{
-                fontSize: '7px', padding: '2px 6px', borderRadius: '4px',
+                fontSize: '10px', padding: '3px 8px', borderRadius: '6px',
                 background: bill.status === 'paid' ? `${colors.green}20` : `${colors.orange}20`,
                 color: bill.status === 'paid' ? colors.green : colors.orange
               }}>{bill.status}</div>
@@ -416,24 +436,24 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
 
       {/* Sales Tracker */}
       <div style={{
-        background: '#FFF', borderRadius: '12px', padding: '16px', width: '220px',
-        boxShadow: '0 10px 30px rgba(0,0,0,0.1)'
+        background: '#FFF', borderRadius: '16px', padding: '24px', width: '300px',
+        boxShadow: '0 15px 40px rgba(0,0,0,0.1)'
       }}>
-        <div style={{ fontSize: '11px', fontWeight: '600', marginBottom: '10px' }}>💼 Sales Tracker</div>
-        <div style={{ display: 'flex', gap: '8px', marginBottom: '10px' }}>
+        <div style={{ fontSize: '14px', fontWeight: '600', marginBottom: '16px' }}>💼 Sales Tracker</div>
+        <div style={{ display: 'flex', gap: '12px', marginBottom: '16px' }}>
           {[
             { l: 'Deals', v: '12', c: colors.blue },
             { l: 'Commission', v: '$4,800', c: colors.green },
           ].map((s, i) => (
-            <div key={i} style={{ flex: 1, background: s.c, borderRadius: '6px', padding: '8px', color: '#FFF' }}>
-              <div style={{ fontSize: '7px', opacity: 0.9 }}>{s.l}</div>
-              <div style={{ fontSize: '11px', fontWeight: '700' }}>{s.v}</div>
+            <div key={i} style={{ flex: 1, background: s.c, borderRadius: '10px', padding: '12px', color: '#FFF' }}>
+              <div style={{ fontSize: '10px', opacity: 0.9 }}>{s.l}</div>
+              <div style={{ fontSize: '16px', fontWeight: '700' }}>{s.v}</div>
             </div>
           ))}
         </div>
-        <div style={{ fontSize: '8px', color: colors.gray }}>Recent Sales</div>
-        {['Smith Property - $2,400', 'Johnson Deal - $1,800'].map((sale, i) => (
-          <div key={i} style={{ fontSize: '9px', padding: '4px 0', borderBottom: `1px solid ${colors.gray5}` }}>{sale}</div>
+        <div style={{ fontSize: '11px', color: colors.gray, marginBottom: '8px' }}>Recent Sales</div>
+        {['Smith Property - $2,400', 'Johnson Deal - $1,800', 'Williams Contract - $3,200'].map((sale, i) => (
+          <div key={i} style={{ fontSize: '12px', padding: '8px 0', borderBottom: `1px solid ${colors.gray5}` }}>{sale}</div>
         ))}
       </div>
     </div>
@@ -783,21 +803,22 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
         <div style={{
           position: 'fixed', bottom: 0, left: 0, right: 0,
           background: 'rgba(255,255,255,0.98)', backdropFilter: 'blur(20px)',
-          borderTop: `1px solid ${colors.gray5}`, padding: '16px 20px', zIndex: 10000,
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap'
+          borderTop: `1px solid ${colors.gray5}`, padding: '24px 40px', zIndex: 10000,
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '24px', flexWrap: 'wrap',
+          boxShadow: '0 -4px 30px rgba(0,0,0,0.1)'
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, minWidth: '250px' }}>
-            <span style={{ fontSize: '28px' }}>🍪</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flex: 1, minWidth: '300px' }}>
+            <span style={{ fontSize: '40px' }}>🍪</span>
             <div>
-              <div style={{ fontWeight: '600', fontSize: '14px' }}>We value your privacy</div>
-              <div style={{ fontSize: '12px', color: colors.secondary }}>We use cookies to enhance your experience.</div>
+              <div style={{ fontWeight: '600', fontSize: '18px', marginBottom: '4px' }}>We value your privacy</div>
+              <div style={{ fontSize: '15px', color: colors.secondary }}>We use cookies to enhance your browsing experience and analyze our traffic.</div>
             </div>
           </div>
-          <div style={{ display: 'flex', gap: '10px' }}>
+          <div style={{ display: 'flex', gap: '12px' }}>
             <button onClick={handleCookieDecline} className="apple-button"
-              style={{ padding: '10px 18px', background: colors.gray6, border: 'none', borderRadius: '980px', fontSize: '13px', fontWeight: '500' }}>Decline</button>
+              style={{ padding: '14px 28px', background: colors.gray6, border: 'none', borderRadius: '980px', fontSize: '15px', fontWeight: '500' }}>Decline</button>
             <button onClick={handleCookieAccept} className="apple-button"
-              style={{ padding: '10px 18px', background: colors.blue, border: 'none', borderRadius: '980px', fontSize: '13px', fontWeight: '500', color: '#FFF' }}>Accept All</button>
+              style={{ padding: '14px 28px', background: colors.blue, border: 'none', borderRadius: '980px', fontSize: '15px', fontWeight: '500', color: '#FFF' }}>Accept All</button>
           </div>
         </div>
       )}
@@ -935,28 +956,28 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
       {/* Hero Section */}
       <section style={{
         minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center',
-        padding: '100px 20px 60px', background: `linear-gradient(180deg, ${colors.gray6} 0%, ${colors.background} 100%)`, textAlign: 'center'
+        padding: '120px 40px 80px', background: `linear-gradient(180deg, ${colors.gray6} 0%, ${colors.background} 100%)`, textAlign: 'center'
       }}>
-        <div className="animate-in" style={{ maxWidth: '900px' }}>
-          <div style={{ marginBottom: '24px' }}><PennyLogo size={80} animate /></div>
+        <div className="animate-in" style={{ maxWidth: '1100px' }}>
+          <div style={{ marginBottom: '28px' }}><PennyLogo size={100} animate /></div>
           <h1 style={{
-            fontSize: 'clamp(36px, 8vw, 60px)', fontWeight: '700', lineHeight: 1.1, marginBottom: '20px',
+            fontSize: 'clamp(42px, 8vw, 72px)', fontWeight: '700', lineHeight: 1.1, marginBottom: '24px',
             background: `linear-gradient(135deg, ${colors.label} 0%, ${colors.secondary} 100%)`,
             WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent'
           }}>
             Your money.<br/>Your hustle.<br/>
             <span style={{ background: `linear-gradient(135deg, ${colors.blue} 0%, ${colors.purple} 100%)`, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>One nest.</span>
           </h1>
-          <p style={{ fontSize: 'clamp(16px, 3vw, 19px)', color: colors.secondary, lineHeight: 1.5, marginBottom: '32px', maxWidth: '550px', margin: '0 auto 32px' }}>
+          <p style={{ fontSize: 'clamp(18px, 3vw, 22px)', color: colors.secondary, lineHeight: 1.6, marginBottom: '40px', maxWidth: '650px', margin: '0 auto 40px' }}>
             The finance app for working families with entrepreneurial spirits. Track personal expenses and side hustle income together.
           </p>
-          <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', marginBottom: '48px', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', marginBottom: '60px', flexWrap: 'wrap' }}>
             <button onClick={() => handleStartTrial()} className="apple-button"
-              style={{ padding: '16px 32px', background: colors.blue, border: 'none', borderRadius: '980px', color: '#FFF', fontSize: '16px', fontWeight: '500' }}>
+              style={{ padding: '20px 44px', background: colors.blue, border: 'none', borderRadius: '980px', color: '#FFF', fontSize: '18px', fontWeight: '500' }}>
               Start Free Trial
             </button>
             <button onClick={() => scrollToSection('features')} className="apple-button"
-              style={{ padding: '16px 32px', background: colors.gray6, border: 'none', borderRadius: '980px', color: colors.label, fontSize: '16px', fontWeight: '500' }}>
+              style={{ padding: '20px 44px', background: colors.gray6, border: 'none', borderRadius: '980px', color: colors.label, fontSize: '18px', fontWeight: '500' }}>
               ▶ See Features
             </button>
           </div>
@@ -969,8 +990,8 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
       </section>
 
       {/* Trust Stats */}
-      <section style={{ padding: '48px 20px', background: colors.background, borderTop: `1px solid ${colors.gray5}`, borderBottom: `1px solid ${colors.gray5}` }}>
-        <div className="stats-row" style={{ maxWidth: '900px', margin: '0 auto', display: 'flex', justifyContent: 'space-around', gap: '24px', flexWrap: 'wrap' }}>
+      <section style={{ padding: '60px 40px', background: colors.background, borderTop: `1px solid ${colors.gray5}`, borderBottom: `1px solid ${colors.gray5}` }}>
+        <div className="stats-row" style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', justifyContent: 'space-around', gap: '40px', flexWrap: 'wrap' }}>
           {[
             { value: '$2.4B+', label: 'Assets Tracked', color: colors.green },
             { value: '12,000+', label: 'Active Families', color: colors.blue },
@@ -978,55 +999,55 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
             { value: '256-bit', label: 'Encryption', color: colors.purple }
           ].map((stat, i) => (
             <div key={i} style={{ textAlign: 'center', flex: '1 1 auto' }}>
-              <div style={{ fontSize: 'clamp(28px, 5vw, 36px)', fontWeight: '700', color: stat.color }}>{stat.value}{stat.suffix || ''}</div>
-              <div style={{ fontSize: '13px', color: colors.secondary }}>{stat.label}</div>
+              <div style={{ fontSize: 'clamp(36px, 5vw, 48px)', fontWeight: '700', color: stat.color }}>{stat.value}{stat.suffix || ''}</div>
+              <div style={{ fontSize: '16px', color: colors.secondary, marginTop: '4px' }}>{stat.label}</div>
             </div>
           ))}
         </div>
       </section>
 
       {/* Hub Cards with Animation */}
-      <section style={{ padding: '80px 20px', background: colors.gray6 }}>
-        <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
-          <div style={{ textAlign: 'center', marginBottom: '48px' }}>
-            <h2 style={{ fontSize: 'clamp(32px, 5vw, 44px)', fontWeight: '700', marginBottom: '12px' }}>Three hubs. One mission.</h2>
-            <p style={{ fontSize: '17px', color: colors.secondary }}>Household, business, and real estate—all covered.</p>
+      <section style={{ padding: '100px 40px', background: colors.gray6 }}>
+        <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
+          <div style={{ textAlign: 'center', marginBottom: '60px' }}>
+            <h2 style={{ fontSize: 'clamp(36px, 5vw, 52px)', fontWeight: '700', marginBottom: '16px' }}>Three hubs. One mission.</h2>
+            <p style={{ fontSize: '19px', color: colors.secondary }}>Household, business, and real estate—all covered.</p>
           </div>
           
-          <div className="hub-grid" style={{ display: 'flex', gap: '20px', flexWrap: 'wrap', justifyContent: 'center' }}>
+          <div className="hub-grid" style={{ display: 'flex', gap: '28px', flexWrap: 'wrap', justifyContent: 'center' }}>
             {[
-              { icon: '🏠', title: 'HomeBudget Hub', desc: 'Master household finances with smart budgeting tools.', color: colors.green, badge: 'Most Popular', available: true },
-              { icon: '💼', title: 'BizBudget Hub', desc: 'Track side hustle and 1099 income with business tools.', color: colors.blue, badge: 'Coming Soon', available: false },
-              { icon: '🏢', title: 'REBudget Hub', desc: 'Manage real estate investments and rental income.', color: colors.purple, badge: 'Coming Soon', available: false }
+              { icon: '🏠', title: 'HomeBudget Hub', desc: 'Master household finances with smart budgeting tools designed for families.', color: colors.green, badge: 'Most Popular', available: true },
+              { icon: '💼', title: 'BizBudget Hub', desc: 'Track side hustle and 1099 income with dedicated business tools.', color: colors.blue, badge: 'Coming Soon', available: false },
+              { icon: '🏢', title: 'REBudget Hub', desc: 'Manage real estate investments and rental income all in one place.', color: colors.purple, badge: 'Coming Soon', available: false }
             ].map((hub, i) => (
               <div key={i} className={`hover-lift ${activeHubIndex === i ? 'hub-glow' : ''}`} style={{
-                background: colors.background, borderRadius: '20px', padding: '28px',
-                flex: '1 1 300px', maxWidth: '340px', position: 'relative',
-                boxShadow: activeHubIndex === i ? `0 4px 30px ${hub.color}40` : '0 2px 15px rgba(0,0,0,0.06)',
+                background: colors.background, borderRadius: '24px', padding: '36px',
+                flex: '1 1 340px', maxWidth: '420px', position: 'relative',
+                boxShadow: activeHubIndex === i ? `0 8px 40px ${hub.color}40` : '0 4px 20px rgba(0,0,0,0.06)',
                 border: activeHubIndex === i || hub.available ? `2px solid ${hub.color}` : `1px solid ${colors.gray5}`,
                 opacity: hub.available ? 1 : 0.85,
                 transition: 'all 0.5s ease'
               }}>
                 {hub.badge && (
                   <div style={{
-                    position: 'absolute', top: '-12px', left: '50%', transform: 'translateX(-50%)',
+                    position: 'absolute', top: '-14px', left: '50%', transform: 'translateX(-50%)',
                     background: hub.available ? colors.orange : colors.gray,
-                    padding: '4px 14px', borderRadius: '12px', fontSize: '11px', fontWeight: '600', color: '#FFF'
+                    padding: '6px 18px', borderRadius: '14px', fontSize: '13px', fontWeight: '600', color: '#FFF'
                   }}>{hub.badge}</div>
                 )}
                 <div style={{
-                  width: '52px', height: '52px', borderRadius: '14px', background: `${hub.color}15`,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '26px', marginBottom: '16px'
+                  width: '64px', height: '64px', borderRadius: '18px', background: `${hub.color}15`,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '32px', marginBottom: '20px'
                 }}>{hub.icon}</div>
-                <h3 style={{ fontSize: '20px', fontWeight: '600', marginBottom: '10px' }}>{hub.title}</h3>
-                <p style={{ fontSize: '14px', color: colors.secondary, lineHeight: 1.5 }}>{hub.desc}</p>
+                <h3 style={{ fontSize: '24px', fontWeight: '600', marginBottom: '12px' }}>{hub.title}</h3>
+                <p style={{ fontSize: '16px', color: colors.secondary, lineHeight: 1.6 }}>{hub.desc}</p>
               </div>
             ))}
           </div>
           
-          <div style={{ textAlign: 'center', marginTop: '40px' }}>
+          <div style={{ textAlign: 'center', marginTop: '50px' }}>
             <button onClick={() => scrollToSection('features')} className="apple-button"
-              style={{ padding: '14px 28px', background: colors.green, border: 'none', borderRadius: '980px', color: '#FFF', fontSize: '15px', fontWeight: '500' }}>
+              style={{ padding: '18px 36px', background: colors.green, border: 'none', borderRadius: '980px', color: '#FFF', fontSize: '17px', fontWeight: '500' }}>
               Explore all features
             </button>
           </div>
@@ -1034,31 +1055,31 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
       </section>
 
       {/* Features Section */}
-      <section id="features" style={{ padding: '80px 20px', background: colors.background }}>
-        <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
-          <div style={{ textAlign: 'center', marginBottom: '48px' }}>
-            <h2 style={{ fontSize: 'clamp(32px, 5vw, 44px)', fontWeight: '700', marginBottom: '12px' }}>All your accounts in one place</h2>
-            <p style={{ fontSize: '17px', color: colors.secondary, maxWidth: '500px', margin: '0 auto' }}>
+      <section id="features" style={{ padding: '100px 40px', background: colors.background }}>
+        <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
+          <div style={{ textAlign: 'center', marginBottom: '60px' }}>
+            <h2 style={{ fontSize: 'clamp(36px, 5vw, 52px)', fontWeight: '700', marginBottom: '16px' }}>All your accounts in one place</h2>
+            <p style={{ fontSize: '19px', color: colors.secondary, maxWidth: '600px', margin: '0 auto' }}>
               Dashboard, Sales Tracker, Budget, Transactions, Bills, Goals, Retirement, Reports—everything unified.
             </p>
           </div>
 
-          <div className="feature-row" style={{ display: 'flex', gap: '40px', alignItems: 'center', marginBottom: '60px', flexWrap: 'wrap' }}>
-            <div style={{ flex: 1, minWidth: '280px' }}>
-              <div style={{ width: '56px', height: '56px', borderRadius: '14px', background: `${colors.orange}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '26px', marginBottom: '16px' }}>📱</div>
-              <h3 style={{ fontSize: '28px', fontWeight: '600', marginBottom: '12px' }}>Personal & Side Hustle</h3>
-              <p style={{ fontSize: '16px', color: colors.secondary, lineHeight: 1.6, marginBottom: '20px' }}>
+          <div className="feature-row" style={{ display: 'flex', gap: '60px', alignItems: 'center', marginBottom: '80px', flexWrap: 'wrap' }}>
+            <div style={{ flex: 1, minWidth: '350px' }}>
+              <div style={{ width: '72px', height: '72px', borderRadius: '18px', background: `${colors.orange}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '36px', marginBottom: '24px' }}>📱</div>
+              <h3 style={{ fontSize: '36px', fontWeight: '600', marginBottom: '16px' }}>Personal & Side Hustle</h3>
+              <p style={{ fontSize: '18px', color: colors.secondary, lineHeight: 1.7, marginBottom: '28px' }}>
                 See your W2 income and 1099 earnings side by side. Track commissions, monitor profit margins, and never miss a bill payment.
               </p>
               <ul style={{ listStyle: 'none', padding: 0 }}>
                 {['Dashboard with real-time overview', 'Sales Tracker for side hustle income', 'Budget planning and monitoring', 'Bill reminders so you never miss a payment'].map((f, i) => (
-                  <li key={i} style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px', fontSize: '14px', color: colors.secondary }}>
-                    <span style={{ color: colors.green }}>✓</span>{f}
+                  <li key={i} style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '14px', fontSize: '16px', color: colors.secondary }}>
+                    <span style={{ color: colors.green, fontSize: '18px' }}>✓</span>{f}
                   </li>
                 ))}
               </ul>
             </div>
-            <div style={{ flex: 1, minWidth: '280px' }}>
+            <div style={{ flex: 1, minWidth: '350px' }}>
               <FeatureMockups />
             </div>
           </div>
@@ -1066,15 +1087,15 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
       </section>
 
       {/* Tutorials Section */}
-      <section id="tutorials" style={{ padding: '80px 20px', background: colors.gray6 }}>
-        <div style={{ maxWidth: '900px', margin: '0 auto' }}>
-          <div style={{ textAlign: 'center', marginBottom: '48px' }}>
-            <div style={{ fontSize: '48px', marginBottom: '16px' }}>📚</div>
-            <h2 style={{ fontSize: 'clamp(28px, 5vw, 40px)', fontWeight: '700', marginBottom: '12px' }}>Learn & Grow</h2>
-            <p style={{ fontSize: '17px', color: colors.secondary }}>Master your finances with our tutorials and guides</p>
+      <section id="tutorials" style={{ padding: '100px 40px', background: colors.gray6 }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+          <div style={{ textAlign: 'center', marginBottom: '60px' }}>
+            <div style={{ fontSize: '64px', marginBottom: '20px' }}>📚</div>
+            <h2 style={{ fontSize: 'clamp(32px, 5vw, 48px)', fontWeight: '700', marginBottom: '16px' }}>Learn & Grow</h2>
+            <p style={{ fontSize: '19px', color: colors.secondary }}>Master your finances with our tutorials and guides</p>
           </div>
           
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px' }}>
             {[
               { icon: '🚀', title: 'Getting Started', desc: 'Set up your account in 5 minutes', time: '5 min' },
               { icon: '💰', title: 'Budget Basics', desc: 'Create your first budget', time: '10 min' },
@@ -1084,13 +1105,13 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
               { icon: '🎯', title: 'Goal Setting', desc: 'Achieve financial milestones', time: '7 min' },
             ].map((tutorial, i) => (
               <div key={i} className="hover-lift" style={{
-                background: '#FFF', borderRadius: '16px', padding: '24px',
-                boxShadow: '0 2px 15px rgba(0,0,0,0.06)', cursor: 'pointer'
+                background: '#FFF', borderRadius: '20px', padding: '32px',
+                boxShadow: '0 4px 20px rgba(0,0,0,0.06)', cursor: 'pointer'
               }}>
-                <div style={{ fontSize: '32px', marginBottom: '12px' }}>{tutorial.icon}</div>
-                <h3 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '6px' }}>{tutorial.title}</h3>
-                <p style={{ fontSize: '13px', color: colors.secondary, marginBottom: '10px' }}>{tutorial.desc}</p>
-                <div style={{ fontSize: '12px', color: colors.blue }}>⏱ {tutorial.time}</div>
+                <div style={{ fontSize: '44px', marginBottom: '16px' }}>{tutorial.icon}</div>
+                <h3 style={{ fontSize: '20px', fontWeight: '600', marginBottom: '8px' }}>{tutorial.title}</h3>
+                <p style={{ fontSize: '15px', color: colors.secondary, marginBottom: '12px' }}>{tutorial.desc}</p>
+                <div style={{ fontSize: '14px', color: colors.blue, fontWeight: '500' }}>⏱ {tutorial.time}</div>
               </div>
             ))}
           </div>
@@ -1098,32 +1119,32 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
       </section>
 
       {/* About / FIRE Section */}
-      <section id="about" style={{ padding: '80px 20px', background: `linear-gradient(135deg, ${colors.blue} 0%, ${colors.purple} 100%)`, color: '#FFF' }}>
-        <div style={{ maxWidth: '900px', margin: '0 auto', textAlign: 'center' }}>
-          <div style={{ fontSize: '60px', marginBottom: '20px' }}>🔥</div>
-          <h2 style={{ fontSize: 'clamp(32px, 5vw, 44px)', fontWeight: '700', marginBottom: '16px' }}>Your path to FIRE</h2>
-          <p style={{ fontSize: '17px', opacity: 0.9, marginBottom: '40px', maxWidth: '600px', margin: '0 auto 40px', lineHeight: 1.6 }}>
+      <section id="about" style={{ padding: '100px 40px', background: `linear-gradient(135deg, ${colors.blue} 0%, ${colors.purple} 100%)`, color: '#FFF' }}>
+        <div style={{ maxWidth: '1100px', margin: '0 auto', textAlign: 'center' }}>
+          <div style={{ fontSize: '80px', marginBottom: '24px' }}>🔥</div>
+          <h2 style={{ fontSize: 'clamp(36px, 5vw, 52px)', fontWeight: '700', marginBottom: '20px' }}>Your path to FIRE</h2>
+          <p style={{ fontSize: '20px', opacity: 0.9, marginBottom: '50px', maxWidth: '700px', margin: '0 auto 50px', lineHeight: 1.7 }}>
             Financial Independence, Retire Early isn't just a dream. See exactly when you'll hit your number, and how your side hustle accelerates the journey.
           </p>
           
-          <div style={{ background: 'rgba(255,255,255,0.1)', borderRadius: '24px', padding: '32px', backdropFilter: 'blur(10px)', marginBottom: '40px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-around', flexWrap: 'wrap', gap: '24px', marginBottom: '24px' }}>
-              <div><div style={{ fontSize: '13px', opacity: 0.8, marginBottom: '6px' }}>FIRE Number</div><div style={{ fontSize: 'clamp(28px, 5vw, 40px)', fontWeight: '700' }}>$1.2M</div></div>
-              <div><div style={{ fontSize: '13px', opacity: 0.8, marginBottom: '6px' }}>Current Progress</div><div style={{ fontSize: 'clamp(28px, 5vw, 40px)', fontWeight: '700' }}>$291K</div></div>
-              <div><div style={{ fontSize: '13px', opacity: 0.8, marginBottom: '6px' }}>Years to FIRE</div><div style={{ fontSize: 'clamp(28px, 5vw, 40px)', fontWeight: '700', color: colors.yellow }}>8.3</div></div>
+          <div style={{ background: 'rgba(255,255,255,0.1)', borderRadius: '28px', padding: '44px', backdropFilter: 'blur(10px)', marginBottom: '50px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-around', flexWrap: 'wrap', gap: '32px', marginBottom: '32px' }}>
+              <div><div style={{ fontSize: '15px', opacity: 0.8, marginBottom: '8px' }}>FIRE Number</div><div style={{ fontSize: 'clamp(36px, 5vw, 52px)', fontWeight: '700' }}>$1.2M</div></div>
+              <div><div style={{ fontSize: '15px', opacity: 0.8, marginBottom: '8px' }}>Current Progress</div><div style={{ fontSize: 'clamp(36px, 5vw, 52px)', fontWeight: '700' }}>$291K</div></div>
+              <div><div style={{ fontSize: '15px', opacity: 0.8, marginBottom: '8px' }}>Years to FIRE</div><div style={{ fontSize: 'clamp(36px, 5vw, 52px)', fontWeight: '700', color: colors.yellow }}>8.3</div></div>
             </div>
-            <div style={{ background: 'rgba(255,255,255,0.2)', borderRadius: '10px', height: '14px', overflow: 'hidden', marginBottom: '12px' }}>
-              <div style={{ width: '24.3%', height: '100%', background: `linear-gradient(90deg, ${colors.yellow}, ${colors.orange})`, borderRadius: '10px' }}/>
+            <div style={{ background: 'rgba(255,255,255,0.2)', borderRadius: '12px', height: '18px', overflow: 'hidden', marginBottom: '16px' }}>
+              <div style={{ width: '24.3%', height: '100%', background: `linear-gradient(90deg, ${colors.yellow}, ${colors.orange})`, borderRadius: '12px' }}/>
             </div>
-            <div style={{ fontSize: '14px', opacity: 0.9 }}>24.3% complete • Side hustle adds <strong>$6,250/mo</strong> → saves you <strong>4 years</strong></div>
+            <div style={{ fontSize: '17px', opacity: 0.9 }}>24.3% complete • Side hustle adds <strong>$6,250/mo</strong> → saves you <strong>4 years</strong></div>
           </div>
 
-          <div style={{ background: 'rgba(255,255,255,0.05)', borderRadius: '20px', padding: '32px', textAlign: 'left' }}>
-            <h3 style={{ fontSize: '24px', fontWeight: '600', marginBottom: '16px', textAlign: 'center' }}>Why We Built ProsperNest</h3>
-            <p style={{ fontSize: '15px', lineHeight: 1.7, opacity: 0.9, marginBottom: '16px' }}>
+          <div style={{ background: 'rgba(255,255,255,0.05)', borderRadius: '24px', padding: '44px', textAlign: 'left' }}>
+            <h3 style={{ fontSize: '28px', fontWeight: '600', marginBottom: '20px', textAlign: 'center' }}>Why We Built ProsperNest</h3>
+            <p style={{ fontSize: '17px', lineHeight: 1.8, opacity: 0.9, marginBottom: '20px' }}>
               We founded ProsperNest on a simple belief: <strong>life is short</strong>, and you deserve to enjoy it—not spend it stressed about money.
             </p>
-            <p style={{ fontSize: '15px', lineHeight: 1.7, opacity: 0.9 }}>
+            <p style={{ fontSize: '17px', lineHeight: 1.8, opacity: 0.9 }}>
               We built this to help you set <strong>realistic goals</strong>, track <strong>every income stream</strong>, and create a path to retire early so you can focus on <strong>family, travel, experiences, and living life on your terms</strong>.
               Life is tough already. <strong>Let ProsperNest handle the heavy lifting.</strong> 💪
             </p>
@@ -1132,31 +1153,31 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
       </section>
 
       {/* Pricing Section */}
-      <section id="pricing" style={{ padding: '80px 20px', background: colors.gray6 }}>
-        <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
-          <div style={{ textAlign: 'center', marginBottom: '40px' }}>
-            <h2 style={{ fontSize: 'clamp(32px, 5vw, 44px)', fontWeight: '700', marginBottom: '12px' }}>Simple, transparent pricing</h2>
-            <p style={{ fontSize: '17px', color: colors.secondary, marginBottom: '24px' }}>Start free. Upgrade when you're ready.</p>
+      <section id="pricing" style={{ padding: '100px 40px', background: colors.gray6 }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+          <div style={{ textAlign: 'center', marginBottom: '50px' }}>
+            <h2 style={{ fontSize: 'clamp(36px, 5vw, 52px)', fontWeight: '700', marginBottom: '16px' }}>Simple, transparent pricing</h2>
+            <p style={{ fontSize: '19px', color: colors.secondary, marginBottom: '28px' }}>Start free. Upgrade when you're ready.</p>
             
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0', background: colors.background, padding: '4px', borderRadius: '980px', boxShadow: '0 2px 10px rgba(0,0,0,0.08)' }}>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0', background: colors.background, padding: '6px', borderRadius: '980px', boxShadow: '0 4px 15px rgba(0,0,0,0.08)' }}>
               <button onClick={() => setBillingCycle('monthly')} className="apple-button"
                 style={{
-                  padding: '10px 20px', border: 'none', borderRadius: '980px', fontSize: '14px', fontWeight: '500',
+                  padding: '14px 28px', border: 'none', borderRadius: '980px', fontSize: '16px', fontWeight: '500',
                   background: billingCycle === 'monthly' ? colors.blue : 'transparent',
                   color: billingCycle === 'monthly' ? '#FFF' : colors.secondary
                 }}>Monthly</button>
               <button onClick={() => setBillingCycle('annual')} className="apple-button"
                 style={{
-                  padding: '10px 20px', border: 'none', borderRadius: '980px', fontSize: '14px', fontWeight: '500',
+                  padding: '14px 28px', border: 'none', borderRadius: '980px', fontSize: '16px', fontWeight: '500',
                   background: billingCycle === 'annual' ? colors.blue : 'transparent',
                   color: billingCycle === 'annual' ? '#FFF' : colors.secondary
                 }}>
-                Annual <span style={{ background: colors.green, color: '#FFF', padding: '2px 8px', borderRadius: '8px', fontSize: '11px', marginLeft: '6px' }}>15% OFF</span>
+                Annual <span style={{ background: colors.green, color: '#FFF', padding: '4px 10px', borderRadius: '10px', fontSize: '12px', marginLeft: '8px' }}>15% OFF</span>
               </button>
             </div>
           </div>
           
-          <div className="pricing-grid" style={{ display: 'flex', gap: '20px', justifyContent: 'center', flexWrap: 'wrap' }}>
+          <div className="pricing-grid" style={{ display: 'flex', gap: '28px', justifyContent: 'center', flexWrap: 'wrap' }}>
             {[
               { name: 'Starter', price: 0, desc: 'For getting started', features: ['Personal budgeting', '1 account', 'Basic reports', 'Mobile app'], cta: 'Get Started', highlighted: false, plan: 'starter' },
               { name: 'Pro', price: getPricing('pro'), desc: 'For couples building wealth', features: ['Everything in Starter', '2 accounts (couples)', 'Side hustle tracking', 'FIRE calculator', 'Advanced analytics', 'Priority support'], cta: 'Start Free Trial', highlighted: true, plan: 'pro' },
@@ -1165,29 +1186,29 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
               <div key={i} className="hover-lift" style={{
                 background: plan.highlighted ? colors.blue : colors.background,
                 color: plan.highlighted ? '#FFF' : colors.label,
-                borderRadius: '20px', padding: '28px', flex: '1 1 280px', maxWidth: '320px',
-                boxShadow: plan.highlighted ? `0 20px 40px ${colors.blue}40` : '0 2px 20px rgba(0,0,0,0.08)',
-                transform: plan.highlighted ? 'scale(1.03)' : 'none', position: 'relative'
+                borderRadius: '24px', padding: '40px', flex: '1 1 320px', maxWidth: '380px',
+                boxShadow: plan.highlighted ? `0 25px 50px ${colors.blue}40` : '0 4px 25px rgba(0,0,0,0.08)',
+                transform: plan.highlighted ? 'scale(1.04)' : 'none', position: 'relative'
               }}>
                 {plan.highlighted && (
-                  <div style={{ position: 'absolute', top: '-12px', left: '50%', transform: 'translateX(-50%)', background: colors.orange, padding: '4px 14px', borderRadius: '12px', fontSize: '11px', fontWeight: '600', color: '#FFF' }}>Most Popular</div>
+                  <div style={{ position: 'absolute', top: '-14px', left: '50%', transform: 'translateX(-50%)', background: colors.orange, padding: '6px 18px', borderRadius: '14px', fontSize: '13px', fontWeight: '600', color: '#FFF' }}>Most Popular</div>
                 )}
-                <div style={{ fontSize: '18px', fontWeight: '600', marginBottom: '6px' }}>{plan.name}</div>
-                <div style={{ marginBottom: '6px' }}>
-                  <span style={{ fontSize: '40px', fontWeight: '700' }}>{plan.price === 0 ? 'Free' : `$${plan.price.toFixed(2)}`}</span>
-                  {plan.price > 0 && <span style={{ fontSize: '15px', opacity: 0.8 }}>/mo</span>}
+                <div style={{ fontSize: '22px', fontWeight: '600', marginBottom: '8px' }}>{plan.name}</div>
+                <div style={{ marginBottom: '8px' }}>
+                  <span style={{ fontSize: '52px', fontWeight: '700' }}>{plan.price === 0 ? 'Free' : `$${plan.price.toFixed(2)}`}</span>
+                  {plan.price > 0 && <span style={{ fontSize: '18px', opacity: 0.8 }}>/mo</span>}
                 </div>
-                <div style={{ fontSize: '13px', opacity: 0.8, marginBottom: '20px' }}>{plan.desc}</div>
-                <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 20px 0' }}>
+                <div style={{ fontSize: '15px', opacity: 0.8, marginBottom: '28px' }}>{plan.desc}</div>
+                <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 28px 0' }}>
                   {plan.features.map((f, j) => (
-                    <li key={j} style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px', fontSize: '13px' }}>
-                      <span style={{ color: plan.highlighted ? '#FFF' : colors.green }}>✓</span>{f}
+                    <li key={j} style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '14px', fontSize: '15px' }}>
+                      <span style={{ color: plan.highlighted ? '#FFF' : colors.green, fontSize: '16px' }}>✓</span>{f}
                     </li>
                   ))}
                 </ul>
                 <button onClick={() => handleStartTrial(plan.plan)} className="apple-button"
                   style={{
-                    width: '100%', padding: '14px', border: 'none', borderRadius: '12px', fontSize: '14px', fontWeight: '500',
+                    width: '100%', padding: '18px', border: 'none', borderRadius: '14px', fontSize: '16px', fontWeight: '600',
                     background: plan.highlighted ? '#FFF' : colors.blue,
                     color: plan.highlighted ? colors.blue : '#FFF'
                   }}>{plan.cta}</button>
@@ -1198,23 +1219,23 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
       </section>
 
       {/* Support Section */}
-      <section id="support" style={{ padding: '80px 20px', background: colors.background }}>
-        <div style={{ maxWidth: '800px', margin: '0 auto', textAlign: 'center' }}>
-          <div style={{ fontSize: '48px', marginBottom: '20px' }}>💬</div>
-          <h2 style={{ fontSize: 'clamp(28px, 5vw, 40px)', fontWeight: '700', marginBottom: '16px' }}>We're here to help</h2>
-          <p style={{ fontSize: '17px', color: colors.secondary, marginBottom: '32px' }}>Have questions? Our support team is available to help you.</p>
-          <div style={{ display: 'flex', gap: '20px', justifyContent: 'center', flexWrap: 'wrap' }}>
+      <section id="support" style={{ padding: '100px 40px', background: colors.background }}>
+        <div style={{ maxWidth: '1000px', margin: '0 auto', textAlign: 'center' }}>
+          <div style={{ fontSize: '64px', marginBottom: '24px' }}>💬</div>
+          <h2 style={{ fontSize: 'clamp(32px, 5vw, 48px)', fontWeight: '700', marginBottom: '20px' }}>We're here to help</h2>
+          <p style={{ fontSize: '19px', color: colors.secondary, marginBottom: '44px' }}>Have questions? Our support team is available to help you.</p>
+          <div style={{ display: 'flex', gap: '28px', justifyContent: 'center', flexWrap: 'wrap' }}>
             {[
               { icon: '📧', title: 'Email Support', desc: 'support@prospernest.io', action: handleEmailSupport },
               { icon: '💬', title: 'Live Chat', desc: 'Chat with Penny anytime', action: handleLiveChat },
               { icon: '📚', title: 'Help Center', desc: 'Guides & tutorials', action: () => scrollToSection('tutorials') }
             ].map((item, i) => (
               <div key={i} onClick={item.action} className="hover-lift" style={{
-                background: colors.gray6, borderRadius: '16px', padding: '24px', flex: '1 1 200px', maxWidth: '220px', cursor: 'pointer'
+                background: colors.gray6, borderRadius: '20px', padding: '36px', flex: '1 1 260px', maxWidth: '300px', cursor: 'pointer'
               }}>
-                <div style={{ fontSize: '32px', marginBottom: '12px' }}>{item.icon}</div>
-                <div style={{ fontWeight: '600', marginBottom: '6px' }}>{item.title}</div>
-                <div style={{ fontSize: '13px', color: colors.secondary }}>{item.desc}</div>
+                <div style={{ fontSize: '44px', marginBottom: '16px' }}>{item.icon}</div>
+                <div style={{ fontWeight: '600', fontSize: '18px', marginBottom: '8px' }}>{item.title}</div>
+                <div style={{ fontSize: '15px', color: colors.secondary }}>{item.desc}</div>
               </div>
             ))}
           </div>
