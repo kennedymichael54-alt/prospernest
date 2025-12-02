@@ -2412,13 +2412,22 @@ function DashboardHome({ transactions, goals, onNavigateToImport, theme }) {
       </div>
 
       {transactions.length === 0 && (
-        <div style={{ marginTop: '24px', background: theme.bgCard, borderRadius: '16px', padding: '40px', textAlign: 'center', boxShadow: theme.cardShadow, border: `1px solid ${theme.borderLight}` }}>
-          <div style={{ fontSize: '48px', marginBottom: '16px' }}>📂</div>
-          <h3 style={{ fontSize: '18px', fontWeight: '600', color: theme.textPrimary, marginBottom: '8px' }}>No Data Yet</h3>
-          <p style={{ color: theme.textMuted, marginBottom: '20px' }}>Import your bank transactions to get started</p>
-          <button onClick={onNavigateToImport} style={{ padding: '12px 24px', background: theme.primary, color: 'white', border: 'none', borderRadius: '10px', fontSize: '14px', fontWeight: '600', cursor: 'pointer' }}>
-            Import Transactions
-          </button>
+        <div style={{ marginTop: '24px', background: theme.bgCard, borderRadius: '16px', padding: '48px', textAlign: 'center', boxShadow: theme.cardShadow, border: `1px solid ${theme.borderLight}` }}>
+          <div style={{ 
+            width: '80px', height: '80px', borderRadius: '20px', 
+            background: `linear-gradient(135deg, ${theme.primary}15, ${theme.primary}25)`,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            margin: '0 auto 20px', fontSize: '36px'
+          }}>
+            📊
+          </div>
+          <h3 style={{ fontSize: '20px', fontWeight: '600', color: theme.textPrimary, marginBottom: '8px' }}>Ready to Get Started?</h3>
+          <p style={{ color: theme.textMuted, marginBottom: '8px', maxWidth: '320px', margin: '0 auto 16px', lineHeight: '1.5' }}>
+            Import your bank statements to see your spending insights, track your budget, and reach your financial goals.
+          </p>
+          <p style={{ color: theme.textSecondary, fontSize: '14px' }}>
+            Go to <span style={{ color: theme.primary, fontWeight: '600' }}>Import</span> in the sidebar to upload your files.
+          </p>
         </div>
       )}
     </div>
@@ -2496,12 +2505,19 @@ function TransactionsTabDS({ transactions, onNavigateToImport, theme }) {
           <tbody>
             {transactions.length === 0 ? (
               <tr>
-                <td colSpan="5" style={{ padding: '60px 20px', textAlign: 'center', color: theme.textMuted }}>
-                  <div style={{ fontSize: '48px', marginBottom: '16px' }}>📋</div>
-                  <div style={{ marginBottom: '16px' }}>No transactions yet</div>
-                  <button onClick={onNavigateToImport} style={{ padding: '10px 20px', background: theme.primary, color: 'white', border: 'none', borderRadius: '8px', fontSize: '14px', fontWeight: '500', cursor: 'pointer' }}>
-                    Import Transactions
-                  </button>
+                <td colSpan="5" style={{ padding: '80px 20px', textAlign: 'center', color: theme.textMuted }}>
+                  <div style={{ 
+                    width: '64px', height: '64px', borderRadius: '16px', 
+                    background: `linear-gradient(135deg, ${theme.primary}10, ${theme.primary}20)`,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    margin: '0 auto 16px', fontSize: '28px'
+                  }}>
+                    📋
+                  </div>
+                  <div style={{ fontSize: '16px', fontWeight: '500', color: theme.textPrimary, marginBottom: '8px' }}>No transactions yet</div>
+                  <div style={{ fontSize: '14px', color: theme.textMuted }}>
+                    Visit the <span style={{ color: theme.primary, fontWeight: '500' }}>Import</span> tab to upload your bank statements
+                  </div>
                 </td>
               </tr>
             ) : (
@@ -2542,6 +2558,7 @@ function ImportTabDS({ onImport, parseCSV, transactionCount, theme }) {
   const [dragOver, setDragOver] = useState(false);
   const [importing, setImporting] = useState(false);
   const [importResult, setImportResult] = useState(null);
+  const [selectedFileType, setSelectedFileType] = useState('transactions');
   const fileInputRef = useRef(null);
 
   const handleFile = async (file) => {
@@ -2554,9 +2571,9 @@ function ImportTabDS({ onImport, parseCSV, transactionCount, theme }) {
 
       if (transactions.length > 0) {
         onImport(transactions);
-        setImportResult({ success: true, count: transactions.length });
+        setImportResult({ success: true, count: transactions.length, fileName: file.name });
       } else {
-        setImportResult({ success: false, error: 'No valid transactions found' });
+        setImportResult({ success: false, error: 'No valid transactions found in file' });
       }
     } catch (error) {
       setImportResult({ success: false, error: error.message });
@@ -2564,19 +2581,174 @@ function ImportTabDS({ onImport, parseCSV, transactionCount, theme }) {
     setImporting(false);
   };
 
-  return (
-    <div>
-      <h1 style={{ fontSize: '24px', fontWeight: '700', color: theme.textPrimary, marginBottom: '24px' }}>Import Bank Transactions</h1>
+  const fileTypes = [
+    { 
+      id: 'transactions', 
+      icon: '🏦', 
+      title: 'Bank Transactions', 
+      desc: 'Import checking, savings, or credit card statements',
+      formats: ['CSV', 'XLSX', 'XLS'],
+      color: '#007AFF'
+    },
+    { 
+      id: 'retirement', 
+      icon: '📈', 
+      title: 'Retirement Accounts', 
+      desc: 'Import 401(k), IRA, or brokerage statements',
+      formats: ['CSV', 'XLSX', 'XLS'],
+      color: '#34C759'
+    },
+    { 
+      id: 'investments', 
+      icon: '💼', 
+      title: 'Investment Portfolio', 
+      desc: 'Import stocks, bonds, or mutual fund data',
+      formats: ['CSV', 'XLSX'],
+      color: '#AF52DE',
+      comingSoon: true
+    }
+  ];
 
-      {/* Status Card */}
-      <div style={{ background: theme.bgCard, borderRadius: '16px', padding: '24px', marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: theme.cardShadow, border: `1px solid ${theme.borderLight}` }}>
+  const supportedBanks = [
+    { name: 'Chase', logo: '🔵' },
+    { name: 'Bank of America', logo: '🔴' },
+    { name: 'Wells Fargo', logo: '🟡' },
+    { name: 'Citi', logo: '🔵' },
+    { name: 'Capital One', logo: '🔴' },
+    { name: 'US Bank', logo: '🟣' },
+    { name: 'PNC', logo: '🟠' },
+    { name: 'TD Bank', logo: '🟢' }
+  ];
+
+  return (
+    <div style={{ maxWidth: '900px' }}>
+      {/* Header */}
+      <div style={{ marginBottom: '32px' }}>
+        <h1 style={{ 
+          fontSize: '32px', 
+          fontWeight: '700', 
+          color: theme.textPrimary, 
+          marginBottom: '8px',
+          letterSpacing: '-0.5px'
+        }}>
+          Import Your Data
+        </h1>
+        <p style={{ fontSize: '17px', color: theme.textSecondary, lineHeight: '1.5' }}>
+          Upload your financial statements to unlock powerful insights and track your progress.
+        </p>
+      </div>
+
+      {/* Stats Banner */}
+      <div style={{ 
+        background: `linear-gradient(135deg, ${theme.primary}, ${theme.mode === 'dark' ? '#6D28D9' : '#818CF8'})`,
+        borderRadius: '20px', 
+        padding: '28px 32px', 
+        marginBottom: '32px',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        boxShadow: '0 10px 40px rgba(79, 70, 229, 0.3)'
+      }}>
         <div>
-          <div style={{ fontSize: '14px', color: theme.textMuted, marginBottom: '4px' }}>Current Data</div>
-          <div style={{ fontSize: '32px', fontWeight: '700', color: theme.textPrimary }}>{transactionCount.toLocaleString()} <span style={{ fontSize: '16px', fontWeight: '400', color: theme.textMuted }}>transactions</span></div>
+          <div style={{ fontSize: '14px', color: 'rgba(255,255,255,0.8)', marginBottom: '4px', fontWeight: '500' }}>
+            Currently Tracking
+          </div>
+          <div style={{ fontSize: '42px', fontWeight: '700', color: 'white', letterSpacing: '-1px' }}>
+            {transactionCount.toLocaleString()}
+            <span style={{ fontSize: '18px', fontWeight: '400', marginLeft: '8px', opacity: 0.8 }}>transactions</span>
+          </div>
         </div>
         {transactionCount > 0 && (
-          <span style={{ padding: '8px 16px', background: '#D1FAE5', color: '#059669', borderRadius: '20px', fontSize: '14px', fontWeight: '500' }}>✓ Data loaded</span>
+          <div style={{ 
+            background: 'rgba(255,255,255,0.2)', 
+            backdropFilter: 'blur(10px)',
+            padding: '12px 20px', 
+            borderRadius: '30px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px'
+          }}>
+            <span style={{ fontSize: '18px' }}>✓</span>
+            <span style={{ color: 'white', fontWeight: '600', fontSize: '15px' }}>Data Synced</span>
+          </div>
         )}
+      </div>
+
+      {/* File Type Selection */}
+      <div style={{ marginBottom: '32px' }}>
+        <h2 style={{ fontSize: '15px', fontWeight: '600', color: theme.textSecondary, marginBottom: '16px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+          What would you like to import?
+        </h2>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
+          {fileTypes.map((type) => (
+            <div
+              key={type.id}
+              onClick={() => !type.comingSoon && setSelectedFileType(type.id)}
+              style={{
+                background: selectedFileType === type.id 
+                  ? (theme.mode === 'dark' ? 'rgba(139, 92, 246, 0.15)' : '#EEF2FF')
+                  : theme.bgCard,
+                border: `2px solid ${selectedFileType === type.id ? theme.primary : theme.borderLight}`,
+                borderRadius: '16px',
+                padding: '24px',
+                cursor: type.comingSoon ? 'default' : 'pointer',
+                transition: 'all 0.2s ease',
+                opacity: type.comingSoon ? 0.5 : 1,
+                position: 'relative'
+              }}
+            >
+              {type.comingSoon && (
+                <span style={{
+                  position: 'absolute',
+                  top: '12px',
+                  right: '12px',
+                  background: theme.textMuted,
+                  color: 'white',
+                  fontSize: '10px',
+                  fontWeight: '600',
+                  padding: '4px 8px',
+                  borderRadius: '6px',
+                  textTransform: 'uppercase'
+                }}>
+                  Coming Soon
+                </span>
+              )}
+              <div style={{ 
+                width: '48px', 
+                height: '48px', 
+                borderRadius: '12px',
+                background: `${type.color}15`,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '24px',
+                marginBottom: '16px'
+              }}>
+                {type.icon}
+              </div>
+              <div style={{ fontSize: '16px', fontWeight: '600', color: theme.textPrimary, marginBottom: '4px' }}>
+                {type.title}
+              </div>
+              <div style={{ fontSize: '13px', color: theme.textMuted, marginBottom: '12px', lineHeight: '1.4' }}>
+                {type.desc}
+              </div>
+              <div style={{ display: 'flex', gap: '6px' }}>
+                {type.formats.map((format) => (
+                  <span key={format} style={{
+                    fontSize: '11px',
+                    fontWeight: '600',
+                    color: theme.textSecondary,
+                    background: theme.mode === 'dark' ? 'rgba(255,255,255,0.1)' : '#F3F4F6',
+                    padding: '4px 8px',
+                    borderRadius: '6px'
+                  }}>
+                    {format}
+                  </span>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Upload Area */}
@@ -2586,58 +2758,180 @@ function ImportTabDS({ onImport, parseCSV, transactionCount, theme }) {
         onDrop={(e) => { e.preventDefault(); setDragOver(false); handleFile(e.dataTransfer.files[0]); }}
         onClick={() => fileInputRef.current?.click()}
         style={{
-          background: dragOver ? (theme.mode === 'dark' ? 'rgba(139, 92, 246, 0.2)' : '#EEF2FF') : theme.bgCard,
+          background: dragOver 
+            ? (theme.mode === 'dark' ? 'rgba(139, 92, 246, 0.15)' : '#EEF2FF') 
+            : theme.bgCard,
           border: `2px dashed ${dragOver ? theme.primary : theme.border}`,
-          borderRadius: '16px',
-          padding: '60px',
+          borderRadius: '24px',
+          padding: '64px 40px',
           textAlign: 'center',
           cursor: 'pointer',
-          marginBottom: '24px',
-          transition: 'all 0.2s ease',
-          boxShadow: theme.cardShadow
+          marginBottom: '32px',
+          transition: 'all 0.3s ease',
+          boxShadow: dragOver ? `0 0 0 4px ${theme.primary}20` : theme.cardShadow
         }}
       >
-        <input ref={fileInputRef} type="file" accept=".csv" onChange={(e) => handleFile(e.target.files[0])} style={{ display: 'none' }} />
+        <input 
+          ref={fileInputRef} 
+          type="file" 
+          accept=".csv,.xlsx,.xls" 
+          onChange={(e) => handleFile(e.target.files[0])} 
+          style={{ display: 'none' }} 
+        />
 
         {importing ? (
-          <>
-            <div style={{ fontSize: '48px', marginBottom: '16px' }}>⏳</div>
-            <div style={{ fontSize: '18px', fontWeight: '600', color: theme.textPrimary }}>Importing...</div>
-          </>
+          <div>
+            <div style={{ 
+              width: '80px', 
+              height: '80px', 
+              borderRadius: '50%',
+              background: `linear-gradient(135deg, ${theme.primary}20, ${theme.primary}40)`,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 24px'
+            }}>
+              <div style={{ fontSize: '36px' }}>⏳</div>
+            </div>
+            <div style={{ fontSize: '20px', fontWeight: '600', color: theme.textPrimary, marginBottom: '8px' }}>
+              Processing your file...
+            </div>
+            <div style={{ color: theme.textMuted }}>This may take a moment</div>
+          </div>
         ) : (
-          <>
-            <div style={{ fontSize: '48px', marginBottom: '16px' }}>📄</div>
-            <div style={{ fontSize: '18px', fontWeight: '600', color: theme.textPrimary, marginBottom: '8px' }}>Drop your CSV file here</div>
-            <div style={{ color: theme.textMuted, marginBottom: '20px' }}>or click to browse</div>
-            <button style={{ padding: '12px 32px', background: theme.primary, color: 'white', border: 'none', borderRadius: '10px', fontSize: '14px', fontWeight: '600', cursor: 'pointer' }}>
-              Select File
+          <div>
+            <div style={{ 
+              width: '88px', 
+              height: '88px', 
+              borderRadius: '22px',
+              background: `linear-gradient(135deg, ${theme.primary}10, ${theme.primary}25)`,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 24px',
+              transition: 'transform 0.2s ease'
+            }}>
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke={theme.primary} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="17 8 12 3 7 8"/>
+                <line x1="12" y1="3" x2="12" y2="15"/>
+              </svg>
+            </div>
+            <div style={{ fontSize: '22px', fontWeight: '600', color: theme.textPrimary, marginBottom: '8px' }}>
+              Drop your file here
+            </div>
+            <div style={{ color: theme.textMuted, marginBottom: '24px', fontSize: '15px' }}>
+              or click to browse from your computer
+            </div>
+            <button style={{ 
+              padding: '14px 36px', 
+              background: theme.primary, 
+              color: 'white', 
+              border: 'none', 
+              borderRadius: '12px', 
+              fontSize: '16px', 
+              fontWeight: '600', 
+              cursor: 'pointer',
+              boxShadow: `0 4px 14px ${theme.primary}40`,
+              transition: 'all 0.2s ease'
+            }}>
+              Choose File
             </button>
-          </>
+            <div style={{ marginTop: '20px', fontSize: '13px', color: theme.textMuted }}>
+              Supports CSV, XLSX, and XLS formats • Max 10MB
+            </div>
+          </div>
         )}
       </div>
 
+      {/* Import Result */}
       {importResult && (
         <div style={{
-          background: importResult.success ? '#D1FAE5' : '#FEE2E2',
+          background: importResult.success 
+            ? (theme.mode === 'dark' ? 'rgba(16, 185, 129, 0.15)' : '#ECFDF5')
+            : (theme.mode === 'dark' ? 'rgba(239, 68, 68, 0.15)' : '#FEF2F2'),
           border: `1px solid ${importResult.success ? '#A7F3D0' : '#FECACA'}`,
-          borderRadius: '12px',
-          padding: '16px 20px',
-          marginBottom: '24px',
+          borderRadius: '16px',
+          padding: '20px 24px',
+          marginBottom: '32px',
           display: 'flex',
           alignItems: 'center',
-          gap: '12px'
+          gap: '16px'
         }}>
-          <span style={{ fontSize: '24px' }}>{importResult.success ? '✅' : '❌'}</span>
-          <div>
-            <div style={{ fontWeight: '600', color: importResult.success ? '#059669' : '#DC2626' }}>
+          <div style={{ 
+            width: '48px', 
+            height: '48px', 
+            borderRadius: '50%',
+            background: importResult.success ? '#D1FAE5' : '#FEE2E2',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '24px',
+            flexShrink: 0
+          }}>
+            {importResult.success ? '✓' : '✕'}
+          </div>
+          <div style={{ flex: 1 }}>
+            <div style={{ 
+              fontWeight: '600', 
+              fontSize: '16px',
+              color: importResult.success ? '#059669' : '#DC2626',
+              marginBottom: '2px'
+            }}>
               {importResult.success ? 'Import Successful!' : 'Import Failed'}
             </div>
             <div style={{ fontSize: '14px', color: importResult.success ? '#047857' : '#B91C1C' }}>
-              {importResult.success ? `${importResult.count.toLocaleString()} transactions imported` : importResult.error}
+              {importResult.success 
+                ? `${importResult.count.toLocaleString()} transactions imported from ${importResult.fileName}`
+                : importResult.error}
             </div>
           </div>
         </div>
       )}
+
+      {/* Supported Banks */}
+      <div style={{ 
+        background: theme.bgCard, 
+        borderRadius: '20px', 
+        padding: '28px 32px',
+        boxShadow: theme.cardShadow,
+        border: `1px solid ${theme.borderLight}`
+      }}>
+        <h3 style={{ fontSize: '15px', fontWeight: '600', color: theme.textSecondary, marginBottom: '20px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+          Works with all major banks
+        </h3>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
+          {supportedBanks.map((bank, i) => (
+            <div key={i} style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              background: theme.mode === 'dark' ? 'rgba(255,255,255,0.05)' : '#F9FAFB',
+              padding: '10px 16px',
+              borderRadius: '10px',
+              fontSize: '14px',
+              color: theme.textPrimary,
+              fontWeight: '500'
+            }}>
+              <span>{bank.logo}</span>
+              {bank.name}
+            </div>
+          ))}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            background: theme.mode === 'dark' ? 'rgba(255,255,255,0.05)' : '#F9FAFB',
+            padding: '10px 16px',
+            borderRadius: '10px',
+            fontSize: '14px',
+            color: theme.textMuted,
+            fontWeight: '500'
+          }}>
+            + Many more
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
