@@ -638,6 +638,8 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
               <input type="email" placeholder="john@example.com"
                 value={signinEmail}
                 onChange={e => { setSigninEmail(e.target.value); setSigninError(''); }}
+                autoComplete="off"
+                data-form-type="other"
                 style={{
                   width: '100%', padding: '12px', border: `1px solid ${colors.gray4}`,
                   borderRadius: '10px', fontSize: '14px', outline: 'none', boxSizing: 'border-box'
@@ -649,6 +651,8 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
               <input type="password" placeholder="••••••••"
                 value={signinPassword}
                 onChange={e => { setSigninPassword(e.target.value); setSigninError(''); }}
+                autoComplete="new-password"
+                data-form-type="other"
                 style={{
                   width: '100%', padding: '12px', border: `1px solid ${colors.gray4}`,
                   borderRadius: '10px', fontSize: '14px', outline: 'none', boxSizing: 'border-box'
@@ -772,6 +776,8 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
                   <input type="text" value={signupForm.firstName}
                     onChange={e => setSignupForm(prev => ({ ...prev, firstName: e.target.value }))}
                     placeholder="John"
+                    autoComplete="off"
+                    data-form-type="other"
                     style={{
                       width: '100%', padding: '12px', border: `1px solid ${colors.gray4}`,
                       borderRadius: '10px', fontSize: '14px', outline: 'none', boxSizing: 'border-box'
@@ -782,6 +788,8 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
                   <input type="text" value={signupForm.lastName}
                     onChange={e => setSignupForm(prev => ({ ...prev, lastName: e.target.value }))}
                     placeholder="Smith"
+                    autoComplete="off"
+                    data-form-type="other"
                     style={{
                       width: '100%', padding: '12px', border: `1px solid ${colors.gray4}`,
                       borderRadius: '10px', fontSize: '14px', outline: 'none', boxSizing: 'border-box'
@@ -794,6 +802,8 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
                 <input type="email" value={signupForm.email}
                   onChange={e => setSignupForm(prev => ({ ...prev, email: e.target.value }))}
                   placeholder="john@example.com"
+                  autoComplete="off"
+                  data-form-type="other"
                   style={{
                     width: '100%', padding: '12px', border: `1px solid ${colors.gray4}`,
                     borderRadius: '10px', fontSize: '14px', outline: 'none', boxSizing: 'border-box'
@@ -805,6 +815,8 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
                 <input type="text" value={signupForm.address}
                   onChange={e => handleAddressChange(e.target.value)}
                   placeholder="Start typing your address..."
+                  autoComplete="off"
+                  data-form-type="other"
                   style={{
                     width: '100%', padding: '12px', border: `1px solid ${colors.gray4}`,
                     borderRadius: '10px', fontSize: '14px', outline: 'none', boxSizing: 'border-box'
@@ -838,6 +850,8 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
                   <div style={{ fontSize: '12px', fontWeight: '600', marginBottom: '12px' }}>Payment Information</div>
                   <div style={{ marginBottom: '10px' }}>
                     <input type="text" placeholder="Card Number"
+                      autoComplete="off"
+                      data-form-type="other"
                       style={{
                         width: '100%', padding: '12px', border: `1px solid ${colors.gray4}`,
                         borderRadius: '10px', fontSize: '14px', outline: 'none', boxSizing: 'border-box'
@@ -845,11 +859,15 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                     <input type="text" placeholder="MM/YY"
+                      autoComplete="off"
+                      data-form-type="other"
                       style={{
                         padding: '12px', border: `1px solid ${colors.gray4}`,
                         borderRadius: '10px', fontSize: '14px', outline: 'none'
                       }} />
                     <input type="text" placeholder="CVC"
+                      autoComplete="off"
+                      data-form-type="other"
                       style={{
                         padding: '12px', border: `1px solid ${colors.gray4}`,
                         borderRadius: '10px', fontSize: '14px', outline: 'none'
