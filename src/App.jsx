@@ -653,7 +653,11 @@ function App() {
   const [transactions, setTransactions] = useState([]);
   const [bills, setBills] = useState([]);
   const [goals, setGoals] = useState([]);
-  const [lastImportDate, setLastImportDate] = useState(null);
+  const [lastImportDate, setLastImportDate] = useState(() => {
+    try {
+      return localStorage.getItem('pn_lastImportDate') || null;
+    } catch { return null; }
+  });
 
   // Load user data - tries DB first, falls back to localStorage
   const loadUserData = async (userId) => {
@@ -886,6 +890,7 @@ function App() {
       bills={bills}
       goals={goals}
       lastImportDate={lastImportDate}
+      onSetLastImportDate={setLastImportDate}
       onImportTransactions={handleImportTransactions}
       onUpdateBills={handleUpdateBills}
       onUpdateGoals={handleUpdateGoals}
@@ -1450,6 +1455,7 @@ function Dashboard({
   bills, 
   goals, 
   lastImportDate,
+  onSetLastImportDate,
   onImportTransactions,
   onUpdateBills,
   onUpdateGoals,
@@ -1476,13 +1482,6 @@ function Dashboard({
     try {
       return localStorage.getItem('pn_userAvatar') || '👨‍💼';
     } catch { return '👨‍💼'; }
-  });
-  
-  // Last import date
-  const [lastImportDate, setLastImportDate] = useState(() => {
-    try {
-      return localStorage.getItem('pn_lastImportDate') || null;
-    } catch { return null; }
   });
   
   const [chatMessages, setChatMessages] = useState([
@@ -1664,7 +1663,7 @@ function Dashboard({
           onImport={(data) => {
             onImportTransactions(data);
             const now = new Date().toISOString();
-            setLastImportDate(now);
+            onSetLastImportDate && onSetLastImportDate(now);
             localStorage.setItem('pn_lastImportDate', now);
           }} 
           parseCSV={parseCSV} 
