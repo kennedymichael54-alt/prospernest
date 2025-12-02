@@ -269,11 +269,20 @@ const initSupabase = () => {
             storageKey: 'prospernest-auth',
             storage: window.localStorage,
             autoRefreshToken: true,
-            detectSessionInUrl: true,
-            flowType: 'pkce'
+            detectSessionInUrl: true
           }
         }
       );
+      
+      // Handle OAuth callback if tokens are in URL hash
+      if (window.location.hash && window.location.hash.includes('access_token')) {
+        console.log('Detected OAuth callback, processing...');
+        // Clear the hash after processing
+        setTimeout(() => {
+          window.history.replaceState(null, '', window.location.pathname);
+        }, 100);
+      }
+      
       console.log('Supabase initialized successfully');
       return supabase;
     } catch (e) {
@@ -343,55 +352,73 @@ function App() {
     let subscription = null;
     
     const init = async () => {
-      console.log('Initializing auth...');
+      console.log('🚀 Initializing auth...');
+      console.log('📍 Current URL:', window.location.href);
+      console.log('💾 Checking localStorage for session...');
+      
+      // Check if there's already a session token in localStorage
+      const storedSession = localStorage.getItem('prospernest-auth');
+      console.log('📦 Stored session exists:', !!storedSession);
+      
       const sb = await initSupabase();
       
       if (!sb || !isMounted) {
+        console.log('❌ Supabase not initialized or component unmounted');
         setLoading(false);
         return;
       }
       
-      // FIRST: Check for existing session BEFORE setting up listener
-      // This handles the refresh case
-      try {
-        const { data: { session }, error } = await sb.auth.getSession();
-        console.log('Initial session check:', session?.user?.email || 'No session', error || '');
-        
-        if (session?.user && isMounted) {
-          console.log('Found existing session, restoring...');
-          setUser(session.user);
-          setView('dashboard');
-          loadSavedData(session.user.id);
-        }
-      } catch (err) {
-        console.error('Error getting session:', err);
-      }
-      
-      // THEN: Set up auth state listener for future changes
+      // Set up auth state listener FIRST - this will fire INITIAL_SESSION
       const { data: { subscription: sub } } = sb.auth.onAuthStateChange((event, session) => {
-        console.log('Auth state change:', event, session?.user?.email || 'No user');
+        console.log('🔔 Auth event:', event, '| User:', session?.user?.email || 'none');
         
         if (!isMounted) return;
         
-        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+        // Handle all session-restoring events
+        if (event === 'INITIAL_SESSION' || event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
           if (session?.user) {
+            console.log('✅ Session restored/created for:', session.user.email);
             setUser(session.user);
             setView('dashboard');
             loadSavedData(session.user.id);
+          } else {
+            console.log('⚠️ Event fired but no user in session');
           }
+          setLoading(false);
         } else if (event === 'SIGNED_OUT') {
+          console.log('👋 User signed out');
           setUser(null);
           setView('landing');
           setTransactions([]);
           setBills([]);
           setGoals([]);
+          setLoading(false);
         }
       });
       subscription = sub;
       
-      if (isMounted) {
-        setLoading(false);
-      }
+      // Fallback: Also directly check session after a short delay
+      // This catches edge cases where INITIAL_SESSION doesn't fire
+      setTimeout(async () => {
+        if (!isMounted) return;
+        
+        try {
+          const { data: { session }, error } = await sb.auth.getSession();
+          console.log('🔍 Fallback session check:', session?.user?.email || 'No session');
+          
+          if (session?.user && isMounted) {
+            setUser(session.user);
+            setView('dashboard');
+            loadSavedData(session.user.id);
+          }
+        } catch (err) {
+          console.error('❌ Fallback session check error:', err);
+        }
+        
+        if (isMounted) {
+          setLoading(false);
+        }
+      }, 500);
     };
     
     init();
@@ -399,6 +426,11 @@ function App() {
     // Cleanup
     return () => {
       isMounted = false;
+      if (subscription) {
+        subscription.unsubscribe();
+      }
+    };
+  }, []);
       if (subscription) {
         subscription.unsubscribe();
       }
@@ -601,6 +633,8 @@ function AuthPage({ setView }) {
   const [rememberMe, setRememberMe] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showTerms, setShowTerms] = useState(false);
+  const [showPrivacy, setShowPrivacy] = useState(false);
 
   const handleAuth = async (e) => {
     e.preventDefault();
@@ -845,8 +879,121 @@ function AuthPage({ setView }) {
               {isLogin ? 'Sign up for free' : 'Sign in'}
             </button>
           </p>
+
+          {/* Terms & Privacy Links */}
+          <div style={{ textAlign: 'center', marginTop: '32px', paddingTop: '24px', borderTop: '1px solid #E5E7EB' }}>
+            <p style={{ fontSize: '12px', color: '#9CA3AF', marginBottom: '8px' }}>
+              By signing in, you agree to our
+            </p>
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '16px' }}>
+              <button 
+                type="button"
+                onClick={() => setShowTerms(true)}
+                style={{ background: 'none', border: 'none', color: '#4F46E5', cursor: 'pointer', fontSize: '13px', fontWeight: '500', textDecoration: 'underline' }}
+              >
+                Terms of Service
+              </button>
+              <span style={{ color: '#D1D5DB' }}>•</span>
+              <button 
+                type="button"
+                onClick={() => setShowPrivacy(true)}
+                style={{ background: 'none', border: 'none', color: '#4F46E5', cursor: 'pointer', fontSize: '13px', fontWeight: '500', textDecoration: 'underline' }}
+              >
+                Privacy Policy
+              </button>
+            </div>
+          </div>
         </div>
       </div>
+
+      {/* Terms Modal */}
+      {showTerms && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '20px' }}>
+          <div style={{ background: 'white', borderRadius: '16px', width: '100%', maxWidth: '700px', maxHeight: '80vh', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ padding: '20px 24px', borderBottom: '1px solid #E5E7EB', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h2 style={{ fontSize: '20px', fontWeight: '700', color: '#1F2937', margin: 0 }}>Terms of Service</h2>
+              <button onClick={() => setShowTerms(false)} style={{ background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer', color: '#6B7280' }}>×</button>
+            </div>
+            <div style={{ padding: '24px', overflowY: 'auto', fontSize: '14px', lineHeight: 1.7, color: '#4B5563' }}>
+              <p style={{ marginBottom: '16px' }}><strong>Last Updated:</strong> December 2, 2024</p>
+              
+              <h3 style={{ fontSize: '16px', fontWeight: '600', color: '#1F2937', marginTop: '20px', marginBottom: '12px' }}>1. Acceptance of Terms</h3>
+              <p style={{ marginBottom: '16px' }}>By accessing or using ProsperNest ("Service"), you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use our Service.</p>
+              
+              <h3 style={{ fontSize: '16px', fontWeight: '600', color: '#1F2937', marginTop: '20px', marginBottom: '12px' }}>2. Description of Service</h3>
+              <p style={{ marginBottom: '16px' }}>ProsperNest provides personal finance management tools including budget tracking, expense categorization, financial goal setting, and reporting features. We provide read-only access to your connected financial accounts through secure third-party providers.</p>
+              
+              <h3 style={{ fontSize: '16px', fontWeight: '600', color: '#1F2937', marginTop: '20px', marginBottom: '12px' }}>3. User Accounts</h3>
+              <p style={{ marginBottom: '16px' }}>You must be at least 18 years old to use this Service. You are responsible for maintaining the confidentiality of your account credentials and for all activities under your account.</p>
+              
+              <h3 style={{ fontSize: '16px', fontWeight: '600', color: '#1F2937', marginTop: '20px', marginBottom: '12px' }}>4. Financial Data</h3>
+              <p style={{ marginBottom: '16px' }}>ProsperNest only has read-only access to your financial accounts. We cannot initiate transactions or transfers on your behalf. We use bank-level 256-bit encryption to protect your data.</p>
+              
+              <h3 style={{ fontSize: '16px', fontWeight: '600', color: '#1F2937', marginTop: '20px', marginBottom: '12px' }}>5. Not Financial Advice</h3>
+              <p style={{ marginBottom: '16px' }}>ProsperNest is a tool for organizing your finances. We do not provide financial, investment, tax, or legal advice. Consult with qualified professionals for financial guidance.</p>
+              
+              <h3 style={{ fontSize: '16px', fontWeight: '600', color: '#1F2937', marginTop: '20px', marginBottom: '12px' }}>6. Limitation of Liability</h3>
+              <p style={{ marginBottom: '16px' }}>ProsperNest is provided "as is" without warranties. We shall not be liable for any indirect, incidental, or consequential damages arising from your use of the Service.</p>
+              
+              <h3 style={{ fontSize: '16px', fontWeight: '600', color: '#1F2937', marginTop: '20px', marginBottom: '12px' }}>7. Contact</h3>
+              <p style={{ marginBottom: '16px' }}>For questions about these Terms, contact us at legal@prospernest.io</p>
+            </div>
+            <div style={{ padding: '16px 24px', borderTop: '1px solid #E5E7EB' }}>
+              <button onClick={() => setShowTerms(false)} style={{ width: '100%', padding: '12px', background: '#4F46E5', color: 'white', border: 'none', borderRadius: '8px', fontSize: '14px', fontWeight: '600', cursor: 'pointer' }}>
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Privacy Modal */}
+      {showPrivacy && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '20px' }}>
+          <div style={{ background: 'white', borderRadius: '16px', width: '100%', maxWidth: '700px', maxHeight: '80vh', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ padding: '20px 24px', borderBottom: '1px solid #E5E7EB', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h2 style={{ fontSize: '20px', fontWeight: '700', color: '#1F2937', margin: 0 }}>Privacy Policy</h2>
+              <button onClick={() => setShowPrivacy(false)} style={{ background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer', color: '#6B7280' }}>×</button>
+            </div>
+            <div style={{ padding: '24px', overflowY: 'auto', fontSize: '14px', lineHeight: 1.7, color: '#4B5563' }}>
+              <p style={{ marginBottom: '16px' }}><strong>Last Updated:</strong> December 2, 2024</p>
+              
+              <div style={{ background: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: '8px', padding: '16px', marginBottom: '20px' }}>
+                <p style={{ fontWeight: '600', color: '#166534', marginBottom: '8px' }}>🔒 Quick Privacy Facts:</p>
+                <ul style={{ margin: 0, paddingLeft: '20px', color: '#166534' }}>
+                  <li>We NEVER sell your data</li>
+                  <li>We have read-only access to your accounts</li>
+                  <li>We never see your bank login credentials</li>
+                  <li>256-bit encryption protects all your data</li>
+                </ul>
+              </div>
+              
+              <h3 style={{ fontSize: '16px', fontWeight: '600', color: '#1F2937', marginTop: '20px', marginBottom: '12px' }}>1. Information We Collect</h3>
+              <p style={{ marginBottom: '16px' }}>We collect information you provide (name, email, password) and financial data from connected accounts (transactions, balances, account info). We also collect usage data to improve our Service.</p>
+              
+              <h3 style={{ fontSize: '16px', fontWeight: '600', color: '#1F2937', marginTop: '20px', marginBottom: '12px' }}>2. How We Use Your Information</h3>
+              <p style={{ marginBottom: '16px' }}>We use your information to provide and improve our Service, send important notifications, and ensure security. We never sell your personal or financial information to third parties.</p>
+              
+              <h3 style={{ fontSize: '16px', fontWeight: '600', color: '#1F2937', marginTop: '20px', marginBottom: '12px' }}>3. Data Security</h3>
+              <p style={{ marginBottom: '16px' }}>We use industry-standard security measures including 256-bit SSL/TLS encryption, AES-256 encryption at rest, and two-factor authentication options.</p>
+              
+              <h3 style={{ fontSize: '16px', fontWeight: '600', color: '#1F2937', marginTop: '20px', marginBottom: '12px' }}>4. Third-Party Services</h3>
+              <p style={{ marginBottom: '16px' }}>We use trusted third-party services (like Plaid) to securely connect to your financial institutions. These providers never share your login credentials with us.</p>
+              
+              <h3 style={{ fontSize: '16px', fontWeight: '600', color: '#1F2937', marginTop: '20px', marginBottom: '12px' }}>5. Your Rights</h3>
+              <p style={{ marginBottom: '16px' }}>You can access, correct, or delete your data at any time. Contact us at privacy@prospernest.io for any privacy-related requests.</p>
+              
+              <h3 style={{ fontSize: '16px', fontWeight: '600', color: '#1F2937', marginTop: '20px', marginBottom: '12px' }}>6. Contact</h3>
+              <p style={{ marginBottom: '16px' }}>For privacy questions, contact us at privacy@prospernest.io</p>
+            </div>
+            <div style={{ padding: '16px 24px', borderTop: '1px solid #E5E7EB' }}>
+              <button onClick={() => setShowPrivacy(false)} style={{ width: '100%', padding: '12px', background: '#4F46E5', color: 'white', border: 'none', borderRadius: '8px', fontSize: '14px', fontWeight: '600', cursor: 'pointer' }}>
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
