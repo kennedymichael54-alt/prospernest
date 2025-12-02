@@ -1413,42 +1413,50 @@ function AuthPage({ setView }) {
 // ============================================================================
 function ThemeToggle({ isDark, onToggle }) {
   return (
-    <div
+    <button
       onClick={onToggle}
       style={{
         display: 'flex',
         alignItems: 'center',
-        gap: '8px',
-        padding: '8px 12px',
-        background: isDark ? 'rgba(139, 92, 246, 0.2)' : '#F5F6FA',
-        border: `1px solid ${isDark ? 'rgba(139, 92, 246, 0.3)' : '#E5E7EB'}`,
-        borderRadius: '10px',
+        justifyContent: 'center',
+        width: '46px',
+        height: '46px',
+        background: isDark 
+          ? 'linear-gradient(135deg, #1e1b4b 0%, #312e81 100%)' 
+          : 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
+        border: 'none',
+        borderRadius: '14px',
         cursor: 'pointer',
-        transition: 'all 0.3s ease'
+        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+        boxShadow: isDark 
+          ? '0 4px 15px rgba(139, 92, 246, 0.3), inset 0 1px 0 rgba(255,255,255,0.1)' 
+          : '0 4px 15px rgba(251, 191, 36, 0.3), inset 0 1px 0 rgba(255,255,255,0.5)',
+        position: 'relative',
+        overflow: 'hidden'
       }}
     >
-      <span style={{ fontSize: '16px' }}>{isDark ? '🌙' : '☀️'}</span>
+      {/* Animated background circles */}
       <div style={{
-        width: '40px',
-        height: '22px',
-        background: isDark ? 'linear-gradient(135deg, #8B5CF6, #EC4899)' : '#E5E7EB',
-        borderRadius: '11px',
-        position: 'relative',
+        position: 'absolute',
+        width: '60px',
+        height: '60px',
+        borderRadius: '50%',
+        background: isDark ? 'rgba(139, 92, 246, 0.2)' : 'rgba(251, 191, 36, 0.3)',
+        top: '-10px',
+        right: '-10px',
         transition: 'all 0.3s ease'
+      }} />
+      <span style={{ 
+        fontSize: '22px', 
+        position: 'relative',
+        zIndex: 1,
+        filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))',
+        transition: 'transform 0.3s ease',
+        transform: isDark ? 'rotate(-15deg)' : 'rotate(15deg)'
       }}>
-        <div style={{
-          width: '18px',
-          height: '18px',
-          background: 'white',
-          borderRadius: '50%',
-          position: 'absolute',
-          top: '2px',
-          left: isDark ? '20px' : '2px',
-          transition: 'all 0.3s ease',
-          boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
-        }} />
-      </div>
-    </div>
+        {isDark ? '🌙' : '☀️'}
+      </span>
+    </button>
   );
 }
 // ============================================================================
@@ -1798,7 +1806,70 @@ function Dashboard({
           </div>
 
           {/* Right side */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            
+            {/* Last Imported Indicator */}
+            {transactions.length > 0 && (
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '8px 14px',
+                background: `linear-gradient(135deg, ${theme.mode === 'dark' ? 'rgba(16, 185, 129, 0.15)' : '#ecfdf5'} 0%, ${theme.mode === 'dark' ? 'rgba(16, 185, 129, 0.08)' : '#d1fae5'} 100%)`,
+                borderRadius: '12px',
+                border: `1px solid ${theme.mode === 'dark' ? 'rgba(16, 185, 129, 0.3)' : '#a7f3d0'}`
+              }}>
+                <div style={{
+                  width: '8px',
+                  height: '8px',
+                  borderRadius: '50%',
+                  background: '#10B981',
+                  boxShadow: '0 0 8px rgba(16, 185, 129, 0.6)',
+                  animation: 'pulse 2s infinite'
+                }} />
+                <div>
+                  <div style={{ fontSize: '10px', color: theme.textMuted, lineHeight: '1' }}>Last synced</div>
+                  <div style={{ fontSize: '12px', fontWeight: '600', color: '#10B981' }}>
+                    {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} • {new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Calendar Button */}
+            <button
+              onClick={() => setActiveTab('bills')}
+              style={{
+                width: '46px',
+                height: '46px',
+                background: theme.mode === 'dark' 
+                  ? 'linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(139, 92, 246, 0.2))'
+                  : 'linear-gradient(135deg, #eff6ff, #e0e7ff)',
+                border: 'none',
+                borderRadius: '14px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 4px 12px rgba(59, 130, 246, 0.15)',
+                transition: 'all 0.2s ease',
+                position: 'relative'
+              }}
+            >
+              <span style={{ fontSize: '20px' }}>📅</span>
+              <div style={{
+                position: 'absolute',
+                bottom: '6px',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                fontSize: '8px',
+                fontWeight: '700',
+                color: theme.primary
+              }}>
+                {new Date().getDate()}
+              </div>
+            </button>
+
             {/* Theme Toggle */}
             <ThemeToggle isDark={isDarkMode} onToggle={toggleTheme} />
 
@@ -1807,34 +1878,46 @@ function Dashboard({
               <button
                 onClick={() => setShowNotifications(!showNotifications)}
                 style={{
-                  width: '42px',
-                  height: '42px',
-                  background: theme.bgMain,
-                  border: `1px solid ${theme.border}`,
-                  borderRadius: '10px',
-                  color: theme.textSecondary,
+                  width: '46px',
+                  height: '46px',
+                  background: showNotifications 
+                    ? 'linear-gradient(135deg, #ef4444, #f97316)'
+                    : theme.mode === 'dark' 
+                      ? 'linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(249, 115, 22, 0.15))'
+                      : 'linear-gradient(135deg, #fef2f2, #fff7ed)',
+                  border: 'none',
+                  borderRadius: '14px',
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
+                  boxShadow: showNotifications 
+                    ? '0 4px 15px rgba(239, 68, 68, 0.4)'
+                    : '0 4px 12px rgba(239, 68, 68, 0.1)',
+                  transition: 'all 0.2s ease',
                   position: 'relative'
                 }}
               >
-                <Icons.Bell />
+                <span style={{ 
+                  fontSize: '20px',
+                  filter: showNotifications ? 'brightness(0) invert(1)' : 'none'
+                }}>🔔</span>
                 <span style={{
                   position: 'absolute',
-                  top: '-4px',
-                  right: '-4px',
-                  background: theme.danger,
+                  top: '-2px',
+                  right: '-2px',
+                  background: 'linear-gradient(135deg, #ef4444, #dc2626)',
                   color: 'white',
                   fontSize: '10px',
-                  fontWeight: '600',
-                  minWidth: '18px',
-                  height: '18px',
-                  borderRadius: '9px',
+                  fontWeight: '700',
+                  minWidth: '20px',
+                  height: '20px',
+                  borderRadius: '10px',
                   display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'center'
+                  justifyContent: 'center',
+                  boxShadow: '0 2px 8px rgba(239, 68, 68, 0.5)',
+                  border: `2px solid ${theme.bgWhite}`
                 }}>
                   6
                 </span>
@@ -2372,82 +2455,249 @@ function DashboardHome({ transactions, goals, bills = [], theme }) {
     { name: 'New Car', targetAmount: 15000, currentAmount: 2800, icon: '🚗', color: '#8B5CF6' }
   ];
 
-  // Donut Chart Component
-  const DonutChart = ({ data, size = 160 }) => {
+  // Mini Sparkline Chart Component for stat cards
+  const Sparkline = ({ data, color, height = 40, width = 80 }) => {
+    if (!data || data.length === 0) return null;
+    const max = Math.max(...data, 1);
+    const min = Math.min(...data, 0);
+    const range = max - min || 1;
+    const points = data.map((val, i) => {
+      const x = (i / (data.length - 1)) * width;
+      const y = height - ((val - min) / range) * (height - 10) - 5;
+      return `${x},${y}`;
+    }).join(' ');
+    
+    return (
+      <svg width={width} height={height} style={{ overflow: 'visible' }}>
+        <defs>
+          <linearGradient id={`sparkGrad-${color.replace('#', '')}`} x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor={color} stopOpacity="0.3" />
+            <stop offset="100%" stopColor={color} stopOpacity="0" />
+          </linearGradient>
+        </defs>
+        <polyline
+          points={points}
+          fill="none"
+          stroke={color}
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        {/* Area fill */}
+        <polygon
+          points={`0,${height} ${points} ${width},${height}`}
+          fill={`url(#sparkGrad-${color.replace('#', '')})`}
+        />
+        {/* End dot */}
+        <circle
+          cx={width}
+          cy={parseFloat(points.split(' ').pop().split(',')[1])}
+          r="4"
+          fill={color}
+        />
+      </svg>
+    );
+  };
+
+  // Modern Donut Chart with hover effects
+  const DonutChart = ({ data, size = 180 }) => {
     const total = data.reduce((sum, [_, val]) => sum + val, 0);
     let currentAngle = -90;
-    const radius = size / 2 - 20;
+    const radius = size / 2 - 25;
+    const innerRadius = radius * 0.65;
     const center = size / 2;
     
     return (
       <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+        <defs>
+          {data.map(([category], i) => (
+            <filter key={`shadow-${i}`} id={`shadow-${i}`}>
+              <feDropShadow dx="0" dy="2" stdDeviation="3" floodColor={categoryColors[category] || '#95A5A6'} floodOpacity="0.3"/>
+            </filter>
+          ))}
+        </defs>
         {data.map(([category, value], i) => {
           const angle = (value / total) * 360;
           const startAngle = currentAngle;
-          const endAngle = currentAngle + angle;
-          currentAngle = endAngle;
+          const endAngle = currentAngle + angle - 2; // Gap between segments
+          currentAngle += angle;
+          
           const startRad = (startAngle * Math.PI) / 180;
           const endRad = (endAngle * Math.PI) / 180;
+          
           const x1 = center + radius * Math.cos(startRad);
           const y1 = center + radius * Math.sin(startRad);
           const x2 = center + radius * Math.cos(endRad);
           const y2 = center + radius * Math.sin(endRad);
+          const ix1 = center + innerRadius * Math.cos(startRad);
+          const iy1 = center + innerRadius * Math.sin(startRad);
+          const ix2 = center + innerRadius * Math.cos(endRad);
+          const iy2 = center + innerRadius * Math.sin(endRad);
+          
           const largeArc = angle > 180 ? 1 : 0;
+          
           return (
-            <path key={category} d={`M ${center} ${center} L ${x1} ${y1} A ${radius} ${radius} 0 ${largeArc} 1 ${x2} ${y2} Z`}
-              fill={categoryColors[category] || '#95A5A6'} stroke={theme.bgCard} strokeWidth="2" />
+            <path
+              key={category}
+              d={`M ${x1} ${y1} A ${radius} ${radius} 0 ${largeArc} 1 ${x2} ${y2} L ${ix2} ${iy2} A ${innerRadius} ${innerRadius} 0 ${largeArc} 0 ${ix1} ${iy1} Z`}
+              fill={categoryColors[category] || '#95A5A6'}
+              style={{ transition: 'all 0.3s ease', cursor: 'pointer' }}
+              filter={`url(#shadow-${i})`}
+            />
           );
         })}
-        <circle cx={center} cy={center} r={radius * 0.6} fill={theme.bgCard} />
-        <text x={center} y={center - 8} textAnchor="middle" fill={theme.textPrimary} fontSize="18" fontWeight="700">{formatCurrency(total)}</text>
-        <text x={center} y={center + 12} textAnchor="middle" fill={theme.textMuted} fontSize="11">Total Spent</text>
+        <circle cx={center} cy={center} r={innerRadius - 5} fill={theme.bgCard} />
+        <text x={center} y={center - 10} textAnchor="middle" fill={theme.textPrimary} fontSize="22" fontWeight="700">
+          {formatCurrency(total).replace('$', '')}
+        </text>
+        <text x={center} y={center + 8} textAnchor="middle" fill={theme.textMuted} fontSize="11">Total Spent</text>
       </svg>
     );
   };
 
-  // Bar Chart Component
-  const BarChart = ({ data, height = 200 }) => {
-    const barWidth = 28;
-    const gap = 16;
-    const chartWidth = data.length * (barWidth * 2 + gap + 20);
+  // Modern Line Chart with gradient fill and smooth curves
+  const LineChart = ({ data, height = 220 }) => {
+    const padding = { top: 20, right: 20, bottom: 40, left: 20 };
+    const chartWidth = 500;
+    const chartHeight = height - padding.top - padding.bottom;
+    
     const maxVal = Math.max(...data.map(d => Math.max(d.income, d.expenses)), 1);
-    const scaleY = (val) => (val / maxVal) * (height - 40);
+    const scaleY = (val) => chartHeight - (val / maxVal) * chartHeight + padding.top;
+    const scaleX = (i) => padding.left + (i / (data.length - 1)) * (chartWidth - padding.left - padding.right);
+
+    const createPath = (key) => {
+      return data.map((d, i) => {
+        const x = scaleX(i);
+        const y = scaleY(d[key]);
+        return i === 0 ? `M ${x} ${y}` : `L ${x} ${y}`;
+      }).join(' ');
+    };
+
+    const createAreaPath = (key) => {
+      const linePath = data.map((d, i) => {
+        const x = scaleX(i);
+        const y = scaleY(d[key]);
+        return `${x},${y}`;
+      }).join(' ');
+      return `M ${scaleX(0)},${height - padding.bottom} L ${linePath} L ${scaleX(data.length - 1)},${height - padding.bottom} Z`;
+    };
     
     return (
       <svg width="100%" height={height} viewBox={`0 0 ${chartWidth} ${height}`} preserveAspectRatio="xMidYMid meet">
-        {data.map((d, i) => {
-          const x = i * (barWidth * 2 + gap + 20) + 20;
-          return (
-            <g key={d.month}>
-              <rect x={x} y={height - 30 - scaleY(d.income)} width={barWidth} height={scaleY(d.income)} rx="4" fill="#10B981" opacity="0.9" />
-              <rect x={x + barWidth + 4} y={height - 30 - scaleY(d.expenses)} width={barWidth} height={scaleY(d.expenses)} rx="4" fill="#EF4444" opacity="0.9" />
-              <text x={x + barWidth + 2} y={height - 10} textAnchor="middle" fill={theme.textMuted} fontSize="11">{d.month}</text>
-            </g>
-          );
-        })}
+        <defs>
+          <linearGradient id="incomeGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="#10B981" stopOpacity="0.3" />
+            <stop offset="100%" stopColor="#10B981" stopOpacity="0.02" />
+          </linearGradient>
+          <linearGradient id="expenseGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="#EF4444" stopOpacity="0.2" />
+            <stop offset="100%" stopColor="#EF4444" stopOpacity="0.02" />
+          </linearGradient>
+          <filter id="lineShadow">
+            <feDropShadow dx="0" dy="4" stdDeviation="4" floodOpacity="0.2"/>
+          </filter>
+        </defs>
+        
+        {/* Grid lines */}
+        {[0, 0.25, 0.5, 0.75, 1].map((p, i) => (
+          <line key={i} x1={padding.left} y1={padding.top + chartHeight * p} x2={chartWidth - padding.right} y2={padding.top + chartHeight * p}
+            stroke={theme.borderLight} strokeWidth="1" strokeDasharray="4,4" opacity="0.5" />
+        ))}
+        
+        {/* Area fills */}
+        <path d={createAreaPath('income')} fill="url(#incomeGrad)" />
+        <path d={createAreaPath('expenses')} fill="url(#expenseGrad)" />
+        
+        {/* Lines */}
+        <path d={createPath('income')} fill="none" stroke="#10B981" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" filter="url(#lineShadow)" />
+        <path d={createPath('expenses')} fill="none" stroke="#EF4444" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" filter="url(#lineShadow)" />
+        
+        {/* Data points */}
+        {data.map((d, i) => (
+          <g key={i}>
+            <circle cx={scaleX(i)} cy={scaleY(d.income)} r="5" fill="#10B981" stroke="white" strokeWidth="2" />
+            <circle cx={scaleX(i)} cy={scaleY(d.expenses)} r="5" fill="#EF4444" stroke="white" strokeWidth="2" />
+            <text x={scaleX(i)} y={height - 15} textAnchor="middle" fill={theme.textMuted} fontSize="11" fontWeight="500">{d.month}</text>
+          </g>
+        ))}
       </svg>
     );
   };
 
-  // Health Score Circle
-  const HealthScoreCircle = ({ score, size = 120 }) => {
-    const strokeWidth = 10;
-    const radius = (size - strokeWidth) / 2;
-    const circumference = 2 * Math.PI * radius;
+  // Gauge-style Health Score (Semicircle)
+  const HealthScoreGauge = ({ score, size = 180 }) => {
+    const strokeWidth = 14;
+    const radius = (size - strokeWidth) / 2 - 10;
+    const circumference = Math.PI * radius; // Semicircle
     const progress = (score / 100) * circumference;
     const color = score >= 70 ? '#10B981' : score >= 40 ? '#F59E0B' : '#EF4444';
+    const gradientId = `healthGrad-${score}`;
     
     return (
-      <svg width={size} height={size}>
-        <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke={theme.borderLight} strokeWidth={strokeWidth} />
-        <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke={color} strokeWidth={strokeWidth}
-          strokeDasharray={circumference} strokeDashoffset={circumference - progress} strokeLinecap="round"
-          transform={`rotate(-90 ${size / 2} ${size / 2})`} />
-        <text x={size / 2} y={size / 2 - 5} textAnchor="middle" fill={theme.textPrimary} fontSize="28" fontWeight="700">{score}</text>
-        <text x={size / 2} y={size / 2 + 15} textAnchor="middle" fill={theme.textMuted} fontSize="11">Health Score</text>
+      <svg width={size} height={size * 0.7} viewBox={`0 0 ${size} ${size * 0.7}`}>
+        <defs>
+          <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="#EF4444" />
+            <stop offset="50%" stopColor="#F59E0B" />
+            <stop offset="100%" stopColor="#10B981" />
+          </linearGradient>
+          <filter id="gaugeShadow">
+            <feDropShadow dx="0" dy="4" stdDeviation="6" floodColor={color} floodOpacity="0.4"/>
+          </filter>
+        </defs>
+        
+        {/* Background arc */}
+        <path
+          d={`M ${strokeWidth + 10} ${size * 0.6} A ${radius} ${radius} 0 0 1 ${size - strokeWidth - 10} ${size * 0.6}`}
+          fill="none"
+          stroke={theme.borderLight}
+          strokeWidth={strokeWidth}
+          strokeLinecap="round"
+        />
+        
+        {/* Progress arc */}
+        <path
+          d={`M ${strokeWidth + 10} ${size * 0.6} A ${radius} ${radius} 0 0 1 ${size - strokeWidth - 10} ${size * 0.6}`}
+          fill="none"
+          stroke={`url(#${gradientId})`}
+          strokeWidth={strokeWidth}
+          strokeLinecap="round"
+          strokeDasharray={circumference}
+          strokeDashoffset={circumference - progress}
+          filter="url(#gaugeShadow)"
+          style={{ transition: 'stroke-dashoffset 1s ease-out' }}
+        />
+        
+        {/* Score needle indicator */}
+        <circle
+          cx={size / 2 + (radius - 5) * Math.cos(Math.PI - (score / 100) * Math.PI)}
+          cy={size * 0.6 - (radius - 5) * Math.sin((score / 100) * Math.PI)}
+          r="8"
+          fill={color}
+          stroke="white"
+          strokeWidth="3"
+        />
+        
+        {/* Score text */}
+        <text x={size / 2} y={size * 0.45} textAnchor="middle" fill={theme.textPrimary} fontSize="36" fontWeight="700">
+          {score}
+        </text>
+        <text x={size / 2} y={size * 0.58} textAnchor="middle" fill={theme.textMuted} fontSize="12" fontWeight="500">
+          out of 100
+        </text>
+        
+        {/* Labels */}
+        <text x={20} y={size * 0.68} textAnchor="start" fill="#EF4444" fontSize="10" fontWeight="600">Poor</text>
+        <text x={size / 2} y={size * 0.12} textAnchor="middle" fill="#F59E0B" fontSize="10" fontWeight="600">Good</text>
+        <text x={size - 20} y={size * 0.68} textAnchor="end" fill="#10B981" fontSize="10" fontWeight="600">Excellent</text>
       </svg>
     );
   };
+
+  // Generate sparkline data from monthly data
+  const incomeSparkData = monthlyData.map(m => m.income);
+  const expenseSparkData = monthlyData.map(m => m.expenses);
+  const netSparkData = monthlyData.map(m => m.income - m.expenses);
 
   return (
     <div style={{ maxWidth: '1400px' }}>
@@ -2469,31 +2719,79 @@ function DashboardHome({ transactions, goals, bills = [], theme }) {
         </div>
       </div>
 
-      {/* Top Stats Row */}
+      {/* Top Stats Row with Sparklines */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '24px' }}>
-        <div style={{ background: 'linear-gradient(135deg, #10B981, #059669)', borderRadius: '20px', padding: '24px', color: 'white', position: 'relative', overflow: 'hidden' }}>
-          <div style={{ position: 'absolute', right: '-20px', top: '-20px', width: '100px', height: '100px', borderRadius: '50%', background: 'rgba(255,255,255,0.1)' }} />
-          <div style={{ fontSize: '13px', opacity: 0.9, marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}><span style={{ fontSize: '16px' }}>💰</span> Total Income</div>
-          <div style={{ fontSize: '28px', fontWeight: '700', marginBottom: '8px' }}>{formatCurrency(activeTotals.income)}</div>
-          <div style={{ fontSize: '12px', opacity: 0.8 }}><span style={{ background: 'rgba(255,255,255,0.2)', padding: '2px 8px', borderRadius: '10px' }}>↗ +12.5% vs last period</span></div>
+        {/* Income Card */}
+        <div style={{ background: theme.bgCard, borderRadius: '20px', padding: '20px', boxShadow: theme.cardShadow, border: `1px solid ${theme.borderLight}`, position: 'relative', overflow: 'hidden' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: 'linear-gradient(135deg, #10B981, #059669)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <span style={{ fontSize: '18px' }}>💰</span>
+                </div>
+                <span style={{ fontSize: '13px', color: theme.textMuted, fontWeight: '500' }}>Total Income</span>
+              </div>
+              <div style={{ fontSize: '28px', fontWeight: '700', color: theme.textPrimary, marginBottom: '6px' }}>{formatCurrency(activeTotals.income)}</div>
+              <div style={{ fontSize: '12px', color: '#10B981', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <span>↗</span> +12.5% <span style={{ color: theme.textMuted, fontWeight: '400' }}>vs last month</span>
+              </div>
+            </div>
+            <div style={{ marginTop: '8px' }}><Sparkline data={incomeSparkData} color="#10B981" width={70} height={40} /></div>
+          </div>
         </div>
-        <div style={{ background: 'linear-gradient(135deg, #EF4444, #DC2626)', borderRadius: '20px', padding: '24px', color: 'white', position: 'relative', overflow: 'hidden' }}>
-          <div style={{ position: 'absolute', right: '-20px', top: '-20px', width: '100px', height: '100px', borderRadius: '50%', background: 'rgba(255,255,255,0.1)' }} />
-          <div style={{ fontSize: '13px', opacity: 0.9, marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}><span style={{ fontSize: '16px' }}>💳</span> Total Expenses</div>
-          <div style={{ fontSize: '28px', fontWeight: '700', marginBottom: '8px' }}>{formatCurrency(activeTotals.expenses)}</div>
-          <div style={{ fontSize: '12px', opacity: 0.8 }}><span style={{ background: 'rgba(255,255,255,0.2)', padding: '2px 8px', borderRadius: '10px' }}>↘ -3.2% vs last period</span></div>
+
+        {/* Expenses Card */}
+        <div style={{ background: theme.bgCard, borderRadius: '20px', padding: '20px', boxShadow: theme.cardShadow, border: `1px solid ${theme.borderLight}`, position: 'relative', overflow: 'hidden' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: 'linear-gradient(135deg, #EF4444, #DC2626)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <span style={{ fontSize: '18px' }}>💳</span>
+                </div>
+                <span style={{ fontSize: '13px', color: theme.textMuted, fontWeight: '500' }}>Total Expenses</span>
+              </div>
+              <div style={{ fontSize: '28px', fontWeight: '700', color: theme.textPrimary, marginBottom: '6px' }}>{formatCurrency(activeTotals.expenses)}</div>
+              <div style={{ fontSize: '12px', color: '#EF4444', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <span>↘</span> -3.2% <span style={{ color: theme.textMuted, fontWeight: '400' }}>vs last month</span>
+              </div>
+            </div>
+            <div style={{ marginTop: '8px' }}><Sparkline data={expenseSparkData} color="#EF4444" width={70} height={40} /></div>
+          </div>
         </div>
-        <div style={{ background: activeTotals.net >= 0 ? 'linear-gradient(135deg, #3B82F6, #2563EB)' : 'linear-gradient(135deg, #F59E0B, #D97706)', borderRadius: '20px', padding: '24px', color: 'white', position: 'relative', overflow: 'hidden' }}>
-          <div style={{ position: 'absolute', right: '-20px', top: '-20px', width: '100px', height: '100px', borderRadius: '50%', background: 'rgba(255,255,255,0.1)' }} />
-          <div style={{ fontSize: '13px', opacity: 0.9, marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}><span style={{ fontSize: '16px' }}>📈</span> Net Cash Flow</div>
-          <div style={{ fontSize: '28px', fontWeight: '700', marginBottom: '8px' }}>{activeTotals.net >= 0 ? '+' : ''}{formatCurrency(activeTotals.net)}</div>
-          <div style={{ fontSize: '12px', opacity: 0.8 }}><span style={{ background: 'rgba(255,255,255,0.2)', padding: '2px 8px', borderRadius: '10px' }}>Savings Rate: {savingsRate.toFixed(1)}%</span></div>
+
+        {/* Net Cash Flow Card */}
+        <div style={{ background: theme.bgCard, borderRadius: '20px', padding: '20px', boxShadow: theme.cardShadow, border: `1px solid ${theme.borderLight}`, position: 'relative', overflow: 'hidden' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: activeTotals.net >= 0 ? 'linear-gradient(135deg, #3B82F6, #2563EB)' : 'linear-gradient(135deg, #F59E0B, #D97706)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <span style={{ fontSize: '18px' }}>📈</span>
+                </div>
+                <span style={{ fontSize: '13px', color: theme.textMuted, fontWeight: '500' }}>Net Cash Flow</span>
+              </div>
+              <div style={{ fontSize: '28px', fontWeight: '700', color: activeTotals.net >= 0 ? '#3B82F6' : '#F59E0B', marginBottom: '6px' }}>{activeTotals.net >= 0 ? '+' : ''}{formatCurrency(activeTotals.net)}</div>
+              <div style={{ fontSize: '12px', color: theme.textSecondary, fontWeight: '500' }}>
+                Savings Rate: <span style={{ color: activeTotals.net >= 0 ? '#10B981' : '#EF4444' }}>{savingsRate.toFixed(1)}%</span>
+              </div>
+            </div>
+            <div style={{ marginTop: '8px' }}><Sparkline data={netSparkData} color={activeTotals.net >= 0 ? '#3B82F6' : '#F59E0B'} width={70} height={40} /></div>
+          </div>
         </div>
-        <div style={{ background: 'linear-gradient(135deg, #8B5CF6, #7C3AED)', borderRadius: '20px', padding: '24px', color: 'white', position: 'relative', overflow: 'hidden' }}>
-          <div style={{ position: 'absolute', right: '-20px', top: '-20px', width: '100px', height: '100px', borderRadius: '50%', background: 'rgba(255,255,255,0.1)' }} />
-          <div style={{ fontSize: '13px', opacity: 0.9, marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}><span style={{ fontSize: '16px' }}>✨</span> Free to Spend</div>
-          <div style={{ fontSize: '28px', fontWeight: '700', marginBottom: '8px' }}>{formatCurrency(freeToSpend)}</div>
-          <div style={{ fontSize: '12px', opacity: 0.8 }}><span style={{ background: 'rgba(255,255,255,0.2)', padding: '2px 8px', borderRadius: '10px' }}>This month remaining</span></div>
+
+        {/* Free to Spend Card */}
+        <div style={{ background: 'linear-gradient(135deg, #8B5CF6, #7C3AED)', borderRadius: '20px', padding: '20px', color: 'white', position: 'relative', overflow: 'hidden' }}>
+          <div style={{ position: 'absolute', right: '-30px', top: '-30px', width: '120px', height: '120px', borderRadius: '50%', background: 'rgba(255,255,255,0.1)' }} />
+          <div style={{ position: 'absolute', right: '20px', bottom: '-40px', width: '80px', height: '80px', borderRadius: '50%', background: 'rgba(255,255,255,0.05)' }} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+            <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <span style={{ fontSize: '18px' }}>✨</span>
+            </div>
+            <span style={{ fontSize: '13px', opacity: 0.9, fontWeight: '500' }}>Free to Spend</span>
+          </div>
+          <div style={{ fontSize: '32px', fontWeight: '700', marginBottom: '8px', position: 'relative', zIndex: 1 }}>{formatCurrency(freeToSpend)}</div>
+          <div style={{ fontSize: '12px', opacity: 0.85, display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span style={{ background: 'rgba(255,255,255,0.2)', padding: '3px 10px', borderRadius: '12px' }}>This month remaining</span>
+          </div>
         </div>
       </div>
 
@@ -2503,21 +2801,21 @@ function DashboardHome({ transactions, goals, bills = [], theme }) {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
             <div>
               <h3 style={{ fontSize: '16px', fontWeight: '600', color: theme.textPrimary, margin: 0 }}>Income vs Expenses</h3>
-              <p style={{ fontSize: '13px', color: theme.textMuted, margin: '4px 0 0' }}>Last 6 months comparison</p>
+              <p style={{ fontSize: '13px', color: theme.textMuted, margin: '4px 0 0' }}>Last 6 months trend analysis</p>
             </div>
             <div style={{ display: 'flex', gap: '16px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><div style={{ width: '12px', height: '12px', borderRadius: '3px', background: '#10B981' }} /><span style={{ fontSize: '12px', color: theme.textMuted }}>Income</span></div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><div style={{ width: '12px', height: '12px', borderRadius: '3px', background: '#EF4444' }} /><span style={{ fontSize: '12px', color: theme.textMuted }}>Expenses</span></div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><div style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#10B981' }} /><span style={{ fontSize: '12px', color: theme.textMuted }}>Income</span></div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><div style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#EF4444' }} /><span style={{ fontSize: '12px', color: theme.textMuted }}>Expenses</span></div>
             </div>
           </div>
-          <BarChart data={monthlyData} height={220} />
+          <LineChart data={monthlyData} height={240} />
         </div>
         <div style={{ background: theme.bgCard, borderRadius: '20px', padding: '24px', boxShadow: theme.cardShadow, border: `1px solid ${theme.borderLight}`, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-          <h3 style={{ fontSize: '16px', fontWeight: '600', color: theme.textPrimary, marginBottom: '20px' }}>Financial Health</h3>
-          <HealthScoreCircle score={healthScore} size={140} />
-          <div style={{ marginTop: '16px', textAlign: 'center' }}>
-            <span style={{ padding: '6px 16px', borderRadius: '20px', fontSize: '13px', fontWeight: '600', background: healthScore >= 70 ? '#D1FAE5' : healthScore >= 40 ? '#FEF3C7' : '#FEE2E2', color: healthScore >= 70 ? '#059669' : healthScore >= 40 ? '#D97706' : '#DC2626' }}>
-              {healthScore >= 70 ? 'Excellent' : healthScore >= 40 ? 'Good' : 'Needs Attention'}
+          <h3 style={{ fontSize: '16px', fontWeight: '600', color: theme.textPrimary, marginBottom: '16px' }}>Financial Health</h3>
+          <HealthScoreGauge score={healthScore} size={200} />
+          <div style={{ marginTop: '12px', textAlign: 'center' }}>
+            <span style={{ padding: '8px 20px', borderRadius: '25px', fontSize: '14px', fontWeight: '600', background: healthScore >= 70 ? 'linear-gradient(135deg, #D1FAE5, #A7F3D0)' : healthScore >= 40 ? 'linear-gradient(135deg, #FEF3C7, #FDE68A)' : 'linear-gradient(135deg, #FEE2E2, #FECACA)', color: healthScore >= 70 ? '#059669' : healthScore >= 40 ? '#D97706' : '#DC2626', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+              {healthScore >= 70 ? '🌟 Excellent' : healthScore >= 40 ? '👍 Good' : '⚠️ Needs Attention'}
             </span>
           </div>
         </div>
@@ -2527,7 +2825,7 @@ function DashboardHome({ transactions, goals, bills = [], theme }) {
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '24px', marginBottom: '24px' }}>
         <div style={{ background: theme.bgCard, borderRadius: '20px', padding: '24px', boxShadow: theme.cardShadow, border: `1px solid ${theme.borderLight}` }}>
           <h3 style={{ fontSize: '16px', fontWeight: '600', color: theme.textPrimary, marginBottom: '20px' }}>Spending Breakdown</h3>
-          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px' }}><DonutChart data={sortedCategories} size={160} /></div>
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px' }}><DonutChart data={sortedCategories} size={180} /></div>
           <div style={{ display: 'grid', gap: '8px' }}>
             {sortedCategories.slice(0, 5).map(([cat, val]) => (
               <div key={cat} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -2546,7 +2844,7 @@ function DashboardHome({ transactions, goals, bills = [], theme }) {
             {budgets.map((b, i) => (
               <div key={i}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}><span style={{ fontSize: '13px', color: theme.textSecondary }}>{b.category}</span><span style={{ fontSize: '12px', color: theme.textMuted }}>{formatCurrency(b.spent)} / {formatCurrency(b.budget)}</span></div>
-                <div style={{ height: '8px', background: theme.borderLight, borderRadius: '4px', overflow: 'hidden' }}><div style={{ height: '100%', width: `${b.percent}%`, background: b.percent > 90 ? '#EF4444' : b.percent > 70 ? '#F59E0B' : b.color, borderRadius: '4px', transition: 'width 0.5s ease' }} /></div>
+                <div style={{ height: '10px', background: theme.borderLight, borderRadius: '5px', overflow: 'hidden', boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.1)' }}><div style={{ height: '100%', width: `${b.percent}%`, background: b.percent > 90 ? 'linear-gradient(90deg, #EF4444, #DC2626)' : b.percent > 70 ? 'linear-gradient(90deg, #F59E0B, #D97706)' : `linear-gradient(90deg, ${b.color}, ${b.color}dd)`, borderRadius: '5px', transition: 'width 0.5s ease', boxShadow: `0 2px 6px ${b.percent > 90 ? 'rgba(239,68,68,0.4)' : b.percent > 70 ? 'rgba(245,158,11,0.4)' : `${b.color}40`}` }} /></div>
               </div>
             ))}
           </div>
