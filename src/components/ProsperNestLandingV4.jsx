@@ -1947,7 +1947,7 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
             maxWidth: '650px', margin: '0 auto', marginBottom: isMobile ? '24px' : '32px',
             padding: isMobile ? '0 4px' : '0 8px' 
           }}>
-            Your command center to manage home finances, budget smarter, and track side hustle income—all in one place. No more juggling apps, spreadsheets, or subscriptions.
+            The all-in-one platform to budget, grow your side hustle, and build real wealth. From your first dollar saved to financial freedom—we're with you every step.
           </p>
           
           {/* Entrepreneur Tagline */}
@@ -1961,15 +1961,14 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
             <div style={{
               width: isMobile ? '40px' : '70px',
               height: '3px',
-              background: `linear-gradient(90deg, transparent 0%, #7C3AED 100%)`,
-              borderRadius: '2px'
+              background: colors.label,
+              borderRadius: '2px',
+              opacity: 0.3
             }} />
             <span style={{
               fontSize: isMobile ? 'clamp(16px, 5vw, 20px)' : 'clamp(20px, 3vw, 28px)',
               fontWeight: '700',
-              background: `linear-gradient(135deg, #2563EB 0%, #7C3AED 50%, #6D28D9 100%)`,
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
+              color: colors.label,
               letterSpacing: '0.5px'
             }}>
               Made by Entrepreneurs, for Entrepreneurs
@@ -1977,8 +1976,9 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
             <div style={{
               width: isMobile ? '40px' : '70px',
               height: '3px',
-              background: `linear-gradient(90deg, #7C3AED 0%, transparent 100%)`,
-              borderRadius: '2px'
+              background: colors.label,
+              borderRadius: '2px',
+              opacity: 0.3
             }} />
           </div>
           
@@ -2113,7 +2113,7 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
                 icon: '🏠',
                 title: 'HomeBudget Hub', 
                 subtitle: 'Family Finance + Side Hustle',
-                desc: 'Budget smarter, retire earlier. Track family expenses, crush savings goals, and manage your side hustle income—all in one place.',
+                desc: 'Your path to financial freedom starts here. Budget smarter, build your side hustle, and break free from the 9-5. FIRE isn\'t a dream—it\'s a plan.',
                 features: ['Family Budgeting', 'Side Hustle Sales Tracker', 'Bill Planning', 'Tax Estimation'],
                 gradient: 'linear-gradient(135deg, #EC4899 0%, #DB2777 100%)',
                 lightGradient: 'linear-gradient(135deg, rgba(236,72,153,0.15) 0%, rgba(219,39,119,0.08) 100%)',
@@ -2126,7 +2126,7 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
                 icon: '💼',
                 title: 'BizBudget Hub', 
                 subtitle: 'Small Business Command Center',
-                desc: 'Built for full-time entrepreneurs. Plan revenue, track 1099s, estimate self-employment taxes, and hit your ROI targets with real-time KPIs.',
+                desc: 'You made the leap—now scale it. Plan revenue, track 1099s, estimate self-employment taxes, and hit your ROI targets with real-time KPIs.',
                 features: ['Revenue & Expense Planning', '1099 Contractor Management', 'Self-Employment Tax Tools', 'Business KPI Dashboard'],
                 gradient: 'linear-gradient(135deg, #A78BFA 0%, #8B5CF6 100%)',
                 lightGradient: 'linear-gradient(135deg, rgba(167,139,250,0.15) 0%, rgba(139,92,246,0.08) 100%)',
@@ -2139,7 +2139,7 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
                 icon: '🏢',
                 title: 'REBudget Hub', 
                 subtitle: 'Real Estate Investor Toolkit',
-                desc: 'Analyze deals in seconds. Calculate cap rates, track cash flow, log properties, and keep your books CPA-ready—all from one dashboard.',
+                desc: 'Build wealth that works while you sleep. Analyze deals in seconds, track cash flow, and keep your books CPA-ready—all from one dashboard.',
                 features: ['Deal Analyzer (Cap Rate/ROI)', 'Property Cash Flow Tracking', 'Expense & Fee Logging', 'Portfolio Performance'],
                 gradient: 'linear-gradient(135deg, #818CF8 0%, #6366F1 100%)',
                 lightGradient: 'linear-gradient(135deg, rgba(129,140,248,0.15) 0%, rgba(99,102,241,0.08) 100%)',
