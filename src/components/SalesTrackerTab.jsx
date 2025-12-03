@@ -154,22 +154,83 @@ export default function SalesTrackerTab({ theme: propTheme }) {
         ))}
       </div>
 
-      {/* Stat Cards */}
+      {/* Stat Cards with Gradients */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '24px' }}>
-        {statCards.map((card, i) => (
-          <div key={i} style={{
-            background: card.color,
-            borderRadius: '12px',
-            padding: '20px',
-            color: 'white'
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', fontSize: '14px', opacity: 0.9 }}>
-              <span>{card.icon}</span>
-              <span>{card.label}</span>
-            </div>
-            <div style={{ fontSize: '28px', fontWeight: '700' }}>{card.value}</div>
+        {/* Transactions Card - Cyan */}
+        <div style={{
+          background: isDark ? 'linear-gradient(135deg, #164E63 0%, #0E4A5C 100%)' : 'linear-gradient(135deg, #E0F7FA 0%, #B2EBF2 100%)',
+          borderRadius: '20px',
+          padding: '20px',
+          boxShadow: '0 4px 20px rgba(0, 188, 212, 0.15)',
+          border: `1px solid ${isDark ? 'rgba(0, 188, 212, 0.3)' : 'rgba(0, 188, 212, 0.2)'}`
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+            <span style={{ fontSize: '20px' }}>📊</span>
+            <span style={{ fontSize: '13px', color: isDark ? '#67E8F9' : '#00838F', fontWeight: '500' }}>Transactions</span>
           </div>
-        ))}
+          <div style={{ fontSize: '28px', fontWeight: '700', color: isDark ? '#E0F7FA' : '#006064' }}>{totalTransactions}</div>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '8px' }}>
+            <span style={{ fontSize: '12px', color: isDark ? '#67E8F9' : '#00838F' }}>vs goal</span>
+            <span style={{ fontSize: '12px', fontWeight: '600', color: '#10B981' }}>↗ {goals.transactions > 0 ? Math.round((totalTransactions / goals.transactions) * 100) : 0}%</span>
+          </div>
+        </div>
+
+        {/* Volume Card - Orange */}
+        <div style={{
+          background: isDark ? 'linear-gradient(135deg, #7C2D12 0%, #6B2A0F 100%)' : 'linear-gradient(135deg, #FFF3E0 0%, #FFE0B2 100%)',
+          borderRadius: '20px',
+          padding: '20px',
+          boxShadow: '0 4px 20px rgba(255, 152, 0, 0.15)',
+          border: `1px solid ${isDark ? 'rgba(255, 152, 0, 0.3)' : 'rgba(255, 152, 0, 0.2)'}`
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+            <span style={{ fontSize: '20px' }}>💰</span>
+            <span style={{ fontSize: '13px', color: isDark ? '#FDBA74' : '#E65100', fontWeight: '500' }}>Volume</span>
+          </div>
+          <div style={{ fontSize: '28px', fontWeight: '700', color: isDark ? '#FFF3E0' : '#BF360C' }}>{formatCurrency(totalVolume)}</div>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '8px' }}>
+            <span style={{ fontSize: '12px', color: isDark ? '#FDBA74' : '#E65100' }}>vs goal</span>
+            <span style={{ fontSize: '12px', fontWeight: '600', color: '#10B981' }}>↗ {goals.volume > 0 ? Math.round((totalVolume / goals.volume) * 100) : 0}%</span>
+          </div>
+        </div>
+
+        {/* Commission Card - Green */}
+        <div style={{
+          background: isDark ? 'linear-gradient(135deg, #14532D 0%, #115E2B 100%)' : 'linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%)',
+          borderRadius: '20px',
+          padding: '20px',
+          boxShadow: '0 4px 20px rgba(76, 175, 80, 0.15)',
+          border: `1px solid ${isDark ? 'rgba(76, 175, 80, 0.3)' : 'rgba(76, 175, 80, 0.2)'}`
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+            <span style={{ fontSize: '20px' }}>💵</span>
+            <span style={{ fontSize: '13px', color: isDark ? '#86EFAC' : '#2E7D32', fontWeight: '500' }}>Commission</span>
+          </div>
+          <div style={{ fontSize: '28px', fontWeight: '700', color: isDark ? '#E8F5E9' : '#1B5E20' }}>{formatCurrency(totalCommission)}</div>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '8px' }}>
+            <span style={{ fontSize: '12px', color: isDark ? '#86EFAC' : '#2E7D32' }}>earned</span>
+            <span style={{ fontSize: '12px', fontWeight: '600', color: '#10B981' }}>↗ 100%</span>
+          </div>
+        </div>
+
+        {/* Avg Commission Card - Purple */}
+        <div style={{
+          background: isDark ? 'linear-gradient(135deg, #4A1D6B 0%, #3D1A5A 100%)' : 'linear-gradient(135deg, #F3E5F5 0%, #E1BEE7 100%)',
+          borderRadius: '20px',
+          padding: '20px',
+          boxShadow: '0 4px 20px rgba(156, 39, 176, 0.15)',
+          border: `1px solid ${isDark ? 'rgba(156, 39, 176, 0.3)' : 'rgba(156, 39, 176, 0.2)'}`
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+            <span style={{ fontSize: '20px' }}>📈</span>
+            <span style={{ fontSize: '13px', color: isDark ? '#D8B4FE' : '#7B1FA2', fontWeight: '500' }}>Avg Commission</span>
+          </div>
+          <div style={{ fontSize: '28px', fontWeight: '700', color: isDark ? '#F3E5F5' : '#4A148C' }}>{formatCurrency(avgCommission)}</div>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '8px' }}>
+            <span style={{ fontSize: '12px', color: isDark ? '#D8B4FE' : '#7B1FA2' }}>per deal</span>
+            <span style={{ fontSize: '12px', fontWeight: '600', color: '#10B981' }}>↗ avg</span>
+          </div>
+        </div>
       </div>
 
       {/* Main Content Grid */}
