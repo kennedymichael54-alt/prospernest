@@ -5503,13 +5503,13 @@ function DashboardHome({ transactions, goals, bills = [], tasks = [], theme, las
         }}>Items needing attention</span>
       </div>
 
-      {/* Bills & Goals Row - Priority Section */}
-      <div className="chart-grid-1-1" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '32px' }}>
+      {/* Bills, Tasks & Goals Row - Priority Section (3 columns) */}
+      <div className="quick-actions-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px', marginBottom: '32px' }}>
         {/* Upcoming Bills */}
         <div style={{ 
           background: theme.bgCard, 
           borderRadius: '16px', 
-          padding: '24px', 
+          padding: '20px', 
           boxShadow: theme.cardShadow, 
           border: `1px solid ${theme.borderLight}`,
           position: 'relative',
@@ -5524,32 +5524,104 @@ function DashboardHome({ transactions, goals, bills = [], tasks = [], theme, las
             height: '3px',
             background: 'linear-gradient(90deg, #EF4444 0%, #F97316 100%)'
           }} />
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-            <h3 style={{ fontSize: '16px', fontWeight: '600', color: theme.textPrimary, margin: 0 }}>Upcoming Bills</h3>
-            <span style={{ padding: '4px 10px', background: '#FEE2E2', color: '#DC2626', borderRadius: '12px', fontSize: '12px', fontWeight: '600' }}>{upcomingBills.length} due soon</span>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+            <h3 style={{ fontSize: '15px', fontWeight: '600', color: theme.textPrimary, margin: 0 }}>Upcoming Bills</h3>
+            <span style={{ padding: '3px 8px', background: '#FEE2E2', color: '#DC2626', borderRadius: '10px', fontSize: '11px', fontWeight: '600' }}>{upcomingBills.length} due</span>
           </div>
-          <div style={{ display: 'grid', gap: '12px' }}>
-            {upcomingBills.slice(0, 4).map((bill, i) => {
+          <div style={{ display: 'grid', gap: '10px' }}>
+            {upcomingBills.slice(0, 3).map((bill, i) => {
               const dueDate = new Date(bill.dueDate);
               const daysUntil = Math.ceil((dueDate - new Date()) / (1000 * 60 * 60 * 24));
               return (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px', borderRadius: '12px', background: theme.bgMain, border: daysUntil <= 3 ? '1px solid #FCA5A5' : `1px solid ${theme.borderLight}` }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' }}>{bill.icon || '📄'}</div>
-                    <div><div style={{ fontSize: '14px', fontWeight: '500', color: theme.textPrimary }}>{bill.name}</div><div style={{ fontSize: '12px', color: daysUntil <= 3 ? '#DC2626' : theme.textMuted }}>{daysUntil <= 0 ? 'Due today!' : daysUntil === 1 ? 'Due tomorrow' : `Due in ${daysUntil} days`}</div></div>
+                <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 12px', borderRadius: '10px', background: theme.bgMain, border: daysUntil <= 3 ? '1px solid #FCA5A5' : `1px solid ${theme.borderLight}` }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px' }}>{bill.icon || '📄'}</div>
+                    <div><div style={{ fontSize: '13px', fontWeight: '500', color: theme.textPrimary }}>{bill.name}</div><div style={{ fontSize: '11px', color: daysUntil <= 3 ? '#DC2626' : theme.textMuted }}>{daysUntil <= 0 ? 'Due today!' : daysUntil === 1 ? 'Tomorrow' : `${daysUntil} days`}</div></div>
                   </div>
-                  <span style={{ fontSize: '15px', fontWeight: '700', color: theme.textPrimary }}>${bill.amount.toFixed(2)}</span>
+                  <span style={{ fontSize: '13px', fontWeight: '700', color: theme.textPrimary }}>${bill.amount.toFixed(2)}</span>
                 </div>
               );
             })}
           </div>
         </div>
         
+        {/* Upcoming Tasks */}
+        <div style={{ 
+          background: theme.bgCard, 
+          borderRadius: '16px', 
+          padding: '20px', 
+          boxShadow: theme.cardShadow, 
+          border: `1px solid ${theme.borderLight}`,
+          position: 'relative',
+          overflow: 'hidden'
+        }}>
+          {/* Subtle gradient accent */}
+          <div style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            height: '3px',
+            background: 'linear-gradient(90deg, #F59E0B 0%, #EF4444 100%)'
+          }} />
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+            <h3 style={{ fontSize: '15px', fontWeight: '600', color: theme.textPrimary, margin: 0 }}>Upcoming Tasks</h3>
+            <span style={{ padding: '3px 8px', background: '#FEF3C7', color: '#D97706', borderRadius: '10px', fontSize: '11px', fontWeight: '600' }}>{tasks.filter(t => t.status !== 'completed').length} pending</span>
+          </div>
+          <div style={{ display: 'grid', gap: '10px' }}>
+            {tasks.filter(t => t.status !== 'completed').slice(0, 3).length > 0 ? (
+              tasks.filter(t => t.status !== 'completed').slice(0, 3).map((task, i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 12px', borderRadius: '10px', background: theme.bgMain, border: `1px solid ${theme.borderLight}` }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <div style={{ 
+                      width: '32px', 
+                      height: '32px', 
+                      borderRadius: '8px', 
+                      background: task.status === 'in-progress' ? 'linear-gradient(135deg, #F59E0B 0%, #EF4444 100%)' : 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)', 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      justifyContent: 'center', 
+                      fontSize: '14px' 
+                    }}>{task.status === 'in-progress' ? '🔄' : '📋'}</div>
+                    <div>
+                      <div style={{ fontSize: '13px', fontWeight: '500', color: theme.textPrimary }}>{task.title.slice(0, 20)}{task.title.length > 20 ? '...' : ''}</div>
+                      <div style={{ fontSize: '11px', color: theme.textMuted }}>
+                        {task.dueDate ? new Date(task.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'No due date'}
+                      </div>
+                    </div>
+                  </div>
+                  <span style={{ 
+                    fontSize: '10px', 
+                    padding: '3px 8px', 
+                    borderRadius: '6px',
+                    background: task.status === 'in-progress' ? '#FEF3C7' : '#E0E7FF',
+                    color: task.status === 'in-progress' ? '#D97706' : '#6366F1',
+                    fontWeight: '600'
+                  }}>
+                    {task.status === 'in-progress' ? 'Active' : 'To Do'}
+                  </span>
+                </div>
+              ))
+            ) : (
+              <div style={{ 
+                padding: '20px', 
+                textAlign: 'center', 
+                background: theme.bgMain, 
+                borderRadius: '10px',
+                border: `1px dashed ${theme.borderLight}`
+              }}>
+                <span style={{ fontSize: '20px', display: 'block', marginBottom: '6px' }}>✨</span>
+                <span style={{ fontSize: '12px', color: theme.textMuted }}>No pending tasks</span>
+              </div>
+            )}
+          </div>
+        </div>
+
         {/* Savings Goals */}
         <div style={{ 
           background: theme.bgCard, 
           borderRadius: '16px', 
-          padding: '24px', 
+          padding: '20px', 
           boxShadow: theme.cardShadow, 
           border: `1px solid ${theme.borderLight}`,
           position: 'relative',
@@ -5564,21 +5636,21 @@ function DashboardHome({ transactions, goals, bills = [], tasks = [], theme, las
             height: '3px',
             background: 'linear-gradient(90deg, #10B981 0%, #06B6D4 100%)'
           }} />
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-            <h3 style={{ fontSize: '16px', fontWeight: '600', color: theme.textPrimary, margin: 0 }}>Savings Goals</h3>
-            <button style={{ background: 'none', border: 'none', color: theme.primary, fontSize: '13px', cursor: 'pointer', fontWeight: '500' }}>View All →</button>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+            <h3 style={{ fontSize: '15px', fontWeight: '600', color: theme.textPrimary, margin: 0 }}>Savings Goals</h3>
+            <button style={{ background: 'none', border: 'none', color: theme.primary, fontSize: '12px', cursor: 'pointer', fontWeight: '500' }}>View All →</button>
           </div>
-          <div style={{ display: 'grid', gap: '16px' }}>
+          <div style={{ display: 'grid', gap: '10px' }}>
             {displayGoals.slice(0, 3).map((goal, i) => {
               const progress = (goal.currentAmount / goal.targetAmount) * 100;
               return (
-                <div key={i} style={{ padding: '12px', background: theme.bgMain, borderRadius: '12px', border: `1px solid ${theme.borderLight}` }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
-                    <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: `${goal.color}20`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' }}>{goal.icon}</div>
-                    <div style={{ flex: 1 }}><div style={{ fontSize: '14px', fontWeight: '600', color: theme.textPrimary }}>{goal.name}</div><div style={{ fontSize: '12px', color: theme.textMuted }}>{formatCurrency(goal.currentAmount)} of {formatCurrency(goal.targetAmount)}</div></div>
-                    <span style={{ fontSize: '14px', fontWeight: '700', color: goal.color }}>{progress.toFixed(0)}%</span>
+                <div key={i} style={{ padding: '10px 12px', background: theme.bgMain, borderRadius: '10px', border: `1px solid ${theme.borderLight}` }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+                    <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: `${goal.color}20`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px' }}>{goal.icon}</div>
+                    <div style={{ flex: 1 }}><div style={{ fontSize: '13px', fontWeight: '600', color: theme.textPrimary }}>{goal.name}</div><div style={{ fontSize: '11px', color: theme.textMuted }}>{formatCurrency(goal.currentAmount)} of {formatCurrency(goal.targetAmount)}</div></div>
+                    <span style={{ fontSize: '13px', fontWeight: '700', color: goal.color }}>{progress.toFixed(0)}%</span>
                   </div>
-                  <div style={{ height: '8px', background: theme.borderLight, borderRadius: '4px', overflow: 'hidden' }}><div style={{ height: '100%', width: `${progress}%`, background: `linear-gradient(90deg, ${goal.color} 0%, ${goal.color}CC 100%)`, borderRadius: '4px', transition: 'width 0.5s ease' }} /></div>
+                  <div style={{ height: '6px', background: theme.borderLight, borderRadius: '3px', overflow: 'hidden' }}><div style={{ height: '100%', width: `${progress}%`, background: `linear-gradient(90deg, ${goal.color} 0%, ${goal.color}CC 100%)`, borderRadius: '3px', transition: 'width 0.5s ease' }} /></div>
                 </div>
               );
             })}
@@ -5610,51 +5682,129 @@ function DashboardHome({ transactions, goals, bills = [], tasks = [], theme, las
         }}>Financial Overview</h2>
       </div>
 
-      {/* Chart Row - Line Chart + Health Gauge */}
-      <div className="chart-grid-2-1" style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '24px', marginBottom: '24px' }}>
-        {/* Income vs. Expenses Line Chart (Image 2) */}
-        <div style={{ background: theme.bgCard, borderRadius: '16px', padding: '24px', boxShadow: theme.cardShadow, border: `1px solid ${theme.borderLight}` }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-            <h3 style={{ fontSize: '16px', fontWeight: '600', color: theme.textPrimary, margin: 0 }}>Income vs. Expenses</h3>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#06B6D4' }} />
-                <span style={{ fontSize: '13px', color: theme.textMuted }}>Income</span>
+      {/* Chart Row - 3 Columns: Income vs Expenses | Income Forecast | Health Gauge */}
+      <div className="chart-grid-3" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '20px', marginBottom: '24px' }}>
+        {/* Income vs. Expenses Line Chart */}
+        <div style={{ background: theme.bgCard, borderRadius: '16px', padding: '20px', boxShadow: theme.cardShadow, border: `1px solid ${theme.borderLight}` }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+            <h3 style={{ fontSize: '15px', fontWeight: '600', color: theme.textPrimary, margin: 0 }}>Income vs. Expenses</h3>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#06B6D4' }} />
+                <span style={{ fontSize: '11px', color: theme.textMuted }}>Income</span>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#8B5CF6' }} />
-                <span style={{ fontSize: '13px', color: theme.textMuted }}>Expenses</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#8B5CF6' }} />
+                <span style={{ fontSize: '11px', color: theme.textMuted }}>Expenses</span>
               </div>
             </div>
           </div>
-          <LineChart data={monthlyData} height={380} />
+          <LineChart data={monthlyData} height={280} />
         </div>
 
-        {/* Financial Health Gauge (Image 7) */}
-        <div style={{ background: theme.bgCard, borderRadius: '16px', padding: '24px', boxShadow: theme.cardShadow, border: `1px solid ${theme.borderLight}`, display: 'flex', flexDirection: 'column' }}>
+        {/* Income Forecast with Sales Commissions - NEW */}
+        <div style={{ background: theme.bgCard, borderRadius: '16px', padding: '20px', boxShadow: theme.cardShadow, border: `1px solid ${theme.borderLight}` }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-            <h3 style={{ fontSize: '16px', fontWeight: '600', color: theme.textPrimary, margin: 0 }}>Financial Health</h3>
+            <h3 style={{ fontSize: '15px', fontWeight: '600', color: theme.textPrimary, margin: 0 }}>Income Forecast</h3>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10B981' }} />
+                <span style={{ fontSize: '11px', color: theme.textMuted }}>Actual</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#F59E0B' }} />
+                <span style={{ fontSize: '11px', color: theme.textMuted }}>Forecast</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#8B5CF6' }} />
+                <span style={{ fontSize: '11px', color: theme.textMuted }}>Expenses</span>
+              </div>
+            </div>
+          </div>
+          {/* 3-Line Chart for Income Forecast */}
+          <div style={{ height: '280px', position: 'relative' }}>
+            <svg width="100%" height="100%" viewBox="0 0 400 280" preserveAspectRatio="none">
+              {/* Grid lines */}
+              {[0, 1, 2, 3, 4].map(i => (
+                <line key={i} x1="40" y1={40 + i * 50} x2="390" y2={40 + i * 50} stroke={theme.borderLight} strokeWidth="1" strokeDasharray="4,4" />
+              ))}
+              
+              {/* Actual Income Line (green) */}
+              <path
+                d={`M 40 ${200 - monthlyData[0]?.income / 500} ${monthlyData.map((d, i) => `L ${40 + i * 30} ${200 - Math.min(d.income / 500, 160)}`).join(' ')}`}
+                fill="none"
+                stroke="#10B981"
+                strokeWidth="2.5"
+              />
+              
+              {/* Forecasted Income Line (amber/dashed) - includes projected sales commissions */}
+              <path
+                d={`M 40 ${200 - monthlyData[0]?.income / 500} ${monthlyData.map((d, i) => {
+                  const forecastBoost = i >= 9 ? 5000 + Math.random() * 3000 : 0; // Add forecast for future months
+                  return `L ${40 + i * 30} ${200 - Math.min((d.income + forecastBoost) / 500, 160)}`;
+                }).join(' ')}`}
+                fill="none"
+                stroke="#F59E0B"
+                strokeWidth="2"
+                strokeDasharray="6,4"
+              />
+              
+              {/* Expenses Line (purple) */}
+              <path
+                d={`M 40 ${200 - monthlyData[0]?.expenses / 500} ${monthlyData.map((d, i) => `L ${40 + i * 30} ${200 - Math.min(d.expenses / 500, 160)}`).join(' ')}`}
+                fill="none"
+                stroke="#8B5CF6"
+                strokeWidth="2"
+              />
+              
+              {/* Month labels */}
+              {monthlyData.map((d, i) => (
+                <text key={i} x={40 + i * 30} y="270" fill={theme.textMuted} fontSize="10" textAnchor="middle">{d.month}</text>
+              ))}
+            </svg>
+            
+            {/* Forecast callout */}
+            <div style={{
+              position: 'absolute',
+              top: '10px',
+              right: '10px',
+              background: '#F59E0B15',
+              border: '1px solid #F59E0B40',
+              borderRadius: '8px',
+              padding: '8px 12px'
+            }}>
+              <div style={{ fontSize: '10px', color: '#F59E0B', fontWeight: '600' }}>PROJECTED</div>
+              <div style={{ fontSize: '16px', fontWeight: '700', color: theme.textPrimary }}>+$8,250</div>
+              <div style={{ fontSize: '10px', color: theme.textMuted }}>from commissions</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Financial Health Gauge */}
+        <div style={{ background: theme.bgCard, borderRadius: '16px', padding: '20px', boxShadow: theme.cardShadow, border: `1px solid ${theme.borderLight}`, display: 'flex', flexDirection: 'column' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+            <h3 style={{ fontSize: '15px', fontWeight: '600', color: theme.textPrimary, margin: 0 }}>Financial Health</h3>
             <button style={{ background: 'none', border: 'none', color: theme.textMuted, cursor: 'pointer', fontSize: '18px' }}>⋮</button>
           </div>
           <div style={{ display: 'flex', justifyContent: 'center', flex: 1, alignItems: 'center' }}>
-            <ProgressGauge score={healthScore} size={300} />
+            <ProgressGauge score={healthScore} size={220} />
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-around', padding: '0 10px', marginTop: '16px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-around', padding: '0 5px', marginTop: '12px' }}>
             <div style={{ textAlign: 'center' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px', justifyContent: 'center' }}>
-                <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#3B82F6' }} />
-                <span style={{ fontSize: '12px', color: theme.textMuted }}>Healthy</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '6px', justifyContent: 'center' }}>
+                <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#3B82F6' }} />
+                <span style={{ fontSize: '11px', color: theme.textMuted }}>Healthy</span>
               </div>
-              <div style={{ fontSize: '28px', fontWeight: '700', color: theme.textPrimary }}>{healthScore >= 50 ? healthScore : 100 - healthScore}%</div>
-              <div style={{ fontSize: '12px', color: theme.textMuted }}>Score</div>
+              <div style={{ fontSize: '22px', fontWeight: '700', color: theme.textPrimary }}>{healthScore >= 50 ? healthScore : 100 - healthScore}%</div>
+              <div style={{ fontSize: '11px', color: theme.textMuted }}>Score</div>
             </div>
             <div style={{ textAlign: 'center' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px', justifyContent: 'center' }}>
-                <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#06B6D4' }} />
-                <span style={{ fontSize: '12px', color: theme.textMuted }}>Savings Rate</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '6px', justifyContent: 'center' }}>
+                <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#06B6D4' }} />
+                <span style={{ fontSize: '11px', color: theme.textMuted }}>Savings Rate</span>
               </div>
-              <div style={{ fontSize: '28px', fontWeight: '700', color: theme.textPrimary }}>{savingsRate.toFixed(0)}%</div>
-              <div style={{ fontSize: '12px', color: theme.textMuted }}>of income</div>
+              <div style={{ fontSize: '22px', fontWeight: '700', color: theme.textPrimary }}>{savingsRate.toFixed(0)}%</div>
+              <div style={{ fontSize: '11px', color: theme.textMuted }}>of income</div>
             </div>
           </div>
         </div>
@@ -5684,44 +5834,123 @@ function DashboardHome({ transactions, goals, bills = [], tasks = [], theme, las
         }}>Spending Analysis</h2>
       </div>
 
-      {/* Spending & Budget Row */}
-      <div className="chart-grid-1-1" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '32px' }}>
-        {/* Budgeted vs. Actual Expenses - Bar Chart (Image 3/8) */}
-        <div style={{ background: theme.bgCard, borderRadius: '16px', padding: '24px', boxShadow: theme.cardShadow, border: `1px solid ${theme.borderLight}` }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-            <p style={{ fontSize: '13px', color: theme.textMuted, margin: 0, lineHeight: '1.5', maxWidth: '55%' }}>
-              Track your budgeted vs actual expenses over the past 6 months to understand your financial trends.
+      {/* Spending Analysis Row - 3 Columns */}
+      <div className="chart-grid-3" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '20px', marginBottom: '32px' }}>
+        {/* Budgeted vs. Actual Expenses - Bar Chart */}
+        <div style={{ background: theme.bgCard, borderRadius: '16px', padding: '20px', boxShadow: theme.cardShadow, border: `1px solid ${theme.borderLight}` }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+            <p style={{ fontSize: '11px', color: theme.textMuted, margin: 0, lineHeight: '1.4', maxWidth: '50%' }}>
+              Track budgeted vs actual expenses to understand trends.
             </p>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#6366F1' }} />
-                <span style={{ fontSize: '13px', color: theme.textMuted }}>Actual</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#6366F1' }} />
+                <span style={{ fontSize: '10px', color: theme.textMuted }}>Actual</span>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#C7D2FE' }} />
-                <span style={{ fontSize: '13px', color: theme.textMuted }}>Budgeted</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#C7D2FE' }} />
+                <span style={{ fontSize: '10px', color: theme.textMuted }}>Budget</span>
               </div>
             </div>
           </div>
-          <BudgetBarChart data={monthlyData} budgets={budgets} theme={theme} height={340} />
+          <BudgetBarChart data={monthlyData} budgets={budgets} theme={theme} height={280} />
         </div>
 
-        {/* Spending Breakdown - Overlapping Pebble/Triangle Style (like Sales Summary) */}
-        <div style={{ background: theme.bgCard, borderRadius: '16px', padding: '24px', boxShadow: theme.cardShadow, border: `1px solid ${theme.borderLight}` }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-            <h3 style={{ fontSize: '16px', fontWeight: '600', color: theme.textPrimary, margin: 0 }}>Spending</h3>
+        {/* Expense Forecast - NEW 3-Line Chart */}
+        <div style={{ background: theme.bgCard, borderRadius: '16px', padding: '20px', boxShadow: theme.cardShadow, border: `1px solid ${theme.borderLight}` }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+            <h3 style={{ fontSize: '15px', fontWeight: '600', color: theme.textPrimary, margin: 0 }}>Expense Forecast</h3>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#EF4444' }} />
+                <span style={{ fontSize: '10px', color: theme.textMuted }}>Actual</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#EC4899' }} />
+                <span style={{ fontSize: '10px', color: theme.textMuted }}>Forecast</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10B981' }} />
+                <span style={{ fontSize: '10px', color: theme.textMuted }}>Budget</span>
+              </div>
+            </div>
+          </div>
+          {/* 3-Line Chart for Expense Forecast */}
+          <div style={{ height: '280px', position: 'relative' }}>
+            <svg width="100%" height="100%" viewBox="0 0 400 280" preserveAspectRatio="none">
+              {/* Grid lines */}
+              {[0, 1, 2, 3, 4].map(i => (
+                <line key={i} x1="40" y1={40 + i * 50} x2="390" y2={40 + i * 50} stroke={theme.borderLight} strokeWidth="1" strokeDasharray="4,4" />
+              ))}
+              
+              {/* Budget Line (green - target) */}
+              <path
+                d={`M 40 120 ${monthlyData.map((d, i) => `L ${40 + i * 30} 120`).join(' ')}`}
+                fill="none"
+                stroke="#10B981"
+                strokeWidth="2"
+                strokeDasharray="8,4"
+              />
+              
+              {/* Actual Expenses Line (red) */}
+              <path
+                d={`M 40 ${200 - monthlyData[0]?.expenses / 500} ${monthlyData.map((d, i) => `L ${40 + i * 30} ${200 - Math.min(d.expenses / 500, 160)}`).join(' ')}`}
+                fill="none"
+                stroke="#EF4444"
+                strokeWidth="2.5"
+              />
+              
+              {/* Forecasted Expenses Line (pink/dashed) - projected from sales tracker */}
+              <path
+                d={`M 40 ${200 - monthlyData[0]?.expenses / 500} ${monthlyData.map((d, i) => {
+                  const forecastExpenses = i >= 9 ? 2000 + Math.random() * 1500 : 0; // Add forecast for future months
+                  return `L ${40 + i * 30} ${200 - Math.min((d.expenses + forecastExpenses) / 500, 160)}`;
+                }).join(' ')}`}
+                fill="none"
+                stroke="#EC4899"
+                strokeWidth="2"
+                strokeDasharray="6,4"
+              />
+              
+              {/* Month labels */}
+              {monthlyData.map((d, i) => (
+                <text key={i} x={40 + i * 30} y="270" fill={theme.textMuted} fontSize="10" textAnchor="middle">{d.month}</text>
+              ))}
+            </svg>
+            
+            {/* Forecast callout */}
+            <div style={{
+              position: 'absolute',
+              top: '10px',
+              right: '10px',
+              background: '#EC489915',
+              border: '1px solid #EC489940',
+              borderRadius: '8px',
+              padding: '8px 12px'
+            }}>
+              <div style={{ fontSize: '10px', color: '#EC4899', fontWeight: '600' }}>PROJECTED</div>
+              <div style={{ fontSize: '16px', fontWeight: '700', color: theme.textPrimary }}>+$3,500</div>
+              <div style={{ fontSize: '10px', color: theme.textMuted }}>upcoming expenses</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Spending Breakdown - Simplified for 3-column */}
+        <div style={{ background: theme.bgCard, borderRadius: '16px', padding: '20px', boxShadow: theme.cardShadow, border: `1px solid ${theme.borderLight}` }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+            <h3 style={{ fontSize: '15px', fontWeight: '600', color: theme.textPrimary, margin: 0 }}>Spending</h3>
             <button style={{ background: 'none', border: 'none', color: theme.textMuted, cursor: 'pointer', fontSize: '18px' }}>⋮</button>
           </div>
-          <div className="spending-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+          <div className="spending-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
             {/* Left side - List */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
               {spendingCards.map((item, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <div style={{ width: '4px', height: '40px', borderRadius: '2px', background: item.color }} />
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <div style={{ width: '3px', height: '32px', borderRadius: '2px', background: item.color }} />
                   <div>
-                    <div style={{ fontSize: '13px', color: theme.textMuted }}>{item.category}</div>
-                    <div style={{ fontSize: '16px', fontWeight: '600', color: theme.textPrimary }}>
-                      {formatCurrency(item.spent)} <span style={{ fontSize: '13px', color: theme.textMuted, fontWeight: '400' }}>/{formatCurrency(item.budget)}</span>
+                    <div style={{ fontSize: '11px', color: theme.textMuted }}>{item.category}</div>
+                    <div style={{ fontSize: '14px', fontWeight: '600', color: theme.textPrimary }}>
+                      {formatCurrency(item.spent)} <span style={{ fontSize: '11px', color: theme.textMuted, fontWeight: '400' }}>/{formatCurrency(item.budget)}</span>
                     </div>
                   </div>
                 </div>
@@ -5733,21 +5962,18 @@ function DashboardHome({ transactions, goals, bills = [], tasks = [], theme, las
               flexDirection: 'column',
               alignItems: 'center',
               justifyContent: 'center',
-              padding: '10px'
+              padding: '5px'
             }}>
-              {/* Overlapping pebble cluster - LARGER */}
-              <div style={{ position: 'relative', width: '280px', height: '260px' }}>
+              {/* Overlapping pebble cluster - Smaller for 3-column */}
+              <div style={{ position: 'relative', width: '200px', height: '180px' }}>
                 {(() => {
-                  // Sort cards by percentage descending
                   const sortedByPercent = [...spendingCards].sort((a, b) => b.percent - a.percent);
-                  // Colors matching the reference: Indigo, Gray, Blue, Light Gray
                   const pebbleColors = ['#6366F1', '#6B7280', '#3B82F6', '#D1D5DB'];
-                  // Positions for overlapping effect - MUCH LARGER sizes
                   const positions = [
-                    { left: 20, top: 60, size: 130, zIndex: 4 },   // Largest - front left
-                    { left: 130, top: 10, size: 110, zIndex: 3 },  // Second - back right
-                    { left: 160, top: 100, size: 100, zIndex: 2 }, // Third - front right
-                    { left: 80, top: 150, size: 85, zIndex: 1 }    // Smallest - bottom middle
+                    { left: 10, top: 40, size: 90, zIndex: 4 },
+                    { left: 90, top: 5, size: 75, zIndex: 3 },
+                    { left: 110, top: 70, size: 70, zIndex: 2 },
+                    { left: 50, top: 100, size: 60, zIndex: 1 }
                   ];
                   
                   return sortedByPercent.map((item, i) => {
@@ -5768,30 +5994,17 @@ function DashboardHome({ transactions, goals, bills = [], tasks = [], theme, las
                       >
                         <svg width={pos.size} height={pos.size} viewBox="0 0 100 100">
                           <defs>
-                            <linearGradient id={`pebbleGradient${i}`} x1="0%" y1="0%" x2="100%" y2="100%">
+                            <linearGradient id={`pebbleGrad3${i}`} x1="0%" y1="0%" x2="100%" y2="100%">
                               <stop offset="0%" stopColor={color} />
                               <stop offset="100%" stopColor={color} stopOpacity="0.85" />
                             </linearGradient>
                           </defs>
-                          {/* Rounded triangle / pebble shape - organic look */}
                           <path 
-                            d="M50 5 
-                               C70 5, 90 20, 92 45 
-                               C94 70, 75 92, 50 92 
-                               C25 92, 8 70, 10 45 
-                               C12 20, 30 5, 50 5 Z"
-                            fill={`url(#pebbleGradient${i})`}
-                            style={{ filter: 'drop-shadow(0 6px 12px rgba(0,0,0,0.15))' }}
+                            d="M50 5 C70 5, 90 20, 92 45 C94 70, 75 92, 50 92 C25 92, 8 70, 10 45 C12 20, 30 5, 50 5 Z"
+                            fill={`url(#pebbleGrad3${i})`}
+                            style={{ filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.15))' }}
                           />
-                          {/* Percentage text centered - larger font */}
-                          <text 
-                            x="50" 
-                            y="55" 
-                            textAnchor="middle" 
-                            fill="white" 
-                            fontSize={pos.size > 100 ? "22" : pos.size > 85 ? "18" : "16"} 
-                            fontWeight="700"
-                          >
+                          <text x="50" y="55" textAnchor="middle" fill="white" fontSize={pos.size > 80 ? "18" : "14"} fontWeight="700">
                             {Math.round(item.percent)}%
                           </text>
                         </svg>
@@ -5801,43 +6014,22 @@ function DashboardHome({ transactions, goals, bills = [], tasks = [], theme, las
                 })()}
               </div>
               
-              {/* Legend below - 2x2 grid */}
+              {/* Legend - 2x2 grid */}
               <div style={{ 
                 display: 'grid', 
                 gridTemplateColumns: '1fr 1fr', 
-                gap: '8px 24px',
-                marginTop: '16px',
+                gap: '4px 12px',
+                marginTop: '8px',
                 width: '100%'
               }}>
                 {(() => {
                   const sortedByPercent = [...spendingCards].sort((a, b) => b.percent - a.percent);
                   const pebbleColors = ['#6366F1', '#6B7280', '#3B82F6', '#D1D5DB'];
                   return sortedByPercent.map((item, i) => (
-                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <div style={{ 
-                        width: '10px', 
-                        height: '10px', 
-                        borderRadius: '50%', 
-                        background: pebbleColors[i],
-                        flexShrink: 0
-                      }} />
-                      <span style={{ 
-                        color: theme.textSecondary, 
-                        fontSize: '13px',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
-                        maxWidth: '80px'
-                      }}>
-                        {item.category}
-                      </span>
-                      <span style={{ 
-                        color: theme.textMuted, 
-                        fontSize: '13px',
-                        marginLeft: 'auto'
-                      }}>
-                        {Math.round(item.percent)}%
-                      </span>
+                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: pebbleColors[i], flexShrink: 0 }} />
+                      <span style={{ color: theme.textSecondary, fontSize: '11px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '60px' }}>{item.category}</span>
+                      <span style={{ color: theme.textMuted, fontSize: '11px', marginLeft: 'auto' }}>{Math.round(item.percent)}%</span>
                     </div>
                   ));
                 })()}
@@ -6022,189 +6214,6 @@ function DashboardHome({ transactions, goals, bills = [], tasks = [], theme, las
             </div>
           </>
         )}
-      </div>
-
-      {/* ═══════════════════════════════════════════════════════════════════ */}
-      {/* ACTIVITY & PRODUCTIVITY */}
-      {/* ═══════════════════════════════════════════════════════════════════ */}
-      <div style={{ 
-        display: 'flex', 
-        alignItems: 'center', 
-        gap: '12px', 
-        marginBottom: '16px'
-      }}>
-        <div style={{ 
-          width: '4px', 
-          height: '24px', 
-          background: 'linear-gradient(180deg, #F59E0B 0%, #EF4444 100%)', 
-          borderRadius: '2px' 
-        }} />
-        <h2 style={{ 
-          fontSize: '18px', 
-          fontWeight: '700', 
-          color: theme.textPrimary, 
-          margin: 0,
-          letterSpacing: '-0.3px'
-        }}>Activity & Productivity</h2>
-      </div>
-
-      {/* Tasks Progress Section */}
-      <div style={{ 
-        background: theme.bgCard, 
-        borderRadius: '16px', 
-        padding: '24px', 
-        boxShadow: theme.cardShadow, 
-        border: `1px solid ${theme.borderLight}`, 
-        marginBottom: '24px',
-        position: 'relative',
-        overflow: 'hidden'
-      }}>
-        {/* Subtle gradient accent */}
-        <div style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          height: '3px',
-          background: 'linear-gradient(90deg, #F59E0B 0%, #EF4444 100%)'
-        }} />
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-          <h3 style={{ fontSize: '16px', fontWeight: '600', color: theme.textPrimary, margin: 0 }}>Task Progress</h3>
-          <button style={{ background: 'none', border: 'none', color: theme.primary, fontSize: '13px', cursor: 'pointer', fontWeight: '500' }}>View All →</button>
-        </div>
-        
-        {/* Task Status Cards */}
-        <div className="task-stat-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '20px' }}>
-          {(() => {
-            const todoCount = tasks.filter(t => t.status === 'todo').length;
-            const inProgressCount = tasks.filter(t => t.status === 'in-progress').length;
-            const completedCount = tasks.filter(t => t.status === 'completed').length;
-            const totalTasks = tasks.length;
-            const completionRate = totalTasks > 0 ? Math.round((completedCount / totalTasks) * 100) : 0;
-            
-            return (
-              <>
-                <div style={{ 
-                  padding: '16px', 
-                  borderRadius: '12px', 
-                  background: 'linear-gradient(135deg, #EEF2FF, #E0E7FF)',
-                  border: '1px solid #C7D2FE'
-                }}>
-                  <div style={{ fontSize: '24px', fontWeight: '700', color: '#4F46E5', marginBottom: '4px' }}>{totalTasks}</div>
-                  <div style={{ fontSize: '12px', color: '#6366F1', fontWeight: '500' }}>Total Tasks</div>
-                </div>
-                <div style={{ 
-                  padding: '16px', 
-                  borderRadius: '12px', 
-                  background: 'linear-gradient(135deg, #FEF3C7, #FDE68A)',
-                  border: '1px solid #FCD34D'
-                }}>
-                  <div style={{ fontSize: '24px', fontWeight: '700', color: '#D97706', marginBottom: '4px' }}>{todoCount}</div>
-                  <div style={{ fontSize: '12px', color: '#F59E0B', fontWeight: '500' }}>To Do</div>
-                </div>
-                <div style={{ 
-                  padding: '16px', 
-                  borderRadius: '12px', 
-                  background: 'linear-gradient(135deg, #FEE2E2, #FECACA)',
-                  border: '1px solid #FCA5A5'
-                }}>
-                  <div style={{ fontSize: '24px', fontWeight: '700', color: '#DC2626', marginBottom: '4px' }}>{inProgressCount}</div>
-                  <div style={{ fontSize: '12px', color: '#EF4444', fontWeight: '500' }}>In Progress</div>
-                </div>
-                <div style={{ 
-                  padding: '16px', 
-                  borderRadius: '12px', 
-                  background: 'linear-gradient(135deg, #D1FAE5, #A7F3D0)',
-                  border: '1px solid #6EE7B7'
-                }}>
-                  <div style={{ fontSize: '24px', fontWeight: '700', color: '#059669', marginBottom: '4px' }}>{completedCount}</div>
-                  <div style={{ fontSize: '12px', color: '#10B981', fontWeight: '500' }}>Completed</div>
-                </div>
-              </>
-            );
-          })()}
-        </div>
-        
-        {/* Task Completion Progress */}
-        <div style={{ marginBottom: '20px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-            <span style={{ fontSize: '13px', color: theme.textMuted }}>Overall Completion</span>
-            <span style={{ fontSize: '14px', fontWeight: '600', color: theme.textPrimary }}>
-              {tasks.length > 0 ? Math.round((tasks.filter(t => t.status === 'completed').length / tasks.length) * 100) : 0}%
-            </span>
-          </div>
-          <div style={{ height: '8px', background: theme.borderLight, borderRadius: '4px', overflow: 'hidden' }}>
-            <div style={{ 
-              height: '100%', 
-              width: `${tasks.length > 0 ? (tasks.filter(t => t.status === 'completed').length / tasks.length) * 100 : 0}%`,
-              background: 'linear-gradient(90deg, #6366F1, #8B5CF6)',
-              borderRadius: '4px',
-              transition: 'width 0.3s ease'
-            }} />
-          </div>
-        </div>
-        
-        {/* Upcoming Tasks List */}
-        <div>
-          <div style={{ fontSize: '13px', fontWeight: '600', color: theme.textSecondary, marginBottom: '12px' }}>Upcoming Tasks</div>
-          {tasks.filter(t => t.status !== 'completed').slice(0, 3).length > 0 ? (
-            <div style={{ display: 'grid', gap: '8px' }}>
-              {tasks.filter(t => t.status !== 'completed').slice(0, 3).map((task, i) => (
-                <div key={i} style={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'space-between',
-                  padding: '12px 14px',
-                  background: theme.bgMain,
-                  borderRadius: '10px',
-                  border: `1px solid ${theme.borderLight}`
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <div style={{ 
-                      width: '32px', 
-                      height: '32px', 
-                      borderRadius: '8px', 
-                      background: task.status === 'in-progress' ? '#FEF3C7' : '#EEF2FF',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontSize: '14px'
-                    }}>
-                      {task.status === 'in-progress' ? '🔄' : '📋'}
-                    </div>
-                    <div>
-                      <div style={{ fontSize: '14px', fontWeight: '500', color: theme.textPrimary }}>{task.title}</div>
-                      <div style={{ fontSize: '11px', color: theme.textMuted }}>
-                        {task.dueDate ? new Date(task.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'No due date'}
-                      </div>
-                    </div>
-                  </div>
-                  <span style={{ 
-                    fontSize: '10px', 
-                    padding: '4px 8px', 
-                    borderRadius: '6px',
-                    background: task.status === 'in-progress' ? '#FEF3C7' : '#E0E7FF',
-                    color: task.status === 'in-progress' ? '#D97706' : '#6366F1',
-                    fontWeight: '600'
-                  }}>
-                    {task.status === 'in-progress' ? 'In Progress' : 'To Do'}
-                  </span>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div style={{ 
-              padding: '24px', 
-              textAlign: 'center', 
-              background: theme.bgMain, 
-              borderRadius: '10px',
-              border: `1px dashed ${theme.borderLight}`
-            }}>
-              <span style={{ fontSize: '24px', display: 'block', marginBottom: '8px' }}>✨</span>
-              <span style={{ fontSize: '13px', color: theme.textMuted }}>No pending tasks. Add a task to get started!</span>
-            </div>
-          )}
-        </div>
       </div>
 
       {transactions.length === 0 && (
