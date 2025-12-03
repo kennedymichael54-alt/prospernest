@@ -4571,19 +4571,19 @@ function DashboardHome({ transactions, goals, bills = [], tasks = [], theme, las
               justifyContent: 'center',
               padding: '10px'
             }}>
-              {/* Overlapping pebble cluster */}
-              <div style={{ position: 'relative', width: '200px', height: '180px' }}>
+              {/* Overlapping pebble cluster - LARGER */}
+              <div style={{ position: 'relative', width: '280px', height: '260px' }}>
                 {(() => {
                   // Sort cards by percentage descending
                   const sortedByPercent = [...spendingCards].sort((a, b) => b.percent - a.percent);
                   // Colors matching the reference: Indigo, Gray, Blue, Light Gray
                   const pebbleColors = ['#6366F1', '#6B7280', '#3B82F6', '#D1D5DB'];
-                  // Positions for overlapping effect (like the reference image)
+                  // Positions for overlapping effect - MUCH LARGER sizes
                   const positions = [
-                    { left: 20, top: 50, size: 90, zIndex: 4 },   // Largest - front left
-                    { left: 90, top: 10, size: 75, zIndex: 3 },   // Second - back right
-                    { left: 110, top: 70, size: 70, zIndex: 2 },  // Third - front right
-                    { left: 60, top: 100, size: 60, zIndex: 1 }   // Smallest - bottom middle
+                    { left: 20, top: 60, size: 130, zIndex: 4 },   // Largest - front left
+                    { left: 130, top: 10, size: 110, zIndex: 3 },  // Second - back right
+                    { left: 160, top: 100, size: 100, zIndex: 2 }, // Third - front right
+                    { left: 80, top: 150, size: 85, zIndex: 1 }    // Smallest - bottom middle
                   ];
                   
                   return sortedByPercent.map((item, i) => {
@@ -4617,16 +4617,16 @@ function DashboardHome({ transactions, goals, bills = [], tasks = [], theme, las
                                C25 92, 8 70, 10 45 
                                C12 20, 30 5, 50 5 Z"
                             fill={`url(#pebbleGradient${i})`}
-                            style={{ filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.1))' }}
+                            style={{ filter: 'drop-shadow(0 6px 12px rgba(0,0,0,0.15))' }}
                           />
-                          {/* Percentage text centered */}
+                          {/* Percentage text centered - larger font */}
                           <text 
                             x="50" 
                             y="55" 
                             textAnchor="middle" 
                             fill="white" 
-                            fontSize={pos.size > 70 ? "18" : "14"} 
-                            fontWeight="600"
+                            fontSize={pos.size > 100 ? "22" : pos.size > 85 ? "18" : "16"} 
+                            fontWeight="700"
                           >
                             {Math.round(item.percent)}%
                           </text>
