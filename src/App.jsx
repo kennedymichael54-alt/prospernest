@@ -2480,6 +2480,22 @@ function Dashboard({
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [expandedHubs, setExpandedHubs] = useState({ homebudget: true }); // HomeBudget expanded by default
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false); // Sidebar collapse state
+  const [trialBannerCollapsed, setTrialBannerCollapsed] = useState(false); // Trial banner collapse
+  
+  // Custom account type labels (rename Personal/Side Hustle)
+  const [accountLabels, setAccountLabels] = useState(() => {
+    const saved = localStorage.getItem('pn_accountLabels');
+    return saved ? JSON.parse(saved) : { personal: 'Personal', sidehustle: 'Side Hustle' };
+  });
+  const [editingAccountLabel, setEditingAccountLabel] = useState(null);
+  
+  // Update account labels and persist
+  const updateAccountLabel = (type, newLabel) => {
+    const updated = { ...accountLabels, [type]: newLabel };
+    setAccountLabels(updated);
+    localStorage.setItem('pn_accountLabels', JSON.stringify(updated));
+    setEditingAccountLabel(null);
+  };
   
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -2879,13 +2895,13 @@ function Dashboard({
   const renderContent = () => {
     switch (activeTab) {
       case 'home':
-        return <GradientSection tab="home"><DashboardHome transactions={transactions} goals={goals} bills={bills} tasks={tasks || []} theme={theme} lastImportDate={lastImportDate} /></GradientSection>;
+        return <GradientSection tab="home"><DashboardHome transactions={transactions} goals={goals} bills={bills} tasks={tasks || []} theme={theme} lastImportDate={lastImportDate} accountLabels={accountLabels} /></GradientSection>;
       case 'sales':
         return <GradientSection tab="sales"><SalesTrackerTab theme={theme} lastImportDate={lastImportDate} /></GradientSection>;
       case 'budget':
         return <GradientSection tab="budget"><BudgetTab transactions={transactions} onNavigateToImport={() => setActiveTab('import')} theme={theme} lastImportDate={lastImportDate} /></GradientSection>;
       case 'transactions':
-        return <GradientSection tab="transactions"><TransactionsTabDS transactions={transactions} onNavigateToImport={() => setActiveTab('import')} theme={theme} lastImportDate={lastImportDate} /></GradientSection>;
+        return <GradientSection tab="transactions"><TransactionsTabDS transactions={transactions} onNavigateToImport={() => setActiveTab('import')} theme={theme} lastImportDate={lastImportDate} accountLabels={accountLabels} /></GradientSection>;
       case 'bills':
         return <GradientSection tab="bills"><BillsCalendarView theme={theme} lastImportDate={lastImportDate} /></GradientSection>;
       case 'goals':
@@ -2931,7 +2947,7 @@ function Dashboard({
           theme={theme} 
         /></GradientSection>;
       default:
-        return <GradientSection tab="home"><DashboardHome transactions={transactions} goals={goals} bills={bills} tasks={tasks || []} theme={theme} lastImportDate={lastImportDate} /></GradientSection>;
+        return <GradientSection tab="home"><DashboardHome transactions={transactions} goals={goals} bills={bills} tasks={tasks || []} theme={theme} lastImportDate={lastImportDate} accountLabels={accountLabels} /></GradientSection>;
     }
   };
 
@@ -3268,64 +3284,91 @@ function Dashboard({
           overflowY: 'auto',
           overflowX: 'hidden'
         }}>
-          {/* Trial/Subscription Status Banner - Modern Style */}
+          {/* Trial/Subscription Status Banner - Collapsible */}
           {subscriptionAccess.hasAccess && subscriptionAccess.reason === 'trial' && !sidebarCollapsed && (
             <div style={{
               background: 'linear-gradient(135deg, rgba(251, 191, 36, 0.2) 0%, rgba(245, 158, 11, 0.15) 100%)',
               borderRadius: '14px',
-              padding: '14px',
+              padding: trialBannerCollapsed ? '10px 14px' : '14px',
               marginBottom: '20px',
               boxShadow: '0 4px 16px rgba(0, 0, 0, 0.2)',
               position: 'relative',
               overflow: 'hidden',
-              border: '1px solid rgba(251, 191, 36, 0.25)'
+              border: '1px solid rgba(251, 191, 36, 0.25)',
+              transition: 'all 0.3s ease'
             }}>
               {/* Decorative shine effect */}
-              <div style={{
-                position: 'absolute',
-                top: 0,
-                right: 0,
-                width: '100px',
-                height: '100px',
-                background: 'radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 70%)',
-                borderRadius: '50%',
-                transform: 'translate(30%, -30%)'
-              }} />
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px', position: 'relative' }}>
+              {!trialBannerCollapsed && (
                 <div style={{
-                  width: '28px',
-                  height: '28px',
-                  borderRadius: '8px',
-                  background: 'rgba(251, 191, 36, 0.3)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}>
-                  <span style={{ fontSize: '14px' }}>⏱️</span>
+                  position: 'absolute',
+                  top: 0,
+                  right: 0,
+                  width: '100px',
+                  height: '100px',
+                  background: 'radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 70%)',
+                  borderRadius: '50%',
+                  transform: 'translate(30%, -30%)'
+                }} />
+              )}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: trialBannerCollapsed ? '0' : '10px', position: 'relative' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <div style={{
+                    width: '28px',
+                    height: '28px',
+                    borderRadius: '8px',
+                    background: 'rgba(251, 191, 36, 0.3)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}>
+                    <span style={{ fontSize: '14px' }}>⏱️</span>
+                  </div>
+                  <span style={{ fontSize: '13px', fontWeight: '700', color: '#FBBF24' }}>
+                    Trial: {subscriptionAccess.daysLeft} days left
+                  </span>
                 </div>
-                <span style={{ fontSize: '13px', fontWeight: '700', color: '#FBBF24' }}>
-                  Trial: {subscriptionAccess.daysLeft} days left
-                </span>
+                <button
+                  onClick={() => setTrialBannerCollapsed(!trialBannerCollapsed)}
+                  style={{
+                    background: 'rgba(255, 255, 255, 0.1)',
+                    border: 'none',
+                    borderRadius: '6px',
+                    width: '24px',
+                    height: '24px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    color: '#FBBF24',
+                    fontSize: '10px',
+                    transition: 'all 0.2s ease'
+                  }}
+                  title={trialBannerCollapsed ? 'Expand' : 'Collapse'}
+                >
+                  {trialBannerCollapsed ? '▼' : '▲'}
+                </button>
               </div>
-              <button
-                onClick={() => setShowUpgradeModal(true)}
-                style={{
-                  width: '100%',
-                  padding: '10px',
-                  background: 'linear-gradient(135deg, #F59E0B, #D97706)',
-                  border: 'none',
-                  borderRadius: '10px',
-                  color: 'white',
-                  fontSize: '13px',
-                  fontWeight: '700',
-                  cursor: 'pointer',
-                  boxShadow: '0 2px 8px rgba(217, 119, 6, 0.4)',
-                  transition: 'all 0.2s ease',
-                  position: 'relative'
-                }}
-              >
-                🚀 Upgrade Now
-              </button>
+              {!trialBannerCollapsed && (
+                <button
+                  onClick={() => setShowUpgradeModal(true)}
+                  style={{
+                    width: '100%',
+                    padding: '10px',
+                    background: 'linear-gradient(135deg, #F59E0B, #D97706)',
+                    border: 'none',
+                    borderRadius: '10px',
+                    color: 'white',
+                    fontSize: '13px',
+                    fontWeight: '700',
+                    cursor: 'pointer',
+                    boxShadow: '0 2px 8px rgba(217, 119, 6, 0.4)',
+                    transition: 'all 0.2s ease',
+                    position: 'relative'
+                  }}
+                >
+                  🚀 Upgrade Now
+                </button>
+              )}
             </div>
           )}
           
@@ -3706,6 +3749,9 @@ function Dashboard({
             )
           ))}
         </nav>
+
+        {/* Spacer for better logout visibility */}
+        <div style={{ height: '48px' }} />
 
         {/* Logout Button - Dark Sidebar Style */}
         <div style={{ 
@@ -4931,7 +4977,7 @@ function Dashboard({
 // Features: Personal/Side Hustle split, Charts, Budget, Goals, Bills, Free to Spend
 // ============================================================================
 
-function DashboardHome({ transactions, goals, bills = [], tasks = [], theme, lastImportDate }) {
+function DashboardHome({ transactions, goals, bills = [], tasks = [], theme, lastImportDate, accountLabels }) {
   const [timeRange, setTimeRange] = useState('month');
   const [activeAccount, setActiveAccount] = useState('all');
   const [txnSearchQuery, setTxnSearchQuery] = useState('');
@@ -4939,6 +4985,19 @@ function DashboardHome({ transactions, goals, bills = [], tasks = [], theme, las
   
   // Edit mode state for dashboard customization (feature preview)
   const [isEditMode, setIsEditMode] = useState(false);
+  
+  // Bulk selection for transactions
+  const [selectedTxns, setSelectedTxns] = useState([]);
+  
+  // Handle bulk delete
+  const handleBulkDelete = () => {
+    if (selectedTxns.length === 0) return;
+    if (window.confirm(\`Delete \${selectedTxns.length} transaction(s)?\`)) {
+      console.log('Deleting transactions:', selectedTxns);
+      // TODO: Implement actual delete via Supabase
+      setSelectedTxns([]);
+    }
+  };
 
   // Filter transactions by account type
   const personalTransactions = transactions.filter(t => t.accountType !== 'sidehustle');
@@ -5345,13 +5404,44 @@ function DashboardHome({ transactions, goals, bills = [], tasks = [], theme, las
           </button>
           
           <div className="account-toggle" style={{ display: 'flex', gap: '8px', background: theme.bgCard, padding: '4px', borderRadius: '12px', boxShadow: theme.cardShadow }}>
-            {[{ id: 'all', label: 'All Accounts', icon: '📊' }, { id: 'personal', label: 'Personal', icon: '👤' }, { id: 'sidehustle', label: 'Side Hustle', icon: '💼' }].map(acc => (
-              <button key={acc.id} onClick={() => setActiveAccount(acc.id)} style={{
-                padding: '10px 16px', border: 'none', borderRadius: '10px',
-                background: activeAccount === acc.id ? theme.primary : 'transparent',
-                color: activeAccount === acc.id ? 'white' : theme.textSecondary,
-                fontSize: '13px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', transition: 'all 0.2s', whiteSpace: 'nowrap'
-              }}><span>{acc.icon}</span>{acc.label}</button>
+            {[{ id: 'all', label: 'All Accounts', icon: '📊' }, { id: 'personal', label: accountLabels?.personal || 'Personal', icon: '👤' }, { id: 'sidehustle', label: accountLabels?.sidehustle || 'Side Hustle', icon: '💼' }].map(acc => (
+              <div key={acc.id} style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                <button onClick={() => setActiveAccount(acc.id)} style={{
+                  padding: '10px 16px', border: 'none', borderRadius: '10px',
+                  background: activeAccount === acc.id ? theme.primary : 'transparent',
+                  color: activeAccount === acc.id ? 'white' : theme.textSecondary,
+                  fontSize: '13px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', transition: 'all 0.2s', whiteSpace: 'nowrap'
+                }}>
+                  <span>{acc.icon}</span>
+                  {editingAccountLabel === acc.id ? (
+                    <input
+                      type="text"
+                      defaultValue={acc.label}
+                      autoFocus
+                      onClick={(e) => e.stopPropagation()}
+                      onBlur={(e) => updateAccountLabel(acc.id, e.target.value || acc.label)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') updateAccountLabel(acc.id, e.target.value || acc.label);
+                        if (e.key === 'Escape') setEditingAccountLabel(null);
+                      }}
+                      style={{
+                        background: 'transparent', border: 'none', borderBottom: '1px solid currentColor',
+                        color: 'inherit', fontSize: '13px', fontWeight: '600', width: '80px', outline: 'none'
+                      }}
+                    />
+                  ) : acc.label}
+                </button>
+                {acc.id !== 'all' && activeAccount === acc.id && (
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setEditingAccountLabel(acc.id); }}
+                    style={{
+                      background: 'rgba(255,255,255,0.2)', border: 'none', borderRadius: '4px',
+                      padding: '2px 6px', fontSize: '10px', cursor: 'pointer', color: 'white', marginLeft: '4px'
+                    }}
+                    title="Edit label"
+                  >✏️</button>
+                )}
+              </div>
             ))}
           </div>
         </div>
@@ -5391,95 +5481,125 @@ function DashboardHome({ transactions, goals, bills = [], tasks = [], theme, las
         </div>
       )}
 
-      {/* Top Stats Row - OrbitNest Style (Image 1) */}
+      {/* Top Stats Row - Soft Gradient Cards */}
       <div className="stat-grid-4" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px', marginBottom: '24px' }}>
-        {/* Income Card */}
-        <div style={{ background: theme.bgCard, borderRadius: '16px', padding: '20px', boxShadow: theme.cardShadow, border: `1px solid ${theme.borderLight}` }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-            <span style={{ fontSize: '16px' }}>💰</span>
-            <span style={{ fontSize: '14px', color: theme.textMuted, fontWeight: '500' }}>Income</span>
+        {/* Income Card - Cyan Gradient */}
+        <div style={{ 
+          background: theme.mode === 'dark' ? 'linear-gradient(135deg, #164E63 0%, #0E4A5C 100%)' : 'linear-gradient(135deg, #E0F7FA 0%, #B2EBF2 100%)', 
+          borderRadius: '20px', 
+          padding: '20px', 
+          boxShadow: '0 4px 20px rgba(0, 188, 212, 0.15)',
+          border: `1px solid ${theme.mode === 'dark' ? 'rgba(0, 188, 212, 0.3)' : 'rgba(0, 188, 212, 0.2)'}`
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
+            <div style={{ 
+              width: '40px', height: '40px', borderRadius: '12px', 
+              background: theme.mode === 'dark' ? 'rgba(0, 188, 212, 0.3)' : 'rgba(0, 188, 212, 0.2)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' 
+            }}>💰</div>
+            <span style={{ fontSize: '14px', color: theme.mode === 'dark' ? '#67E8F9' : '#00838F', fontWeight: '600' }}>Income</span>
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
-            <div>
-              <div style={{ fontSize: '28px', fontWeight: '700', color: theme.textPrimary, marginBottom: '4px' }}>{formatCurrency(activeTotals.income)}</div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ fontSize: '12px', color: theme.textMuted }}>From last month</span>
-                <span style={{ fontSize: '12px', color: '#10B981', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '2px' }}>
-                  <span style={{ fontSize: '10px' }}>↗</span>25%
-                </span>
-              </div>
+          <div style={{ fontSize: '28px', fontWeight: '700', color: theme.mode === 'dark' ? '#E0F7FA' : '#006064', marginBottom: '8px' }}>
+            {formatCurrency(activeTotals.income)}
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '12px', color: theme.mode === 'dark' ? '#67E8F9' : '#00695C' }}>vs last month</span>
+              <span style={{ fontSize: '12px', fontWeight: '600', color: '#10B981', display: 'flex', alignItems: 'center', gap: '2px' }}>
+                ↗ 25%
+              </span>
             </div>
-            <Sparkline data={monthlyData.map(m => m.income)} color="#10B981" width={70} height={40} />
+            <Sparkline data={monthlyData.map(m => m.income)} color="#00BCD4" width={70} height={40} />
           </div>
         </div>
 
-        {/* Expenses Card */}
-        <div style={{ background: theme.bgCard, borderRadius: '16px', padding: '20px', boxShadow: theme.cardShadow, border: `1px solid ${theme.borderLight}` }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-            <span style={{ fontSize: '16px' }}>💳</span>
-            <span style={{ fontSize: '14px', color: theme.textMuted, fontWeight: '500' }}>Expenses</span>
+        {/* Expenses Card - Orange/Coral Gradient */}
+        <div style={{ 
+          background: theme.mode === 'dark' ? 'linear-gradient(135deg, #7C2D12 0%, #6B2A0F 100%)' : 'linear-gradient(135deg, #FFF3E0 0%, #FFE0B2 100%)', 
+          borderRadius: '20px', 
+          padding: '20px', 
+          boxShadow: '0 4px 20px rgba(255, 152, 0, 0.15)',
+          border: `1px solid ${theme.mode === 'dark' ? 'rgba(255, 152, 0, 0.3)' : 'rgba(255, 152, 0, 0.2)'}`
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
+            <div style={{ 
+              width: '40px', height: '40px', borderRadius: '12px', 
+              background: theme.mode === 'dark' ? 'rgba(255, 152, 0, 0.3)' : 'rgba(255, 152, 0, 0.2)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' 
+            }}>🔥</div>
+            <span style={{ fontSize: '14px', color: theme.mode === 'dark' ? '#FDBA74' : '#E65100', fontWeight: '600' }}>Expenses</span>
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
-            <div>
-              <div style={{ fontSize: '28px', fontWeight: '700', color: theme.textPrimary, marginBottom: '4px' }}>{formatCurrency(activeTotals.expenses)}</div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ fontSize: '12px', color: theme.textMuted }}>From last month</span>
-                <span style={{ fontSize: '12px', color: '#EF4444', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '2px' }}>
-                  <span style={{ fontSize: '10px' }}>↘</span>5%
-                </span>
-              </div>
+          <div style={{ fontSize: '28px', fontWeight: '700', color: theme.mode === 'dark' ? '#FFF3E0' : '#BF360C', marginBottom: '8px' }}>
+            {formatCurrency(activeTotals.expenses)}
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '12px', color: theme.mode === 'dark' ? '#FDBA74' : '#E65100' }}>vs last month</span>
+              <span style={{ fontSize: '12px', fontWeight: '600', color: '#EF4444', display: 'flex', alignItems: 'center', gap: '2px' }}>
+                ↗ 5%
+              </span>
             </div>
-            <Sparkline data={monthlyData.map(m => m.expenses)} color="#EF4444" width={70} height={40} />
+            <Sparkline data={monthlyData.map(m => m.expenses)} color="#FF9800" width={70} height={40} />
           </div>
         </div>
 
-        {/* Savings Card */}
-        <div style={{ background: theme.bgCard, borderRadius: '16px', padding: '20px', boxShadow: theme.cardShadow, border: `1px solid ${theme.borderLight}` }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-            <span style={{ fontSize: '16px' }}>📊</span>
-            <span style={{ fontSize: '14px', color: theme.textMuted, fontWeight: '500' }}>Savings</span>
+        {/* Savings Card - Green Gradient */}
+        <div style={{ 
+          background: theme.mode === 'dark' ? 'linear-gradient(135deg, #14532D 0%, #115E2B 100%)' : 'linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%)', 
+          borderRadius: '20px', 
+          padding: '20px', 
+          boxShadow: '0 4px 20px rgba(76, 175, 80, 0.15)',
+          border: `1px solid ${theme.mode === 'dark' ? 'rgba(76, 175, 80, 0.3)' : 'rgba(76, 175, 80, 0.2)'}`
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
+            <div style={{ 
+              width: '40px', height: '40px', borderRadius: '12px', 
+              background: theme.mode === 'dark' ? 'rgba(76, 175, 80, 0.3)' : 'rgba(76, 175, 80, 0.2)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' 
+            }}>🏦</div>
+            <span style={{ fontSize: '14px', color: theme.mode === 'dark' ? '#86EFAC' : '#2E7D32', fontWeight: '600' }}>Savings</span>
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
-            <div>
-              <div style={{ fontSize: '28px', fontWeight: '700', color: theme.textPrimary, marginBottom: '4px' }}>{formatCurrency(Math.abs(activeTotals.net))}</div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ fontSize: '12px', color: theme.textMuted }}>From last month</span>
-                <span style={{ fontSize: '12px', color: activeTotals.net >= 0 ? '#10B981' : '#EF4444', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '2px' }}>
-                  <span style={{ fontSize: '10px' }}>{activeTotals.net >= 0 ? '↗' : '↘'}</span>15%
-                </span>
-              </div>
+          <div style={{ fontSize: '28px', fontWeight: '700', color: theme.mode === 'dark' ? '#E8F5E9' : '#1B5E20', marginBottom: '8px' }}>
+            {formatCurrency(Math.max(0, activeTotals.net))}
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '12px', color: theme.mode === 'dark' ? '#86EFAC' : '#2E7D32' }}>vs last month</span>
+              <span style={{ fontSize: '12px', fontWeight: '600', color: activeTotals.net >= 0 ? '#10B981' : '#EF4444', display: 'flex', alignItems: 'center', gap: '2px' }}>
+                {activeTotals.net >= 0 ? '↗' : '↘'} 15%
+              </span>
             </div>
-            <Sparkline data={monthlyData.map(m => m.income - m.expenses)} color={activeTotals.net >= 0 ? '#10B981' : '#EF4444'} width={70} height={40} />
+            <Sparkline data={monthlyData.map(m => m.income - m.expenses)} color="#4CAF50" width={70} height={40} />
           </div>
         </div>
 
-        {/* Transactions Card */}
-        <div style={{ background: theme.bgCard, borderRadius: '16px', padding: '20px', boxShadow: theme.cardShadow, border: `1px solid ${theme.borderLight}` }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-            <span style={{ fontSize: '16px' }}>📦</span>
-            <span style={{ fontSize: '14px', color: theme.textMuted, fontWeight: '500' }}>Transactions</span>
+        {/* Transactions Card - Purple Gradient */}
+        <div style={{ 
+          background: theme.mode === 'dark' ? 'linear-gradient(135deg, #4A1D6B 0%, #3D1A5A 100%)' : 'linear-gradient(135deg, #F3E5F5 0%, #E1BEE7 100%)', 
+          borderRadius: '20px', 
+          padding: '20px', 
+          boxShadow: '0 4px 20px rgba(156, 39, 176, 0.15)',
+          border: `1px solid ${theme.mode === 'dark' ? 'rgba(156, 39, 176, 0.3)' : 'rgba(156, 39, 176, 0.2)'}`
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
+            <div style={{ 
+              width: '40px', height: '40px', borderRadius: '12px', 
+              background: theme.mode === 'dark' ? 'rgba(156, 39, 176, 0.3)' : 'rgba(156, 39, 176, 0.2)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' 
+            }}>📊</div>
+            <span style={{ fontSize: '14px', color: theme.mode === 'dark' ? '#D8B4FE' : '#7B1FA2', fontWeight: '600' }}>Transactions</span>
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
-            <div>
-              <div style={{ fontSize: '28px', fontWeight: '700', color: theme.textPrimary, marginBottom: '4px' }}>{transactions.length.toLocaleString()}</div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ fontSize: '12px', color: theme.textMuted }}>From last month</span>
-                <span style={{ fontSize: '12px', color: '#EF4444', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '2px' }}>
-                  <span style={{ fontSize: '10px' }}>↘</span>10%
-                </span>
-              </div>
+          <div style={{ fontSize: '28px', fontWeight: '700', color: theme.mode === 'dark' ? '#F3E5F5' : '#4A148C', marginBottom: '8px' }}>
+            {activeTransactions.length.toLocaleString()}
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '12px', color: theme.mode === 'dark' ? '#D8B4FE' : '#7B1FA2' }}>vs last month</span>
+              <span style={{ fontSize: '12px', fontWeight: '600', color: '#10B981', display: 'flex', alignItems: 'center', gap: '2px' }}>
+                ↗ 10%
+              </span>
             </div>
-            {/* Mini bar chart for transactions */}
-            <div style={{ display: 'flex', alignItems: 'flex-end', gap: '3px', height: '40px' }}>
-              {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day, i) => (
-                <div key={i} style={{
-                  width: '8px',
-                  height: `${15 + Math.random() * 25}px`,
-                  background: i === 3 ? '#6366F1' : '#E0E7FF',
-                  borderRadius: '2px'
-                }} />
-              ))}
-            </div>
+            <Sparkline data={[30, 45, 35, 50, 40, 55, 60]} color="#9C27B0" width={70} height={40} />
           </div>
         </div>
       </div>
@@ -5736,7 +5856,7 @@ function DashboardHome({ transactions, goals, bills = [], tasks = [], theme, las
           </div>
           {/* 3-Line Chart for Income Forecast */}
           <div style={{ height: '280px', position: 'relative' }}>
-            <svg width="100%" height="100%" viewBox="0 0 400 280" preserveAspectRatio="none">
+            <svg width="100%" height="100%" viewBox="0 0 400 280" preserveAspectRatio="xMidYMid meet">
               {/* Grid lines */}
               {[0, 1, 2, 3, 4].map(i => (
                 <line key={i} x1="40" y1={40 + i * 50} x2="390" y2={40 + i * 50} stroke={theme.borderLight} strokeWidth="1" strokeDasharray="4,4" />
@@ -5890,7 +6010,7 @@ function DashboardHome({ transactions, goals, bills = [], tasks = [], theme, las
           </div>
           {/* 3-Line Chart for Expense Forecast */}
           <div style={{ height: '280px', position: 'relative' }}>
-            <svg width="100%" height="100%" viewBox="0 0 400 280" preserveAspectRatio="none">
+            <svg width="100%" height="100%" viewBox="0 0 400 280" preserveAspectRatio="xMidYMid meet">
               {/* Grid lines */}
               {[0, 1, 2, 3, 4].map(i => (
                 <line key={i} x1="40" y1={40 + i * 50} x2="390" y2={40 + i * 50} stroke={theme.borderLight} strokeWidth="1" strokeDasharray="4,4" />
@@ -6139,6 +6259,25 @@ function DashboardHome({ transactions, goals, bills = [], tasks = [], theme, las
           </div>
         </div>
         
+        {/* Bulk Actions Bar */}
+        {selectedTxns.length > 0 && (
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: '16px', padding: '12px 16px',
+            background: '#FEE2E215', borderRadius: '10px', marginBottom: '16px', border: '1px solid #FEE2E2'
+          }}>
+            <span style={{ fontSize: '14px', fontWeight: '500', color: theme.textPrimary }}>{selectedTxns.length} selected</span>
+            <button onClick={handleBulkDelete} style={{
+              display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 16px',
+              background: '#EF4444', border: 'none', borderRadius: '8px', color: 'white',
+              fontSize: '13px', fontWeight: '600', cursor: 'pointer'
+            }}>🗑️ Delete Selected</button>
+            <button onClick={() => setSelectedTxns([])} style={{
+              padding: '8px 16px', background: 'transparent', border: \`1px solid \${theme.border}\`,
+              borderRadius: '8px', color: theme.textSecondary, fontSize: '13px', cursor: 'pointer'
+            }}>Cancel</button>
+          </div>
+        )}
+        
         {/* Table */}
         {recentTransactions.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '40px', color: theme.textMuted }}>No transactions yet</div>
@@ -6146,9 +6285,14 @@ function DashboardHome({ transactions, goals, bills = [], tasks = [], theme, las
           <>
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
-                <tr style={{ borderBottom: `1px solid ${theme.borderLight}` }}>
+                <tr style={{ borderBottom: \`1px solid \${theme.borderLight}\` }}>
                   <th style={{ padding: '12px 8px', textAlign: 'left', fontSize: '13px', fontWeight: '500', color: theme.textMuted, width: '40px' }}>
-                    <input type="checkbox" style={{ cursor: 'pointer' }} />
+                    <input 
+                      type="checkbox" 
+                      checked={selectedTxns.length === recentTransactions.length && recentTransactions.length > 0}
+                      onChange={(e) => setSelectedTxns(e.target.checked ? recentTransactions.map((_, i) => i) : [])}
+                      style={{ cursor: 'pointer' }} 
+                    />
                   </th>
                   <th style={{ padding: '12px 8px', textAlign: 'left', fontSize: '13px', fontWeight: '500', color: theme.textMuted }}>
                     Order ID <span style={{ opacity: 0.5 }}>⇅</span>
@@ -6161,6 +6305,7 @@ function DashboardHome({ transactions, goals, bills = [], tasks = [], theme, las
                     Amount <span style={{ opacity: 0.5 }}>⇅</span>
                   </th>
                   <th style={{ padding: '12px 8px', textAlign: 'left', fontSize: '13px', fontWeight: '500', color: theme.textMuted }}>Status</th>
+                  <th style={{ padding: '12px 8px', textAlign: 'left', fontSize: '13px', fontWeight: '500', color: theme.textMuted }}>Account</th>
                   <th style={{ padding: '12px 8px', textAlign: 'center', fontSize: '13px', fontWeight: '500', color: theme.textMuted, width: '40px' }}></th>
                 </tr>
               </thead>
@@ -6171,14 +6316,24 @@ function DashboardHome({ transactions, goals, bills = [], tasks = [], theme, las
                   const statusColors = {
                     'Paid': { bg: '#D1FAE5', color: '#059669', dot: '#10B981' },
                     'Pending': { bg: '#FEF3C7', color: '#D97706', dot: '#F59E0B' },
-                    'Refunded': { bg: '#FEE2E2', color: '#DC2626', dot: '#EF4444' }
+                    'Refunded': { bg: '#FEE2E2', color: '#DC2626', dot: '#EF4444' },
+                    'Posted': { bg: '#D1FAE5', color: '#059669', dot: '#10B981' }
                   };
                   const statusStyle = statusColors[status] || statusColors['Paid'];
+                  const isSideHustle = t.accountType === 'sidehustle';
+                  const acctStyle = isSideHustle 
+                    ? { bg: '#FEE2E2', color: '#DC2626', icon: '💼', label: accountLabels?.sidehustle || 'Side Hustle' }
+                    : { bg: '#DBEAFE', color: '#2563EB', icon: '👤', label: accountLabels?.personal || 'Personal' };
                   
                   return (
-                    <tr key={i} style={{ borderBottom: `1px solid ${theme.borderLight}` }}>
+                    <tr key={i} style={{ borderBottom: \`1px solid \${theme.borderLight}\` }}>
                       <td style={{ padding: '16px 8px' }}>
-                        <input type="checkbox" style={{ cursor: 'pointer' }} />
+                        <input 
+                          type="checkbox" 
+                          checked={selectedTxns.includes(i)}
+                          onChange={(e) => setSelectedTxns(e.target.checked ? [...selectedTxns, i] : selectedTxns.filter(x => x !== i))}
+                          style={{ cursor: 'pointer' }} 
+                        />
                       </td>
                       <td style={{ padding: '16px 8px' }}>
                         <span style={{ color: theme.primary, fontWeight: '500', fontSize: '14px' }}>#{(2948592 + i).toString()}</span>
@@ -6199,6 +6354,16 @@ function DashboardHome({ transactions, goals, bills = [], tasks = [], theme, las
                         }}>
                           <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: statusStyle.dot }} />
                           {status}
+                        </span>
+                      </td>
+                      <td style={{ padding: '16px 8px' }}>
+                        <span style={{ 
+                          display: 'inline-flex', alignItems: 'center', gap: '6px',
+                          padding: '4px 12px', borderRadius: '20px', 
+                          background: acctStyle.bg, color: acctStyle.color, 
+                          fontSize: '12px', fontWeight: '500'
+                        }}>
+                          {acctStyle.icon} {acctStyle.label}
                         </span>
                       </td>
                       <td style={{ padding: '16px 8px', textAlign: 'center' }}>
@@ -6636,8 +6801,18 @@ function TasksTab({ tasks, onUpdateTasks, theme, lastImportDate }) {
 // ============================================================================
 // TRANSACTIONS TAB - DASHSTACK TABLE STYLE
 // ============================================================================
-function TransactionsTabDS({ transactions, onNavigateToImport, theme, lastImportDate }) {
+function TransactionsTabDS({ transactions, onNavigateToImport, theme, lastImportDate, accountLabels }) {
   const [filter, setFilter] = useState({ date: '', type: '', status: '' });
+  const [selectedTxns, setSelectedTxns] = useState([]);
+  
+  const handleBulkDelete = () => {
+    if (selectedTxns.length === 0) return;
+    if (window.confirm(`Delete ${selectedTxns.length} transaction(s)?`)) {
+      console.log('Deleting transactions:', selectedTxns);
+      // TODO: Implement actual delete via Supabase
+      setSelectedTxns([]);
+    }
+  };
 
   const getStatusBadge = (status) => {
     const styles = {
@@ -6698,22 +6873,50 @@ function TransactionsTabDS({ transactions, onNavigateToImport, theme, lastImport
         </button>
       </div>
 
+      {/* Bulk Actions Bar */}
+      {selectedTxns.length > 0 && (
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: '16px', padding: '12px 16px',
+          background: '#FEE2E215', borderRadius: '10px', marginBottom: '16px', border: '1px solid #FEE2E2'
+        }}>
+          <span style={{ fontSize: '14px', fontWeight: '500', color: theme.textPrimary }}>{selectedTxns.length} selected</span>
+          <button onClick={handleBulkDelete} style={{
+            display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 16px',
+            background: '#EF4444', border: 'none', borderRadius: '8px', color: 'white',
+            fontSize: '13px', fontWeight: '600', cursor: 'pointer'
+          }}>🗑️ Delete Selected</button>
+          <button onClick={() => setSelectedTxns([])} style={{
+            padding: '8px 16px', background: 'transparent', border: `1px solid ${theme.border}`,
+            borderRadius: '8px', color: theme.textSecondary, fontSize: '13px', cursor: 'pointer'
+          }}>Cancel</button>
+        </div>
+      )}
+      
       {/* Table */}
       <div style={{ background: theme.bgCard, borderRadius: '16px', overflow: 'hidden', boxShadow: theme.cardShadow, border: `1px solid ${theme.borderLight}` }}>
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
             <tr style={{ background: theme.bgMain }}>
+              <th style={{ padding: '16px 20px', textAlign: 'left', fontSize: '13px', fontWeight: '600', color: theme.textSecondary, textTransform: 'uppercase', width: '40px' }}>
+                <input 
+                  type="checkbox" 
+                  checked={selectedTxns.length === Math.min(10, transactions.length) && transactions.length > 0}
+                  onChange={(e) => setSelectedTxns(e.target.checked ? transactions.slice(0, 10).map((_, i) => i) : [])}
+                  style={{ cursor: 'pointer' }} 
+                />
+              </th>
               <th style={{ padding: '16px 20px', textAlign: 'left', fontSize: '13px', fontWeight: '600', color: theme.textSecondary, textTransform: 'uppercase' }}>Date</th>
               <th style={{ padding: '16px 20px', textAlign: 'left', fontSize: '13px', fontWeight: '600', color: theme.textSecondary, textTransform: 'uppercase' }}>Description</th>
               <th style={{ padding: '16px 20px', textAlign: 'left', fontSize: '13px', fontWeight: '600', color: theme.textSecondary, textTransform: 'uppercase' }}>Category</th>
               <th style={{ padding: '16px 20px', textAlign: 'right', fontSize: '13px', fontWeight: '600', color: theme.textSecondary, textTransform: 'uppercase' }}>Amount</th>
               <th style={{ padding: '16px 20px', textAlign: 'center', fontSize: '13px', fontWeight: '600', color: theme.textSecondary, textTransform: 'uppercase' }}>Status</th>
+              <th style={{ padding: '16px 20px', textAlign: 'center', fontSize: '13px', fontWeight: '600', color: theme.textSecondary, textTransform: 'uppercase' }}>Account</th>
             </tr>
           </thead>
           <tbody>
             {transactions.length === 0 ? (
               <tr>
-                <td colSpan="5" style={{ padding: '80px 20px', textAlign: 'center', color: theme.textMuted }}>
+                <td colSpan="7" style={{ padding: '80px 20px', textAlign: 'center', color: theme.textMuted }}>
                   <div style={{ 
                     width: '64px', height: '64px', borderRadius: '16px', 
                     background: `linear-gradient(135deg, ${theme.primary}10, ${theme.primary}20)`,
@@ -6729,19 +6932,43 @@ function TransactionsTabDS({ transactions, onNavigateToImport, theme, lastImport
                 </td>
               </tr>
             ) : (
-              transactions.slice(0, 10).map((t, i) => (
-                <tr key={i} style={{ borderBottom: `1px solid ${theme.borderLight}` }}>
-                  <td style={{ padding: '16px 20px', fontSize: '14px', color: theme.textPrimary }}>{t.date}</td>
-                  <td style={{ padding: '16px 20px', fontSize: '14px', color: theme.textPrimary }}>{t.description.slice(0, 40)}...</td>
-                  <td style={{ padding: '16px 20px', fontSize: '14px', color: theme.textSecondary }}>{t.category}</td>
-                  <td style={{ padding: '16px 20px', fontSize: '14px', fontWeight: '600', color: parseFloat(t.amount) > 0 ? theme.success : theme.danger, textAlign: 'right' }}>
-                    {parseFloat(t.amount) > 0 ? '+' : ''}{formatCurrency(t.amount)}
-                  </td>
-                  <td style={{ padding: '16px 20px', textAlign: 'center' }}>
-                    {getStatusBadge(t.status)}
-                  </td>
-                </tr>
-              ))
+              transactions.slice(0, 10).map((t, i) => {
+                const isSideHustle = t.accountType === 'sidehustle';
+                const acctStyle = isSideHustle 
+                  ? { bg: '#FEE2E2', color: '#DC2626', icon: '💼', label: accountLabels?.sidehustle || 'Side Hustle' }
+                  : { bg: '#DBEAFE', color: '#2563EB', icon: '👤', label: accountLabels?.personal || 'Personal' };
+                return (
+                  <tr key={i} style={{ borderBottom: `1px solid ${theme.borderLight}` }}>
+                    <td style={{ padding: '16px 20px' }}>
+                      <input 
+                        type="checkbox" 
+                        checked={selectedTxns.includes(i)}
+                        onChange={(e) => setSelectedTxns(e.target.checked ? [...selectedTxns, i] : selectedTxns.filter(x => x !== i))}
+                        style={{ cursor: 'pointer' }} 
+                      />
+                    </td>
+                    <td style={{ padding: '16px 20px', fontSize: '14px', color: theme.textPrimary }}>{t.date}</td>
+                    <td style={{ padding: '16px 20px', fontSize: '14px', color: theme.textPrimary }}>{t.description.slice(0, 40)}...</td>
+                    <td style={{ padding: '16px 20px', fontSize: '14px', color: theme.textSecondary }}>{t.category}</td>
+                    <td style={{ padding: '16px 20px', fontSize: '14px', fontWeight: '600', color: parseFloat(t.amount) > 0 ? theme.success : theme.danger, textAlign: 'right' }}>
+                      {parseFloat(t.amount) > 0 ? '+' : ''}{formatCurrency(t.amount)}
+                    </td>
+                    <td style={{ padding: '16px 20px', textAlign: 'center' }}>
+                      {getStatusBadge(t.status)}
+                    </td>
+                    <td style={{ padding: '16px 20px', textAlign: 'center' }}>
+                      <span style={{ 
+                        display: 'inline-flex', alignItems: 'center', gap: '6px',
+                        padding: '4px 12px', borderRadius: '20px', 
+                        background: acctStyle.bg, color: acctStyle.color, 
+                        fontSize: '12px', fontWeight: '500'
+                      }}>
+                        {acctStyle.icon} {acctStyle.label}
+                      </span>
+                    </td>
+                  </tr>
+                );
+              })
             )}
           </tbody>
         </table>
