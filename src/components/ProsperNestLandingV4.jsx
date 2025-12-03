@@ -2083,16 +2083,15 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
             color: colors.label
           }}>
             Your money.<br/>Your hustle.<br/>
-            <span style={{ 
-              display: 'inline-block',
-              background: isDarkMode 
-                ? 'linear-gradient(135deg, #EC4899 0%, #A78BFA 100%)' 
-                : 'linear-gradient(135deg, #3B82F6 0%, #8B5CF6 100%)', 
-              WebkitBackgroundClip: 'text', 
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text',
-              color: 'transparent'
-            }}>One nest.</span>
+            <span 
+              key={isDarkMode ? 'dark' : 'light'}
+              style={{ 
+                background: isDarkMode 
+                  ? 'linear-gradient(135deg, #EC4899 0%, #A78BFA 100%)' 
+                  : 'linear-gradient(135deg, #3B82F6 0%, #8B5CF6 100%)', 
+                WebkitBackgroundClip: 'text', 
+                WebkitTextFillColor: 'transparent'
+              }}>One nest.</span>
           </h1>
           <p style={{ 
             fontSize: isMobile ? 'clamp(13px, 4vw, 16px)' : 'clamp(14px, 3vw, 22px)', 
