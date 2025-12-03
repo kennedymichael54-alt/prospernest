@@ -12,6 +12,8 @@ import ReportsTab from './components/ReportsTab';
 import RetirementTab from './components/RetirementTab';
 import SalesTrackerTab from './components/SalesTrackerTab';
 import ProsperNestLandingV4 from './components/ProsperNestLandingV4';
+// Default data - baked in from real bank/retirement imports
+import { DEFAULT_TRANSACTIONS, DEFAULT_RETIREMENT_DATA } from './data/defaultData';
 // ============================================================================
 // PROSPERNEST - DASHSTACK UI DESIGN
 // ============================================================================
@@ -999,7 +1001,7 @@ function App() {
   const [view, setView] = useState('landing');
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [transactions, setTransactions] = useState([]);
+  const [transactions, setTransactions] = useState(DEFAULT_TRANSACTIONS || []);
   const [bills, setBills] = useState([]);
   const [goals, setGoals] = useState([]);
   const [tasks, setTasks] = useState([]);
@@ -1020,8 +1022,8 @@ function App() {
   });
   const [lastImportDate, setLastImportDate] = useState(() => {
     try {
-      return localStorage.getItem('pn_lastImportDate') || null;
-    } catch { return null; }
+      return localStorage.getItem('pn_lastImportDate') || '2025-12-03'; // Default to Dec 3, 2025 (baked-in data import date)
+    } catch { return '2025-12-03'; }
   });
 
   // Load user data - tries DB first, falls back to localStorage
@@ -1174,7 +1176,13 @@ function App() {
       const savedTasks = localStorage.getItem('pn_tasks');
       const savedImportDate = localStorage.getItem(`pn_lastImport_${userId}`);
       
-      if (savedTransactions) setTransactions(JSON.parse(savedTransactions));
+      // Use saved data if available, otherwise fall back to DEFAULT_TRANSACTIONS
+      if (savedTransactions) {
+        setTransactions(JSON.parse(savedTransactions));
+      } else if (DEFAULT_TRANSACTIONS?.length) {
+        console.log('📊 [Data] Using baked-in default transactions:', DEFAULT_TRANSACTIONS.length);
+        setTransactions(DEFAULT_TRANSACTIONS);
+      }
       if (savedBills) setBills(JSON.parse(savedBills));
       if (savedGoals) setGoals(JSON.parse(savedGoals));
       if (savedTasks) setTasks(JSON.parse(savedTasks));
@@ -1183,6 +1191,11 @@ function App() {
       console.log('✅ [Data] Loaded remaining data from localStorage');
     } catch (e) {
       console.error('❌ [Data] localStorage load error:', e);
+      // Ultimate fallback - use baked-in default data
+      if (DEFAULT_TRANSACTIONS?.length) {
+        console.log('📊 [Data] Error recovery - using default transactions');
+        setTransactions(DEFAULT_TRANSACTIONS);
+      }
     }
   };
 
@@ -2880,7 +2893,7 @@ function Dashboard({
       case 'tasks':
         return <GradientSection tab="tasks"><TasksTab tasks={tasks || []} onUpdateTasks={onUpdateTasks} theme={theme} lastImportDate={lastImportDate} /></GradientSection>;
       case 'retirement':
-        return <GradientSection tab="retirement"><RetirementTab theme={theme} lastImportDate={lastImportDate} /></GradientSection>;
+        return <GradientSection tab="retirement"><RetirementTab theme={theme} lastImportDate={lastImportDate} retirementData={DEFAULT_RETIREMENT_DATA} /></GradientSection>;
       case 'reports':
         return <GradientSection tab="reports"><ReportsTab transactions={transactions} onNavigateToImport={() => setActiveTab('import')} theme={theme} lastImportDate={lastImportDate} /></GradientSection>;
       case 'settings':
@@ -5000,10 +5013,10 @@ function DashboardHome({ transactions, goals, bills = [], tasks = [], theme, las
   const recentTransactions = [...activeTransactions].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 5);
 
   const upcomingBills = bills.length > 0 ? bills.slice(0, 4) : [
-    { name: 'Netflix', amount: 17.99, dueDate: '2025-12-05', icon: '🎬' },
-    { name: 'Claude AI', amount: 20.00, dueDate: '2025-12-15', icon: '🤖' },
-    { name: 'Apple Music', amount: 10.99, dueDate: '2025-12-20', icon: '🎵' },
-    { name: 'Electric Bill', amount: 125.00, dueDate: '2025-12-28', icon: '⚡' }
+    { name: 'Netflix', amount: 17.99, dueDate: '2025-12-20', icon: '🎬' },
+    { name: 'Claude AI Pro', amount: 20.00, dueDate: '2025-12-24', icon: '🤖' },
+    { name: 'Apple Services', amount: 16.99, dueDate: '2025-12-25', icon: '🍎' },
+    { name: 'Amazon Prime', amount: 14.99, dueDate: '2025-12-21', icon: '📦' }
   ];
 
   const displayGoals = goals.length > 0 ? goals.slice(0, 3) : [
