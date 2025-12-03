@@ -695,6 +695,92 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
   const DeviceMockups = () => (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '24px' }}>
       <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'center', gap: '32px', flexWrap: 'wrap', padding: '30px 0' }}>
+        {/* Coffee Cup - Lifestyle element */}
+        <div style={{ 
+          position: 'relative', 
+          marginRight: '-20px',
+          marginBottom: '20px',
+          zIndex: 2
+        }}>
+          {/* Cup body */}
+          <div style={{
+            width: '65px',
+            height: '75px',
+            background: 'linear-gradient(135deg, #F5F5F5 0%, #E8E8E8 100%)',
+            borderRadius: '4px 4px 12px 12px',
+            position: 'relative',
+            boxShadow: '0 8px 24px rgba(0,0,0,0.15)'
+          }}>
+            {/* Coffee sleeve */}
+            <div style={{
+              position: 'absolute',
+              top: '15px',
+              left: '5px',
+              right: '5px',
+              height: '35px',
+              background: 'linear-gradient(180deg, #D4956A 0%, #C4834A 100%)',
+              borderRadius: '2px',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center',
+              gap: '3px',
+              padding: '0 6px'
+            }}>
+              {/* Sleeve lines */}
+              {[...Array(6)].map((_, i) => (
+                <div key={i} style={{
+                  height: '2px',
+                  background: 'rgba(139, 92, 60, 0.4)',
+                  borderRadius: '1px'
+                }} />
+              ))}
+            </div>
+            {/* Cup lid */}
+            <div style={{
+              position: 'absolute',
+              top: '-8px',
+              left: '-3px',
+              right: '-3px',
+              height: '12px',
+              background: 'linear-gradient(180deg, #FFFFFF 0%, #E0E0E0 100%)',
+              borderRadius: '4px 4px 2px 2px',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+            }}>
+              {/* Lid opening */}
+              <div style={{
+                position: 'absolute',
+                top: '3px',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                width: '20px',
+                height: '5px',
+                background: '#8B5CF6',
+                borderRadius: '2px'
+              }} />
+            </div>
+          </div>
+          {/* Steam animation */}
+          <div style={{
+            position: 'absolute',
+            top: '-20px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            display: 'flex',
+            gap: '4px'
+          }}>
+            {[0, 1, 2].map((i) => (
+              <div key={i} style={{
+                width: '2px',
+                height: '12px',
+                background: 'rgba(200,200,200,0.5)',
+                borderRadius: '2px',
+                animation: `float ${2 + i * 0.3}s ease-in-out infinite`,
+                animationDelay: `${i * 0.2}s`
+              }} />
+            ))}
+          </div>
+        </div>
+
         {/* MacBook Pro 2024 - Thin bezels, notch design, silver aluminum */}
         <div className="hover-lift" style={{ position: 'relative', cursor: 'pointer', transition: 'transform 0.3s ease, box-shadow 0.3s ease' }}>
           {/* Screen bezel - very thin like M3 MacBook */}
