@@ -3734,49 +3734,49 @@ function Dashboard({
                 }}>
                   <span style={{ 
                     background: 'linear-gradient(135deg, #F59E0B, #D97706)', 
-                    padding: '2px 8px', 
-                    borderRadius: '6px', 
-                    fontSize: '9px', 
+                    padding: '1px 5px', 
+                    borderRadius: '4px', 
+                    fontSize: '8px', 
                     fontWeight: '700', 
                     color: 'white',
                     textTransform: 'uppercase',
-                    letterSpacing: '0.5px'
+                    letterSpacing: '0.3px'
                   }}>Beta</span>
                   {/* Role Badge for Admin/Tester */}
                   {userRole === USER_ROLES.ADMIN && (
                     <span style={{ 
                       background: 'linear-gradient(135deg, #8B5CF6, #7C3AED)', 
-                      padding: '2px 8px', 
-                      borderRadius: '6px', 
-                      fontSize: '9px', 
+                      padding: '1px 5px', 
+                      borderRadius: '4px', 
+                      fontSize: '8px', 
                       fontWeight: '700', 
                       color: 'white',
                       textTransform: 'uppercase',
-                      letterSpacing: '0.5px'
+                      letterSpacing: '0.3px'
                     }}>Admin</span>
                   )}
                   {userRole === USER_ROLES.TESTER && (
                     <span style={{ 
                       background: 'linear-gradient(135deg, #EF4444, #DC2626)', 
-                      padding: '2px 8px', 
-                      borderRadius: '6px', 
-                      fontSize: '9px', 
+                      padding: '1px 5px', 
+                      borderRadius: '4px', 
+                      fontSize: '8px', 
                       fontWeight: '700', 
                       color: 'white',
                       textTransform: 'uppercase',
-                      letterSpacing: '0.5px'
+                      letterSpacing: '0.3px'
                     }}>Tester</span>
                   )}
                   {userRole === USER_ROLES.OWNER && (
                     <span style={{ 
                       background: 'linear-gradient(135deg, #10B981, #059669)', 
-                      padding: '2px 8px', 
-                      borderRadius: '6px', 
-                      fontSize: '9px', 
+                      padding: '1px 5px', 
+                      borderRadius: '4px', 
+                      fontSize: '8px', 
                       fontWeight: '700', 
                       color: 'white',
                       textTransform: 'uppercase',
-                      letterSpacing: '0.5px'
+                      letterSpacing: '0.3px'
                     }}>Owner</span>
                   )}
                   <SiteStatusIndicator showLabel={false} darkMode={true} />
@@ -4314,9 +4314,6 @@ function Dashboard({
             )
           ))}
         </nav>
-
-        {/* Spacer for better logout visibility */}
-        <div style={{ height: '48px' }} />
 
         {/* Logout Button - Dark Sidebar Style */}
         <div style={{ 
