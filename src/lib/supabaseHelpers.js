@@ -82,12 +82,13 @@ export const updateUserSettings = async (userId, settings) => {
 // TRANSACTION HELPERS
 // ============================================================================
 
-export const getTransactions = async (userId, options = {}) => {
-  let query = supabase
+export const getTransactions = async (userId) => {
+  const { data, error } = await supabase
     .from('transactions')
     .select('*')
     .eq('user_id', userId)
-    .order('date', { ascending: false });
+    .order('date', { ascending: false })
+    .limit(10000);
   
   // Optional filters
   if (options.startDate) {
