@@ -3897,115 +3897,8 @@ function DashboardHome({ transactions, goals, bills = [], tasks = [], theme, las
   const [txnSearchQuery, setTxnSearchQuery] = useState('');
   const [txnStatusFilter, setTxnStatusFilter] = useState('');
   
-  // Draggable dashboard sections
-  const [sectionOrder, setSectionOrder] = useState(() => {
-    try {
-      const saved = localStorage.getItem('pn_dashboard_layout');
-      return saved ? JSON.parse(saved) : ['stats', 'charts', 'budget', 'transactions'];
-    } catch {
-      return ['stats', 'charts', 'budget', 'transactions'];
-    }
-  });
-  const [draggedSection, setDraggedSection] = useState(null);
-  const [dragOverSection, setDragOverSection] = useState(null);
+  // Edit mode state for dashboard customization (feature preview)
   const [isEditMode, setIsEditMode] = useState(false);
-  
-  // Save layout to localStorage
-  const saveLayout = (newOrder) => {
-    setSectionOrder(newOrder);
-    localStorage.setItem('pn_dashboard_layout', JSON.stringify(newOrder));
-  };
-  
-  // Drag handlers
-  const handleDragStart = (e, sectionId) => {
-    if (!isEditMode) return;
-    setDraggedSection(sectionId);
-    e.dataTransfer.effectAllowed = 'move';
-  };
-  
-  const handleDragOver = (e, sectionId) => {
-    e.preventDefault();
-    if (!isEditMode || !draggedSection || draggedSection === sectionId) return;
-    setDragOverSection(sectionId);
-  };
-  
-  const handleDragLeave = () => {
-    setDragOverSection(null);
-  };
-  
-  const handleDrop = (e, targetSectionId) => {
-    e.preventDefault();
-    if (!draggedSection || draggedSection === targetSectionId) {
-      setDraggedSection(null);
-      setDragOverSection(null);
-      return;
-    }
-    
-    const newOrder = [...sectionOrder];
-    const draggedIndex = newOrder.indexOf(draggedSection);
-    const targetIndex = newOrder.indexOf(targetSectionId);
-    
-    // Remove dragged item and insert at target position
-    newOrder.splice(draggedIndex, 1);
-    newOrder.splice(targetIndex, 0, draggedSection);
-    
-    saveLayout(newOrder);
-    setDraggedSection(null);
-    setDragOverSection(null);
-  };
-  
-  const handleDragEnd = () => {
-    setDraggedSection(null);
-    setDragOverSection(null);
-  };
-  
-  // Draggable section wrapper
-  const DraggableSection = ({ id, children }) => (
-    <div
-      draggable={isEditMode}
-      onDragStart={(e) => handleDragStart(e, id)}
-      onDragOver={(e) => handleDragOver(e, id)}
-      onDragLeave={handleDragLeave}
-      onDrop={(e) => handleDrop(e, id)}
-      onDragEnd={handleDragEnd}
-      style={{
-        position: 'relative',
-        cursor: isEditMode ? 'grab' : 'default',
-        opacity: draggedSection === id ? 0.5 : 1,
-        transition: 'all 0.2s ease',
-        border: dragOverSection === id ? `2px dashed ${theme.primary}` : '2px dashed transparent',
-        borderRadius: '20px',
-        padding: dragOverSection === id ? '4px' : '0',
-        marginBottom: '24px'
-      }}
-    >
-      {isEditMode && (
-        <div style={{
-          position: 'absolute',
-          top: '-12px',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          background: theme.primary,
-          color: 'white',
-          padding: '4px 12px',
-          borderRadius: '12px',
-          fontSize: '11px',
-          fontWeight: '600',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '6px',
-          zIndex: 10,
-          boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
-        }}>
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M12 5v14M5 12h14" />
-          </svg>
-          Drag to reorder
-        </div>
-      )}
-      {children}
-    </div>
-  );
 
   // Filter transactions by account type
   const personalTransactions = transactions.filter(t => t.accountType !== 'sidehustle');
@@ -4458,14 +4351,8 @@ function DashboardHome({ transactions, goals, bills = [], tasks = [], theme, las
         </div>
       )}
 
-      {/* Render sections in order */}
-      {sectionOrder.map(sectionId => {
-        switch(sectionId) {
-          case 'stats':
-            return (
-              <DraggableSection key="stats" id="stats">
-                {/* Top Stats Row - OrbitNest Style (Image 1) */}
-                <div className="stat-grid-4" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px' }}>
+      {/* Top Stats Row - OrbitNest Style (Image 1) */}
+      <div className="stat-grid-4" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px', marginBottom: '24px' }}>
         {/* Income Card */}
         <div style={{ background: theme.bgCard, borderRadius: '16px', padding: '20px', boxShadow: theme.cardShadow, border: `1px solid ${theme.borderLight}` }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
