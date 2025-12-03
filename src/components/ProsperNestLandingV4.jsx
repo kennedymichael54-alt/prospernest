@@ -2115,11 +2115,11 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
                 subtitle: 'Personal & Family Finance',
                 desc: 'Master your household finances with intelligent budgeting tools designed for modern families.',
                 features: ['Smart Budget Tracking', 'Bill Reminders', 'Savings Goals', 'Family Sharing'],
-                gradient: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
-                lightGradient: 'linear-gradient(135deg, rgba(16,185,129,0.15) 0%, rgba(5,150,105,0.08) 100%)',
-                color: '#10B981',
+                gradient: 'linear-gradient(135deg, #EC4899 0%, #DB2777 100%)',
+                lightGradient: 'linear-gradient(135deg, rgba(236,72,153,0.15) 0%, rgba(219,39,119,0.08) 100%)',
+                color: '#EC4899',
                 badge: 'Most Popular',
-                badgeColor: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
+                badgeColor: 'linear-gradient(135deg, #EC4899 0%, #DB2777 100%)',
                 available: true 
               },
               { 
@@ -2128,11 +2128,11 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
                 subtitle: 'Side Hustle & 1099 Income',
                 desc: 'Separate business from personal. Track 1099 income, expenses, and maximize your deductions.',
                 features: ['Income Tracking', 'Expense Categories', 'Tax Deductions', 'Profit Reports'],
-                gradient: 'linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)',
-                lightGradient: 'linear-gradient(135deg, rgba(59,130,246,0.15) 0%, rgba(37,99,235,0.08) 100%)',
-                color: '#3B82F6',
+                gradient: 'linear-gradient(135deg, #A78BFA 0%, #8B5CF6 100%)',
+                lightGradient: 'linear-gradient(135deg, rgba(167,139,250,0.15) 0%, rgba(139,92,246,0.08) 100%)',
+                color: '#A78BFA',
                 badge: 'Coming Soon',
-                badgeColor: 'linear-gradient(135deg, #6B7280 0%, #4B5563 100%)',
+                badgeColor: 'linear-gradient(135deg, #A78BFA 0%, #8B5CF6 100%)',
                 available: false 
               },
               { 
@@ -2141,11 +2141,11 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
                 subtitle: 'Real Estate & Rentals',
                 desc: 'Manage properties, track rental income, and monitor your real estate portfolio growth.',
                 features: ['Property Management', 'Rental Income', 'Expense Tracking', 'ROI Analysis'],
-                gradient: 'linear-gradient(135deg, #7C3AED 0%, #6D28D9 100%)',
-                lightGradient: 'linear-gradient(135deg, rgba(124,58,237,0.15) 0%, rgba(109,40,217,0.08) 100%)',
-                color: '#7C3AED',
+                gradient: 'linear-gradient(135deg, #818CF8 0%, #6366F1 100%)',
+                lightGradient: 'linear-gradient(135deg, rgba(129,140,248,0.15) 0%, rgba(99,102,241,0.08) 100%)',
+                color: '#818CF8',
                 badge: 'Coming Soon',
-                badgeColor: 'linear-gradient(135deg, #6B7280 0%, #4B5563 100%)',
+                badgeColor: 'linear-gradient(135deg, #818CF8 0%, #6366F1 100%)',
                 available: false 
               }
             ].map((hub, i) => (
@@ -2322,13 +2322,13 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
             <button onClick={() => scrollToSection('features')} className="apple-button"
               style={{ 
                 padding: isMobile ? '14px 28px' : '16px 36px', 
-                background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)', 
+                background: 'linear-gradient(135deg, #EC4899 0%, #DB2777 100%)', 
                 border: 'none', 
                 borderRadius: '14px', 
                 color: '#FFF', 
                 fontSize: '16px', 
                 fontWeight: '600',
-                boxShadow: '0 8px 24px rgba(16,185,129,0.3)'
+                boxShadow: '0 8px 24px rgba(236,72,153,0.3)'
               }}>
               Explore All Features →
             </button>
