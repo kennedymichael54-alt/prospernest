@@ -1806,20 +1806,7 @@ function App() {
       parseCSV={parseCSV}
     />
   );
-  return (
-    <>
-      {/* Site Status Indicator - Floating on landing page */}
-      <div style={{
-        position: 'fixed',
-        top: '20px',
-        left: '180px',
-        zIndex: 1000
-      }}>
-        <SiteStatusIndicator showLabel={true} darkMode={true} />
-      </div>
-      <ProsperNestLandingV4 onNavigate={setView} />
-    </>
-  );
+  return <ProsperNestLandingV4 onNavigate={setView} />;
 }
 // ============================================================================
 // LANDING PAGE - PROSPERNEST
