@@ -15,7 +15,7 @@ import ProsperNestLandingV4 from './components/ProsperNestLandingV4';
 // ============================================================================
 // PROSPERNEST - DASHSTACK UI DESIGN
 // ============================================================================
-// Theme colors - Light Mode (Modern Fintech - Warm & Premium)
+// Theme colors - Light Mode (Modern Fintech - Rich Purple Sidebar)
 const lightTheme = {
   mode: 'light',
   primary: '#6366F1', // Softer indigo
@@ -40,12 +40,14 @@ const lightTheme = {
   border: '#E2E8F0', // Slate 200
   borderLight: '#F1F5F9', // Slate 100
   
-  // Premium sidebar styling
-  sidebarBg: 'linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 50%, #F1F5F9 100%)',
-  sidebarActive: 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)',
-  sidebarText: '#64748B',
+  // Rich purple/pink sidebar styling
+  sidebarBg: 'linear-gradient(180deg, #1E1B4B 0%, #312E81 40%, #3730A3 70%, #4338CA 100%)',
+  sidebarActive: 'linear-gradient(135deg, #EC4899 0%, #F472B6 100%)',
+  sidebarText: 'rgba(255, 255, 255, 0.7)',
   sidebarActiveText: '#FFFFFF',
-  sidebarGlow: 'rgba(99, 102, 241, 0.15)',
+  sidebarGlow: 'rgba(236, 72, 153, 0.3)',
+  sidebarAccent: '#A78BFA', // Light purple for accents
+  sidebarMuted: 'rgba(255, 255, 255, 0.4)',
   
   // Header styling
   headerBg: 'linear-gradient(90deg, #FFFFFF 0%, #FAFBFF 50%, #FFFFFF 100%)',
@@ -58,7 +60,7 @@ const lightTheme = {
   
   // Accent gradients for cards/elements
   accentGradient1: 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)', // Purple
-  accentGradient2: 'linear-gradient(135deg, #10B981 0%, #059669 100%)', // Green
+  accentGradient2: 'linear-gradient(135deg, #EC4899 0%, #F472B6 100%)', // Pink (changed from green)
   accentGradient3: 'linear-gradient(135deg, #0EA5E9 0%, #0284C7 100%)', // Blue
   accentGradient4: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)', // Amber
   
@@ -2464,6 +2466,7 @@ function Dashboard({
   const [subscriptionLoading, setSubscriptionLoading] = useState(true);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [expandedHubs, setExpandedHubs] = useState({ homebudget: true }); // HomeBudget expanded by default
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false); // Sidebar collapse state
   
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -2710,7 +2713,7 @@ function Dashboard({
       label: 'HomeBudget Hub',
       subtitle: 'Personal & Family Finance',
       icon: Icons.HomeBudgetHub,
-      color: '#10B981', // Green
+      color: '#EC4899', // Pink/Fuchsia - matches sidebar
       status: 'active', // 'active', 'coming_soon', 'locked'
       items: [
         { id: 'home', label: 'Dashboard', icon: Icons.Dashboard },
@@ -2729,7 +2732,7 @@ function Dashboard({
       label: 'BizBudget Hub',
       subtitle: 'Side Hustle & 1099 Income',
       icon: Icons.BizBudgetHub,
-      color: '#8B5CF6', // Purple
+      color: '#A78BFA', // Light Purple
       status: 'coming_soon',
       items: []
     },
@@ -2738,7 +2741,7 @@ function Dashboard({
       label: 'REBudget Hub',
       subtitle: 'Real Estate & Rentals',
       icon: Icons.REBudgetHub,
-      color: '#3B82F6', // Blue
+      color: '#818CF8', // Indigo
       status: 'coming_soon',
       items: []
     }
@@ -3089,106 +3092,180 @@ function Dashboard({
           background: transparent;
         }
         .sidebar-nav::-webkit-scrollbar-thumb {
-          background: rgba(99, 102, 241, 0.2);
+          background: rgba(255, 255, 255, 0.2);
           border-radius: 4px;
+        }
+        
+        /* Sidebar transition */
+        .dashboard-sidebar {
+          transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        /* Collapse button hover */
+        .collapse-btn:hover {
+          background: rgba(255, 255, 255, 0.15) !important;
+          transform: scale(1.05);
         }
       `}</style>
 
-      {/* Sidebar - Premium Gradient */}
+      {/* Sidebar - Rich Purple Gradient (Light Mode) / Dark (Dark Mode) */}
       <aside 
-        className={`dashboard-sidebar ${mobileMenuOpen ? 'open' : ''}`}
+        className={`dashboard-sidebar ${mobileMenuOpen ? 'open' : ''} ${sidebarCollapsed ? 'collapsed' : ''}`}
         style={{
-        width: '260px',
+        width: sidebarCollapsed ? '80px' : '260px',
         background: theme.sidebarBg,
-        borderRight: `1px solid ${theme.headerBorder || theme.border}`,
+        borderRight: theme.mode === 'light' ? 'none' : `1px solid ${theme.border}`,
         display: 'flex',
         flexDirection: 'column',
         position: 'fixed',
         height: '100vh',
         zIndex: 100,
         boxShadow: theme.mode === 'light' 
-          ? '4px 0 24px rgba(99, 102, 241, 0.04)' 
-          : '4px 0 24px rgba(0, 0, 0, 0.3)'
+          ? '4px 0 32px rgba(30, 27, 75, 0.3)' 
+          : '4px 0 24px rgba(0, 0, 0, 0.3)',
+        transition: 'width 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
       }}>
-        {/* Logo - Premium styling */}
-        <div 
-          onClick={() => setActiveTab('home')}
-          style={{ 
-            padding: '24px', 
-            borderBottom: `1px solid ${theme.mode === 'light' ? 'rgba(99, 102, 241, 0.08)' : theme.borderLight}`, 
-            cursor: 'pointer',
-            background: theme.mode === 'light' 
-              ? 'linear-gradient(180deg, #FFFFFF 0%, rgba(99, 102, 241, 0.02) 100%)'
-              : 'transparent'
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        {/* Logo Area with Collapse Button */}
+        <div style={{ 
+          padding: sidebarCollapsed ? '20px 16px' : '20px 20px', 
+          borderBottom: `1px solid ${theme.mode === 'light' ? 'rgba(255, 255, 255, 0.1)' : theme.borderLight}`, 
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: sidebarCollapsed ? 'center' : 'space-between',
+          minHeight: '80px'
+        }}>
+          {/* Logo */}
+          <div 
+            onClick={() => setActiveTab('home')}
+            style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '12px',
+              cursor: 'pointer',
+              overflow: 'hidden'
+            }}
+          >
             <div style={{
               width: '42px',
               height: '42px',
+              minWidth: '42px',
               borderRadius: '12px',
-              background: 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)',
+              background: 'linear-gradient(135deg, #EC4899 0%, #F472B6 100%)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              boxShadow: '0 4px 12px rgba(99, 102, 241, 0.3)'
+              boxShadow: '0 4px 16px rgba(236, 72, 153, 0.4)'
             }}>
               <PennyLogo size={28} />
             </div>
-            <div>
-              <span style={{ fontWeight: '700', fontSize: '18px', color: theme.textPrimary, letterSpacing: '-0.3px' }}>
-                Prosper<span style={{ 
-                  background: 'linear-gradient(135deg, #6366F1, #8B5CF6)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent'
-                }}>Nest</span>
-              </span>
-              <div style={{
+            {!sidebarCollapsed && (
+              <div>
+                <span style={{ 
+                  fontWeight: '700', 
+                  fontSize: '18px', 
+                  color: '#FFFFFF', 
+                  letterSpacing: '-0.3px' 
+                }}>
+                  Prosper<span style={{ 
+                    color: '#F472B6'
+                  }}>Nest</span>
+                </span>
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  marginTop: '2px'
+                }}>
+                  <span style={{ 
+                    background: 'linear-gradient(135deg, #F59E0B, #D97706)', 
+                    padding: '2px 8px', 
+                    borderRadius: '6px', 
+                    fontSize: '9px', 
+                    fontWeight: '700', 
+                    color: 'white',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px'
+                  }}>Beta</span>
+                </div>
+              </div>
+            )}
+          </div>
+          
+          {/* Collapse Toggle Button */}
+          {!sidebarCollapsed && (
+            <button
+              onClick={() => setSidebarCollapsed(true)}
+              className="collapse-btn"
+              style={{
+                width: '32px',
+                height: '32px',
+                borderRadius: '10px',
+                background: 'rgba(255, 255, 255, 0.08)',
+                border: '1px solid rgba(255, 255, 255, 0.12)',
+                cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '6px',
-                marginTop: '2px'
-              }}>
-                <span style={{ 
-                  background: 'linear-gradient(135deg, #F59E0B, #D97706)', 
-                  padding: '2px 8px', 
-                  borderRadius: '6px', 
-                  fontSize: '9px', 
-                  fontWeight: '700', 
-                  color: 'white',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.5px',
-                  boxShadow: '0 2px 6px rgba(245, 158, 11, 0.3)'
-                }}>Beta</span>
-              </div>
-            </div>
-          </div>
+                justifyContent: 'center',
+                color: 'rgba(255, 255, 255, 0.7)',
+                transition: 'all 0.2s ease'
+              }}
+              title="Collapse sidebar"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="11 17 6 12 11 7"/>
+                <polyline points="18 17 13 12 18 7"/>
+              </svg>
+            </button>
+          )}
         </div>
+        
+        {/* Expand Button (when collapsed) */}
+        {sidebarCollapsed && (
+          <div style={{ padding: '12px', display: 'flex', justifyContent: 'center' }}>
+            <button
+              onClick={() => setSidebarCollapsed(false)}
+              className="collapse-btn"
+              style={{
+                width: '44px',
+                height: '44px',
+                borderRadius: '12px',
+                background: 'rgba(255, 255, 255, 0.08)',
+                border: '1px solid rgba(255, 255, 255, 0.12)',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: 'rgba(255, 255, 255, 0.7)',
+                transition: 'all 0.2s ease'
+              }}
+              title="Expand sidebar"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="13 17 18 12 13 7"/>
+                <polyline points="6 17 11 12 6 7"/>
+              </svg>
+            </button>
+          </div>
+        )}
 
         {/* Navigation - Hub Based */}
         <nav className="sidebar-nav" style={{ 
           flex: 1, 
-          padding: '20px 14px', 
+          padding: sidebarCollapsed ? '12px 8px' : '20px 14px', 
           overflowY: 'auto',
-          background: theme.mode === 'light' 
-            ? 'linear-gradient(180deg, rgba(99, 102, 241, 0.01) 0%, transparent 30%, transparent 100%)'
-            : 'transparent'
+          overflowX: 'hidden'
         }}>
           {/* Trial/Subscription Status Banner - Modern Style */}
-          {subscriptionAccess.hasAccess && subscriptionAccess.reason === 'trial' && (
+          {subscriptionAccess.hasAccess && subscriptionAccess.reason === 'trial' && !sidebarCollapsed && (
             <div style={{
-              background: theme.mode === 'light'
-                ? 'linear-gradient(135deg, #FEF3C7 0%, #FDE68A 50%, #FCD34D 100%)'
-                : 'linear-gradient(135deg, rgba(251, 191, 36, 0.2) 0%, rgba(245, 158, 11, 0.15) 100%)',
-              borderRadius: '16px',
+              background: 'linear-gradient(135deg, rgba(251, 191, 36, 0.2) 0%, rgba(245, 158, 11, 0.15) 100%)',
+              borderRadius: '14px',
               padding: '14px',
               marginBottom: '20px',
-              boxShadow: theme.mode === 'light' 
-                ? '0 4px 16px rgba(245, 158, 11, 0.25)'
-                : '0 4px 16px rgba(0, 0, 0, 0.2)',
+              boxShadow: '0 4px 16px rgba(0, 0, 0, 0.2)',
               position: 'relative',
               overflow: 'hidden',
-              border: theme.mode === 'dark' ? '1px solid rgba(251, 191, 36, 0.2)' : 'none'
+              border: '1px solid rgba(251, 191, 36, 0.25)'
             }}>
               {/* Decorative shine effect */}
               <div style={{
@@ -3197,7 +3274,7 @@ function Dashboard({
                 right: 0,
                 width: '100px',
                 height: '100px',
-                background: 'radial-gradient(circle, rgba(255,255,255,0.4) 0%, transparent 70%)',
+                background: 'radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 70%)',
                 borderRadius: '50%',
                 transform: 'translate(30%, -30%)'
               }} />
@@ -3206,14 +3283,14 @@ function Dashboard({
                   width: '28px',
                   height: '28px',
                   borderRadius: '8px',
-                  background: theme.mode === 'light' ? 'rgba(245, 158, 11, 0.3)' : 'rgba(251, 191, 36, 0.3)',
+                  background: 'rgba(251, 191, 36, 0.3)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center'
                 }}>
                   <span style={{ fontSize: '14px' }}>⏱️</span>
                 </div>
-                <span style={{ fontSize: '13px', fontWeight: '700', color: '#92400E' }}>
+                <span style={{ fontSize: '13px', fontWeight: '700', color: '#FBBF24' }}>
                   Trial: {subscriptionAccess.daysLeft} days left
                 </span>
               </div>
@@ -3238,20 +3315,45 @@ function Dashboard({
               </button>
             </div>
           )}
+          
+          {/* Collapsed Trial Indicator */}
+          {subscriptionAccess.hasAccess && subscriptionAccess.reason === 'trial' && sidebarCollapsed && (
+            <div 
+              onClick={() => setShowUpgradeModal(true)}
+              style={{
+                width: '48px',
+                height: '48px',
+                margin: '0 auto 16px',
+                borderRadius: '12px',
+                background: 'linear-gradient(135deg, rgba(251, 191, 36, 0.2) 0%, rgba(245, 158, 11, 0.15) 100%)',
+                border: '1px solid rgba(251, 191, 36, 0.3)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                fontSize: '20px'
+              }}
+              title={`Trial: ${subscriptionAccess.daysLeft} days left`}
+            >
+              ⏱️
+            </div>
+          )}
 
-          <div style={{ 
-            padding: '0 8px 12px', 
-            color: theme.textMuted, 
-            fontSize: '11px', 
-            fontWeight: '700', 
-            textTransform: 'uppercase', 
-            letterSpacing: '1px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px'
-          }}>
-            <span>🎯</span> Your Hubs
-          </div>
+          {!sidebarCollapsed && (
+            <div style={{ 
+              padding: '0 8px 12px', 
+              color: 'rgba(255, 255, 255, 0.5)', 
+              fontSize: '11px', 
+              fontWeight: '700', 
+              textTransform: 'uppercase', 
+              letterSpacing: '1px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px'
+            }}>
+              <span>🎯</span> Your Hubs
+            </div>
+          )}
 
           {/* Hubs Navigation - Modern Cards */}
           {hubs.map(hub => {
@@ -3260,29 +3362,69 @@ function Dashboard({
             const isLocked = hub.status === 'coming_soon' || (!subscriptionAccess.hasAccess && hub.status === 'active');
             const isComingSoon = hub.status === 'coming_soon';
 
-            // Hub-specific gradient backgrounds
+            // Hub-specific gradient backgrounds - adapted for dark sidebar in light mode
+            const isDarkSidebar = theme.mode === 'light'; // Light mode has dark sidebar now
             const hubGradients = {
               homebudget: {
-                active: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
-                hover: 'linear-gradient(135deg, #D1FAE5 0%, #A7F3D0 100%)',
-                glow: 'rgba(16, 185, 129, 0.3)',
-                lightBg: theme.mode === 'dark' ? 'rgba(16, 185, 129, 0.15)' : '#ECFDF5'
+                active: 'linear-gradient(135deg, #EC4899 0%, #F472B6 100%)',
+                hover: 'linear-gradient(135deg, rgba(236, 72, 153, 0.2) 0%, rgba(244, 114, 182, 0.15) 100%)',
+                glow: 'rgba(236, 72, 153, 0.4)',
+                lightBg: isDarkSidebar ? 'rgba(236, 72, 153, 0.15)' : (theme.mode === 'dark' ? 'rgba(236, 72, 153, 0.15)' : '#FDF2F8')
               },
               bizbudget: {
-                active: 'linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%)',
-                hover: 'linear-gradient(135deg, #EDE9FE 0%, #DDD6FE 100%)',
-                glow: 'rgba(139, 92, 246, 0.3)',
-                lightBg: theme.mode === 'dark' ? 'rgba(139, 92, 246, 0.15)' : '#F5F3FF'
+                active: 'linear-gradient(135deg, #A78BFA 0%, #8B5CF6 100%)',
+                hover: 'linear-gradient(135deg, rgba(167, 139, 250, 0.2) 0%, rgba(139, 92, 246, 0.15) 100%)',
+                glow: 'rgba(167, 139, 250, 0.4)',
+                lightBg: isDarkSidebar ? 'rgba(167, 139, 250, 0.15)' : (theme.mode === 'dark' ? 'rgba(139, 92, 246, 0.15)' : '#F5F3FF')
               },
               rebudget: {
-                active: 'linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)',
-                hover: 'linear-gradient(135deg, #DBEAFE 0%, #BFDBFE 100%)',
-                glow: 'rgba(59, 130, 246, 0.3)',
-                lightBg: theme.mode === 'dark' ? 'rgba(59, 130, 246, 0.15)' : '#EFF6FF'
+                active: 'linear-gradient(135deg, #818CF8 0%, #6366F1 100%)',
+                hover: 'linear-gradient(135deg, rgba(129, 140, 248, 0.2) 0%, rgba(99, 102, 241, 0.15) 100%)',
+                glow: 'rgba(129, 140, 248, 0.4)',
+                lightBg: isDarkSidebar ? 'rgba(129, 140, 248, 0.15)' : (theme.mode === 'dark' ? 'rgba(99, 102, 241, 0.15)' : '#EEF2FF')
               }
             };
 
             const gradients = hubGradients[hub.id] || hubGradients.homebudget;
+
+            // Collapsed view - just show icon
+            if (sidebarCollapsed) {
+              return (
+                <div key={hub.id} style={{ marginBottom: '8px', display: 'flex', justifyContent: 'center' }}>
+                  <div
+                    onClick={() => {
+                      if (isComingSoon) return;
+                      if (isLocked && !subscriptionAccess.hasAccess) {
+                        setShowUpgradeModal(true);
+                        return;
+                      }
+                      // If clicking an active hub's icon, just navigate to first item
+                      if (hub.items.length > 0) {
+                        setActiveTab(hub.items[0].id);
+                      }
+                    }}
+                    style={{
+                      width: '48px',
+                      height: '48px',
+                      borderRadius: '14px',
+                      background: isActive ? gradients.active : 'rgba(255, 255, 255, 0.08)',
+                      border: isActive ? `2px solid ${hub.color}` : '1px solid rgba(255, 255, 255, 0.1)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: 'white',
+                      cursor: isComingSoon ? 'not-allowed' : 'pointer',
+                      opacity: isComingSoon ? 0.4 : 1,
+                      boxShadow: isActive ? `0 4px 16px ${gradients.glow}` : 'none',
+                      transition: 'all 0.2s ease'
+                    }}
+                    title={hub.label}
+                  >
+                    <hub.icon />
+                  </div>
+                </div>
+              );
+            }
 
             return (
               <div key={hub.id} style={{ marginBottom: '12px' }}>
@@ -3306,15 +3448,15 @@ function Dashboard({
                     cursor: isComingSoon ? 'not-allowed' : 'pointer',
                     background: isActive 
                       ? gradients.lightBg
-                      : theme.mode === 'dark' ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)',
+                      : 'rgba(255, 255, 255, 0.05)',
                     border: isActive 
                       ? `2px solid ${hub.color}` 
-                      : `1px solid ${theme.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)'}`,
+                      : '1px solid rgba(255, 255, 255, 0.08)',
                     transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                     opacity: isComingSoon ? 0.5 : 1,
                     boxShadow: isActive 
                       ? `0 4px 20px ${gradients.glow}` 
-                      : '0 2px 8px rgba(0,0,0,0.04)',
+                      : '0 2px 8px rgba(0,0,0,0.1)',
                     position: 'relative',
                     overflow: 'hidden'
                   }}
@@ -3337,14 +3479,14 @@ function Dashboard({
                     width: '44px',
                     height: '44px',
                     borderRadius: '14px',
-                    background: isActive || !isComingSoon ? gradients.active : 'linear-gradient(135deg, #9CA3AF, #6B7280)',
+                    background: isActive || !isComingSoon ? gradients.active : 'linear-gradient(135deg, #6B7280, #4B5563)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     color: 'white',
                     boxShadow: isActive 
                       ? `0 6px 20px ${gradients.glow}` 
-                      : '0 4px 12px rgba(0,0,0,0.15)',
+                      : '0 4px 12px rgba(0,0,0,0.25)',
                     flexShrink: 0,
                     transition: 'all 0.3s ease'
                   }}>
@@ -3356,7 +3498,7 @@ function Dashboard({
                     <div style={{ 
                       fontSize: '14px', 
                       fontWeight: '700', 
-                      color: isActive ? hub.color : theme.textPrimary,
+                      color: isActive ? hub.color : 'rgba(255, 255, 255, 0.9)',
                       display: 'flex',
                       alignItems: 'center',
                       gap: '8px',
@@ -3378,14 +3520,14 @@ function Dashboard({
                         </span>
                       )}
                       {isLocked && !isComingSoon && (
-                        <div style={{ color: theme.textMuted }}>
+                        <div style={{ color: 'rgba(255, 255, 255, 0.4)' }}>
                           <Icons.Lock />
                         </div>
                       )}
                     </div>
                     <div style={{ 
                       fontSize: '11px', 
-                      color: theme.textMuted, 
+                      color: 'rgba(255, 255, 255, 0.5)', 
                       fontWeight: '500'
                     }}>
                       {hub.subtitle}
@@ -3398,13 +3540,13 @@ function Dashboard({
                       width: '28px',
                       height: '28px',
                       borderRadius: '8px',
-                      background: isExpanded ? `${hub.color}15` : 'transparent',
+                      background: isExpanded ? 'rgba(255, 255, 255, 0.1)' : 'transparent',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                       transform: isExpanded ? 'rotate(90deg)' : 'rotate(0deg)',
                       transition: 'all 0.3s ease',
-                      color: isExpanded ? hub.color : theme.textMuted
+                      color: isExpanded ? hub.color : 'rgba(255, 255, 255, 0.5)'
                     }}>
                       <Icons.ChevronRight />
                     </div>
@@ -3417,9 +3559,9 @@ function Dashboard({
                     marginTop: '8px',
                     marginLeft: '8px',
                     padding: '8px',
-                    background: theme.mode === 'dark' ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.015)',
+                    background: 'rgba(255, 255, 255, 0.03)',
                     borderRadius: '14px',
-                    border: `1px solid ${theme.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)'}`,
+                    border: '1px solid rgba(255, 255, 255, 0.06)',
                   }}>
                     {hub.items.map((item, index) => (
                       <div
@@ -3432,7 +3574,7 @@ function Dashboard({
                           padding: '11px 14px',
                           borderRadius: '10px',
                           cursor: 'pointer',
-                          color: activeTab === item.id ? 'white' : theme.sidebarText,
+                          color: activeTab === item.id ? 'white' : 'rgba(255, 255, 255, 0.7)',
                           background: activeTab === item.id 
                             ? gradients.active
                             : 'transparent',
@@ -3451,7 +3593,7 @@ function Dashboard({
                           borderRadius: '8px',
                           background: activeTab === item.id 
                             ? 'rgba(255,255,255,0.2)' 
-                            : theme.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)',
+                            : 'rgba(255, 255, 255, 0.06)',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
@@ -3468,107 +3610,161 @@ function Dashboard({
             );
           })}
 
-          <div style={{ 
-            padding: '20px 8px 12px', 
-            color: theme.textMuted, 
-            fontSize: '11px', 
-            fontWeight: '700', 
-            textTransform: 'uppercase', 
-            letterSpacing: '1px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px'
-          }}>
-            <span>⚙️</span> Settings
-          </div>
+          {!sidebarCollapsed && (
+            <div style={{ 
+              padding: '20px 8px 12px', 
+              color: 'rgba(255, 255, 255, 0.5)', 
+              fontSize: '11px', 
+              fontWeight: '700', 
+              textTransform: 'uppercase', 
+              letterSpacing: '1px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px'
+            }}>
+              <span>⚙️</span> Settings
+            </div>
+          )}
 
           {bottomNavItems.map(item => (
+            sidebarCollapsed ? (
+              <div key={item.id} style={{ marginBottom: '8px', display: 'flex', justifyContent: 'center' }}>
+                <div
+                  onClick={() => setActiveTab(item.id)}
+                  style={{
+                    width: '48px',
+                    height: '48px',
+                    borderRadius: '12px',
+                    background: activeTab === item.id ? theme.sidebarActive : 'rgba(255, 255, 255, 0.05)',
+                    border: activeTab === item.id ? 'none' : '1px solid rgba(255, 255, 255, 0.08)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: activeTab === item.id ? 'white' : 'rgba(255, 255, 255, 0.6)',
+                    cursor: 'pointer',
+                    boxShadow: activeTab === item.id ? '0 4px 12px rgba(236, 72, 153, 0.3)' : 'none',
+                    transition: 'all 0.2s ease'
+                  }}
+                  title={item.label}
+                >
+                  <item.icon />
+                </div>
+              </div>
+            ) : (
+              <div
+                key={item.id}
+                onClick={() => setActiveTab(item.id)}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px',
+                  padding: '12px 14px',
+                  borderRadius: '12px',
+                  cursor: 'pointer',
+                  color: activeTab === item.id ? 'white' : 'rgba(255, 255, 255, 0.7)',
+                  background: activeTab === item.id 
+                    ? theme.sidebarActive 
+                    : 'rgba(255, 255, 255, 0.03)',
+                  transition: 'all 0.2s ease',
+                  marginBottom: '6px',
+                  fontSize: '14px',
+                  fontWeight: activeTab === item.id ? '600' : '500',
+                  border: activeTab === item.id 
+                    ? 'none' 
+                    : '1px solid rgba(255, 255, 255, 0.06)',
+                  boxShadow: activeTab === item.id ? '0 4px 12px rgba(236, 72, 153, 0.3)' : 'none'
+                }}
+              >
+                <div style={{
+                  width: '32px',
+                  height: '32px',
+                  borderRadius: '8px',
+                  background: activeTab === item.id 
+                    ? 'rgba(255,255,255,0.2)' 
+                    : 'rgba(255, 255, 255, 0.06)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
+                  <item.icon />
+                </div>
+                <span>{item.label}</span>
+              </div>
+            )
+          ))}
+        </nav>
+
+        {/* Logout Button - Dark Sidebar Style */}
+        <div style={{ 
+          padding: sidebarCollapsed ? '12px 8px' : '16px', 
+          borderTop: '1px solid rgba(255, 255, 255, 0.08)'
+        }}>
+          {sidebarCollapsed ? (
+            <div style={{ display: 'flex', justifyContent: 'center' }}>
+              <div
+                onClick={handleSignOut}
+                style={{
+                  width: '48px',
+                  height: '48px',
+                  borderRadius: '12px',
+                  background: 'rgba(239, 68, 68, 0.15)',
+                  border: '1px solid rgba(239, 68, 68, 0.25)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#F87171',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease'
+                }}
+                title="Logout"
+              >
+                <Icons.SignOut />
+              </div>
+            </div>
+          ) : (
             <div
-              key={item.id}
-              onClick={() => setActiveTab(item.id)}
+              onClick={handleSignOut}
+              className="logout-btn"
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 gap: '12px',
-                padding: '12px 14px',
+                padding: '12px 16px',
                 borderRadius: '12px',
                 cursor: 'pointer',
-                color: activeTab === item.id ? 'white' : theme.sidebarText,
-                background: activeTab === item.id 
-                  ? theme.sidebarActive 
-                  : theme.mode === 'dark' ? 'rgba(255,255,255,0.02)' : 'transparent',
-                transition: 'all 0.2s ease',
-                marginBottom: '6px',
+                color: '#F87171',
                 fontSize: '14px',
-                fontWeight: activeTab === item.id ? '600' : '500',
-                border: activeTab === item.id 
-                  ? 'none' 
-                  : `1px solid ${theme.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'transparent'}`,
-                boxShadow: activeTab === item.id ? '0 4px 12px rgba(79, 70, 229, 0.3)' : 'none'
+                fontWeight: '600',
+                background: 'rgba(239, 68, 68, 0.12)',
+                border: '1px solid rgba(239, 68, 68, 0.2)',
+                transition: 'all 0.2s ease'
               }}
             >
               <div style={{
                 width: '32px',
                 height: '32px',
                 borderRadius: '8px',
-                background: activeTab === item.id 
-                  ? 'rgba(255,255,255,0.2)' 
-                  : theme.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(99, 102, 241, 0.04)',
+                background: 'rgba(239, 68, 68, 0.15)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center'
               }}>
-                <item.icon />
+                <Icons.SignOut />
               </div>
-              <span>{item.label}</span>
+              <span>Logout</span>
             </div>
-          ))}
-        </nav>
-
-        {/* Logout Button - Premium */}
-        <div style={{ 
-          padding: '16px', 
-          borderTop: `1px solid ${theme.mode === 'light' ? 'rgba(99, 102, 241, 0.08)' : theme.borderLight}`,
-          background: theme.mode === 'light' 
-            ? 'linear-gradient(180deg, transparent 0%, rgba(99, 102, 241, 0.02) 100%)'
-            : 'transparent'
-        }}>
-          <div
-            onClick={handleSignOut}
-            className="logout-btn"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '12px',
-              padding: '12px 16px',
-              borderRadius: '12px',
-              cursor: 'pointer',
-              color: theme.danger,
-              fontSize: '14px',
-              fontWeight: '600',
-              background: theme.mode === 'light' ? 'rgba(239, 68, 68, 0.06)' : 'rgba(239, 68, 68, 0.1)',
-              border: `1px solid ${theme.mode === 'light' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(239, 68, 68, 0.2)'}`,
-              transition: 'all 0.2s ease'
-            }}
-          >
-            <div style={{
-              width: '32px',
-              height: '32px',
-              borderRadius: '8px',
-              background: 'rgba(239, 68, 68, 0.1)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}>
-              <Icons.SignOut />
-            </div>
-            <span>Logout</span>
-          </div>
+          )}
         </div>
       </aside>
 
       {/* Main Content */}
-      <main className="dashboard-main" style={{ flex: 1, marginLeft: '260px', display: 'flex', flexDirection: 'column' }}>
+      <main className="dashboard-main" style={{ 
+        flex: 1, 
+        marginLeft: sidebarCollapsed ? '80px' : '260px', 
+        display: 'flex', 
+        flexDirection: 'column',
+        transition: 'margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+      }}>
         {/* Top Header - Premium Styling */}
         <header className="header-bar" style={{
           height: '72px',
