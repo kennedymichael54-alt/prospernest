@@ -3038,13 +3038,24 @@ function Dashboard({
           .mobile-menu-btn { display: flex !important; }
           .dashboard-overlay { display: block !important; }
         }
+        
+        /* Hub Card Hover Effects */
+        .hub-card:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 8px 24px rgba(0,0,0,0.12) !important;
+        }
+        
+        /* Sub-item hover effects */
+        .hub-card ~ div > div:hover {
+          background: rgba(0,0,0,0.03);
+        }
       `}</style>
 
       {/* Sidebar */}
       <aside 
         className={`dashboard-sidebar ${mobileMenuOpen ? 'open' : ''}`}
         style={{
-        width: '240px',
+        width: '260px',
         background: theme.sidebarBg,
         borderRight: `1px solid ${theme.border}`,
         display: 'flex',
@@ -3077,18 +3088,41 @@ function Dashboard({
 
         {/* Navigation - Hub Based */}
         <nav style={{ flex: 1, padding: '16px 12px', overflowY: 'auto' }}>
-          {/* Trial/Subscription Status Banner */}
+          {/* Trial/Subscription Status Banner - Modern Style */}
           {subscriptionAccess.hasAccess && subscriptionAccess.reason === 'trial' && (
             <div style={{
-              background: `linear-gradient(135deg, ${theme.warning}15, ${theme.warning}08)`,
-              border: `1px solid ${theme.warning}30`,
-              borderRadius: '10px',
-              padding: '12px',
-              marginBottom: '16px'
+              background: 'linear-gradient(135deg, #FEF3C7 0%, #FDE68A 50%, #FCD34D 100%)',
+              borderRadius: '16px',
+              padding: '14px',
+              marginBottom: '20px',
+              boxShadow: '0 4px 16px rgba(245, 158, 11, 0.25)',
+              position: 'relative',
+              overflow: 'hidden'
             }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                <span style={{ fontSize: '14px' }}>⏱️</span>
-                <span style={{ fontSize: '12px', fontWeight: '600', color: theme.warning }}>
+              {/* Decorative shine effect */}
+              <div style={{
+                position: 'absolute',
+                top: 0,
+                right: 0,
+                width: '100px',
+                height: '100px',
+                background: 'radial-gradient(circle, rgba(255,255,255,0.4) 0%, transparent 70%)',
+                borderRadius: '50%',
+                transform: 'translate(30%, -30%)'
+              }} />
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px', position: 'relative' }}>
+                <div style={{
+                  width: '28px',
+                  height: '28px',
+                  borderRadius: '8px',
+                  background: 'rgba(245, 158, 11, 0.3)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
+                  <span style={{ fontSize: '14px' }}>⏱️</span>
+                </div>
+                <span style={{ fontSize: '13px', fontWeight: '700', color: '#92400E' }}>
                   Trial: {subscriptionAccess.daysLeft} days left
                 </span>
               </div>
@@ -3096,35 +3130,72 @@ function Dashboard({
                 onClick={() => setShowUpgradeModal(true)}
                 style={{
                   width: '100%',
-                  padding: '8px',
-                  background: theme.warning,
+                  padding: '10px',
+                  background: 'linear-gradient(135deg, #F59E0B, #D97706)',
                   border: 'none',
-                  borderRadius: '6px',
+                  borderRadius: '10px',
                   color: 'white',
-                  fontSize: '12px',
-                  fontWeight: '600',
-                  cursor: 'pointer'
+                  fontSize: '13px',
+                  fontWeight: '700',
+                  cursor: 'pointer',
+                  boxShadow: '0 2px 8px rgba(217, 119, 6, 0.4)',
+                  transition: 'all 0.2s ease',
+                  position: 'relative'
                 }}
               >
-                Upgrade Now
+                🚀 Upgrade Now
               </button>
             </div>
           )}
 
-          <div style={{ padding: '0 16px 8px', color: theme.textMuted, fontSize: '11px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-            Hubs
+          <div style={{ 
+            padding: '0 8px 12px', 
+            color: theme.textMuted, 
+            fontSize: '11px', 
+            fontWeight: '700', 
+            textTransform: 'uppercase', 
+            letterSpacing: '1px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px'
+          }}>
+            <span>🎯</span> Your Hubs
           </div>
 
-          {/* Hubs Navigation */}
+          {/* Hubs Navigation - Modern Cards */}
           {hubs.map(hub => {
             const isExpanded = expandedHubs[hub.id];
             const isActive = hub.items.some(item => item.id === activeTab);
             const isLocked = hub.status === 'coming_soon' || (!subscriptionAccess.hasAccess && hub.status === 'active');
             const isComingSoon = hub.status === 'coming_soon';
 
+            // Hub-specific gradient backgrounds
+            const hubGradients = {
+              homebudget: {
+                active: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
+                hover: 'linear-gradient(135deg, #D1FAE5 0%, #A7F3D0 100%)',
+                glow: 'rgba(16, 185, 129, 0.3)',
+                lightBg: theme.mode === 'dark' ? 'rgba(16, 185, 129, 0.15)' : '#ECFDF5'
+              },
+              bizbudget: {
+                active: 'linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%)',
+                hover: 'linear-gradient(135deg, #EDE9FE 0%, #DDD6FE 100%)',
+                glow: 'rgba(139, 92, 246, 0.3)',
+                lightBg: theme.mode === 'dark' ? 'rgba(139, 92, 246, 0.15)' : '#F5F3FF'
+              },
+              rebudget: {
+                active: 'linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)',
+                hover: 'linear-gradient(135deg, #DBEAFE 0%, #BFDBFE 100%)',
+                glow: 'rgba(59, 130, 246, 0.3)',
+                lightBg: theme.mode === 'dark' ? 'rgba(59, 130, 246, 0.15)' : '#EFF6FF'
+              }
+            };
+
+            const gradients = hubGradients[hub.id] || hubGradients.homebudget;
+
             return (
-              <div key={hub.id} style={{ marginBottom: '8px' }}>
-                {/* Hub Header */}
+              <div key={hub.id} style={{ marginBottom: '12px' }}>
+                {/* Hub Header Card */}
                 <div
                   onClick={() => {
                     if (isComingSoon) return;
@@ -3134,30 +3205,57 @@ function Dashboard({
                     }
                     toggleHub(hub.id);
                   }}
+                  className="hub-card"
                   style={{
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '10px',
-                    padding: '10px 12px',
-                    borderRadius: '10px',
-                    cursor: isComingSoon ? 'default' : 'pointer',
-                    background: isActive ? `${hub.color}15` : 'transparent',
-                    border: isActive ? `1px solid ${hub.color}30` : '1px solid transparent',
-                    transition: 'all 0.2s ease',
-                    opacity: isLocked ? 0.6 : 1
+                    gap: '12px',
+                    padding: '14px',
+                    borderRadius: '16px',
+                    cursor: isComingSoon ? 'not-allowed' : 'pointer',
+                    background: isActive 
+                      ? gradients.lightBg
+                      : theme.mode === 'dark' ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)',
+                    border: isActive 
+                      ? `2px solid ${hub.color}` 
+                      : `1px solid ${theme.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)'}`,
+                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                    opacity: isComingSoon ? 0.5 : 1,
+                    boxShadow: isActive 
+                      ? `0 4px 20px ${gradients.glow}` 
+                      : '0 2px 8px rgba(0,0,0,0.04)',
+                    position: 'relative',
+                    overflow: 'hidden'
                   }}
                 >
-                  {/* Hub Icon with Color Ring */}
+                  {/* Active indicator glow */}
+                  {isActive && (
+                    <div style={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      height: '3px',
+                      background: gradients.active,
+                      borderRadius: '16px 16px 0 0'
+                    }} />
+                  )}
+
+                  {/* Hub Icon - Vibrant Style */}
                   <div style={{
-                    width: '32px',
-                    height: '32px',
-                    borderRadius: '8px',
-                    background: `${hub.color}15`,
-                    border: `2px solid ${hub.color}40`,
+                    width: '44px',
+                    height: '44px',
+                    borderRadius: '14px',
+                    background: isActive || !isComingSoon ? gradients.active : 'linear-gradient(135deg, #9CA3AF, #6B7280)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    color: hub.color
+                    color: 'white',
+                    boxShadow: isActive 
+                      ? `0 6px 20px ${gradients.glow}` 
+                      : '0 4px 12px rgba(0,0,0,0.15)',
+                    flexShrink: 0,
+                    transition: 'all 0.3s ease'
                   }}>
                     <hub.icon />
                   </div>
@@ -3165,31 +3263,40 @@ function Dashboard({
                   {/* Hub Label */}
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ 
-                      fontSize: '13px', 
-                      fontWeight: '600', 
+                      fontSize: '14px', 
+                      fontWeight: '700', 
                       color: isActive ? hub.color : theme.textPrimary,
                       display: 'flex',
                       alignItems: 'center',
-                      gap: '6px'
+                      gap: '8px',
+                      marginBottom: '2px'
                     }}>
                       {hub.label}
                       {isComingSoon && (
                         <span style={{
-                          background: theme.textMuted,
+                          background: 'linear-gradient(135deg, #6B7280, #4B5563)',
                           color: 'white',
                           fontSize: '9px',
-                          padding: '2px 6px',
-                          borderRadius: '4px',
-                          fontWeight: '600'
+                          padding: '3px 8px',
+                          borderRadius: '6px',
+                          fontWeight: '700',
+                          letterSpacing: '0.5px',
+                          boxShadow: '0 2px 6px rgba(0,0,0,0.15)'
                         }}>
                           SOON
                         </span>
                       )}
                       {isLocked && !isComingSoon && (
-                        <Icons.Lock />
+                        <div style={{ color: theme.textMuted }}>
+                          <Icons.Lock />
+                        </div>
                       )}
                     </div>
-                    <div style={{ fontSize: '10px', color: theme.textMuted, marginTop: '1px' }}>
+                    <div style={{ 
+                      fontSize: '11px', 
+                      color: theme.textMuted, 
+                      fontWeight: '500'
+                    }}>
                       {hub.subtitle}
                     </div>
                   </div>
@@ -3197,43 +3304,70 @@ function Dashboard({
                   {/* Expand/Collapse Chevron */}
                   {!isComingSoon && hub.items.length > 0 && (
                     <div style={{
+                      width: '28px',
+                      height: '28px',
+                      borderRadius: '8px',
+                      background: isExpanded ? `${hub.color}15` : 'transparent',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
                       transform: isExpanded ? 'rotate(90deg)' : 'rotate(0deg)',
-                      transition: 'transform 0.2s ease',
-                      color: theme.textMuted
+                      transition: 'all 0.3s ease',
+                      color: isExpanded ? hub.color : theme.textMuted
                     }}>
                       <Icons.ChevronRight />
                     </div>
                   )}
                 </div>
 
-                {/* Hub Sub-items */}
+                {/* Hub Sub-items - Modern List */}
                 {isExpanded && !isComingSoon && !isLocked && hub.items.length > 0 && (
                   <div style={{ 
-                    marginLeft: '20px', 
-                    marginTop: '4px',
-                    borderLeft: `2px solid ${hub.color}20`,
-                    paddingLeft: '12px'
+                    marginTop: '8px',
+                    marginLeft: '8px',
+                    padding: '8px',
+                    background: theme.mode === 'dark' ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.015)',
+                    borderRadius: '14px',
+                    border: `1px solid ${theme.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)'}`,
                   }}>
-                    {hub.items.map(item => (
+                    {hub.items.map((item, index) => (
                       <div
                         key={item.id}
                         onClick={() => setActiveTab(item.id)}
                         style={{
                           display: 'flex',
                           alignItems: 'center',
-                          gap: '10px',
-                          padding: '10px 12px',
-                          borderRadius: '8px',
+                          gap: '12px',
+                          padding: '11px 14px',
+                          borderRadius: '10px',
                           cursor: 'pointer',
                           color: activeTab === item.id ? 'white' : theme.sidebarText,
-                          background: activeTab === item.id ? theme.sidebarActive : 'transparent',
+                          background: activeTab === item.id 
+                            ? gradients.active
+                            : 'transparent',
                           transition: 'all 0.2s ease',
-                          marginBottom: '2px',
+                          marginBottom: index < hub.items.length - 1 ? '4px' : 0,
                           fontSize: '13px',
-                          fontWeight: activeTab === item.id ? '600' : '500'
+                          fontWeight: activeTab === item.id ? '600' : '500',
+                          boxShadow: activeTab === item.id 
+                            ? `0 4px 12px ${gradients.glow}` 
+                            : 'none'
                         }}
                       >
-                        <item.icon />
+                        <div style={{
+                          width: '28px',
+                          height: '28px',
+                          borderRadius: '8px',
+                          background: activeTab === item.id 
+                            ? 'rgba(255,255,255,0.2)' 
+                            : theme.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          transition: 'all 0.2s ease'
+                        }}>
+                          <item.icon />
+                        </div>
                         <span>{item.label}</span>
                       </div>
                     ))}
@@ -3243,8 +3377,18 @@ function Dashboard({
             );
           })}
 
-          <div style={{ padding: '16px 16px 8px', color: theme.textMuted, fontSize: '11px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-            Settings
+          <div style={{ 
+            padding: '20px 8px 12px', 
+            color: theme.textMuted, 
+            fontSize: '11px', 
+            fontWeight: '700', 
+            textTransform: 'uppercase', 
+            letterSpacing: '1px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px'
+          }}>
+            <span>⚙️</span> Settings
           </div>
 
           {bottomNavItems.map(item => (
@@ -3255,18 +3399,36 @@ function Dashboard({
                 display: 'flex',
                 alignItems: 'center',
                 gap: '12px',
-                padding: '12px 16px',
-                borderRadius: '10px',
+                padding: '12px 14px',
+                borderRadius: '12px',
                 cursor: 'pointer',
                 color: activeTab === item.id ? 'white' : theme.sidebarText,
-                background: activeTab === item.id ? theme.sidebarActive : 'transparent',
+                background: activeTab === item.id 
+                  ? theme.sidebarActive 
+                  : theme.mode === 'dark' ? 'rgba(255,255,255,0.02)' : 'transparent',
                 transition: 'all 0.2s ease',
-                marginBottom: '4px',
+                marginBottom: '6px',
                 fontSize: '14px',
-                fontWeight: activeTab === item.id ? '600' : '500'
+                fontWeight: activeTab === item.id ? '600' : '500',
+                border: activeTab === item.id 
+                  ? 'none' 
+                  : `1px solid ${theme.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'transparent'}`,
+                boxShadow: activeTab === item.id ? '0 4px 12px rgba(79, 70, 229, 0.3)' : 'none'
               }}
             >
-              <item.icon />
+              <div style={{
+                width: '32px',
+                height: '32px',
+                borderRadius: '8px',
+                background: activeTab === item.id 
+                  ? 'rgba(255,255,255,0.2)' 
+                  : theme.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                <item.icon />
+              </div>
               <span>{item.label}</span>
             </div>
           ))}
@@ -3295,7 +3457,7 @@ function Dashboard({
       </aside>
 
       {/* Main Content */}
-      <main className="dashboard-main" style={{ flex: 1, marginLeft: '240px', display: 'flex', flexDirection: 'column' }}>
+      <main className="dashboard-main" style={{ flex: 1, marginLeft: '260px', display: 'flex', flexDirection: 'column' }}>
         {/* Top Header */}
         <header className="header-bar" style={{
           height: '70px',
