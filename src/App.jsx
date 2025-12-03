@@ -4992,7 +4992,7 @@ function DashboardHome({ transactions, goals, bills = [], tasks = [], theme, las
   // Handle bulk delete
   const handleBulkDelete = () => {
     if (selectedTxns.length === 0) return;
-    if (window.confirm(\`Delete \${selectedTxns.length} transaction(s)?\`)) {
+    if (window.confirm(`Delete ${selectedTxns.length} transaction(s)?`)) {
       console.log('Deleting transactions:', selectedTxns);
       // TODO: Implement actual delete via Supabase
       setSelectedTxns([]);
@@ -6272,7 +6272,7 @@ function DashboardHome({ transactions, goals, bills = [], tasks = [], theme, las
               fontSize: '13px', fontWeight: '600', cursor: 'pointer'
             }}>🗑️ Delete Selected</button>
             <button onClick={() => setSelectedTxns([])} style={{
-              padding: '8px 16px', background: 'transparent', border: \`1px solid \${theme.border}\`,
+              padding: '8px 16px', background: 'transparent', border: `1px solid ${theme.border}`,
               borderRadius: '8px', color: theme.textSecondary, fontSize: '13px', cursor: 'pointer'
             }}>Cancel</button>
           </div>
@@ -6285,7 +6285,7 @@ function DashboardHome({ transactions, goals, bills = [], tasks = [], theme, las
           <>
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
-                <tr style={{ borderBottom: \`1px solid \${theme.borderLight}\` }}>
+                <tr style={{ borderBottom: `1px solid ${theme.borderLight}` }}>
                   <th style={{ padding: '12px 8px', textAlign: 'left', fontSize: '13px', fontWeight: '500', color: theme.textMuted, width: '40px' }}>
                     <input 
                       type="checkbox" 
@@ -6326,7 +6326,7 @@ function DashboardHome({ transactions, goals, bills = [], tasks = [], theme, las
                     : { bg: '#DBEAFE', color: '#2563EB', icon: '👤', label: accountLabels?.personal || 'Personal' };
                   
                   return (
-                    <tr key={i} style={{ borderBottom: \`1px solid \${theme.borderLight}\` }}>
+                    <tr key={i} style={{ borderBottom: `1px solid ${theme.borderLight}` }}>
                       <td style={{ padding: '16px 8px' }}>
                         <input 
                           type="checkbox" 
