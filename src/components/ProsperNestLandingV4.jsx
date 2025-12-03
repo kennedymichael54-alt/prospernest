@@ -632,75 +632,149 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
   const DeviceMockups = () => (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '24px' }}>
       <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'center', gap: '32px', flexWrap: 'wrap', padding: '30px 0' }}>
-        {/* MacBook/Web */}
+        {/* MacBook Pro 2024 - Thin bezels, notch design, silver aluminum */}
         <div className="hover-lift" style={{ position: 'relative', cursor: 'pointer', transition: 'transform 0.3s ease, box-shadow 0.3s ease' }}>
+          {/* Screen bezel - very thin like M3 MacBook */}
           <div style={{
-            background: '#1a1a1a', borderRadius: '16px 16px 0 0', padding: '10px 16px',
-            display: 'flex', gap: '8px', width: '420px'
+            background: '#1d1d1f', 
+            borderRadius: '12px 12px 0 0', 
+            padding: '6px 6px 0 6px',
+            width: '420px',
+            position: 'relative'
           }}>
-            <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#FF5F57' }}/>
-            <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#FFBD2E' }}/>
-            <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#28CA41' }}/>
-          </div>
-          <div style={{
-            background: colors.gray6, width: '420px', height: '260px', padding: '16px',
-            borderRadius: '0 0 4px 4px', border: '3px solid #1a1a1a', borderTop: 'none'
-          }}>
-            <div style={{ display: 'flex', gap: '12px', height: '100%' }}>
-              <div style={{ width: '90px', background: '#1e1b38', borderRadius: '8px', padding: '12px' }}>
-                {['Dashboard', 'Sales', 'Budget', 'Bills', 'Goals', 'Reports'].map((item, i) => (
-                  <div key={item} style={{
-                    padding: '6px 8px', borderRadius: '6px', marginBottom: '4px', fontSize: '10px',
-                    color: i === 0 ? '#FFF' : 'rgba(255,255,255,0.5)',
-                    background: i === 0 ? '#8B5CF6' : 'transparent'
-                  }}>{item}</div>
-                ))}
-              </div>
-              <div style={{ flex: 1 }}>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px', marginBottom: '12px' }}>
-                  {[
-                    { l: 'Income', v: '$12.4K', c: colors.green },
-                    { l: 'Expenses', v: '$4.2K', c: colors.red },
-                  ].map((s, i) => (
-                    <div key={i} style={{ background: '#FFF', borderRadius: '8px', padding: '12px' }}>
-                      <div style={{ fontSize: '10px', color: colors.gray }}>{s.l}</div>
-                      <div style={{ fontSize: '18px', fontWeight: '700', color: s.c }}>{s.v}</div>
-                    </div>
+            {/* Notch with camera */}
+            <div style={{
+              position: 'absolute',
+              top: '0',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              width: '80px',
+              height: '18px',
+              background: '#1d1d1f',
+              borderRadius: '0 0 10px 10px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 5
+            }}>
+              <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#2a2a2c' }} />
+            </div>
+            {/* Screen */}
+            <div style={{
+              background: colors.gray6, 
+              width: '408px', 
+              height: '256px', 
+              padding: '20px 16px 16px 16px',
+              borderRadius: '4px 4px 0 0',
+              position: 'relative'
+            }}>
+              <div style={{ display: 'flex', gap: '12px', height: '100%' }}>
+                <div style={{ width: '90px', background: '#1e1b38', borderRadius: '8px', padding: '12px' }}>
+                  {['Dashboard', 'Sales', 'Budget', 'Bills', 'Goals', 'Reports'].map((item, i) => (
+                    <div key={item} style={{
+                      padding: '6px 8px', borderRadius: '6px', marginBottom: '4px', fontSize: '10px',
+                      color: i === 0 ? '#FFF' : 'rgba(255,255,255,0.5)',
+                      background: i === 0 ? '#8B5CF6' : 'transparent'
+                    }}>{item}</div>
                   ))}
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px' }}>
-                  <div style={{ background: '#FFF', borderRadius: '8px', padding: '12px' }}>
-                    <div style={{ fontSize: '10px', fontWeight: '600', marginBottom: '8px' }}>👤 Personal</div>
-                    <div style={{ background: colors.green, borderRadius: '6px', padding: '8px', color: '#FFF', fontSize: '12px' }}>
-                      <div style={{ opacity: 0.9 }}>Income</div>
-                      <div style={{ fontWeight: '700' }}>$6,200</div>
-                    </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px', marginBottom: '12px' }}>
+                    {[
+                      { l: 'Income', v: '$12.4K', c: colors.green },
+                      { l: 'Expenses', v: '$4.2K', c: colors.red },
+                    ].map((s, i) => (
+                      <div key={i} style={{ background: '#FFF', borderRadius: '8px', padding: '12px' }}>
+                        <div style={{ fontSize: '10px', color: colors.gray }}>{s.l}</div>
+                        <div style={{ fontSize: '18px', fontWeight: '700', color: s.c }}>{s.v}</div>
+                      </div>
+                    ))}
                   </div>
-                  <div style={{ background: '#FFF', borderRadius: '8px', padding: '12px' }}>
-                    <div style={{ fontSize: '10px', fontWeight: '600', marginBottom: '8px' }}>💼 Side Hustle</div>
-                    <div style={{ background: colors.purple, borderRadius: '6px', padding: '8px', color: '#FFF', fontSize: '12px' }}>
-                      <div style={{ opacity: 0.9 }}>Revenue</div>
-                      <div style={{ fontWeight: '700' }}>$6,250</div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px' }}>
+                    <div style={{ background: '#FFF', borderRadius: '8px', padding: '12px' }}>
+                      <div style={{ fontSize: '10px', fontWeight: '600', marginBottom: '8px' }}>👤 Personal</div>
+                      <div style={{ background: colors.green, borderRadius: '6px', padding: '8px', color: '#FFF', fontSize: '12px' }}>
+                        <div style={{ opacity: 0.9 }}>Income</div>
+                        <div style={{ fontWeight: '700' }}>$6,200</div>
+                      </div>
+                    </div>
+                    <div style={{ background: '#FFF', borderRadius: '8px', padding: '12px' }}>
+                      <div style={{ fontSize: '10px', fontWeight: '600', marginBottom: '8px' }}>💼 Side Hustle</div>
+                      <div style={{ background: colors.purple, borderRadius: '6px', padding: '8px', color: '#FFF', fontSize: '12px' }}>
+                        <div style={{ opacity: 0.9 }}>Revenue</div>
+                        <div style={{ fontWeight: '700' }}>$6,250</div>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
+          {/* Bottom chin - very thin */}
           <div style={{
-            background: '#c0c0c0', width: '480px', height: '16px', marginLeft: '-30px',
-            borderRadius: '0 0 12px 12px', boxShadow: '0 4px 12px rgba(0,0,0,0.2)'
+            background: '#1d1d1f', 
+            width: '420px', 
+            height: '10px',
+            borderRadius: '0 0 4px 4px'
           }}/>
+          {/* Hinge */}
+          <div style={{
+            background: 'linear-gradient(180deg, #e3e3e3 0%, #c9c9c9 50%, #a8a8a8 100%)', 
+            width: '420px', 
+            height: '8px',
+            borderRadius: '0 0 2px 2px'
+          }}/>
+          {/* Base/Keyboard - silver aluminum */}
+          <div style={{
+            background: 'linear-gradient(180deg, #e8e8e8 0%, #d4d4d4 100%)', 
+            width: '480px', 
+            height: '10px', 
+            marginLeft: '-30px',
+            borderRadius: '0 0 8px 8px',
+            boxShadow: '0 4px 15px rgba(0,0,0,0.15)',
+            position: 'relative'
+          }}>
+            {/* Notch cutout in base */}
+            <div style={{
+              position: 'absolute',
+              top: '-2px',
+              left: '50%',
+              transform: 'translateX(-50)',
+              width: '120px',
+              height: '4px',
+              background: 'linear-gradient(180deg, #c9c9c9 0%, #d4d4d4 100%)',
+              borderRadius: '0 0 4px 4px'
+            }} />
+          </div>
         </div>
 
-        {/* iPad */}
+        {/* iPad Pro 2024 - Ultra thin bezels, no home button */}
         <div className="hover-lift" style={{ position: 'relative', cursor: 'pointer', transition: 'transform 0.3s ease, box-shadow 0.3s ease' }}>
           <div style={{
-            background: '#1a1a1a', borderRadius: '20px', padding: '16px',
-            width: '220px', boxShadow: '0 15px 40px rgba(0,0,0,0.3)'
+            background: '#1d1d1f', 
+            borderRadius: '18px', 
+            padding: '8px',
+            width: '210px', 
+            boxShadow: '0 20px 50px rgba(0,0,0,0.3)'
           }}>
+            {/* Front camera */}
             <div style={{
-              background: colors.gray6, borderRadius: '12px', height: '290px', padding: '14px', overflow: 'hidden'
+              position: 'absolute',
+              top: '14px',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              width: '6px',
+              height: '6px',
+              borderRadius: '50%',
+              background: '#2a2a2c',
+              zIndex: 5
+            }} />
+            <div style={{
+              background: colors.gray6, 
+              borderRadius: '12px', 
+              height: '290px', 
+              padding: '16px 14px 14px 14px', 
+              overflow: 'hidden'
             }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', color: colors.gray, marginBottom: '12px' }}>
                 <span>9:41</span><span>📶 🔋</span>
@@ -723,55 +797,169 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
           </div>
         </div>
 
-        {/* iPhone */}
+        {/* iPhone 16/17 Pro - Dynamic Island, thin bezels, titanium frame */}
         <div className="hover-lift" style={{ position: 'relative', cursor: 'pointer', transition: 'transform 0.3s ease, box-shadow 0.3s ease' }}>
           <div style={{
-            background: '#1a1a1a', borderRadius: '32px', padding: '12px',
-            width: '140px', boxShadow: '0 15px 40px rgba(0,0,0,0.3)'
+            background: 'linear-gradient(145deg, #2a2a2c 0%, #1d1d1f 100%)', 
+            borderRadius: '44px', 
+            padding: '8px',
+            width: '140px', 
+            boxShadow: '0 20px 50px rgba(0,0,0,0.35)',
+            position: 'relative'
           }}>
+            {/* Side buttons - left */}
             <div style={{
-              background: colors.gray6, borderRadius: '24px', height: '280px', padding: '12px', overflow: 'hidden'
+              position: 'absolute',
+              left: '-2px',
+              top: '80px',
+              width: '3px',
+              height: '28px',
+              background: '#3a3a3c',
+              borderRadius: '2px 0 0 2px'
+            }} />
+            <div style={{
+              position: 'absolute',
+              left: '-2px',
+              top: '120px',
+              width: '3px',
+              height: '50px',
+              background: '#3a3a3c',
+              borderRadius: '2px 0 0 2px'
+            }} />
+            {/* Side button - right (power) */}
+            <div style={{
+              position: 'absolute',
+              right: '-2px',
+              top: '100px',
+              width: '3px',
+              height: '40px',
+              background: '#3a3a3c',
+              borderRadius: '0 2px 2px 0'
+            }} />
+            
+            <div style={{
+              background: colors.gray6, 
+              borderRadius: '38px', 
+              height: '280px', 
+              padding: '12px', 
+              overflow: 'hidden',
+              position: 'relative'
             }}>
-              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '10px' }}>
-                <div style={{ width: '50px', height: '6px', background: '#1a1a1a', borderRadius: '3px' }}/>
+              {/* Dynamic Island */}
+              <div style={{ 
+                display: 'flex', 
+                justifyContent: 'center', 
+                marginBottom: '8px',
+                position: 'relative',
+                zIndex: 5
+              }}>
+                <div style={{ 
+                  width: '70px', 
+                  height: '22px', 
+                  background: '#1d1d1f', 
+                  borderRadius: '20px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '0 8px'
+                }}>
+                  <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#2a2a2c' }} />
+                  <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#1a472a' }} />
+                </div>
               </div>
-              <div style={{ background: colors.blue, borderRadius: '10px', padding: '14px', color: '#FFF', marginBottom: '10px' }}>
+              <div style={{ background: colors.blue, borderRadius: '12px', padding: '14px', color: '#FFF', marginBottom: '10px' }}>
                 <div style={{ fontSize: '9px', opacity: 0.8 }}>Balance</div>
                 <div style={{ fontSize: '20px', fontWeight: '700' }}>$8,220</div>
               </div>
-              <div style={{ background: '#FFF', borderRadius: '8px', padding: '10px', marginBottom: '8px' }}>
+              <div style={{ background: '#FFF', borderRadius: '10px', padding: '10px', marginBottom: '8px' }}>
                 <div style={{ fontSize: '9px', color: colors.gray }}>Goals</div>
                 <div style={{ background: colors.gray5, borderRadius: '4px', height: '8px', marginTop: '6px' }}>
                   <div style={{ width: '65%', height: '100%', background: colors.green, borderRadius: '4px' }}/>
                 </div>
               </div>
-              <div style={{ background: '#FFF', borderRadius: '8px', padding: '10px' }}>
+              <div style={{ background: '#FFF', borderRadius: '10px', padding: '10px' }}>
                 <div style={{ fontSize: '9px', color: colors.gray }}>This Month</div>
                 <div style={{ fontSize: '14px', fontWeight: '600', color: colors.green }}>+$3,120</div>
               </div>
+              
+              {/* Home indicator */}
+              <div style={{
+                position: 'absolute',
+                bottom: '6px',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                width: '36%',
+                height: '4px',
+                background: '#1d1d1f',
+                borderRadius: '2px'
+              }} />
             </div>
           </div>
         </div>
 
-        {/* Apple Watch */}
+        {/* Apple Watch Series 10 - Larger display, thinner case */}
         <div className="hover-lift" style={{ position: 'relative', cursor: 'pointer', transition: 'transform 0.3s ease, box-shadow 0.3s ease' }}>
+          {/* Watch band - top */}
           <div style={{
-            background: '#1a1a1a', borderRadius: '16px', padding: '6px',
-            width: '80px', boxShadow: '0 12px 30px rgba(0,0,0,0.3)'
+            width: '46px',
+            height: '40px',
+            background: 'linear-gradient(180deg, #2d2d2d 0%, #1d1d1f 100%)',
+            borderRadius: '6px 6px 0 0',
+            margin: '0 auto'
+          }} />
+          {/* Watch case */}
+          <div style={{
+            background: 'linear-gradient(145deg, #2a2a2c 0%, #1d1d1f 100%)', 
+            borderRadius: '20px', 
+            padding: '4px',
+            width: '80px', 
+            boxShadow: '0 15px 35px rgba(0,0,0,0.35)',
+            position: 'relative'
           }}>
+            {/* Digital Crown */}
             <div style={{
-              background: '#000', borderRadius: '14px', height: '100px', padding: '10px',
-              display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center'
+              position: 'absolute',
+              right: '-4px',
+              top: '22px',
+              width: '6px',
+              height: '16px',
+              background: 'linear-gradient(180deg, #4a4a4c 0%, #2a2a2c 100%)',
+              borderRadius: '3px'
+            }}/>
+            {/* Side button */}
+            <div style={{
+              position: 'absolute',
+              right: '-4px',
+              top: '46px',
+              width: '6px',
+              height: '12px',
+              background: 'linear-gradient(180deg, #3a3a3c 0%, #2a2a2c 100%)',
+              borderRadius: '3px'
+            }}/>
+            
+            <div style={{
+              background: '#000', 
+              borderRadius: '18px', 
+              height: '96px', 
+              padding: '10px',
+              display: 'flex', 
+              flexDirection: 'column', 
+              justifyContent: 'center', 
+              alignItems: 'center'
             }}>
-              <PennyLogo size={28} />
-              <div style={{ color: colors.green, fontSize: '16px', fontWeight: '700', marginTop: '6px' }}>$8.2K</div>
+              <PennyLogo size={26} />
+              <div style={{ color: colors.green, fontSize: '16px', fontWeight: '700', marginTop: '4px' }}>$8.2K</div>
               <div style={{ color: colors.gray, fontSize: '8px' }}>This Month</div>
             </div>
           </div>
+          {/* Watch band - bottom */}
           <div style={{
-            position: 'absolute', right: '-8px', top: '30px',
-            width: '6px', height: '24px', background: '#1a1a1a', borderRadius: '3px'
-          }}/>
+            width: '46px',
+            height: '40px',
+            background: 'linear-gradient(180deg, #1d1d1f 0%, #2d2d2d 100%)',
+            borderRadius: '0 0 6px 6px',
+            margin: '0 auto'
+          }} />
         </div>
       </div>
       
