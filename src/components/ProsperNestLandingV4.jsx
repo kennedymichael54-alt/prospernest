@@ -797,12 +797,12 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
           </div>
         </div>
 
-        {/* iPhone 16/17 Pro - Dynamic Island, thin bezels, titanium frame */}
+        {/* iPhone 16/17 Pro - Squared titanium edges, thin bezels */}
         <div className="hover-lift" style={{ position: 'relative', cursor: 'pointer', transition: 'transform 0.3s ease, box-shadow 0.3s ease' }}>
           <div style={{
-            background: 'linear-gradient(145deg, #2a2a2c 0%, #1d1d1f 100%)', 
-            borderRadius: '44px', 
-            padding: '8px',
+            background: 'linear-gradient(145deg, #3a3a3c 0%, #1d1d1f 100%)', 
+            borderRadius: '20px', 
+            padding: '6px',
             width: '140px', 
             boxShadow: '0 20px 50px rgba(0,0,0,0.35)',
             position: 'relative'
@@ -811,37 +811,37 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
             <div style={{
               position: 'absolute',
               left: '-2px',
-              top: '80px',
+              top: '70px',
               width: '3px',
-              height: '28px',
-              background: '#3a3a3c',
+              height: '24px',
+              background: '#4a4a4c',
               borderRadius: '2px 0 0 2px'
             }} />
             <div style={{
               position: 'absolute',
               left: '-2px',
-              top: '120px',
+              top: '105px',
               width: '3px',
-              height: '50px',
-              background: '#3a3a3c',
+              height: '45px',
+              background: '#4a4a4c',
               borderRadius: '2px 0 0 2px'
             }} />
             {/* Side button - right (power) */}
             <div style={{
               position: 'absolute',
               right: '-2px',
-              top: '100px',
+              top: '90px',
               width: '3px',
-              height: '40px',
-              background: '#3a3a3c',
+              height: '36px',
+              background: '#4a4a4c',
               borderRadius: '0 2px 2px 0'
             }} />
             
             <div style={{
               background: colors.gray6, 
-              borderRadius: '38px', 
-              height: '280px', 
-              padding: '12px', 
+              borderRadius: '16px', 
+              height: '284px', 
+              padding: '10px', 
               overflow: 'hidden',
               position: 'relative'
             }}>
@@ -854,30 +854,30 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
                 zIndex: 5
               }}>
                 <div style={{ 
-                  width: '70px', 
-                  height: '22px', 
+                  width: '60px', 
+                  height: '18px', 
                   background: '#1d1d1f', 
-                  borderRadius: '20px',
+                  borderRadius: '12px',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
-                  padding: '0 8px'
+                  padding: '0 6px'
                 }}>
-                  <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#2a2a2c' }} />
-                  <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#1a472a' }} />
+                  <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#2a2a2c' }} />
+                  <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#1a472a' }} />
                 </div>
               </div>
-              <div style={{ background: colors.blue, borderRadius: '12px', padding: '14px', color: '#FFF', marginBottom: '10px' }}>
+              <div style={{ background: colors.blue, borderRadius: '10px', padding: '14px', color: '#FFF', marginBottom: '10px' }}>
                 <div style={{ fontSize: '9px', opacity: 0.8 }}>Balance</div>
                 <div style={{ fontSize: '20px', fontWeight: '700' }}>$8,220</div>
               </div>
-              <div style={{ background: '#FFF', borderRadius: '10px', padding: '10px', marginBottom: '8px' }}>
+              <div style={{ background: '#FFF', borderRadius: '8px', padding: '10px', marginBottom: '8px' }}>
                 <div style={{ fontSize: '9px', color: colors.gray }}>Goals</div>
                 <div style={{ background: colors.gray5, borderRadius: '4px', height: '8px', marginTop: '6px' }}>
                   <div style={{ width: '65%', height: '100%', background: colors.green, borderRadius: '4px' }}/>
                 </div>
               </div>
-              <div style={{ background: '#FFF', borderRadius: '10px', padding: '10px' }}>
+              <div style={{ background: '#FFF', borderRadius: '8px', padding: '10px' }}>
                 <div style={{ fontSize: '9px', color: colors.gray }}>This Month</div>
                 <div style={{ fontSize: '14px', fontWeight: '600', color: colors.green }}>+$3,120</div>
               </div>
