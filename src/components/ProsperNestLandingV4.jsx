@@ -1956,19 +1956,18 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
-            gap: '12px'
+            gap: '16px'
           }}>
             <div style={{
-              width: isMobile ? '30px' : '50px',
-              height: '2px',
-              background: `linear-gradient(90deg, transparent 0%, ${colors.purple}50 100%)`,
-              borderRadius: '1px'
+              width: isMobile ? '40px' : '70px',
+              height: '3px',
+              background: `linear-gradient(90deg, transparent 0%, #7C3AED 100%)`,
+              borderRadius: '2px'
             }} />
             <span style={{
-              fontSize: isMobile ? 'clamp(12px, 3.5vw, 14px)' : 'clamp(14px, 2vw, 18px)',
-              fontWeight: '600',
-              fontStyle: 'italic',
-              background: `linear-gradient(135deg, ${colors.blue} 0%, ${colors.purple} 50%, ${colors.blue} 100%)`,
+              fontSize: isMobile ? 'clamp(16px, 5vw, 20px)' : 'clamp(20px, 3vw, 28px)',
+              fontWeight: '700',
+              background: `linear-gradient(135deg, #2563EB 0%, #7C3AED 50%, #6D28D9 100%)`,
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
               letterSpacing: '0.5px'
@@ -1976,10 +1975,10 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
               Made by Entrepreneurs, for Entrepreneurs
             </span>
             <div style={{
-              width: isMobile ? '30px' : '50px',
-              height: '2px',
-              background: `linear-gradient(90deg, ${colors.purple}50 0%, transparent 100%)`,
-              borderRadius: '1px'
+              width: isMobile ? '40px' : '70px',
+              height: '3px',
+              background: `linear-gradient(90deg, #7C3AED 0%, transparent 100%)`,
+              borderRadius: '2px'
             }} />
           </div>
           
