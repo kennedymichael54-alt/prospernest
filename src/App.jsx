@@ -835,11 +835,34 @@ function App() {
   });
 
   // Load user data - tries DB first, falls back to localStorage
-  // ENHANCED: Better error handling and retry logic to prevent data loss
+  // ENHANCED: Better error handling, retry logic, and data recovery
   const loadUserData = async (userId, userEmail) => {
     console.log('📥 [Data] Loading user data for:', userId);
     
-    // Try loading from database first - with retry logic
+    // FIRST: Load from localStorage immediately as backup (fastest)
+    let localProfile = null;
+    let localHasRealData = false;
+    try {
+      const savedProfile = localStorage.getItem(`pn_profile_${userId}`);
+      if (savedProfile) {
+        localProfile = JSON.parse(savedProfile);
+        localHasRealData = !!(localProfile.firstName || localProfile.lastName || localProfile.phone);
+        console.log('📦 [Data] Found localStorage profile:', localProfile.firstName, localProfile.lastName, '| hasRealData:', localHasRealData);
+      }
+    } catch (e) {
+      console.log('ℹ️ [Data] No localStorage profile');
+    }
+    
+    // If we have valid local data, set it immediately for fast UI
+    if (localProfile && localHasRealData) {
+      console.log('⚡ [Data] Setting profile from localStorage first (fast path)');
+      setProfile({
+        ...localProfile,
+        email: localProfile.email || userEmail || ''
+      });
+    }
+    
+    // Try loading from database with retry logic
     let dbData = null;
     let retryCount = 0;
     const maxRetries = 3;
@@ -856,7 +879,7 @@ function App() {
     if (dbData) {
       console.log('✅ [Data] Loaded from database');
       
-      // Load profile - ONLY if database has actual data
+      // Load profile - with smart merging
       if (dbData.profile) {
         const loadedProfile = dbToAppProfile(dbData.profile);
         
@@ -865,25 +888,47 @@ function App() {
           loadedProfile.email = userEmail;
         }
         
-        // PROTECTION: Only update state if DB profile has actual data
-        const hasRealData = loadedProfile.firstName || loadedProfile.lastName || loadedProfile.phone || loadedProfile.dateOfBirth;
+        // Check if DB profile has actual meaningful data
+        const dbHasRealData = !!(loadedProfile.firstName || loadedProfile.lastName || loadedProfile.phone || loadedProfile.dateOfBirth);
         
-        if (hasRealData) {
+        console.log('🔍 [Data] DB profile check - hasRealData:', dbHasRealData, '| firstName:', loadedProfile.firstName, '| lastName:', loadedProfile.lastName);
+        
+        if (dbHasRealData) {
+          // DB has real data - use it
           setProfile(loadedProfile);
-          // Also save to localStorage for immediate access
           localStorage.setItem(`pn_profile_${userId}`, JSON.stringify(loadedProfile));
           console.log('✅ [Data] Profile loaded from DB:', loadedProfile.firstName, loadedProfile.lastName);
+        } else if (localHasRealData && localProfile) {
+          // DB profile is empty but localStorage has data - keep localStorage data
+          // This handles the case where DB was corrupted/overwritten with empty data
+          console.log('🛡️ [Data] DB profile empty, KEEPING localStorage data:', localProfile.firstName, localProfile.lastName);
+          setProfile({
+            ...localProfile,
+            email: loadedProfile.email || userEmail || localProfile.email
+          });
+          
+          // REPAIR: Push localStorage data back to DB to fix the corruption
+          console.log('🔧 [Data] Repairing DB with localStorage data...');
+          await saveProfileToDB(userId, localProfile, true);
         } else {
-          // Profile exists but is empty - just set email
-          console.log('ℹ️ [Data] DB profile exists but is empty, preserving current state');
+          // Both are empty - just set email
+          console.log('ℹ️ [Data] Both DB and localStorage profiles empty, setting email only');
           setProfile(prev => ({ 
             ...prev, 
             email: loadedProfile.email || userEmail || prev.email 
           }));
         }
+      } else if (localHasRealData && localProfile) {
+        // No profile in DB but localStorage has data - use localStorage and push to DB
+        console.log('🔧 [Data] No DB profile, using localStorage and syncing to DB...');
+        setProfile({
+          ...localProfile,
+          email: userEmail || localProfile.email
+        });
+        await saveProfileToDB(userId, localProfile, true);
       } else {
-        // No profile in DB at all - just set email from auth
-        console.log('ℹ️ [Data] No profile in DB, setting email from auth');
+        // No profile anywhere - just set email from auth
+        console.log('ℹ️ [Data] No profile in DB or localStorage, setting email from auth');
         setProfile(prev => ({ 
           ...prev, 
           email: userEmail || prev.email 
@@ -930,25 +975,14 @@ function App() {
       }
     }
     
-    // Fallback to localStorage
-    console.log('ℹ️ [Data] No DB data, trying localStorage...');
+    // Fallback to localStorage for all other data (transactions, bills, etc.)
+    console.log('ℹ️ [Data] Loading remaining data from localStorage...');
     try {
-      const savedProfile = localStorage.getItem(`pn_profile_${userId}`);
       const savedTransactions = localStorage.getItem(`pn_transactions_${userId}`);
       const savedBills = localStorage.getItem(`pn_bills_${userId}`);
       const savedGoals = localStorage.getItem(`pn_goals_${userId}`);
       const savedTasks = localStorage.getItem('pn_tasks');
       const savedImportDate = localStorage.getItem(`pn_lastImport_${userId}`);
-
-      // PROTECTION: Only load localStorage profile if it has actual data
-      if (savedProfile) {
-        const parsedProfile = JSON.parse(savedProfile);
-        const hasRealData = parsedProfile.firstName || parsedProfile.lastName || parsedProfile.phone;
-        if (hasRealData) {
-          setProfile(parsedProfile);
-          console.log('✅ [Data] Profile loaded from localStorage:', parsedProfile.firstName);
-        }
-      }
       
       if (savedTransactions) setTransactions(JSON.parse(savedTransactions));
       if (savedBills) setBills(JSON.parse(savedBills));
@@ -956,7 +990,7 @@ function App() {
       if (savedTasks) setTasks(JSON.parse(savedTasks));
       if (savedImportDate) setLastImportDate(new Date(savedImportDate));
       
-      console.log('✅ [Data] Loaded from localStorage');
+      console.log('✅ [Data] Loaded remaining data from localStorage');
     } catch (e) {
       console.error('❌ [Data] localStorage load error:', e);
     }
@@ -965,7 +999,37 @@ function App() {
   // Save profile with sync to database
   // forceUpdate=true when user explicitly clicks Save in Manage Account
   const handleUpdateProfile = async (newProfile, forceUpdate = true) => {
-    console.log('💾 [Profile] Saving profile update, forceUpdate:', forceUpdate);
+    console.log('💾 [Profile] handleUpdateProfile called:', newProfile);
+    
+    // VALIDATION: Check if the new profile has any meaningful data
+    const hasNewData = !!(newProfile.firstName || newProfile.lastName || newProfile.phone || newProfile.dateOfBirth || newProfile.gender);
+    
+    // Check if current profile has data
+    const currentHasData = !!(profile.firstName || profile.lastName || profile.phone);
+    
+    // PROTECTION: Don't overwrite existing data with empty data unless user explicitly provided empty values
+    if (!hasNewData && currentHasData && forceUpdate) {
+      console.log('⚠️ [Profile] Warning: Attempting to save empty profile over existing data');
+      console.log('   Current:', profile.firstName, profile.lastName);
+      console.log('   New:', newProfile.firstName, newProfile.lastName);
+      
+      // If user is trying to save empty data, but we have existing data, 
+      // merge with existing data to prevent accidental data loss
+      const mergedProfile = {
+        firstName: newProfile.firstName || profile.firstName,
+        lastName: newProfile.lastName || profile.lastName,
+        email: newProfile.email || profile.email,
+        phone: newProfile.phone || profile.phone,
+        dateOfBirth: newProfile.dateOfBirth || profile.dateOfBirth,
+        gender: newProfile.gender || profile.gender,
+        photoUrl: newProfile.photoUrl || profile.photoUrl,
+        sidehustleName: newProfile.sidehustleName || profile.sidehustleName
+      };
+      
+      console.log('🛡️ [Profile] Merged profile to preserve data:', mergedProfile.firstName, mergedProfile.lastName);
+      newProfile = mergedProfile;
+    }
+    
     setProfile(newProfile);
     
     // Save to localStorage
@@ -3915,7 +3979,7 @@ function DashboardHome({ transactions, goals, bills = [], tasks = [], theme, las
           <BudgetBarChart data={monthlyData} budgets={budgets} theme={theme} height={280} />
         </div>
 
-        {/* Spending Breakdown (Image 5) */}
+        {/* Spending Breakdown - Modern Pebble/Triangle Style */}
         <div style={{ background: theme.bgCard, borderRadius: '16px', padding: '24px', boxShadow: theme.cardShadow, border: `1px solid ${theme.borderLight}` }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
             <h3 style={{ fontSize: '16px', fontWeight: '600', color: theme.textPrimary, margin: 0 }}>Spending</h3>
@@ -3936,35 +4000,101 @@ function DashboardHome({ transactions, goals, bills = [], tasks = [], theme, las
                 </div>
               ))}
             </div>
-            {/* Right side - Colored cards with circular progress */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-              {spendingCards.map((item, i) => (
-                <div key={i} style={{ 
-                  background: item.bgColor, 
-                  borderRadius: '12px', 
-                  padding: '16px', 
-                  display: 'flex', 
-                  flexDirection: 'column', 
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  minHeight: '100px'
-                }}>
-                  {/* Circular progress */}
-                  <svg width="50" height="50" viewBox="0 0 50 50">
-                    <circle cx="25" cy="25" r="20" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="4" />
-                    <circle 
-                      cx="25" cy="25" r="20" fill="none" stroke="white" strokeWidth="4"
-                      strokeDasharray={`${item.percent * 1.26} 126`}
-                      strokeLinecap="round"
-                      transform="rotate(-90 25 25)"
-                    />
-                    <text x="25" y="29" textAnchor="middle" fill="white" fontSize="12" fontWeight="600">{Math.round(item.percent)}%</text>
-                  </svg>
-                  <div style={{ fontSize: '11px', color: 'white', marginTop: '8px', textAlign: 'center', opacity: 0.9 }}>
-                    {item.category.length > 12 ? item.category.slice(0, 12) + '...' : item.category}
-                  </div>
-                </div>
-              ))}
+            {/* Right side - Rounded Triangle/Pebble shapes (highest to lowest, left to right) */}
+            <div style={{ 
+              display: 'flex', 
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '20px',
+              padding: '10px'
+            }}>
+              {/* Stacked pebble shapes - sorted by percentage descending */}
+              <div style={{ position: 'relative', width: '180px', height: '160px' }}>
+                {(() => {
+                  // Sort cards by percentage descending for visual display
+                  const sortedByPercent = [...spendingCards].sort((a, b) => b.percent - a.percent);
+                  const pebbleColors = ['#6366F1', '#9CA3AF', '#3B82F6', '#D1D5DB'];
+                  const positions = [
+                    { left: '10px', top: '60px', rotate: '-15deg', zIndex: 4, size: 80 },
+                    { left: '60px', top: '10px', rotate: '10deg', zIndex: 3, size: 75 },
+                    { left: '100px', top: '50px', rotate: '25deg', zIndex: 2, size: 70 },
+                    { left: '50px', top: '90px', rotate: '-5deg', zIndex: 1, size: 65 }
+                  ];
+                  
+                  return sortedByPercent.map((item, i) => {
+                    const pos = positions[i] || positions[0];
+                    const color = pebbleColors[i] || pebbleColors[0];
+                    return (
+                      <div 
+                        key={i}
+                        style={{
+                          position: 'absolute',
+                          left: pos.left,
+                          top: pos.top,
+                          transform: `rotate(${pos.rotate})`,
+                          zIndex: pos.zIndex
+                        }}
+                      >
+                        <svg width={pos.size} height={pos.size} viewBox="0 0 100 100">
+                          <defs>
+                            <linearGradient id={`pebbleGrad${i}`} x1="0%" y1="0%" x2="100%" y2="100%">
+                              <stop offset="0%" stopColor={color} stopOpacity="1" />
+                              <stop offset="100%" stopColor={color} stopOpacity="0.8" />
+                            </linearGradient>
+                          </defs>
+                          {/* Rounded triangle / pebble shape */}
+                          <path 
+                            d="M50 10 C75 10, 90 35, 85 60 C80 85, 55 95, 35 85 C15 75, 10 50, 20 30 C30 10, 50 10, 50 10 Z"
+                            fill={`url(#pebbleGrad${i})`}
+                          />
+                          {/* Percentage text */}
+                          <text 
+                            x="50" 
+                            y="55" 
+                            textAnchor="middle" 
+                            fill="white" 
+                            fontSize="18" 
+                            fontWeight="700"
+                          >
+                            {Math.round(item.percent)}%
+                          </text>
+                        </svg>
+                      </div>
+                    );
+                  });
+                })()}
+              </div>
+              
+              {/* Legend below the shapes */}
+              <div style={{ 
+                display: 'grid', 
+                gridTemplateColumns: '1fr 1fr', 
+                gap: '8px 16px',
+                fontSize: '12px',
+                marginTop: '10px'
+              }}>
+                {(() => {
+                  const sortedByPercent = [...spendingCards].sort((a, b) => b.percent - a.percent);
+                  const pebbleColors = ['#6366F1', '#9CA3AF', '#3B82F6', '#D1D5DB'];
+                  return sortedByPercent.map((item, i) => (
+                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <div style={{ 
+                        width: '10px', 
+                        height: '10px', 
+                        borderRadius: '50%', 
+                        background: pebbleColors[i] 
+                      }} />
+                      <span style={{ color: theme.textSecondary }}>
+                        {item.category.length > 10 ? item.category.slice(0, 10) + '...' : item.category}
+                      </span>
+                      <span style={{ color: theme.textMuted, marginLeft: 'auto' }}>
+                        {Math.round(item.percent)}%
+                      </span>
+                    </div>
+                  ));
+                })()}
+              </div>
             </div>
           </div>
         </div>
