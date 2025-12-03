@@ -46,6 +46,21 @@ const lightTheme = {
   inputBg: '#FFFFFF',
   cardShadow: '0 1px 3px rgba(0,0,0,0.05)',
   dropdownBg: '#FFFFFF',
+  
+  // Section Gradients - Light Mode (subtle, professional)
+  gradients: {
+    dashboard: 'linear-gradient(135deg, #E0E7FF 0%, #F5F6FA 30%, #FDF2F8 70%, #F5F6FA 100%)',
+    sales: 'linear-gradient(135deg, #FEF3C7 0%, #F5F6FA 40%, #ECFDF5 100%)',
+    budget: 'linear-gradient(135deg, #DBEAFE 0%, #F5F6FA 50%, #EDE9FE 100%)',
+    transactions: 'linear-gradient(135deg, #F0FDF4 0%, #F5F6FA 40%, #F0F9FF 100%)',
+    bills: 'linear-gradient(135deg, #FEE2E2 0%, #F5F6FA 50%, #FEF3C7 100%)',
+    goals: 'linear-gradient(135deg, #EDE9FE 0%, #F5F6FA 40%, #FCE7F3 100%)',
+    tasks: 'linear-gradient(135deg, #CFFAFE 0%, #F5F6FA 50%, #E0E7FF 100%)',
+    retirement: 'linear-gradient(135deg, #D1FAE5 0%, #F5F6FA 50%, #DBEAFE 100%)',
+    reports: 'linear-gradient(135deg, #FEF3C7 0%, #F5F6FA 40%, #EDE9FE 100%)',
+    settings: 'linear-gradient(135deg, #F3F4F6 0%, #F5F6FA 50%, #E5E7EB 100%)',
+    import: 'linear-gradient(135deg, #DBEAFE 0%, #F5F6FA 50%, #D1FAE5 100%)'
+  }
 };
 // Theme colors - Dark Mode (Original purple theme)
 const darkTheme = {
@@ -78,6 +93,21 @@ const darkTheme = {
   inputBg: 'rgba(139, 92, 246, 0.1)',
   cardShadow: '0 4px 20px rgba(0,0,0,0.3)',
   dropdownBg: '#1e1b38',
+  
+  // Section Gradients - Dark Mode (rich, vibrant with color pops)
+  gradients: {
+    dashboard: 'linear-gradient(135deg, #1a1033 0%, #0c0a1d 30%, #1a0a20 70%, #0c0a1d 100%)',
+    sales: 'linear-gradient(135deg, #1a1a0a 0%, #0c0a1d 40%, #0a1a15 100%)',
+    budget: 'linear-gradient(135deg, #0a1530 0%, #0c0a1d 50%, #1a0a30 100%)',
+    transactions: 'linear-gradient(135deg, #0a1a0f 0%, #0c0a1d 40%, #0a1520 100%)',
+    bills: 'linear-gradient(135deg, #1a0a0a 0%, #0c0a1d 50%, #1a1a0a 100%)',
+    goals: 'linear-gradient(135deg, #1a0a30 0%, #0c0a1d 40%, #200a1a 100%)',
+    tasks: 'linear-gradient(135deg, #0a1a1a 0%, #0c0a1d 50%, #0a0a30 100%)',
+    retirement: 'linear-gradient(135deg, #0a1a10 0%, #0c0a1d 50%, #0a1530 100%)',
+    reports: 'linear-gradient(135deg, #1a1508 0%, #0c0a1d 40%, #1a0a30 100%)',
+    settings: 'linear-gradient(135deg, #12101f 0%, #0c0a1d 50%, #100a15 100%)',
+    import: 'linear-gradient(135deg, #0a1530 0%, #0c0a1d 50%, #0a1a10 100%)'
+  }
 };
 // Default theme (will be controlled by state)
 let theme = lightTheme;
@@ -2441,28 +2471,139 @@ function Dashboard({
     { id: 'import', label: 'Import', icon: Icons.Import },
   ];
 
+  // Get gradient for current tab
+  const getGradientForTab = (tab) => {
+    const gradientMap = {
+      'home': theme.gradients?.dashboard,
+      'sales': theme.gradients?.sales,
+      'budget': theme.gradients?.budget,
+      'transactions': theme.gradients?.transactions,
+      'bills': theme.gradients?.bills,
+      'goals': theme.gradients?.goals,
+      'tasks': theme.gradients?.tasks,
+      'retirement': theme.gradients?.retirement,
+      'reports': theme.gradients?.reports,
+      'settings': theme.gradients?.settings,
+      'import': theme.gradients?.import
+    };
+    return gradientMap[tab] || theme.gradients?.dashboard || theme.bgMain;
+  };
+
+  // Gradient wrapper component for content sections
+  const GradientSection = ({ children, tab }) => (
+    <div style={{
+      minHeight: 'calc(100vh - 70px)',
+      background: getGradientForTab(tab),
+      padding: '24px',
+      borderRadius: '0',
+      transition: 'background 0.4s ease',
+      position: 'relative',
+      overflow: 'hidden'
+    }}>
+      {/* Decorative gradient orbs for visual interest */}
+      {theme.mode === 'light' && (
+        <>
+          <div style={{
+            position: 'absolute',
+            top: '5%',
+            right: '10%',
+            width: '300px',
+            height: '300px',
+            background: 'radial-gradient(circle, rgba(139, 92, 246, 0.08) 0%, transparent 70%)',
+            borderRadius: '50%',
+            pointerEvents: 'none',
+            zIndex: 0
+          }} />
+          <div style={{
+            position: 'absolute',
+            bottom: '20%',
+            left: '5%',
+            width: '250px',
+            height: '250px',
+            background: 'radial-gradient(circle, rgba(236, 72, 153, 0.06) 0%, transparent 70%)',
+            borderRadius: '50%',
+            pointerEvents: 'none',
+            zIndex: 0
+          }} />
+          <div style={{
+            position: 'absolute',
+            top: '40%',
+            left: '50%',
+            width: '200px',
+            height: '200px',
+            background: 'radial-gradient(circle, rgba(16, 185, 129, 0.05) 0%, transparent 70%)',
+            borderRadius: '50%',
+            pointerEvents: 'none',
+            zIndex: 0
+          }} />
+        </>
+      )}
+      {theme.mode === 'dark' && (
+        <>
+          <div style={{
+            position: 'absolute',
+            top: '10%',
+            right: '15%',
+            width: '350px',
+            height: '350px',
+            background: 'radial-gradient(circle, rgba(139, 92, 246, 0.15) 0%, transparent 70%)',
+            borderRadius: '50%',
+            pointerEvents: 'none',
+            zIndex: 0
+          }} />
+          <div style={{
+            position: 'absolute',
+            bottom: '15%',
+            left: '10%',
+            width: '280px',
+            height: '280px',
+            background: 'radial-gradient(circle, rgba(236, 72, 153, 0.1) 0%, transparent 70%)',
+            borderRadius: '50%',
+            pointerEvents: 'none',
+            zIndex: 0
+          }} />
+          <div style={{
+            position: 'absolute',
+            top: '50%',
+            left: '40%',
+            width: '220px',
+            height: '220px',
+            background: 'radial-gradient(circle, rgba(59, 130, 246, 0.08) 0%, transparent 70%)',
+            borderRadius: '50%',
+            pointerEvents: 'none',
+            zIndex: 0
+          }} />
+        </>
+      )}
+      {/* Content with z-index to appear above decorative elements */}
+      <div style={{ position: 'relative', zIndex: 1 }}>
+        {children}
+      </div>
+    </div>
+  );
+
   const renderContent = () => {
     switch (activeTab) {
       case 'home':
-        return <DashboardHome transactions={transactions} goals={goals} bills={bills} tasks={tasks || []} theme={theme} lastImportDate={lastImportDate} />;
+        return <GradientSection tab="home"><DashboardHome transactions={transactions} goals={goals} bills={bills} tasks={tasks || []} theme={theme} lastImportDate={lastImportDate} /></GradientSection>;
       case 'sales':
-        return <SalesTrackerTab theme={theme} lastImportDate={lastImportDate} />;
+        return <GradientSection tab="sales"><SalesTrackerTab theme={theme} lastImportDate={lastImportDate} /></GradientSection>;
       case 'budget':
-        return <BudgetTab transactions={transactions} onNavigateToImport={() => setActiveTab('import')} theme={theme} lastImportDate={lastImportDate} />;
+        return <GradientSection tab="budget"><BudgetTab transactions={transactions} onNavigateToImport={() => setActiveTab('import')} theme={theme} lastImportDate={lastImportDate} /></GradientSection>;
       case 'transactions':
-        return <TransactionsTabDS transactions={transactions} onNavigateToImport={() => setActiveTab('import')} theme={theme} lastImportDate={lastImportDate} />;
+        return <GradientSection tab="transactions"><TransactionsTabDS transactions={transactions} onNavigateToImport={() => setActiveTab('import')} theme={theme} lastImportDate={lastImportDate} /></GradientSection>;
       case 'bills':
-        return <BillsCalendarView theme={theme} lastImportDate={lastImportDate} />;
+        return <GradientSection tab="bills"><BillsCalendarView theme={theme} lastImportDate={lastImportDate} /></GradientSection>;
       case 'goals':
-        return <GoalsTimelineWithCelebration goals={goals} onUpdateGoals={onUpdateGoals} theme={theme} lastImportDate={lastImportDate} />;
+        return <GradientSection tab="goals"><GoalsTimelineWithCelebration goals={goals} onUpdateGoals={onUpdateGoals} theme={theme} lastImportDate={lastImportDate} /></GradientSection>;
       case 'tasks':
-        return <TasksTab tasks={tasks || []} onUpdateTasks={onUpdateTasks} theme={theme} lastImportDate={lastImportDate} />;
+        return <GradientSection tab="tasks"><TasksTab tasks={tasks || []} onUpdateTasks={onUpdateTasks} theme={theme} lastImportDate={lastImportDate} /></GradientSection>;
       case 'retirement':
-        return <RetirementTab theme={theme} lastImportDate={lastImportDate} />;
+        return <GradientSection tab="retirement"><RetirementTab theme={theme} lastImportDate={lastImportDate} /></GradientSection>;
       case 'reports':
-        return <ReportsTab transactions={transactions} onNavigateToImport={() => setActiveTab('import')} theme={theme} lastImportDate={lastImportDate} />;
+        return <GradientSection tab="reports"><ReportsTab transactions={transactions} onNavigateToImport={() => setActiveTab('import')} theme={theme} lastImportDate={lastImportDate} /></GradientSection>;
       case 'settings':
-        return <SettingsTabDS 
+        return <GradientSection tab="settings"><SettingsTabDS 
           theme={theme} 
           isDarkMode={isDarkMode} 
           onToggleTheme={toggleTheme}
@@ -2480,9 +2621,9 @@ function Dashboard({
           memojiAvatars={memojiAvatars}
           languages={languages}
           lastImportDate={lastImportDate}
-        />;
+        /></GradientSection>;
       case 'import':
-        return <ImportTabDS 
+        return <GradientSection tab="import"><ImportTabDS 
           onImport={(data) => {
             onImportTransactions(data);
             const now = new Date().toISOString();
@@ -2494,9 +2635,9 @@ function Dashboard({
           parseCSV={parseCSV} 
           transactionCount={transactions.length} 
           theme={theme} 
-        />;
+        /></GradientSection>;
       default:
-        return <DashboardHome transactions={transactions} goals={goals} bills={bills} tasks={tasks || []} theme={theme} lastImportDate={lastImportDate} />;
+        return <GradientSection tab="home"><DashboardHome transactions={transactions} goals={goals} bills={bills} tasks={tasks || []} theme={theme} lastImportDate={lastImportDate} /></GradientSection>;
     }
   };
 
@@ -3097,7 +3238,7 @@ function Dashboard({
         </header>
 
         {/* Content Area */}
-        <div className="content-area scroll-container" style={{ flex: 1, padding: '24px', overflowY: 'auto' }}>
+        <div className="content-area scroll-container" style={{ flex: 1, overflowY: 'auto' }}>
           {renderContent()}
         </div>
       </main>
