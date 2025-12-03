@@ -161,8 +161,9 @@ const Icons = {
     </svg>
   ),
   SignOut: () => (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M18.36 6.64a9 9 0 1 1-12.73 0"/>
+      <line x1="12" y1="2" x2="12" y2="12"/>
     </svg>
   ),
   User: () => (
@@ -188,20 +189,31 @@ const PennyLogo = ({ size = 48 }) => (
   <svg width={size} height={size} viewBox="0 0 64 64" fill="none">
     <defs>
       <linearGradient id="coinGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stopColor="#FFD700" />
+        <stop offset="0%" stopColor="#FFE135" />
         <stop offset="50%" stopColor="#FFEC8B" />
-        <stop offset="100%" stopColor="#DAA520" />
+        <stop offset="100%" stopColor="#FFD700" />
       </linearGradient>
+      <filter id="coinShadow" x="-20%" y="-20%" width="140%" height="140%">
+        <feDropShadow dx="0" dy="2" stdDeviation="2" floodOpacity="0.2"/>
+      </filter>
     </defs>
-    <circle cx="32" cy="32" r="28" fill="url(#coinGrad)" stroke="#B8860B" strokeWidth="2"/>
-    <circle cx="32" cy="32" r="22" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth="2"/>
-    <ellipse cx="24" cy="26" rx="3" ry="4" fill="#1a1a1a"/>
-    <ellipse cx="40" cy="26" rx="3" ry="4" fill="#1a1a1a"/>
-    <ellipse cx="25" cy="25" rx="1" ry="1.5" fill="#FFFFFF"/>
-    <ellipse cx="41" cy="25" rx="1" ry="1.5" fill="#FFFFFF"/>
-    <path d="M24 38 Q32 44 40 38" stroke="#1a1a1a" strokeWidth="2.5" fill="none" strokeLinecap="round"/>
-    <ellipse cx="18" cy="32" rx="3" ry="2" fill="#FFB6C1" opacity="0.6"/>
-    <ellipse cx="46" cy="32" rx="3" ry="2" fill="#FFB6C1" opacity="0.6"/>
+    {/* Main coin body */}
+    <circle cx="32" cy="32" r="28" fill="url(#coinGrad)" filter="url(#coinShadow)"/>
+    {/* Inner ring */}
+    <circle cx="32" cy="32" r="24" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="1.5"/>
+    {/* Dollar sign on forehead */}
+    <text x="32" y="18" textAnchor="middle" fill="#1a1a1a" fontSize="12" fontWeight="bold" fontFamily="Arial">$</text>
+    {/* Eyes */}
+    <ellipse cx="24" cy="28" rx="3" ry="3.5" fill="#1a1a1a"/>
+    <ellipse cx="40" cy="28" rx="3" ry="3.5" fill="#1a1a1a"/>
+    {/* Eye shine */}
+    <ellipse cx="25" cy="27" rx="1.2" ry="1.2" fill="#FFFFFF"/>
+    <ellipse cx="41" cy="27" rx="1.2" ry="1.2" fill="#FFFFFF"/>
+    {/* Smile */}
+    <path d="M24 40 Q32 46 40 40" stroke="#1a1a1a" strokeWidth="2.5" fill="none" strokeLinecap="round"/>
+    {/* Rosy cheeks */}
+    <ellipse cx="17" cy="34" rx="3.5" ry="2.5" fill="#FFCCCB" opacity="0.5"/>
+    <ellipse cx="47" cy="34" rx="3.5" ry="2.5" fill="#FFCCCB" opacity="0.5"/>
   </svg>
 );
 
@@ -404,32 +416,65 @@ const loadUserDataFromDB = async (userId) => {
   const sb = await initSupabase();
   if (!sb) return null;
   
-  console.log('📥 [DB] Loading user data...');
+  console.log('📥 [DB] Loading user data for:', userId);
   
   try {
+    // Load profile separately to handle potential errors better
+    let profile = null;
+    try {
+      const { data: profileData, error: profileError } = await sb
+        .from('user_profiles')
+        .select('*')
+        .eq('user_id', userId)
+        .single();
+      
+      if (profileError) {
+        console.log('ℹ️ [DB] No profile found or error:', profileError.message);
+      } else {
+        profile = profileData;
+        console.log('✅ [DB] Profile loaded:', profile?.first_name, profile?.last_name);
+      }
+    } catch (e) {
+      console.log('ℹ️ [DB] Profile query error:', e.message);
+    }
+
+    // Load settings separately
+    let settings = null;
+    try {
+      const { data: settingsData, error: settingsError } = await sb
+        .from('user_settings')
+        .select('*')
+        .eq('user_id', userId)
+        .single();
+      
+      if (!settingsError) {
+        settings = settingsData;
+      }
+    } catch (e) {
+      console.log('ℹ️ [DB] Settings query error:', e.message);
+    }
+
+    // Load other data in parallel
     const [
-      { data: profile },
       { data: transactions },
       { data: bills },
       { data: goals },
       { data: tasks },
       { data: budgets },
       { data: incomeTypes },
-      { data: categories },
-      { data: settings }
+      { data: categories }
     ] = await Promise.all([
-      sb.from('user_profiles').select('*').eq('user_id', userId).single(),
       sb.from('transactions').select('*').eq('user_id', userId).order('date', { ascending: false }),
       sb.from('bills').select('*').eq('user_id', userId),
       sb.from('goals').select('*').eq('user_id', userId),
       sb.from('tasks').select('*').eq('user_id', userId).order('created_at', { ascending: false }),
       sb.from('budgets').select('*').eq('user_id', userId),
       sb.from('income_types').select('*').eq('user_id', userId),
-      sb.from('accounting_categories').select('*').eq('user_id', userId),
-      sb.from('user_settings').select('*').eq('user_id', userId).single()
+      sb.from('accounting_categories').select('*').eq('user_id', userId)
     ]);
     
     console.log('✅ [DB] Loaded:', {
+      profile: profile ? 'yes' : 'no',
       transactions: transactions?.length || 0,
       bills: bills?.length || 0,
       goals: goals?.length || 0,
@@ -619,7 +664,7 @@ const saveProfileToDB = async (userId, profile) => {
   const sb = await initSupabase();
   if (!sb) return;
   
-  console.log('💾 [DB] Saving profile...');
+  console.log('💾 [DB] Saving profile...', profile);
   
   try {
     const { error } = await sb.from('user_profiles').upsert({
@@ -631,11 +676,12 @@ const saveProfileToDB = async (userId, profile) => {
       date_of_birth: profile.dateOfBirth,
       gender: profile.gender,
       photo_url: profile.photoUrl,
-      sidehustle_name: profile.sidehustleName
+      sidehustle_name: profile.sidehustleName,
+      updated_at: new Date().toISOString()
     }, { onConflict: 'user_id' });
     
     if (error) throw error;
-    console.log('✅ [DB] Profile saved');
+    console.log('✅ [DB] Profile saved successfully');
   } catch (e) {
     console.error('❌ [DB] Save profile error:', e);
   }
