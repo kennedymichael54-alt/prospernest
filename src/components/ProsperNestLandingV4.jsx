@@ -1943,12 +1943,46 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
           </h1>
           <p style={{ 
             fontSize: isMobile ? 'clamp(13px, 4vw, 16px)' : 'clamp(14px, 3vw, 22px)', 
-            color: colors.secondary, lineHeight: 1.5, 
-            maxWidth: '600px', margin: '0 auto', marginBottom: isMobile ? '36px' : '48px',
+            color: colors.secondary, lineHeight: 1.6, 
+            maxWidth: '650px', margin: '0 auto', marginBottom: isMobile ? '24px' : '32px',
             padding: isMobile ? '0 4px' : '0 8px' 
           }}>
-            The finance app for working families with entrepreneurial spirits. Track personal expenses and side hustle income together.
+            Your command center to manage home finances, budget smarter, and track side hustle income—all in one place. No more juggling apps, spreadsheets, or subscriptions.
           </p>
+          
+          {/* Entrepreneur Tagline */}
+          <div style={{ 
+            marginBottom: isMobile ? '36px' : '48px',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            gap: '12px'
+          }}>
+            <div style={{
+              width: isMobile ? '30px' : '50px',
+              height: '2px',
+              background: `linear-gradient(90deg, transparent 0%, ${colors.purple}50 100%)`,
+              borderRadius: '1px'
+            }} />
+            <span style={{
+              fontSize: isMobile ? 'clamp(12px, 3.5vw, 14px)' : 'clamp(14px, 2vw, 18px)',
+              fontWeight: '600',
+              fontStyle: 'italic',
+              background: `linear-gradient(135deg, ${colors.blue} 0%, ${colors.purple} 50%, ${colors.blue} 100%)`,
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              letterSpacing: '0.5px'
+            }}>
+              Made by Entrepreneurs, for Entrepreneurs
+            </span>
+            <div style={{
+              width: isMobile ? '30px' : '50px',
+              height: '2px',
+              background: `linear-gradient(90deg, ${colors.purple}50 0%, transparent 100%)`,
+              borderRadius: '1px'
+            }} />
+          </div>
+          
           <div className="hero-buttons" style={{ display: 'flex', gap: '12px', justifyContent: 'center', marginBottom: isMobile ? '32px' : '40px', flexWrap: 'wrap', padding: '0 8px' }}>
             <button onClick={() => handleStartTrial()} className="apple-button"
               style={{ padding: isMobile ? '14px 28px' : '16px 36px', background: colors.blue, border: 'none', borderRadius: '12px', color: '#FFF', fontSize: isMobile ? '15px' : '16px', fontWeight: '600', width: isMobile ? '100%' : 'auto', maxWidth: isMobile ? '280px' : 'none' }}>
