@@ -2301,6 +2301,22 @@ function Dashboard({
   const [showIdleModal, setShowIdleModal] = useState(false);
   const [showManageAccountModal, setShowManageAccountModal] = useState(false);
   
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      // Check if click is outside all dropdown areas
+      const isOutsideDropdowns = !e.target.closest('.dropdown-container');
+      if (isOutsideDropdowns) {
+        setShowProfileMenu(false);
+        setShowNotifications(false);
+        setShowSearchResults(false);
+      }
+    };
+    
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+  
   // Local state for editing profile (initialized from props when modal opens)
   const [editProfile, setEditProfile] = useState({
     firstName: '',
@@ -2959,7 +2975,7 @@ function Dashboard({
         }}>
           {/* Search Bar - With Results Dropdown */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flex: 1, minWidth: 0 }}>
-            <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+            <div className="dropdown-container" style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
               <div style={{ position: 'absolute', left: '16px', color: theme.textMuted, zIndex: 2 }}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
                   <circle cx="11" cy="11" r="8"/>
@@ -2971,7 +2987,11 @@ function Dashboard({
                 placeholder="Search transactions, goals, bills..."
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
-                onFocus={() => searchQuery && setShowSearchResults(true)}
+                onFocus={() => {
+                  if (searchQuery) setShowSearchResults(true);
+                  setShowNotifications(false); // Close notifications
+                  setShowProfileMenu(false); // Close profile menu
+                }}
                 style={{
                   width: '320px',
                   height: '44px',
@@ -3267,9 +3287,12 @@ function Dashboard({
             <ThemeToggle isDark={isDarkMode} onToggle={toggleTheme} />
 
             {/* Notifications - Shows Activity Count */}
-            <div style={{ position: 'relative' }}>
+            <div className="dropdown-container" style={{ position: 'relative' }}>
               <button
-                onClick={() => setShowNotifications(!showNotifications)}
+                onClick={() => {
+                  setShowNotifications(!showNotifications);
+                  setShowProfileMenu(false); // Close profile menu when opening notifications
+                }}
                 style={{
                   background: 'transparent',
                   border: 'none',
@@ -3431,9 +3454,12 @@ function Dashboard({
               </div>
               
               {/* Avatar */}
-              <div style={{ position: 'relative' }}>
+              <div className="dropdown-container" style={{ position: 'relative' }}>
                 <div
-                  onClick={() => setShowProfileMenu(!showProfileMenu)}
+                  onClick={() => {
+                    setShowProfileMenu(!showProfileMenu);
+                    setShowNotifications(false); // Close notifications when opening profile menu
+                  }}
                   style={{ 
                     width: '44px',
                     height: '44px',
