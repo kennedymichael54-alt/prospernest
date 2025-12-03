@@ -555,7 +555,38 @@ const AddGoalModal = ({ isOpen, onClose, onAdd, theme }) => {
 };
 
 // Main Goals Timeline Component
-function GoalsTimelineWithCelebration({ goals = [], onUpdateGoals, theme }) {
+// LastImportIndicator component for showing last import date
+function LastImportIndicator({ lastImportDate }) {
+  if (!lastImportDate) return null;
+  
+  return (
+    <div style={{ 
+      display: 'inline-flex', 
+      alignItems: 'center', 
+      gap: '6px', 
+      padding: '4px 10px', 
+      background: '#10B98115', 
+      borderRadius: '8px',
+      marginLeft: '12px'
+    }}>
+      <div style={{ 
+        width: '6px', 
+        height: '6px', 
+        borderRadius: '50%', 
+        background: '#10B981' 
+      }} />
+      <span style={{ 
+        fontSize: '12px', 
+        color: '#10B981', 
+        fontWeight: '500' 
+      }}>
+        Last import: {new Date(lastImportDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+      </span>
+    </div>
+  );
+}
+
+function GoalsTimelineWithCelebration({ goals = [], onUpdateGoals, theme, lastImportDate }) {
   const [showAddModal, setShowAddModal] = useState(false);
 
   // Default sample goals if none provided
@@ -611,11 +642,19 @@ function GoalsTimelineWithCelebration({ goals = [], onUpdateGoals, theme }) {
   return (
     <div style={{ padding: '24px', maxWidth: '100%' }}>
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '32px' }}>
-        <span style={{ fontSize: '24px' }}>🎯</span>
-        <h1 style={{ margin: 0, fontSize: '24px', fontWeight: '700', color: theme.textPrimary }}>
-          Financial Goals
-        </h1>
+      <div style={{ marginBottom: '32px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '4px' }}>
+          <span style={{ fontSize: '24px' }}>🎯</span>
+          <h1 style={{ margin: 0, fontSize: '24px', fontWeight: '700', color: theme.textPrimary }}>
+            Financial Goals
+          </h1>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', marginLeft: '36px' }}>
+          <p style={{ fontSize: '14px', color: theme.textMuted, margin: 0 }}>
+            {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
+          </p>
+          <LastImportIndicator lastImportDate={lastImportDate} />
+        </div>
       </div>
 
       {/* Goals List */}
