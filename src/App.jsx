@@ -2484,8 +2484,12 @@ function Dashboard({
   
   // Custom account type labels (rename Personal/Side Hustle)
   const [accountLabels, setAccountLabels] = useState(() => {
-    const saved = localStorage.getItem('pn_accountLabels');
-    return saved ? JSON.parse(saved) : { personal: 'Personal', sidehustle: 'Side Hustle' };
+    try {
+      const saved = localStorage.getItem('pn_accountLabels');
+      return saved ? JSON.parse(saved) : { personal: 'Personal', sidehustle: 'Side Hustle' };
+    } catch {
+      return { personal: 'Personal', sidehustle: 'Side Hustle' };
+    }
   });
   const [editingAccountLabel, setEditingAccountLabel] = useState(null);
   
@@ -2895,7 +2899,7 @@ function Dashboard({
   const renderContent = () => {
     switch (activeTab) {
       case 'home':
-        return <GradientSection tab="home"><DashboardHome transactions={transactions} goals={goals} bills={bills} tasks={tasks || []} theme={theme} lastImportDate={lastImportDate} accountLabels={accountLabels} /></GradientSection>;
+        return <GradientSection tab="home"><DashboardHome transactions={transactions} goals={goals} bills={bills} tasks={tasks || []} theme={theme} lastImportDate={lastImportDate} accountLabels={accountLabels} editingAccountLabel={editingAccountLabel} setEditingAccountLabel={setEditingAccountLabel} updateAccountLabel={updateAccountLabel} /></GradientSection>;
       case 'sales':
         return <GradientSection tab="sales"><SalesTrackerTab theme={theme} lastImportDate={lastImportDate} /></GradientSection>;
       case 'budget':
@@ -2947,7 +2951,7 @@ function Dashboard({
           theme={theme} 
         /></GradientSection>;
       default:
-        return <GradientSection tab="home"><DashboardHome transactions={transactions} goals={goals} bills={bills} tasks={tasks || []} theme={theme} lastImportDate={lastImportDate} accountLabels={accountLabels} /></GradientSection>;
+        return <GradientSection tab="home"><DashboardHome transactions={transactions} goals={goals} bills={bills} tasks={tasks || []} theme={theme} lastImportDate={lastImportDate} accountLabels={accountLabels} editingAccountLabel={editingAccountLabel} setEditingAccountLabel={setEditingAccountLabel} updateAccountLabel={updateAccountLabel} /></GradientSection>;
     }
   };
 
@@ -4977,7 +4981,7 @@ function Dashboard({
 // Features: Personal/Side Hustle split, Charts, Budget, Goals, Bills, Free to Spend
 // ============================================================================
 
-function DashboardHome({ transactions, goals, bills = [], tasks = [], theme, lastImportDate, accountLabels }) {
+function DashboardHome({ transactions, goals, bills = [], tasks = [], theme, lastImportDate, accountLabels, editingAccountLabel, setEditingAccountLabel, updateAccountLabel }) {
   const [timeRange, setTimeRange] = useState('month');
   const [activeAccount, setActiveAccount] = useState('all');
   const [txnSearchQuery, setTxnSearchQuery] = useState('');
