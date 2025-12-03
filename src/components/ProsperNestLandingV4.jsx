@@ -1983,26 +1983,44 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
               </a>
             ))}
             
-            {/* Dark Mode Toggle */}
-            <button 
-              onClick={toggleDarkMode}
-              style={{
-                width: '40px',
-                height: '40px',
-                borderRadius: '12px',
-                border: `1px solid ${colors.borderLight}`,
-                background: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : colors.gray6,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '18px',
-                transition: 'all 0.2s ease'
-              }}
-              title={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-            >
-              {isDarkMode ? '☀️' : '🌙'}
-            </button>
+            {/* Dark Mode Toggle - App Style */}
+            <div style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '8px',
+              background: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : colors.gray6,
+              padding: '6px 10px',
+              borderRadius: '20px'
+            }}>
+              <span style={{ fontSize: '16px', opacity: isDarkMode ? 0.5 : 1 }}>☀️</span>
+              <button 
+                onClick={toggleDarkMode}
+                style={{
+                  width: '44px',
+                  height: '24px',
+                  borderRadius: '12px',
+                  border: 'none',
+                  background: isDarkMode ? '#EC4899' : '#E5E5EA',
+                  cursor: 'pointer',
+                  position: 'relative',
+                  transition: 'background 0.3s ease',
+                  padding: 0
+                }}
+              >
+                <div style={{
+                  width: '20px',
+                  height: '20px',
+                  borderRadius: '50%',
+                  background: '#FFF',
+                  position: 'absolute',
+                  top: '2px',
+                  left: isDarkMode ? '22px' : '2px',
+                  transition: 'left 0.3s ease',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.2)'
+                }} />
+              </button>
+              <span style={{ fontSize: '16px', opacity: isDarkMode ? 1 : 0.5 }}>🌙</span>
+            </div>
             
             <button onClick={() => handleSignIn()}
               style={{ padding: '10px 18px', background: 'transparent', border: 'none', fontSize: '14px', color: colors.blue, cursor: 'pointer', fontWeight: '600' }}>Sign In</button>
@@ -2013,24 +2031,35 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
         
         {/* Mobile: Dark mode toggle + menu */}
         {isTabletOrMobile && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontSize: '14px', opacity: isDarkMode ? 0.5 : 1 }}>☀️</span>
             <button 
               onClick={toggleDarkMode}
               style={{
-                width: '36px',
-                height: '36px',
-                borderRadius: '10px',
-                border: `1px solid ${colors.borderLight}`,
-                background: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : colors.gray6,
+                width: '40px',
+                height: '22px',
+                borderRadius: '11px',
+                border: 'none',
+                background: isDarkMode ? '#EC4899' : '#E5E5EA',
                 cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '16px'
+                position: 'relative',
+                transition: 'background 0.3s ease',
+                padding: 0
               }}
             >
-              {isDarkMode ? '☀️' : '🌙'}
+              <div style={{
+                width: '18px',
+                height: '18px',
+                borderRadius: '50%',
+                background: '#FFF',
+                position: 'absolute',
+                top: '2px',
+                left: isDarkMode ? '20px' : '2px',
+                transition: 'left 0.3s ease',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.2)'
+              }} />
             </button>
+            <span style={{ fontSize: '14px', opacity: isDarkMode ? 1 : 0.5 }}>🌙</span>
           </div>
         )}
       </nav>
@@ -2055,12 +2084,14 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
           }}>
             Your money.<br/>Your hustle.<br/>
             <span style={{ 
+              display: 'inline-block',
               background: isDarkMode 
                 ? 'linear-gradient(135deg, #EC4899 0%, #A78BFA 100%)' 
                 : 'linear-gradient(135deg, #3B82F6 0%, #8B5CF6 100%)', 
               WebkitBackgroundClip: 'text', 
               WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text'
+              backgroundClip: 'text',
+              color: 'transparent'
             }}>One nest.</span>
           </h1>
           <p style={{ 
@@ -2218,9 +2249,7 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
               fontSize: isMobile ? 'clamp(26px, 8vw, 36px)' : 'clamp(32px, 6vw, 56px)', 
               fontWeight: '800', 
               marginBottom: '16px',
-              background: `linear-gradient(135deg, ${colors.label} 0%, ${colors.secondary} 100%)`,
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent'
+              color: colors.label
             }}>
               Three Hubs. One Mission.
             </h2>
@@ -2277,7 +2306,7 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
               }
             ].map((hub, i) => (
               <div key={i} className="hover-lift hub-card" style={{
-                background: '#FFFFFF',
+                background: colors.cardBg,
                 borderRadius: '24px',
                 padding: isMobile ? '24px' : '32px',
                 flex: '1 1 300px',
@@ -2285,9 +2314,9 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
                 position: 'relative',
                 width: '100%',
                 boxShadow: hub.available 
-                  ? `0 20px 60px ${hub.color}25, 0 8px 24px rgba(0,0,0,0.08)` 
-                  : '0 8px 32px rgba(0,0,0,0.08)',
-                border: hub.available ? `2px solid ${hub.color}40` : '1px solid rgba(0,0,0,0.06)',
+                  ? (isDarkMode ? `0 20px 60px rgba(0,0,0,0.4)` : `0 20px 60px ${hub.color}25, 0 8px 24px rgba(0,0,0,0.08)`)
+                  : (isDarkMode ? '0 8px 32px rgba(0,0,0,0.4)' : '0 8px 32px rgba(0,0,0,0.08)'),
+                border: hub.available ? `2px solid ${hub.color}40` : `1px solid ${colors.borderLight}`,
                 transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
                 overflow: 'visible'
               }}>
@@ -2471,7 +2500,7 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
       }}>
         <div style={{ maxWidth: '1400px', margin: '0 auto', position: 'relative', zIndex: 1, width: '100%' }}>
           <div style={{ textAlign: 'center', marginBottom: isMobile ? '40px' : '70px' }}>
-            <h2 style={{ fontSize: isMobile ? 'clamp(22px, 7vw, 32px)' : 'clamp(24px, 5vw, 52px)', fontWeight: '700', marginBottom: '16px' }}>
+            <h2 style={{ fontSize: isMobile ? 'clamp(22px, 7vw, 32px)' : 'clamp(24px, 5vw, 52px)', fontWeight: '700', marginBottom: '16px', color: colors.label }}>
               Everything you need to build wealth
             </h2>
             <p style={{ fontSize: isMobile ? 'clamp(13px, 4vw, 16px)' : 'clamp(14px, 3vw, 19px)', color: colors.secondary, maxWidth: '650px', margin: '0 auto', padding: '0 8px' }}>
@@ -2533,13 +2562,13 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
               
               {/* Financial Overview Card */}
               <div className="hover-lift" style={{
-                background: '#FFF', borderRadius: '24px', padding: '28px',
-                boxShadow: '0 15px 40px rgba(0,0,0,0.08)', 
-                border: '1px solid rgba(236, 72, 153, 0.15)'
+                background: colors.cardBg, borderRadius: '24px', padding: '28px',
+                boxShadow: isDarkMode ? '0 15px 40px rgba(0,0,0,0.3)' : '0 15px 40px rgba(0,0,0,0.08)', 
+                border: `1px solid ${isDarkMode ? 'rgba(236, 72, 153, 0.2)' : 'rgba(236, 72, 153, 0.15)'}`
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
                   <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#EC489915', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' }}>📊</div>
-                  <span style={{ fontSize: '16px', fontWeight: '600' }}>Financial Overview</span>
+                  <span style={{ fontSize: '16px', fontWeight: '600', color: colors.label }}>Financial Overview</span>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '20px' }}>
                   <div style={{ background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)', borderRadius: '14px', padding: '16px', color: '#FFF' }}>
@@ -2565,13 +2594,13 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
 
               {/* Budget Tracker Card */}
               <div className="hover-lift" style={{
-                background: '#FFF', borderRadius: '24px', padding: '28px',
-                boxShadow: '0 15px 40px rgba(0,0,0,0.08)',
-                border: '1px solid rgba(236, 72, 153, 0.15)'
+                background: colors.cardBg, borderRadius: '24px', padding: '28px',
+                boxShadow: isDarkMode ? '0 15px 40px rgba(0,0,0,0.3)' : '0 15px 40px rgba(0,0,0,0.08)',
+                border: `1px solid ${isDarkMode ? 'rgba(236, 72, 153, 0.2)' : 'rgba(236, 72, 153, 0.15)'}`
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
                   <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#EC489915', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' }}>💰</div>
-                  <span style={{ fontSize: '16px', fontWeight: '600' }}>Budget Tracker</span>
+                  <span style={{ fontSize: '16px', fontWeight: '600', color: colors.label }}>Budget Tracker</span>
                 </div>
                 {[
                   { cat: 'Housing', spent: 1800, budget: 2000, color: '#3B82F6' },
@@ -2581,12 +2610,12 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
                 ].map((item, i) => (
                   <div key={i} style={{ marginBottom: '14px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                      <span style={{ fontSize: '13px', fontWeight: '500' }}>{item.cat}</span>
+                      <span style={{ fontSize: '13px', fontWeight: '500', color: colors.label }}>{item.cat}</span>
                       <span style={{ fontSize: '13px', color: item.spent > item.budget ? '#EF4444' : colors.secondary }}>
                         ${item.spent} / ${item.budget}
                       </span>
                     </div>
-                    <div style={{ background: '#E5E7EB', borderRadius: '6px', height: '6px', overflow: 'hidden' }}>
+                    <div style={{ background: isDarkMode ? 'rgba(255,255,255,0.1)' : '#E5E7EB', borderRadius: '6px', height: '6px', overflow: 'hidden' }}>
                       <div style={{ 
                         width: `${Math.min((item.spent / item.budget) * 100, 100)}%`, 
                         height: '100%', 
@@ -2600,13 +2629,13 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
 
               {/* Savings Goals Card */}
               <div className="hover-lift" style={{
-                background: '#FFF', borderRadius: '24px', padding: '28px',
-                boxShadow: '0 15px 40px rgba(0,0,0,0.08)',
-                border: '1px solid rgba(236, 72, 153, 0.15)'
+                background: colors.cardBg, borderRadius: '24px', padding: '28px',
+                boxShadow: isDarkMode ? '0 15px 40px rgba(0,0,0,0.3)' : '0 15px 40px rgba(0,0,0,0.08)',
+                border: `1px solid ${isDarkMode ? 'rgba(236, 72, 153, 0.2)' : 'rgba(236, 72, 153, 0.15)'}`
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
                   <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#EC489915', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' }}>🎯</div>
-                  <span style={{ fontSize: '16px', fontWeight: '600' }}>Savings Goals</span>
+                  <span style={{ fontSize: '16px', fontWeight: '600', color: colors.label }}>Savings Goals</span>
                 </div>
                 {[
                   { goal: 'Emergency Fund', current: 8500, target: 15000, icon: '🛡️' },
@@ -2620,14 +2649,14 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
                       <span style={{ fontSize: '20px' }}>{item.icon}</span>
                       <div style={{ flex: 1 }}>
-                        <div style={{ fontSize: '13px', fontWeight: '600' }}>{item.goal}</div>
-                        <div style={{ fontSize: '11px', color: colors.gray }}>${item.current.toLocaleString()} of ${item.target.toLocaleString()}</div>
+                        <div style={{ fontSize: '13px', fontWeight: '600', color: colors.label }}>{item.goal}</div>
+                        <div style={{ fontSize: '11px', color: colors.secondary }}>${item.current.toLocaleString()} of ${item.target.toLocaleString()}</div>
                       </div>
                       <span style={{ fontSize: '14px', fontWeight: '700', color: '#EC4899' }}>
                         {Math.round((item.current / item.target) * 100)}%
                       </span>
                     </div>
-                    <div style={{ background: '#E5E7EB', borderRadius: '6px', height: '6px', overflow: 'hidden' }}>
+                    <div style={{ background: isDarkMode ? 'rgba(255,255,255,0.1)' : '#E5E7EB', borderRadius: '6px', height: '6px', overflow: 'hidden' }}>
                       <div style={{ width: `${(item.current / item.target) * 100}%`, height: '100%', background: 'linear-gradient(90deg, #EC4899, #F472B6)', borderRadius: '6px' }} />
                     </div>
                   </div>
@@ -2636,13 +2665,13 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
 
               {/* Bill Reminders Card */}
               <div className="hover-lift" style={{
-                background: '#FFF', borderRadius: '24px', padding: '28px',
-                boxShadow: '0 15px 40px rgba(0,0,0,0.08)',
-                border: '1px solid rgba(236, 72, 153, 0.15)'
+                background: colors.cardBg, borderRadius: '24px', padding: '28px',
+                boxShadow: isDarkMode ? '0 15px 40px rgba(0,0,0,0.3)' : '0 15px 40px rgba(0,0,0,0.08)',
+                border: `1px solid ${isDarkMode ? 'rgba(236, 72, 153, 0.2)' : 'rgba(236, 72, 153, 0.15)'}`
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
                   <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#EC489915', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' }}>📅</div>
-                  <span style={{ fontSize: '16px', fontWeight: '600' }}>Upcoming Bills</span>
+                  <span style={{ fontSize: '16px', fontWeight: '600', color: colors.label }}>Upcoming Bills</span>
                   <span style={{ marginLeft: 'auto', background: '#FEF3C7', color: '#D97706', padding: '4px 10px', borderRadius: '8px', fontSize: '11px', fontWeight: '600' }}>3 due soon</span>
                 </div>
                 {[
@@ -2653,14 +2682,14 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
                 ].map((bill, i) => (
                   <div key={i} style={{
                     display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                    padding: '12px 0', borderBottom: i < 3 ? `1px solid ${colors.gray5}` : 'none'
+                    padding: '12px 0', borderBottom: i < 3 ? `1px solid ${colors.borderLight}` : 'none'
                   }}>
                     <div>
-                      <div style={{ fontSize: '14px', fontWeight: '500' }}>{bill.name}</div>
-                      <div style={{ fontSize: '12px', color: colors.gray }}>{bill.date}</div>
+                      <div style={{ fontSize: '14px', fontWeight: '500', color: colors.label }}>{bill.name}</div>
+                      <div style={{ fontSize: '12px', color: colors.secondary }}>{bill.date}</div>
                     </div>
                     <div style={{ textAlign: 'right' }}>
-                      <div style={{ fontSize: '14px', fontWeight: '600' }}>${bill.amount}</div>
+                      <div style={{ fontSize: '14px', fontWeight: '600', color: colors.label }}>${bill.amount}</div>
                       <div style={{
                         fontSize: '10px', padding: '4px 10px', borderRadius: '8px',
                         background: bill.status === 'paid' ? '#D1FAE5' : '#FEF3C7',
@@ -2674,13 +2703,13 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
 
               {/* Side Hustle Sales Tracker Card */}
               <div className="hover-lift" style={{
-                background: '#FFF', borderRadius: '24px', padding: '28px',
-                boxShadow: '0 15px 40px rgba(0,0,0,0.08)',
-                border: '1px solid rgba(236, 72, 153, 0.15)'
+                background: colors.cardBg, borderRadius: '24px', padding: '28px',
+                boxShadow: isDarkMode ? '0 15px 40px rgba(0,0,0,0.3)' : '0 15px 40px rgba(0,0,0,0.08)',
+                border: `1px solid ${isDarkMode ? 'rgba(236, 72, 153, 0.2)' : 'rgba(236, 72, 153, 0.15)'}`
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
                   <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#EC489915', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' }}>💼</div>
-                  <span style={{ fontSize: '16px', fontWeight: '600' }}>Side Hustle Tracker</span>
+                  <span style={{ fontSize: '16px', fontWeight: '600', color: colors.label }}>Side Hustle Tracker</span>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '20px' }}>
                   <div style={{ background: 'linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)', borderRadius: '14px', padding: '14px', color: '#FFF' }}>
@@ -2694,7 +2723,7 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
                     <div style={{ fontSize: '11px', opacity: 0.8 }}>$18,400 pipeline</div>
                   </div>
                 </div>
-                <div style={{ fontSize: '12px', color: colors.gray, marginBottom: '10px', fontWeight: '600' }}>Recent Sales</div>
+                <div style={{ fontSize: '12px', color: colors.secondary, marginBottom: '10px', fontWeight: '600' }}>Recent Sales</div>
                 {[
                   { client: 'Smith Property', amount: 2400, status: 'Closed' },
                   { client: 'Johnson Deal', amount: 1800, status: 'Closed' },
@@ -2702,11 +2731,11 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
                 ].map((sale, i) => (
                   <div key={i} style={{ 
                     display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                    padding: '10px 0', borderBottom: i < 2 ? `1px solid ${colors.gray5}` : 'none'
+                    padding: '10px 0', borderBottom: i < 2 ? `1px solid ${colors.borderLight}` : 'none'
                   }}>
-                    <span style={{ fontSize: '13px', fontWeight: '500' }}>{sale.client}</span>
+                    <span style={{ fontSize: '13px', fontWeight: '500', color: colors.label }}>{sale.client}</span>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span style={{ fontSize: '13px', fontWeight: '600' }}>${sale.amount.toLocaleString()}</span>
+                      <span style={{ fontSize: '13px', fontWeight: '600', color: colors.label }}>${sale.amount.toLocaleString()}</span>
                       <span style={{ 
                         fontSize: '10px', padding: '3px 8px', borderRadius: '6px',
                         background: sale.status === 'Closed' ? '#D1FAE5' : '#DBEAFE',
@@ -2716,6 +2745,67 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
                     </div>
                   </div>
                 ))}
+              </div>
+
+              {/* Tax Estimator Card - NEW */}
+              <div className="hover-lift" style={{
+                background: colors.cardBg, borderRadius: '24px', padding: '28px',
+                boxShadow: isDarkMode ? '0 15px 40px rgba(0,0,0,0.3)' : '0 15px 40px rgba(0,0,0,0.08)',
+                border: `1px solid ${isDarkMode ? 'rgba(236, 72, 153, 0.2)' : 'rgba(236, 72, 153, 0.15)'}`
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
+                  <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#EC489915', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' }}>📋</div>
+                  <span style={{ fontSize: '16px', fontWeight: '600', color: colors.label }}>Tax Estimator</span>
+                </div>
+                <div style={{ background: isDarkMode ? 'rgba(251, 191, 36, 0.15)' : '#FEF3C7', borderRadius: '14px', padding: '16px', marginBottom: '16px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div>
+                      <div style={{ fontSize: '12px', color: '#D97706', fontWeight: '600' }}>Estimated Tax</div>
+                      <div style={{ fontSize: '11px', color: colors.secondary }}>Based on YTD income</div>
+                    </div>
+                    <div style={{ fontSize: '24px', fontWeight: '700', color: '#D97706' }}>$4,850</div>
+                  </div>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                  <div style={{ background: colors.gray6, borderRadius: '10px', padding: '12px', textAlign: 'center' }}>
+                    <div style={{ fontSize: '11px', color: colors.secondary }}>Federal</div>
+                    <div style={{ fontSize: '16px', fontWeight: '700', color: colors.label }}>$3,200</div>
+                  </div>
+                  <div style={{ background: colors.gray6, borderRadius: '10px', padding: '12px', textAlign: 'center' }}>
+                    <div style={{ fontSize: '11px', color: colors.secondary }}>State</div>
+                    <div style={{ fontSize: '16px', fontWeight: '700', color: colors.label }}>$1,650</div>
+                  </div>
+                </div>
+                <div style={{ marginTop: '14px', fontSize: '12px', color: '#10B981', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span>💡</span> Set aside $405/mo to stay on track
+                </div>
+              </div>
+
+              {/* Net Worth Tracker Card - NEW */}
+              <div className="hover-lift" style={{
+                background: colors.cardBg, borderRadius: '24px', padding: '28px',
+                boxShadow: isDarkMode ? '0 15px 40px rgba(0,0,0,0.3)' : '0 15px 40px rgba(0,0,0,0.08)',
+                border: `1px solid ${isDarkMode ? 'rgba(236, 72, 153, 0.2)' : 'rgba(236, 72, 153, 0.15)'}`
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
+                  <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#EC489915', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' }}>📈</div>
+                  <span style={{ fontSize: '16px', fontWeight: '600', color: colors.label }}>Net Worth</span>
+                  <span style={{ marginLeft: 'auto', fontSize: '12px', color: '#10B981', fontWeight: '600' }}>↑ 12% this year</span>
+                </div>
+                <div style={{ background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)', borderRadius: '14px', padding: '20px', color: '#FFF', textAlign: 'center', marginBottom: '16px' }}>
+                  <div style={{ fontSize: '12px', opacity: 0.9 }}>Total Net Worth</div>
+                  <div style={{ fontSize: '32px', fontWeight: '700' }}>$245,830</div>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                  <div style={{ background: colors.gray6, borderRadius: '10px', padding: '12px' }}>
+                    <div style={{ fontSize: '11px', color: colors.secondary }}>Assets</div>
+                    <div style={{ fontSize: '16px', fontWeight: '700', color: '#10B981' }}>$312,400</div>
+                  </div>
+                  <div style={{ background: colors.gray6, borderRadius: '10px', padding: '12px' }}>
+                    <div style={{ fontSize: '11px', color: colors.secondary }}>Liabilities</div>
+                    <div style={{ fontSize: '16px', fontWeight: '700', color: '#EF4444' }}>$66,570</div>
+                  </div>
+                </div>
               </div>
 
               {/* FIRE Retirement Card */}
@@ -2809,13 +2899,13 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
               
               {/* Business Dashboard Card */}
               <div className="hover-lift" style={{
-                background: '#FFF', borderRadius: '24px', padding: '28px',
+                background: colors.cardBg, borderRadius: '24px', padding: '28px',
                 boxShadow: '0 15px 40px rgba(0,0,0,0.08)', 
                 border: '1px solid rgba(167, 139, 250, 0.15)'
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
                   <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#A78BFA15', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' }}>📈</div>
-                  <span style={{ fontSize: '16px', fontWeight: '600' }}>Business Dashboard</span>
+                  <span style={{ fontSize: '16px', fontWeight: '600', color: colors.label }}>Business Dashboard</span>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px', marginBottom: '20px' }}>
                   <div style={{ background: '#10B98115', borderRadius: '12px', padding: '14px', textAlign: 'center' }}>
@@ -2847,13 +2937,13 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
 
               {/* 1099 Contractor Card */}
               <div className="hover-lift" style={{
-                background: '#FFF', borderRadius: '24px', padding: '28px',
+                background: colors.cardBg, borderRadius: '24px', padding: '28px',
                 boxShadow: '0 15px 40px rgba(0,0,0,0.08)',
                 border: '1px solid rgba(167, 139, 250, 0.15)'
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
                   <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#A78BFA15', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' }}>👥</div>
-                  <span style={{ fontSize: '16px', fontWeight: '600' }}>1099 Contractors</span>
+                  <span style={{ fontSize: '16px', fontWeight: '600', color: colors.label }}>1099 Contractors</span>
                   <span style={{ marginLeft: 'auto', background: '#A78BFA15', color: '#8B5CF6', padding: '4px 10px', borderRadius: '8px', fontSize: '11px', fontWeight: '600' }}>4 Active</span>
                 </div>
                 {[
@@ -2884,13 +2974,13 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
 
               {/* Self-Employment Tax Card */}
               <div className="hover-lift" style={{
-                background: '#FFF', borderRadius: '24px', padding: '28px',
+                background: colors.cardBg, borderRadius: '24px', padding: '28px',
                 boxShadow: '0 15px 40px rgba(0,0,0,0.08)',
                 border: '1px solid rgba(167, 139, 250, 0.15)'
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
                   <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#A78BFA15', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' }}>🧮</div>
-                  <span style={{ fontSize: '16px', fontWeight: '600' }}>Tax Estimator</span>
+                  <span style={{ fontSize: '16px', fontWeight: '600', color: colors.label }}>Tax Estimator</span>
                 </div>
                 <div style={{ background: '#FEF3C7', borderRadius: '14px', padding: '16px', marginBottom: '16px' }}>
                   <div style={{ fontSize: '12px', color: '#92400E', marginBottom: '4px' }}>Q4 Estimated Payment Due</div>
@@ -2922,7 +3012,7 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
                   <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'rgba(255,255,255,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' }}>📊</div>
-                  <span style={{ fontSize: '16px', fontWeight: '600' }}>Business KPIs</span>
+                  <span style={{ fontSize: '16px', fontWeight: '600', color: colors.label }}>Business KPIs</span>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                   {[
@@ -2997,13 +3087,13 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
               
               {/* Deal Analyzer Card */}
               <div className="hover-lift" style={{
-                background: '#FFF', borderRadius: '24px', padding: '28px',
+                background: colors.cardBg, borderRadius: '24px', padding: '28px',
                 boxShadow: '0 15px 40px rgba(0,0,0,0.08)', 
                 border: '1px solid rgba(129, 140, 248, 0.15)'
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
                   <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#818CF815', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' }}>🔍</div>
-                  <span style={{ fontSize: '16px', fontWeight: '600' }}>Deal Analyzer</span>
+                  <span style={{ fontSize: '16px', fontWeight: '600', color: colors.label }}>Deal Analyzer</span>
                 </div>
                 <div style={{ background: colors.gray6, borderRadius: '14px', padding: '16px', marginBottom: '16px' }}>
                   <div style={{ fontSize: '13px', fontWeight: '600', marginBottom: '8px' }}>123 Oak Street, Atlanta GA</div>
@@ -3034,13 +3124,13 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
 
               {/* Property Cash Flow Card */}
               <div className="hover-lift" style={{
-                background: '#FFF', borderRadius: '24px', padding: '28px',
+                background: colors.cardBg, borderRadius: '24px', padding: '28px',
                 boxShadow: '0 15px 40px rgba(0,0,0,0.08)',
                 border: '1px solid rgba(129, 140, 248, 0.15)'
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
                   <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#818CF815', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' }}>💵</div>
-                  <span style={{ fontSize: '16px', fontWeight: '600' }}>Property Cash Flow</span>
+                  <span style={{ fontSize: '16px', fontWeight: '600', color: colors.label }}>Property Cash Flow</span>
                 </div>
                 {[
                   { property: '123 Oak St', rent: 2200, expenses: 850, cashflow: 1350 },
@@ -3069,13 +3159,13 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
 
               {/* Portfolio Overview Card */}
               <div className="hover-lift" style={{
-                background: '#FFF', borderRadius: '24px', padding: '28px',
+                background: colors.cardBg, borderRadius: '24px', padding: '28px',
                 boxShadow: '0 15px 40px rgba(0,0,0,0.08)',
                 border: '1px solid rgba(129, 140, 248, 0.15)'
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
                   <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#818CF815', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' }}>🏘️</div>
-                  <span style={{ fontSize: '16px', fontWeight: '600' }}>Portfolio Overview</span>
+                  <span style={{ fontSize: '16px', fontWeight: '600', color: colors.label }}>Portfolio Overview</span>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '20px' }}>
                   <div style={{ background: 'linear-gradient(135deg, #818CF8 0%, #6366F1 100%)', borderRadius: '14px', padding: '16px', color: '#FFF' }}>
@@ -3112,7 +3202,7 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
                   <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'rgba(255,255,255,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' }}>📋</div>
-                  <span style={{ fontSize: '16px', fontWeight: '600' }}>CPA-Ready Reports</span>
+                  <span style={{ fontSize: '16px', fontWeight: '600', color: colors.label }}>CPA-Ready Reports</span>
                 </div>
                 <div style={{ marginBottom: '16px' }}>
                   <div style={{ fontSize: '12px', opacity: 0.8, marginBottom: '8px' }}>2024 Tax Summary</div>
@@ -3260,30 +3350,30 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
             </div>
             
             <div className="pricing-grid" style={{ 
-              display: 'flex', gap: '20px', justifyContent: 'center', flexWrap: 'wrap', width: '100%',
+              display: 'flex', gap: '16px', justifyContent: 'center', flexWrap: 'wrap', width: '100%',
               overflow: 'visible', paddingTop: '20px'
             }}>
               {/* Starter - Free */}
               <div className="hover-lift pricing-card" style={{
                 background: colors.cardBg,
                 color: colors.label,
-                borderRadius: '24px', 
-                padding: isMobile ? '24px' : '32px', 
-                flex: '1 1 280px', 
-                maxWidth: isMobile ? '100%' : '340px',
+                borderRadius: '20px', 
+                padding: isMobile ? '20px' : '24px', 
+                flex: '1 1 260px', 
+                maxWidth: isMobile ? '100%' : '300px',
                 boxShadow: isDarkMode ? '0 4px 20px rgba(0,0,0,0.3)' : '0 4px 20px rgba(0,0,0,0.08)',
                 position: 'relative',
                 border: `1px solid ${colors.borderLight}`,
                 borderTop: '4px solid #EC4899'
               }}>
-                <div style={{ fontSize: '12px', fontWeight: '700', color: '#EC4899', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px' }}>STARTER</div>
-                <div style={{ fontSize: '18px', fontWeight: '600', marginBottom: '8px', color: colors.label }}>Get Your Feet Wet</div>
-                <div style={{ marginBottom: '8px', display: 'flex', alignItems: 'baseline', gap: '8px' }}>
-                  <span style={{ fontSize: '44px', fontWeight: '700', color: colors.label }}>Free</span>
-                  <span style={{ background: '#FEF3C7', color: '#D97706', padding: '4px 10px', borderRadius: '8px', fontSize: '11px', fontWeight: '600' }}>14-day trial</span>
+                <div style={{ fontSize: '11px', fontWeight: '700', color: '#EC4899', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '6px' }}>STARTER</div>
+                <div style={{ fontSize: '16px', fontWeight: '600', marginBottom: '6px', color: colors.label }}>Get Your Feet Wet</div>
+                <div style={{ marginBottom: '6px', display: 'flex', alignItems: 'baseline', gap: '6px' }}>
+                  <span style={{ fontSize: '36px', fontWeight: '700', color: colors.label }}>Free</span>
+                  <span style={{ background: '#FEF3C7', color: '#D97706', padding: '3px 8px', borderRadius: '6px', fontSize: '10px', fontWeight: '600' }}>14-day trial</span>
                 </div>
-                <div style={{ fontSize: '14px', color: colors.secondary, marginBottom: '24px' }}>Perfect for exploring your finances</div>
-                <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 24px 0' }}>
+                <div style={{ fontSize: '13px', color: colors.secondary, marginBottom: '18px' }}>Perfect for exploring your finances</div>
+                <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 18px 0' }}>
                   {[
                     '1 User',
                     'Dashboard overview',
@@ -3292,8 +3382,8 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
                     'Bill reminders (3 bills)',
                     'Mobile app access'
                   ].map((f, j) => (
-                    <li key={j} style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px', fontSize: '14px', color: colors.secondary }}>
-                      <span style={{ color: '#EC4899', fontSize: '14px', flexShrink: 0 }}>✓</span><span>{f}</span>
+                    <li key={j} style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px', fontSize: '13px', color: colors.secondary }}>
+                      <span style={{ color: '#EC4899', fontSize: '13px', flexShrink: 0 }}>✓</span><span>{f}</span>
                     </li>
                   ))}
                 </ul>
@@ -3309,29 +3399,29 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
               <div className="hover-lift pricing-card" style={{
                 background: 'linear-gradient(135deg, #EC4899 0%, #DB2777 100%)',
                 color: '#FFF',
-                borderRadius: '24px', 
-                padding: isMobile ? '24px' : '32px', 
-                flex: '1 1 280px', 
-                maxWidth: isMobile ? '100%' : '340px',
+                borderRadius: '20px', 
+                padding: isMobile ? '20px' : '24px', 
+                flex: '1 1 260px', 
+                maxWidth: isMobile ? '100%' : '300px',
                 boxShadow: '0 20px 40px rgba(236, 72, 153, 0.35)',
-                transform: !isMobile ? 'scale(1.03)' : 'none', 
+                transform: !isMobile ? 'scale(1.02)' : 'none', 
                 position: 'relative',
                 overflow: 'visible'
               }}>
                 <div style={{ 
-                  position: 'absolute', top: '-14px', left: '50%', transform: 'translateX(-50%)', 
-                  background: '#FBBF24', padding: '6px 16px', borderRadius: '12px', 
-                  fontSize: '12px', fontWeight: '700', color: '#1a1a1a', whiteSpace: 'nowrap', zIndex: 10,
+                  position: 'absolute', top: '-12px', left: '50%', transform: 'translateX(-50%)', 
+                  background: '#FBBF24', padding: '5px 14px', borderRadius: '10px', 
+                  fontSize: '11px', fontWeight: '700', color: '#1a1a1a', whiteSpace: 'nowrap', zIndex: 10,
                   boxShadow: '0 2px 8px rgba(251, 191, 36, 0.4)'
                 }}>⭐ Most Popular</div>
-                <div style={{ fontSize: '12px', fontWeight: '700', color: 'rgba(255,255,255,0.9)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px', marginTop: '8px' }}>PRO</div>
-                <div style={{ fontSize: '18px', fontWeight: '600', marginBottom: '8px' }}>Full Power Mode</div>
-                <div style={{ marginBottom: '8px', display: 'flex', alignItems: 'baseline', gap: '8px' }}>
-                  <span style={{ fontSize: '44px', fontWeight: '700' }}>${billingCycle === 'annual' ? '8.49' : '9.99'}</span>
-                  <span style={{ fontSize: '16px', opacity: 0.9 }}>/mo</span>
+                <div style={{ fontSize: '11px', fontWeight: '700', color: 'rgba(255,255,255,0.9)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '6px', marginTop: '6px' }}>PRO</div>
+                <div style={{ fontSize: '16px', fontWeight: '600', marginBottom: '6px' }}>Full Power Mode</div>
+                <div style={{ marginBottom: '6px', display: 'flex', alignItems: 'baseline', gap: '6px' }}>
+                  <span style={{ fontSize: '36px', fontWeight: '700' }}>${billingCycle === 'annual' ? '8.49' : '9.99'}</span>
+                  <span style={{ fontSize: '14px', opacity: 0.9 }}>/mo</span>
                 </div>
-                <div style={{ fontSize: '14px', opacity: 0.9, marginBottom: '24px' }}>For couples crushing their goals</div>
-                <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 24px 0' }}>
+                <div style={{ fontSize: '13px', opacity: 0.9, marginBottom: '18px' }}>For couples crushing their goals</div>
+                <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 18px 0' }}>
                   {[
                     '2 Users (perfect for couples)',
                     'Unlimited transactions',
@@ -3343,14 +3433,14 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
                     'Advanced reports & analytics',
                     'Priority support'
                   ].map((f, j) => (
-                    <li key={j} style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px', fontSize: '14px' }}>
-                      <span style={{ color: '#FFF', fontSize: '14px', flexShrink: 0 }}>✓</span><span>{f}</span>
+                    <li key={j} style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', fontSize: '13px' }}>
+                      <span style={{ color: '#FFF', fontSize: '13px', flexShrink: 0 }}>✓</span><span>{f}</span>
                     </li>
                   ))}
                 </ul>
                 <button onClick={() => handleStartTrial('pro')} className="apple-button"
                   style={{
-                    width: '100%', padding: '16px', border: 'none', borderRadius: '12px', fontSize: '15px', fontWeight: '600',
+                    width: '100%', padding: '14px', border: 'none', borderRadius: '10px', fontSize: '14px', fontWeight: '600',
                     background: '#FFF',
                     color: '#DB2777'
                   }}>Start 14-Day Free Trial</button>
@@ -3360,23 +3450,23 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
               <div className="hover-lift pricing-card" style={{
                 background: colors.cardBg,
                 color: colors.label,
-                borderRadius: '24px', 
-                padding: isMobile ? '24px' : '32px', 
-                flex: '1 1 280px', 
-                maxWidth: isMobile ? '100%' : '340px',
+                borderRadius: '20px', 
+                padding: isMobile ? '20px' : '24px', 
+                flex: '1 1 260px', 
+                maxWidth: isMobile ? '100%' : '300px',
                 boxShadow: isDarkMode ? '0 4px 20px rgba(0,0,0,0.3)' : '0 4px 20px rgba(0,0,0,0.08)',
                 position: 'relative',
                 border: `1px solid ${colors.borderLight}`,
                 borderTop: '4px solid #EC4899'
               }}>
-                <div style={{ fontSize: '12px', fontWeight: '700', color: '#EC4899', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px' }}>FAMILY</div>
-                <div style={{ fontSize: '18px', fontWeight: '600', marginBottom: '8px', color: colors.label }}>Whole Household</div>
-                <div style={{ marginBottom: '8px', display: 'flex', alignItems: 'baseline', gap: '8px' }}>
-                  <span style={{ fontSize: '44px', fontWeight: '700', color: colors.label }}>${billingCycle === 'annual' ? '12.74' : '14.99'}</span>
-                  <span style={{ fontSize: '16px', color: colors.secondary }}>/mo</span>
+                <div style={{ fontSize: '11px', fontWeight: '700', color: '#EC4899', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '6px' }}>FAMILY</div>
+                <div style={{ fontSize: '16px', fontWeight: '600', marginBottom: '6px', color: colors.label }}>Whole Household</div>
+                <div style={{ marginBottom: '6px', display: 'flex', alignItems: 'baseline', gap: '6px' }}>
+                  <span style={{ fontSize: '36px', fontWeight: '700', color: colors.label }}>${billingCycle === 'annual' ? '12.74' : '14.99'}</span>
+                  <span style={{ fontSize: '14px', color: colors.secondary }}>/mo</span>
                 </div>
-                <div style={{ fontSize: '14px', color: colors.secondary, marginBottom: '24px' }}>For families building together</div>
-                <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 24px 0' }}>
+                <div style={{ fontSize: '13px', color: colors.secondary, marginBottom: '18px' }}>For families building together</div>
+                <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 18px 0' }}>
                   {[
                     'Up to 5 family members',
                     'Everything in Pro',
@@ -3385,14 +3475,14 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
                     'Family spending reports',
                     'Multi-account views'
                   ].map((f, j) => (
-                    <li key={j} style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px', fontSize: '14px', color: colors.secondary }}>
-                      <span style={{ color: '#EC4899', fontSize: '14px', flexShrink: 0 }}>✓</span><span>{f}</span>
+                    <li key={j} style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px', fontSize: '13px', color: colors.secondary }}>
+                      <span style={{ color: '#EC4899', fontSize: '13px', flexShrink: 0 }}>✓</span><span>{f}</span>
                     </li>
                   ))}
                 </ul>
                 <button onClick={() => handleStartTrial('family')} className="apple-button"
                   style={{
-                    width: '100%', padding: '16px', border: 'none', borderRadius: '12px', fontSize: '15px', fontWeight: '600',
+                    width: '100%', padding: '14px', border: 'none', borderRadius: '10px', fontSize: '14px', fontWeight: '600',
                     background: 'linear-gradient(135deg, #EC4899 0%, #DB2777 100%)',
                     color: '#FFF'
                   }}>Start 14-Day Free Trial</button>
