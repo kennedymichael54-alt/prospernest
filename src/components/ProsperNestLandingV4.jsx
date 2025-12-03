@@ -1,6 +1,124 @@
 import React, { useState, useEffect, useRef } from 'react';
 
 // ============================================
+// SITE STATUS INDICATOR - Inline Component
+// ============================================
+const SiteStatusIndicator = ({ showLabel = true, darkMode = true }) => {
+  const [status, setStatus] = useState('checking');
+  const [showModal, setShowModal] = useState(false);
+  
+  useEffect(() => {
+    const checkStatus = async () => {
+      try {
+        if (!navigator.onLine) {
+          setStatus('offline');
+          return;
+        }
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000);
+        const response = await fetch('https://xbmjkigfybberumjqbgw.supabase.co/rest/v1/', {
+          method: 'HEAD',
+          signal: controller.signal,
+        }).catch(() => null);
+        clearTimeout(timeoutId);
+        if (response && (response.ok || response.status === 401)) {
+          setStatus('online');
+        } else {
+          setStatus('degraded');
+        }
+      } catch {
+        setStatus(navigator.onLine ? 'degraded' : 'offline');
+      }
+    };
+    checkStatus();
+    const interval = setInterval(checkStatus, 30000);
+    window.addEventListener('online', () => checkStatus());
+    window.addEventListener('offline', () => setStatus('offline'));
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('online', checkStatus);
+      window.removeEventListener('offline', () => setStatus('offline'));
+    };
+  }, []);
+  
+  const statusConfig = {
+    online: { color: '#10B981', label: 'Online', dot: '●' },
+    offline: { color: '#EF4444', label: 'Offline', dot: '●' },
+    degraded: { color: '#F59E0B', label: 'Issues', dot: '●' },
+    checking: { color: '#6B7280', label: 'Checking...', dot: '○' }
+  };
+  const config = statusConfig[status];
+  const isClickable = status === 'offline' || status === 'degraded';
+  
+  const StatusModal = () => (
+    <div style={{
+      position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+      background: 'rgba(0, 0, 0, 0.7)', backdropFilter: 'blur(8px)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      zIndex: 10000, padding: '20px'
+    }}>
+      <div style={{
+        background: 'linear-gradient(145deg, #1E1B4B 0%, #312E81 100%)',
+        borderRadius: '24px', padding: '40px', maxWidth: '480px', width: '100%',
+        border: '1px solid rgba(139, 92, 246, 0.3)',
+        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)', position: 'relative'
+      }}>
+        <button onClick={() => setShowModal(false)} style={{
+          position: 'absolute', top: '16px', right: '16px', width: '36px', height: '36px',
+          borderRadius: '50%', background: 'rgba(255,255,255,0.1)', border: 'none',
+          color: 'rgba(255,255,255,0.7)', fontSize: '20px', cursor: 'pointer',
+          display: 'flex', alignItems: 'center', justifyContent: 'center'
+        }}>×</button>
+        <div style={{
+          width: '80px', height: '80px', borderRadius: '20px',
+          background: status === 'offline' ? 'linear-gradient(135deg, #EF4444, #DC2626)' : 'linear-gradient(135deg, #F59E0B, #D97706)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: '36px', margin: '0 auto 24px',
+          boxShadow: status === 'offline' ? '0 8px 32px rgba(239, 68, 68, 0.4)' : '0 8px 32px rgba(245, 158, 11, 0.4)'
+        }}>{status === 'offline' ? '📡' : '🔧'}</div>
+        <h2 style={{ fontSize: '24px', fontWeight: '700', color: 'white', textAlign: 'center', marginBottom: '12px' }}>
+          {status === 'offline' ? "You're Currently Offline" : 'Service Temporarily Degraded'}
+        </h2>
+        <p style={{ fontSize: '15px', color: 'rgba(255,255,255,0.7)', textAlign: 'center', lineHeight: '1.6', marginBottom: '24px' }}>
+          {status === 'offline' 
+            ? "Please check your internet connection and try again." 
+            : "We're experiencing technical difficulties. Our team is working on it."}
+        </p>
+        <div style={{ display: 'flex', gap: '12px' }}>
+          <button onClick={() => window.location.reload()} style={{
+            flex: 1, padding: '14px 24px', background: 'linear-gradient(135deg, #8B5CF6, #EC4899)',
+            border: 'none', borderRadius: '12px', color: 'white', fontSize: '15px', fontWeight: '600', cursor: 'pointer'
+          }}>🔄 Refresh Page</button>
+          <button onClick={() => setShowModal(false)} style={{
+            padding: '14px 24px', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)',
+            borderRadius: '12px', color: 'white', fontSize: '15px', fontWeight: '500', cursor: 'pointer'
+          }}>Dismiss</button>
+        </div>
+      </div>
+    </div>
+  );
+  
+  return (
+    <>
+      <button onClick={() => isClickable && setShowModal(true)} style={{
+        display: 'inline-flex', alignItems: 'center', gap: '6px',
+        padding: showLabel ? '6px 12px' : '6px 8px',
+        background: darkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
+        border: `1px solid ${darkMode ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.1)'}`,
+        borderRadius: '20px', cursor: isClickable ? 'pointer' : 'default', transition: 'all 0.2s'
+      }} title={`Site Status: ${config.label}`}>
+        <span style={{ color: config.color, fontSize: '10px', animation: status === 'online' ? 'none' : 'statusPulse 2s infinite', lineHeight: 1 }}>
+          {config.dot}
+        </span>
+        {showLabel && <span style={{ color: config.color, fontSize: '12px', fontWeight: '500' }}>{config.label}</span>}
+      </button>
+      {showModal && <StatusModal />}
+      <style>{`@keyframes statusPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }`}</style>
+    </>
+  );
+};
+
+// ============================================
 // PROSPERNEST LANDING PAGE v4 - FIXED
 // All features: Device mockups, animations,
 // Signup flow, Tutorials, AI Chat integration
@@ -1592,11 +1710,11 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
                   <label style={{ fontSize: '12px', fontWeight: '500', color: colors.secondary, display: 'block', marginBottom: '6px' }}>First Name *</label>
                   <input 
                     type="text"
-                    name="signup-firstname"
+                    name="firstName"
                     value={signupForm.firstName}
                     onChange={e => setSignupForm(prev => ({ ...prev, firstName: e.target.value }))}
                     placeholder="John"
-                    autoComplete="off"
+                    autoComplete="given-name"
                     style={{
                       width: '100%', padding: '12px', border: `1px solid ${colors.gray4}`,
                       borderRadius: '10px', fontSize: '14px', outline: 'none', boxSizing: 'border-box'
@@ -1606,11 +1724,11 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
                   <label style={{ fontSize: '12px', fontWeight: '500', color: colors.secondary, display: 'block', marginBottom: '6px' }}>Last Name *</label>
                   <input 
                     type="text"
-                    name="signup-lastname"
+                    name="lastName"
                     value={signupForm.lastName}
                     onChange={e => setSignupForm(prev => ({ ...prev, lastName: e.target.value }))}
                     placeholder="Smith"
-                    autoComplete="off"
+                    autoComplete="family-name"
                     style={{
                       width: '100%', padding: '12px', border: `1px solid ${colors.gray4}`,
                       borderRadius: '10px', fontSize: '14px', outline: 'none', boxSizing: 'border-box'
@@ -1621,12 +1739,12 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
               <div style={{ marginBottom: '12px' }}>
                 <label style={{ fontSize: '12px', fontWeight: '500', color: colors.secondary, display: 'block', marginBottom: '6px' }}>Email Address *</label>
                 <input 
-                  type="text"
-                  name="signup-email"
+                  type="email"
+                  name="email"
                   value={signupForm.email}
                   onChange={e => setSignupForm(prev => ({ ...prev, email: e.target.value }))}
                   placeholder="john@example.com"
-                  autoComplete="off"
+                  autoComplete="email"
                   style={{
                     width: '100%', padding: '12px', border: `1px solid ${colors.gray4}`,
                     borderRadius: '10px', fontSize: '14px', outline: 'none', boxSizing: 'border-box'
@@ -1634,14 +1752,15 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
               </div>
 
               <div style={{ marginBottom: '12px', position: 'relative' }}>
-                <label style={{ fontSize: '12px', fontWeight: '500', color: colors.secondary, display: 'block', marginBottom: '6px' }}>Address *</label>
+                <label style={{ fontSize: '12px', fontWeight: '500', color: colors.secondary, display: 'block', marginBottom: '6px' }}>Address <span style={{ color: colors.gray, fontWeight: '400' }}>(optional)</span></label>
                 <input 
                   type="text"
                   name="signup-address"
                   value={signupForm.address}
                   onChange={e => handleAddressChange(e.target.value)}
-                  placeholder="Start typing your address..."
-                  autoComplete="off"
+                  onBlur={() => setTimeout(() => setAddressSuggestions([]), 200)}
+                  placeholder="Enter your address (optional)"
+                  autoComplete="street-address"
                   style={{
                     width: '100%', padding: '12px', border: `1px solid ${colors.gray4}`,
                     borderRadius: '10px', fontSize: '14px', outline: 'none', boxSizing: 'border-box'
@@ -1650,10 +1769,12 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
                   <div style={{
                     position: 'absolute', top: '100%', left: 0, right: 0, background: '#FFF',
                     border: `1px solid ${colors.gray4}`, borderRadius: '10px', marginTop: '4px',
-                    boxShadow: '0 10px 30px rgba(0,0,0,0.1)', zIndex: 10, overflow: 'hidden'
+                    boxShadow: '0 10px 30px rgba(0,0,0,0.1)', zIndex: 10, overflow: 'hidden',
+                    maxHeight: '200px', overflowY: 'auto'
                   }}>
                     {addressSuggestions.map((addr, i) => (
-                      <div key={i} onClick={() => selectAddress(addr)}
+                      <div key={i} 
+                        onMouseDown={(e) => { e.preventDefault(); selectAddress(addr); }}
                         style={{
                           padding: '10px 12px', cursor: 'pointer', fontSize: '13px',
                           borderBottom: i < addressSuggestions.length - 1 ? `1px solid ${colors.gray5}` : 'none'
@@ -1676,9 +1797,10 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
                   <div style={{ marginBottom: '10px' }}>
                     <input 
                       type="text"
-                      name="card-number"
+                      name="cardNumber"
                       placeholder="Card Number"
-                      autoComplete="off"
+                      autoComplete="cc-number"
+                      inputMode="numeric"
                       style={{
                         width: '100%', padding: '12px', border: `1px solid ${colors.gray4}`,
                         borderRadius: '10px', fontSize: '14px', outline: 'none', boxSizing: 'border-box'
@@ -1687,18 +1809,20 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                     <input 
                       type="text"
-                      name="card-expiry"
+                      name="cardExpiry"
                       placeholder="MM/YY"
-                      autoComplete="off"
+                      autoComplete="cc-exp"
+                      inputMode="numeric"
                       style={{
                         padding: '12px', border: `1px solid ${colors.gray4}`,
                         borderRadius: '10px', fontSize: '14px', outline: 'none'
                       }} />
                     <input 
                       type="text"
-                      name="card-cvc"
+                      name="cardCvc"
                       placeholder="CVC"
-                      autoComplete="off"
+                      autoComplete="cc-csc"
+                      inputMode="numeric"
                       style={{
                         padding: '12px', border: `1px solid ${colors.gray4}`,
                         borderRadius: '10px', fontSize: '14px', outline: 'none'
@@ -2199,7 +2323,11 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
         borderBottom: isScrolled ? `0.5px solid ${colors.borderLight}` : 'none',
         transition: 'all 0.3s ease', zIndex: 1000
       }}>
-        <Logo size={isTabletOrMobile ? 40 : 44} showBeta={!isTabletOrMobile} showText={!isTabletOrMobile} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <Logo size={isTabletOrMobile ? 40 : 44} showBeta={!isTabletOrMobile} showText={!isTabletOrMobile} />
+          {/* Site Status Indicator */}
+          <SiteStatusIndicator showLabel={!isTabletOrMobile} darkMode={isDarkMode} />
+        </div>
         
         {!isTabletOrMobile && (
           <div className="desktop-nav" style={{ display: 'flex', gap: '28px', alignItems: 'center' }}>
