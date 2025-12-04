@@ -5,6 +5,16 @@ const BudgetTab = ({ transactions = [], onNavigateToImport, theme, lastImportDat
   const [sortBy, setSortBy] = useState('highest');
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  
+  // Collapsible sections state (matching Dashboard pattern)
+  const [collapsedSections, setCollapsedSections] = useState({
+    spendingBreakdown: false,
+    categoryAnalysis: false
+  });
+  
+  const toggleSection = (section) => {
+    setCollapsedSections(prev => ({ ...prev, [section]: !prev[section] }));
+  };
 
   // Format currency helper
   const formatCurrency = (amount) => {
@@ -198,7 +208,7 @@ const BudgetTab = ({ transactions = [], onNavigateToImport, theme, lastImportDat
       <div style={{ width: '100%' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
           <div>
-            <h1 style={{ fontSize: '28px', fontWeight: '700', color: theme.textPrimary, marginBottom: '4px' }}>Budget</h1>
+            <h1 style={{ fontSize: '28px', fontWeight: '700', color: theme.textPrimary, marginBottom: '4px', letterSpacing: '-0.5px' }}>Budget</h1>
             <p style={{ fontSize: '14px', color: theme.textMuted }}>Track your spending against budgets</p>
           </div>
           {lastImportDate && (
@@ -251,7 +261,7 @@ const BudgetTab = ({ transactions = [], onNavigateToImport, theme, lastImportDat
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
         <div>
-          <h1 style={{ fontSize: '28px', fontWeight: '700', color: theme.textPrimary, marginBottom: '4px' }}>Budget</h1>
+          <h1 style={{ fontSize: '28px', fontWeight: '700', color: theme.textPrimary, marginBottom: '4px', letterSpacing: '-0.5px' }}>Budget</h1>
           <p style={{ fontSize: '14px', color: theme.textMuted }}>
             {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
           </p>
@@ -266,8 +276,8 @@ const BudgetTab = ({ transactions = [], onNavigateToImport, theme, lastImportDat
         )}
       </div>
 
-      {/* Summary Cards with Gradients */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px', marginBottom: '24px' }}>
+      {/* Summary Cards with Gradients - 3 columns */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px', marginBottom: '32px' }}>
         {/* Total Budget Card - Cyan */}
         <div style={{
           background: isDark ? 'linear-gradient(135deg, #164E63 0%, #0E4A5C 100%)' : 'linear-gradient(135deg, #E0F7FA 0%, #B2EBF2 100%)',
@@ -276,9 +286,13 @@ const BudgetTab = ({ transactions = [], onNavigateToImport, theme, lastImportDat
           boxShadow: '0 4px 20px rgba(0, 188, 212, 0.15)',
           border: `1px solid ${isDark ? 'rgba(0, 188, 212, 0.3)' : 'rgba(0, 188, 212, 0.2)'}`
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-            <span style={{ fontSize: '20px' }}>💰</span>
-            <span style={{ fontSize: '13px', color: isDark ? '#67E8F9' : '#00838F', fontWeight: '500' }}>Total Budget</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
+            <div style={{ 
+              width: '40px', height: '40px', borderRadius: '12px', 
+              background: isDark ? 'rgba(0, 188, 212, 0.3)' : 'rgba(0, 188, 212, 0.2)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' 
+            }}>💰</div>
+            <span style={{ fontSize: '14px', color: isDark ? '#67E8F9' : '#00838F', fontWeight: '600' }}>Total Budget</span>
           </div>
           <div style={{ fontSize: '28px', fontWeight: '700', color: isDark ? '#E0F7FA' : '#006064' }}>{formatCurrency(totalBudget)}</div>
         </div>
@@ -291,9 +305,13 @@ const BudgetTab = ({ transactions = [], onNavigateToImport, theme, lastImportDat
           boxShadow: '0 4px 20px rgba(255, 152, 0, 0.15)',
           border: `1px solid ${isDark ? 'rgba(255, 152, 0, 0.3)' : 'rgba(255, 152, 0, 0.2)'}`
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-            <span style={{ fontSize: '20px' }}>💳</span>
-            <span style={{ fontSize: '13px', color: isDark ? '#FDBA74' : '#E65100', fontWeight: '500' }}>Total Spent</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
+            <div style={{ 
+              width: '40px', height: '40px', borderRadius: '12px', 
+              background: isDark ? 'rgba(255, 152, 0, 0.3)' : 'rgba(255, 152, 0, 0.2)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' 
+            }}>💳</div>
+            <span style={{ fontSize: '14px', color: isDark ? '#FDBA74' : '#E65100', fontWeight: '600' }}>Total Spent</span>
           </div>
           <div style={{ fontSize: '28px', fontWeight: '700', color: isDark ? '#FFF3E0' : '#BF360C' }}>{formatCurrency(totalSpent)}</div>
         </div>
@@ -312,11 +330,17 @@ const BudgetTab = ({ transactions = [], onNavigateToImport, theme, lastImportDat
             ? (isDark ? 'rgba(76, 175, 80, 0.3)' : 'rgba(76, 175, 80, 0.2)')
             : (isDark ? 'rgba(239, 68, 68, 0.3)' : 'rgba(239, 68, 68, 0.2)')}`
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-            <span style={{ fontSize: '20px' }}>📊</span>
-            <span style={{ fontSize: '13px', color: totalBudget - totalSpent >= 0 
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
+            <div style={{ 
+              width: '40px', height: '40px', borderRadius: '12px', 
+              background: totalBudget - totalSpent >= 0 
+                ? (isDark ? 'rgba(76, 175, 80, 0.3)' : 'rgba(76, 175, 80, 0.2)')
+                : (isDark ? 'rgba(239, 68, 68, 0.3)' : 'rgba(239, 68, 68, 0.2)'),
+              display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' 
+            }}>📊</div>
+            <span style={{ fontSize: '14px', color: totalBudget - totalSpent >= 0 
               ? (isDark ? '#86EFAC' : '#2E7D32') 
-              : (isDark ? '#FCA5A5' : '#C62828'), fontWeight: '500' }}>Remaining</span>
+              : (isDark ? '#FCA5A5' : '#C62828'), fontWeight: '600' }}>Remaining</span>
           </div>
           <div style={{ fontSize: '28px', fontWeight: '700', color: totalBudget - totalSpent >= 0 
             ? (isDark ? '#E8F5E9' : '#1B5E20') 
@@ -326,23 +350,70 @@ const BudgetTab = ({ transactions = [], onNavigateToImport, theme, lastImportDat
         </div>
       </div>
 
-      {/* Stacked Bar Chart - Monthly Breakdown */}
+      {/* ═══════════════════════════════════════════════════════════════════ */}
+      {/* MONTHLY SPENDING BREAKDOWN (Collapsible Section) */}
+      {/* ═══════════════════════════════════════════════════════════════════ */}
+      <div 
+        onClick={() => toggleSection('spendingBreakdown')}
+        style={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          gap: '12px', 
+          marginBottom: collapsedSections.spendingBreakdown ? '24px' : '16px',
+          cursor: 'pointer',
+          userSelect: 'none'
+        }}
+      >
+        <div style={{ 
+          width: '4px', 
+          height: '24px', 
+          background: 'linear-gradient(180deg, #8B5CF6 0%, #06B6D4 100%)', 
+          borderRadius: '2px' 
+        }} />
+        <h2 style={{ 
+          fontSize: '18px', 
+          fontWeight: '700', 
+          color: theme.textPrimary, 
+          margin: 0,
+          letterSpacing: '-0.3px'
+        }}>Monthly Spending Breakdown</h2>
+        <span style={{ 
+          fontSize: '12px', 
+          color: theme.textMuted,
+          background: theme.bgMain,
+          padding: '4px 10px',
+          borderRadius: '6px'
+        }}>Compare actual vs budget</span>
+        <span style={{ 
+          marginLeft: 'auto', 
+          fontSize: '12px', 
+          color: theme.textMuted,
+          transition: 'transform 0.2s',
+          transform: collapsedSections.spendingBreakdown ? 'rotate(-90deg)' : 'rotate(0deg)'
+        }}>▼</span>
+      </div>
+
+      {/* Stacked Bar Chart Card */}
+      {!collapsedSections.spendingBreakdown && (
       <div style={{ 
         background: theme.bgCard, 
         borderRadius: '16px', 
         padding: '24px', 
         boxShadow: theme.cardShadow,
         border: `1px solid ${theme.borderLight}`,
-        marginBottom: '24px'
+        marginBottom: '32px',
+        position: 'relative',
+        overflow: 'hidden'
       }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-          <div>
-            <h3 style={{ fontSize: '18px', fontWeight: '600', color: theme.textPrimary, margin: 0 }}>Monthly Spending Breakdown</h3>
-            <p style={{ fontSize: '13px', color: theme.textMuted, marginTop: '4px' }}>
-              Compare actual spending vs budget with category breakdown
-            </p>
-          </div>
-        </div>
+        {/* Gradient top accent */}
+        <div style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          height: '3px',
+          background: 'linear-gradient(90deg, #8B5CF6 0%, #06B6D4 100%)'
+        }} />
         <StackedBarChart 
           data={monthlyStackedData.monthData} 
           categories={monthlyStackedData.categoryNames}
@@ -350,19 +421,75 @@ const BudgetTab = ({ transactions = [], onNavigateToImport, theme, lastImportDat
           height={380}
         />
       </div>
+      )}
 
-      {/* Categories Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+      {/* ═══════════════════════════════════════════════════════════════════ */}
+      {/* CATEGORY ANALYSIS (Collapsible Section) */}
+      {/* ═══════════════════════════════════════════════════════════════════ */}
+      <div 
+        onClick={() => toggleSection('categoryAnalysis')}
+        style={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          gap: '12px', 
+          marginBottom: collapsedSections.categoryAnalysis ? '0' : '16px',
+          cursor: 'pointer',
+          userSelect: 'none'
+        }}
+      >
+        <div style={{ 
+          width: '4px', 
+          height: '24px', 
+          background: 'linear-gradient(180deg, #EC4899 0%, #F59E0B 100%)', 
+          borderRadius: '2px' 
+        }} />
+        <h2 style={{ 
+          fontSize: '18px', 
+          fontWeight: '700', 
+          color: theme.textPrimary, 
+          margin: 0,
+          letterSpacing: '-0.3px'
+        }}>Category Analysis</h2>
+        <span style={{ 
+          fontSize: '12px', 
+          color: theme.textMuted,
+          background: theme.bgMain,
+          padding: '4px 10px',
+          borderRadius: '6px'
+        }}>{categoryData.length} categories</span>
+        <span style={{ 
+          marginLeft: 'auto', 
+          fontSize: '12px', 
+          color: theme.textMuted,
+          transition: 'transform 0.2s',
+          transform: collapsedSections.categoryAnalysis ? 'rotate(-90deg)' : 'rotate(0deg)'
+        }}>▼</span>
+      </div>
+
+      {/* Categories Grid - 2 Equal Columns */}
+      {!collapsedSections.categoryAnalysis && (
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '20px' }}>
         {/* Categories - Actual vs Budget */}
         <div style={{ 
           background: theme.bgCard, 
           borderRadius: '16px', 
-          padding: '24px', 
+          padding: '20px', 
           boxShadow: theme.cardShadow,
-          border: `1px solid ${theme.borderLight}`
+          border: `1px solid ${theme.borderLight}`,
+          position: 'relative',
+          overflow: 'hidden'
         }}>
+          {/* Gradient top accent */}
+          <div style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            height: '3px',
+            background: 'linear-gradient(90deg, #EC4899 0%, #8B5CF6 100%)'
+          }} />
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-            <h3 style={{ fontSize: '16px', fontWeight: '600', color: theme.textPrimary, margin: 0 }}>
+            <h3 style={{ fontSize: '15px', fontWeight: '600', color: theme.textPrimary, margin: 0 }}>
               Categories - Actual vs Budget
             </h3>
             <select
@@ -423,16 +550,27 @@ const BudgetTab = ({ transactions = [], onNavigateToImport, theme, lastImportDat
           </div>
         </div>
 
-        {/* Categories - Another view */}
+        {/* Category Distribution - Pie Chart */}
         <div style={{ 
           background: theme.bgCard, 
           borderRadius: '16px', 
-          padding: '24px', 
+          padding: '20px', 
           boxShadow: theme.cardShadow,
-          border: `1px solid ${theme.borderLight}`
+          border: `1px solid ${theme.borderLight}`,
+          position: 'relative',
+          overflow: 'hidden'
         }}>
+          {/* Gradient top accent */}
+          <div style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            height: '3px',
+            background: 'linear-gradient(90deg, #10B981 0%, #06B6D4 100%)'
+          }} />
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-            <h3 style={{ fontSize: '16px', fontWeight: '600', color: theme.textPrimary, margin: 0 }}>
+            <h3 style={{ fontSize: '15px', fontWeight: '600', color: theme.textPrimary, margin: 0 }}>
               Category Distribution
             </h3>
           </div>
@@ -502,6 +640,7 @@ const BudgetTab = ({ transactions = [], onNavigateToImport, theme, lastImportDat
           </div>
         </div>
       </div>
+      )}
     </div>
   );
 };
