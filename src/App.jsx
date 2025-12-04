@@ -3607,7 +3607,7 @@ function Dashboard({
       case 'home':
         return <GradientSection tab="home"><DashboardHome transactions={transactions} goals={goals} bills={bills} tasks={tasks || []} theme={theme} lastImportDate={lastImportDate} accountLabels={accountLabels} editingAccountLabel={editingAccountLabel} setEditingAccountLabel={setEditingAccountLabel} updateAccountLabel={updateAccountLabel} /></GradientSection>;
       case 'sales':
-        return <GradientSection tab="sales"><SalesTrackerTab theme={theme} lastImportDate={lastImportDate} /></GradientSection>;
+        return <GradientSection tab="sales"><SalesTrackerTab theme={theme} lastImportDate={lastImportDate} userId={user?.id} userEmail={user?.email} /></GradientSection>;
       case 'budget':
         return <GradientSection tab="budget"><BudgetTab transactions={transactions} onNavigateToImport={() => setActiveTab('import')} theme={theme} lastImportDate={lastImportDate} /></GradientSection>;
       case 'transactions':
@@ -3911,13 +3911,17 @@ function Dashboard({
               alignItems: 'center', 
               gap: '12px',
               cursor: 'pointer',
-              overflow: 'hidden'
+              overflow: 'hidden',
+              flex: 1,
+              minWidth: 0,
+              marginRight: '12px'
             }}
           >
             <div style={{
               width: '42px',
               height: '42px',
               minWidth: '42px',
+              flexShrink: 0,
               borderRadius: '12px',
               background: 'linear-gradient(135deg, #EC4899 0%, #F472B6 100%)',
               display: 'flex',
@@ -3928,7 +3932,7 @@ function Dashboard({
               <PennyLogo size={28} />
             </div>
             {!sidebarCollapsed && (
-              <div>
+              <div style={{ minWidth: 0, overflow: 'hidden' }}>
                 <span style={{ 
                   fontWeight: '700', 
                   fontSize: '18px', 
@@ -3943,7 +3947,8 @@ function Dashboard({
                   display: 'flex',
                   alignItems: 'center',
                   gap: '6px',
-                  marginTop: '2px'
+                  marginTop: '2px',
+                  flexWrap: 'wrap'
                 }}>
                   <span style={{ 
                     background: 'linear-gradient(135deg, #F59E0B, #D97706)', 
@@ -3953,7 +3958,8 @@ function Dashboard({
                     fontWeight: '700', 
                     color: 'white',
                     textTransform: 'uppercase',
-                    letterSpacing: '0.5px'
+                    letterSpacing: '0.5px',
+                    flexShrink: 0
                   }}>Beta</span>
                   {/* Role Badge for Admin/Tester */}
                   {userRole === USER_ROLES.ADMIN && (
@@ -3965,7 +3971,8 @@ function Dashboard({
                       fontWeight: '700', 
                       color: 'white',
                       textTransform: 'uppercase',
-                      letterSpacing: '0.5px'
+                      letterSpacing: '0.5px',
+                      flexShrink: 0
                     }}>Admin</span>
                   )}
                   {userRole === USER_ROLES.TESTER && (
@@ -3977,7 +3984,8 @@ function Dashboard({
                       fontWeight: '700', 
                       color: 'white',
                       textTransform: 'uppercase',
-                      letterSpacing: '0.5px'
+                      letterSpacing: '0.5px',
+                      flexShrink: 0
                     }}>Tester</span>
                   )}
                   {userRole === USER_ROLES.OWNER && (
@@ -3989,7 +3997,8 @@ function Dashboard({
                       fontWeight: '700', 
                       color: 'white',
                       textTransform: 'uppercase',
-                      letterSpacing: '0.5px'
+                      letterSpacing: '0.5px',
+                      flexShrink: 0
                     }}>Owner</span>
                   )}
                   <SiteStatusIndicator showLabel={false} darkMode={true} />
@@ -4006,6 +4015,8 @@ function Dashboard({
               style={{
                 width: '32px',
                 height: '32px',
+                minWidth: '32px',
+                flexShrink: 0,
                 borderRadius: '10px',
                 background: 'rgba(255, 255, 255, 0.08)',
                 border: '1px solid rgba(255, 255, 255, 0.12)',
