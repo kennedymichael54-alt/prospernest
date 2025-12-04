@@ -11,6 +11,7 @@ import TransactionsTab from './components/TransactionsTab';
 import ReportsTab from './components/ReportsTab';
 import RetirementTab from './components/RetirementTab';
 import SalesTrackerTab from './components/SalesTrackerTab';
+import BizBudgetHub from './components/BizBudgetHub';
 import ProsperNestLandingV4 from './components/ProsperNestLandingV4';
 // Default data - baked in from real bank/retirement imports
 import { DEFAULT_TRANSACTIONS, DEFAULT_RETIREMENT_DATA } from './data/defaultData';
@@ -608,6 +609,7 @@ const USER_ROLES = {
   OWNER: 'owner',           // You (kennedymichael54@gmail.com) - Full access + sees demo data
   ADMIN: 'admin',           // Admin users - Full access, can manage users
   TESTER: 'tester',         // Tester users - Read-only, watermarked, limited features
+  HOMEVESTORS: 'homevestors', // HomeVestors franchise team - Perpetual license, BizBudget access
   FAMILY: 'family',         // Family plan users - Full access to all features
   PRO: 'pro',               // Pro plan users - Most features
   STARTER: 'starter',       // Starter/Free users - Basic features
@@ -618,7 +620,31 @@ const SPECIAL_ACCOUNTS = {
   'kennedymichael54@gmail.com': USER_ROLES.OWNER,
   'admin@prospernest.app': USER_ROLES.ADMIN,
   'tester@prospernest.app': USER_ROLES.TESTER,
+  // HomeVestors Franchise Team - Perpetual Licenses (never expire, never charged)
+  'michael.kennedy@homevestors.com': USER_ROLES.HOMEVESTORS,
+  'anthony.montgomery@homevestors.com': USER_ROLES.HOMEVESTORS,
+  'tucker.pate@homevestors.com': USER_ROLES.HOMEVESTORS,
 };
+
+// Users with perpetual licenses (never expire, never charged)
+const PERPETUAL_LICENSE_USERS = [
+  'kennedymichael54@gmail.com',
+  'admin@prospernest.app',
+  'tester@prospernest.app',
+  'michael.kennedy@homevestors.com',
+  'anthony.montgomery@homevestors.com',
+  'tucker.pate@homevestors.com',
+];
+
+// Users with BizBudget Hub access
+const BIZBUDGET_ACCESS_USERS = [
+  'kennedymichael54@gmail.com',
+  'admin@prospernest.app',
+  'tester@prospernest.app',
+  'michael.kennedy@homevestors.com',
+  'anthony.montgomery@homevestors.com',
+  'tucker.pate@homevestors.com',
+];
 
 // Feature permissions by role
 const ROLE_PERMISSIONS = {
@@ -634,9 +660,11 @@ const ROLE_PERMISSIONS = {
     canAccessRetirement: true,
     canAccessSalesTracker: true,
     canAccessReports: true,
+    canAccessBizBudget: true,
     canModifySettings: true,
     showDemoData: true,
     watermark: false,
+    perpetualLicense: true,
     maxTransactions: Infinity,
     maxGoals: Infinity,
     maxBills: Infinity,
@@ -653,9 +681,11 @@ const ROLE_PERMISSIONS = {
     canAccessRetirement: true,
     canAccessSalesTracker: true,
     canAccessReports: true,
+    canAccessBizBudget: true,
     canModifySettings: true,
     showDemoData: false,
     watermark: false,
+    perpetualLicense: true,
     maxTransactions: Infinity,
     maxGoals: Infinity,
     maxBills: Infinity,
@@ -672,12 +702,35 @@ const ROLE_PERMISSIONS = {
     canAccessRetirement: true,
     canAccessSalesTracker: true,
     canAccessReports: true,
+    canAccessBizBudget: true,
     canModifySettings: false,  // Cannot change settings
     showDemoData: false,
     watermark: true,           // Shows "TEST MODE" watermark
+    perpetualLicense: true,
     maxTransactions: 50,       // Limited sample data
     maxGoals: 5,
     maxBills: 10,
+  },
+  [USER_ROLES.HOMEVESTORS]: {
+    canViewAllTabs: true,
+    canEditData: true,
+    canDeleteData: true,
+    canExport: true,
+    canImport: true,
+    canManageUsers: false,
+    canViewAdminPanel: false,
+    canViewAnalytics: true,
+    canAccessRetirement: true,
+    canAccessSalesTracker: true,
+    canAccessReports: true,
+    canAccessBizBudget: true,  // Full BizBudget Hub access
+    canModifySettings: true,
+    showDemoData: false,
+    watermark: false,
+    perpetualLicense: true,    // Never expires, never charged
+    maxTransactions: Infinity,
+    maxGoals: Infinity,
+    maxBills: Infinity,
   },
   [USER_ROLES.FAMILY]: {
     canViewAllTabs: true,
@@ -691,9 +744,11 @@ const ROLE_PERMISSIONS = {
     canAccessRetirement: true,
     canAccessSalesTracker: true,
     canAccessReports: true,
+    canAccessBizBudget: false, // No BizBudget access
     canModifySettings: true,
     showDemoData: false,
     watermark: false,
+    perpetualLicense: false,
     maxTransactions: Infinity,
     maxGoals: Infinity,
     maxBills: Infinity,
@@ -710,9 +765,11 @@ const ROLE_PERMISSIONS = {
     canAccessRetirement: true,
     canAccessSalesTracker: false,  // Sales tracker is Family only
     canAccessReports: true,
+    canAccessBizBudget: false,     // BizBudget is for authorized users only
     canModifySettings: true,
     showDemoData: false,
     watermark: false,
+    perpetualLicense: false,
     maxTransactions: 5000,
     maxGoals: 20,
     maxBills: 50,
@@ -729,9 +786,11 @@ const ROLE_PERMISSIONS = {
     canAccessRetirement: false, // Retirement is Pro+
     canAccessSalesTracker: false,
     canAccessReports: false,   // Reports is Pro+
+    canAccessBizBudget: false, // BizBudget is for authorized users only
     canModifySettings: true,
     showDemoData: false,
     watermark: false,
+    perpetualLicense: false,
     maxTransactions: 500,
     maxGoals: 5,
     maxBills: 10,
@@ -1425,7 +1484,12 @@ const createTrialSubscription = async (userId) => {
 };
 
 // Check if user has valid access
-const checkSubscriptionAccess = (subscription) => {
+const checkSubscriptionAccess = (subscription, userEmail = null) => {
+  // Check for perpetual license users first - they always have full access
+  if (userEmail && PERPETUAL_LICENSE_USERS.includes(userEmail.toLowerCase())) {
+    return { hasAccess: true, reason: 'perpetual', perpetualLicense: true };
+  }
+  
   if (!subscription) return { hasAccess: false, reason: 'no_subscription' };
   
   const now = new Date();
@@ -3071,9 +3135,9 @@ function Dashboard({
         setSubscription(sub);
         setSubscriptionLoading(false);
         
-        // Check if trial expired and show upgrade modal
-        if (sub) {
-          const access = checkSubscriptionAccess(sub);
+        // Check if trial expired and show upgrade modal (not for perpetual license users)
+        if (sub && !PERPETUAL_LICENSE_USERS.includes(user?.email?.toLowerCase())) {
+          const access = checkSubscriptionAccess(sub, user?.email);
           if (!access.hasAccess && access.reason === 'trial_expired') {
             setShowUpgradeModal(true);
           }
@@ -3094,7 +3158,10 @@ function Dashboard({
   }, [profile?.accountLabels]);
   
   // Get subscription access status
-  const subscriptionAccess = subscription ? checkSubscriptionAccess(subscription) : { hasAccess: false, reason: 'loading' };
+  const subscriptionAccess = subscription ? checkSubscriptionAccess(subscription, user?.email) : 
+    (PERPETUAL_LICENSE_USERS.includes(user?.email?.toLowerCase()) 
+      ? { hasAccess: true, reason: 'perpetual', perpetualLicense: true }
+      : { hasAccess: false, reason: 'loading' });
   
   // Toggle hub expansion
   const toggleHub = (hubId) => {
@@ -3318,11 +3385,19 @@ function Dashboard({
     {
       id: 'bizbudget',
       label: 'BizBudget Hub',
-      subtitle: 'Side Hustle & 1099 Income',
+      subtitle: 'KM GA LLC - HomeVestors',
       icon: Icons.BizBudgetHub,
       color: '#A78BFA', // Light Purple
-      status: 'coming_soon',
-      items: []
+      status: BIZBUDGET_ACCESS_USERS.includes(user?.email?.toLowerCase()) ? 'active' : 'coming_soon',
+      requiresBizBudgetAccess: true,
+      items: BIZBUDGET_ACCESS_USERS.includes(user?.email?.toLowerCase()) ? [
+        { id: 'bizbudget-pipeline', label: 'Deal Pipeline', icon: Icons.HomeBudgetHub },
+        { id: 'bizbudget-forecast', label: 'Revenue Forecast', icon: Icons.Reports },
+        { id: 'bizbudget-tax', label: 'Tax Planning', icon: Icons.Budget },
+        { id: 'bizbudget-history', label: 'Deal History', icon: Icons.Calendar },
+        { id: 'bizbudget-statements', label: 'Financial Statements', icon: Icons.Reports },
+        { id: 'bizbudget-budget', label: 'Budget vs Actuals', icon: Icons.Budget },
+      ] : []
     },
     {
       id: 'rebudget',
@@ -3352,6 +3427,7 @@ function Dashboard({
       'tasks': theme.gradients?.tasks,
       'retirement': theme.gradients?.retirement,
       'reports': theme.gradients?.reports,
+      'bizbudget': theme.gradients?.bizbudget || theme.gradients?.dashboard,
       'settings': theme.gradients?.settings,
       'import': theme.gradients?.import
     };
@@ -3473,6 +3549,17 @@ function Dashboard({
         return <GradientSection tab="retirement"><RetirementTab theme={theme} lastImportDate={lastImportDate} retirementData={retirementData} /></GradientSection>;
       case 'reports':
         return <GradientSection tab="reports"><ReportsTab transactions={transactions} onNavigateToImport={() => setActiveTab('import')} theme={theme} lastImportDate={lastImportDate} /></GradientSection>;
+      // BizBudget Hub tabs - accessible only to authorized users
+      case 'bizbudget-pipeline':
+      case 'bizbudget-forecast':
+      case 'bizbudget-tax':
+      case 'bizbudget-history':
+      case 'bizbudget-statements':
+      case 'bizbudget-budget':
+        if (!BIZBUDGET_ACCESS_USERS.includes(user?.email?.toLowerCase())) {
+          return <GradientSection tab="home"><DashboardHome transactions={transactions} goals={goals} bills={bills} tasks={tasks || []} theme={theme} lastImportDate={lastImportDate} accountLabels={accountLabels} editingAccountLabel={editingAccountLabel} setEditingAccountLabel={setEditingAccountLabel} updateAccountLabel={updateAccountLabel} /></GradientSection>;
+        }
+        return <GradientSection tab="bizbudget"><BizBudgetHub theme={theme} lastImportDate={lastImportDate} userEmail={user?.email} initialTab={activeTab.replace('bizbudget-', '')} /></GradientSection>;
       case 'settings':
         return <GradientSection tab="settings"><SettingsTabDS 
           theme={theme} 
