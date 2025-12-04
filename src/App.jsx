@@ -3055,6 +3055,7 @@ function Dashboard({
 }) {
   const [activeTab, setActiveTab] = useState('home');
   const [previousTab, setPreviousTab] = useState('home');
+  const [tabRestored, setTabRestored] = useState(false); // Track if we've restored the tab
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [notificationsDismissed, setNotificationsDismissed] = useState(false);
@@ -3146,6 +3147,56 @@ function Dashboard({
     };
     loadSubscription();
   }, [user?.id]);
+  
+  // Save active tab to localStorage whenever it changes
+  useEffect(() => {
+    if (user?.id && activeTab) {
+      localStorage.setItem(`pn_activeTab_${user.id}`, activeTab);
+      console.log('💾 [Tab] Saved active tab:', activeTab);
+    }
+  }, [activeTab, user?.id]);
+  
+  // Restore tab based on subscription tier after subscription loads
+  useEffect(() => {
+    if (!subscriptionLoading && subscription && user?.id && !tabRestored) {
+      const savedTab = localStorage.getItem(`pn_activeTab_${user.id}`);
+      
+      // Check subscription tier
+      const planType = subscription.plan_type?.toLowerCase() || '';
+      const subscriptionStatus = subscription.subscription_status?.toLowerCase() || '';
+      
+      // Users who get tab persistence (PAID users only):
+      // 1. Paid users with active subscription (Family, Pro, Bundle)
+      // 2. Perpetual license users (Owner, Admin, Tester, HomeVestors team)
+      // 
+      // Users who DON'T get tab persistence:
+      // - Free tier users
+      // - Trial users (haven't paid yet - encourages exploration)
+      // - Expired trial users
+      const isPaidUser = (planType.includes('family') || planType.includes('pro') || planType.includes('bundle')) 
+                         && subscriptionStatus === 'active';
+      const isPerpetualUser = PERPETUAL_LICENSE_USERS.includes(user?.email?.toLowerCase());
+      
+      // Restore tab only for paid or perpetual users
+      if ((isPaidUser || isPerpetualUser) && savedTab && savedTab !== 'home') {
+        console.log('🔄 [Tab] Restoring tab for paid/perpetual user:', savedTab);
+        setActiveTab(savedTab);
+        
+        // Also expand the correct hub based on the saved tab
+        if (savedTab.startsWith('bizbudget-')) {
+          setExpandedHubs(prev => ({ ...prev, bizbudget: true }));
+        } else if (savedTab.startsWith('rebudget-')) {
+          setExpandedHubs(prev => ({ ...prev, rebudget: true }));
+        } else {
+          setExpandedHubs(prev => ({ ...prev, homebudget: true }));
+        }
+      } else {
+        console.log('🏠 [Tab] Free/trial user - starting at HomeBudget Dashboard');
+      }
+      
+      setTabRestored(true);
+    }
+  }, [subscriptionLoading, subscription, user?.id, user?.email, tabRestored]);
   
   // Sync accountLabels from profile when it loads
   useEffect(() => {
