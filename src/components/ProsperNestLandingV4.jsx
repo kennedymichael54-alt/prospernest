@@ -2624,7 +2624,7 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
               { 
                 icon: '🏠',
                 title: 'HomeBudget Hub', 
-                subtitle: 'Family Finance + Side Hustle',
+                subtitle: 'Personal & Family Finance',
                 desc: 'Your path to financial freedom starts here. Budget smarter, build your side hustle, and break free from the 9-5. FIRE isn\'t a dream—it\'s a plan.',
                 features: ['Family Budgeting', 'Side Hustle Sales Tracker', 'Bill Planning', 'Tax Estimation'],
                 gradient: 'linear-gradient(135deg, #EC4899 0%, #DB2777 100%)',
@@ -2637,7 +2637,7 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
               { 
                 icon: '💼',
                 title: 'BizBudget Hub', 
-                subtitle: 'Small Business Command Center',
+                subtitle: 'Business Command Center',
                 desc: 'You made the leap—now scale it. Plan revenue, track 1099s, estimate self-employment taxes, and hit your ROI targets with real-time KPIs.',
                 features: ['Revenue & Expense Planning', '1099 Contractor Management', 'Self-Employment Tax Tools', 'Business KPI Dashboard'],
                 gradient: 'linear-gradient(135deg, #A78BFA 0%, #8B5CF6 100%)',
@@ -2650,7 +2650,7 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
               { 
                 icon: '🏢',
                 title: 'REBudget Hub', 
-                subtitle: 'Real Estate Investor Toolkit',
+                subtitle: 'Real Estate Toolkit',
                 desc: 'Build wealth that works while you sleep. Analyze deals in seconds, track cash flow, and keep your books CPA-ready—all from one dashboard.',
                 features: ['Deal Analyzer (Cap Rate/ROI)', 'Property Cash Flow Tracking', 'Expense & Fee Logging', 'Portfolio Performance'],
                 gradient: 'linear-gradient(135deg, #818CF8 0%, #6366F1 100%)',
@@ -2884,7 +2884,7 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
               }}>🏠</div>
               <div>
                 <div style={{ fontSize: '12px', fontWeight: '700', color: '#EC4899', textTransform: 'uppercase', letterSpacing: '1px' }}>
-                  Family Finance + Side Hustle
+                  Personal & Family Finance
                 </div>
                 <h3 style={{ fontSize: isMobile ? '24px' : '32px', fontWeight: '700', color: colors.label }}>
                   HomeBudget Hub
@@ -3220,7 +3220,7 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
               }}>💼</div>
               <div>
                 <div style={{ fontSize: '12px', fontWeight: '700', color: '#A78BFA', textTransform: 'uppercase', letterSpacing: '1px' }}>
-                  Small Business Command Center
+                  Business Command Center
                 </div>
                 <h3 style={{ fontSize: isMobile ? '24px' : '32px', fontWeight: '700', color: colors.label }}>
                   BizBudget Hub
@@ -3408,7 +3408,7 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
               }}>🏢</div>
               <div>
                 <div style={{ fontSize: '12px', fontWeight: '700', color: '#818CF8', textTransform: 'uppercase', letterSpacing: '1px' }}>
-                  Real Estate Investor Toolkit
+                  Real Estate Toolkit
                 </div>
                 <h3 style={{ fontSize: isMobile ? '24px' : '32px', fontWeight: '700', color: colors.label }}>
                   REBudget Hub
@@ -3881,7 +3881,7 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
                   }}>💼</div>
                   <div>
                     <div style={{ fontSize: '18px', fontWeight: '700', color: colors.label }}>BizBudget Hub</div>
-                    <div style={{ fontSize: '13px', color: colors.secondary }}>Small Business Command Center</div>
+                    <div style={{ fontSize: '13px', color: colors.secondary }}>Business Command Center</div>
                   </div>
                 </div>
                 
@@ -3938,7 +3938,7 @@ const ProsperNestLandingV4 = ({ onNavigate }) => {
                   }}>🏢</div>
                   <div>
                     <div style={{ fontSize: '18px', fontWeight: '700', color: colors.label }}>REBudget Hub</div>
-                    <div style={{ fontSize: '13px', color: colors.secondary }}>Real Estate Investor Toolkit</div>
+                    <div style={{ fontSize: '13px', color: colors.secondary }}>Real Estate Toolkit</div>
                   </div>
                 </div>
                 
