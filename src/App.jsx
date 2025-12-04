@@ -3645,7 +3645,11 @@ function Dashboard({
           }} 
           parseCSV={parseCSV} 
           transactionCount={transactions.length} 
-          theme={theme} 
+          theme={theme}
+          activeTab={activeTab}
+          previousTab={previousTab}
+          userEmail={user?.email}
+          hasBizBudgetAccess={BIZBUDGET_ACCESS_USERS.includes(user?.email?.toLowerCase())}
         /></GradientSection>;
       default:
         return <GradientSection tab="home"><DashboardHome transactions={transactions} goals={goals} bills={bills} tasks={tasks || []} theme={theme} lastImportDate={lastImportDate} accountLabels={accountLabels} editingAccountLabel={editingAccountLabel} setEditingAccountLabel={setEditingAccountLabel} updateAccountLabel={updateAccountLabel} /></GradientSection>;
@@ -8015,12 +8019,18 @@ function TransactionsTabDS({ transactions, onNavigateToImport, theme, lastImport
 // ============================================================================
 // IMPORT TAB - DASHSTACK STYLE
 // ============================================================================
-function ImportTabDS({ onImport, parseCSV, transactionCount, theme }) {
+function ImportTabDS({ onImport, parseCSV, transactionCount, theme, activeTab, previousTab, userEmail, hasBizBudgetAccess }) {
   const [dragOver, setDragOver] = useState(false);
   const [importing, setImporting] = useState(false);
   const [importResult, setImportResult] = useState(null);
-  const [selectedFileType, setSelectedFileType] = useState('transactions');
+  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [selectedFileType, setSelectedFileType] = useState(null);
+  const [hoveredCard, setHoveredCard] = useState(null);
   const fileInputRef = useRef(null);
+  
+  // Determine which hub the user came from or is primarily using
+  const isFromBizBudget = previousTab?.startsWith('bizbudget-') || activeTab?.startsWith('bizbudget-');
+  const [activeHub, setActiveHub] = useState(isFromBizBudget ? 'bizbudget' : 'homebudget');
 
   const handleFile = async (file) => {
     if (!file) return;
@@ -8042,33 +8052,101 @@ function ImportTabDS({ onImport, parseCSV, transactionCount, theme }) {
     setImporting(false);
   };
 
-  const fileTypes = [
-    { 
-      id: 'transactions', 
-      icon: '🏦', 
-      title: 'Bank Transactions', 
-      desc: 'Import checking, savings, or credit card statements',
-      formats: ['CSV', 'XLSX', 'XLS'],
-      color: '#007AFF'
+  // Hub configurations with their import categories
+  const hubConfigs = {
+    homebudget: {
+      name: 'HomeBudget Hub',
+      icon: '🏠',
+      color: '#EC4899',
+      gradient: 'linear-gradient(135deg, #EC4899 0%, #F472B6 100%)',
+      description: 'Personal & Family Finance',
+      categories: [
+        {
+          id: 'personal-banking',
+          title: 'Personal Banking',
+          icon: '🏦',
+          description: 'Import your personal bank accounts',
+          color: '#3B82F6',
+          fileTypes: [
+            { id: 'checking', icon: '💳', title: 'Checking Account', desc: 'Daily transactions, direct deposits', formats: ['CSV', 'XLSX', 'OFX', 'QFX'] },
+            { id: 'savings', icon: '🏦', title: 'Savings Account', desc: 'Savings and money market', formats: ['CSV', 'XLSX', 'OFX'] },
+            { id: 'credit', icon: '💳', title: 'Credit Cards', desc: 'Credit card statements', formats: ['CSV', 'XLSX', 'OFX', 'QFX'] },
+          ]
+        },
+        {
+          id: 'retirement',
+          title: 'Retirement & Investments',
+          icon: '📈',
+          description: 'Track your retirement accounts',
+          color: '#10B981',
+          fileTypes: [
+            { id: '401k', icon: '🏛️', title: '401(k) / 403(b)', desc: 'Employer retirement plans', formats: ['CSV', 'XLSX'] },
+            { id: 'ira', icon: '📊', title: 'IRA Accounts', desc: 'Traditional, Roth, SEP IRA', formats: ['CSV', 'XLSX'] },
+            { id: 'brokerage', icon: '📈', title: 'Brokerage', desc: 'Stocks, ETFs, mutual funds', formats: ['CSV', 'XLSX'], comingSoon: true },
+          ]
+        },
+        {
+          id: 'sales-tracker',
+          title: 'Sales & Commissions',
+          icon: '💼',
+          description: 'Track sales income and commissions',
+          color: '#8B5CF6',
+          fileTypes: [
+            { id: 'commissions', icon: '💰', title: 'Commission Statements', desc: 'Sales commissions, bonuses', formats: ['CSV', 'XLSX'] },
+            { id: 'invoices', icon: '📄', title: 'Invoice History', desc: 'Client invoices and payments', formats: ['CSV', 'XLSX'] },
+            { id: 'deals', icon: '🤝', title: 'Closed Deals', desc: 'Completed sales transactions', formats: ['CSV', 'XLSX'] },
+          ]
+        }
+      ]
     },
-    { 
-      id: 'retirement', 
-      icon: '📈', 
-      title: 'Retirement Accounts', 
-      desc: 'Import 401(k), IRA, or brokerage statements',
-      formats: ['CSV', 'XLSX', 'XLS'],
-      color: '#34C759'
-    },
-    { 
-      id: 'investments', 
-      icon: '💼', 
-      title: 'Investment Portfolio', 
-      desc: 'Import stocks, bonds, or mutual fund data',
-      formats: ['CSV', 'XLSX'],
-      color: '#AF52DE',
-      comingSoon: true
+    bizbudget: {
+      name: 'BizBudget Hub',
+      icon: '💼',
+      color: '#A78BFA',
+      gradient: 'linear-gradient(135deg, #8B5CF6 0%, #A78BFA 100%)',
+      description: 'Business Command Center',
+      categories: [
+        {
+          id: 'business-banking',
+          title: 'Business Banking',
+          icon: '🏛️',
+          description: 'Import your business accounts',
+          color: '#6366F1',
+          fileTypes: [
+            { id: 'business-checking', icon: '🏦', title: 'Business Checking', desc: 'Operating account transactions', formats: ['CSV', 'XLSX', 'OFX', 'QFX'] },
+            { id: 'business-savings', icon: '💰', title: 'Business Savings', desc: 'Reserve and tax savings', formats: ['CSV', 'XLSX', 'OFX'] },
+            { id: 'business-credit', icon: '💳', title: 'Business Credit Cards', desc: 'Business credit statements', formats: ['CSV', 'XLSX', 'OFX'] },
+          ]
+        },
+        {
+          id: 'deal-pipeline',
+          title: 'Deal Pipeline',
+          icon: '🏠',
+          description: 'Import property and deal data',
+          color: '#F59E0B',
+          fileTypes: [
+            { id: 'properties', icon: '🏘️', title: 'Property Data', desc: 'Addresses, purchase prices, values', formats: ['CSV', 'XLSX'] },
+            { id: 'deals-active', icon: '📋', title: 'Active Deals', desc: 'Under contract, listed properties', formats: ['CSV', 'XLSX'] },
+            { id: 'deals-closed', icon: '✅', title: 'Closed Deals', desc: 'Completed transactions', formats: ['CSV', 'XLSX'] },
+          ]
+        },
+        {
+          id: 'contractors',
+          title: 'Contractors & Expenses',
+          icon: '👷',
+          description: '1099 contractors and business expenses',
+          color: '#EF4444',
+          fileTypes: [
+            { id: '1099', icon: '📝', title: '1099 Contractors', desc: 'Contractor payments for tax reporting', formats: ['CSV', 'XLSX'] },
+            { id: 'renovations', icon: '🔨', title: 'Renovation Costs', desc: 'Property improvement expenses', formats: ['CSV', 'XLSX'] },
+            { id: 'business-expenses', icon: '🧾', title: 'Business Expenses', desc: 'Operating costs, supplies', formats: ['CSV', 'XLSX'] },
+          ]
+        }
+      ]
     }
-  ];
+  };
+
+  const currentHubConfig = hubConfigs[activeHub];
 
   const supportedBanks = [
     { name: 'Chase', logo: '🔵' },
@@ -8081,34 +8159,99 @@ function ImportTabDS({ onImport, parseCSV, transactionCount, theme }) {
     { name: 'TD Bank', logo: '🟢' }
   ];
 
+  const businessBanks = [
+    { name: 'Novo', logo: '🟣' },
+    { name: 'Mercury', logo: '⚫' },
+    { name: 'Relay', logo: '🔵' },
+    { name: 'Bluevine', logo: '🔵' },
+    { name: 'Chase Business', logo: '🔵' },
+    { name: 'Bank of America Business', logo: '🔴' }
+  ];
+
   return (
-    <div style={{ maxWidth: '900px' }}>
-      {/* Header */}
+    <div style={{ maxWidth: '1000px' }}>
+      {/* Header with Hub Selector */}
       <div style={{ marginBottom: '32px' }}>
-        <h1 style={{ 
-          fontSize: '32px', 
-          fontWeight: '700', 
-          color: theme.textPrimary, 
-          marginBottom: '8px',
-          letterSpacing: '-0.5px'
-        }}>
-          Import Your Data
-        </h1>
-        <p style={{ fontSize: '17px', color: theme.textSecondary, lineHeight: '1.5' }}>
-          Upload your financial statements to unlock powerful insights and track your progress.
-        </p>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '16px' }}>
+          <div style={{
+            width: '56px',
+            height: '56px',
+            borderRadius: '16px',
+            background: currentHubConfig.gradient,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '28px',
+            boxShadow: `0 8px 24px ${currentHubConfig.color}40`
+          }}>
+            {currentHubConfig.icon}
+          </div>
+          <div>
+            <h1 style={{ 
+              fontSize: '32px', 
+              fontWeight: '700', 
+              color: theme.textPrimary, 
+              marginBottom: '4px',
+              letterSpacing: '-0.5px'
+            }}>
+              Import Your Data
+            </h1>
+            <p style={{ fontSize: '15px', color: theme.textSecondary }}>
+              {currentHubConfig.description} • Upload files to track your progress
+            </p>
+          </div>
+        </div>
+
+        {/* Hub Switcher - Only show if user has access to BizBudget */}
+        {hasBizBudgetAccess && (
+          <div style={{ 
+            display: 'flex', 
+            gap: '12px', 
+            padding: '6px',
+            background: theme.mode === 'dark' ? 'rgba(255,255,255,0.05)' : '#F3F4F6',
+            borderRadius: '14px',
+            width: 'fit-content'
+          }}>
+            {Object.entries(hubConfigs).map(([hubId, config]) => (
+              <button
+                key={hubId}
+                onClick={() => { setActiveHub(hubId); setSelectedCategory(null); setSelectedFileType(null); }}
+                onMouseEnter={(e) => e.target.style.transform = 'translateY(-1px)'}
+                onMouseLeave={(e) => e.target.style.transform = 'translateY(0)'}
+                style={{
+                  padding: '12px 24px',
+                  background: activeHub === hubId ? config.gradient : 'transparent',
+                  border: 'none',
+                  borderRadius: '10px',
+                  color: activeHub === hubId ? 'white' : theme.textSecondary,
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  transition: 'all 0.2s ease',
+                  boxShadow: activeHub === hubId ? `0 4px 12px ${config.color}40` : 'none'
+                }}
+              >
+                <span style={{ fontSize: '18px' }}>{config.icon}</span>
+                {config.name}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Stats Banner */}
       <div style={{ 
-        background: `linear-gradient(135deg, ${theme.primary}, ${theme.mode === 'dark' ? '#6D28D9' : '#818CF8'})`,
+        background: currentHubConfig.gradient,
         borderRadius: '20px', 
         padding: '28px 32px', 
         marginBottom: '32px',
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
-        boxShadow: '0 10px 40px rgba(79, 70, 229, 0.3)'
+        boxShadow: `0 10px 40px ${currentHubConfig.color}30`
       }}>
         <div>
           <div style={{ fontSize: '14px', color: 'rgba(255,255,255,0.8)', marginBottom: '4px', fontWeight: '500' }}>
@@ -8135,175 +8278,391 @@ function ImportTabDS({ onImport, parseCSV, transactionCount, theme }) {
         )}
       </div>
 
-      {/* File Type Selection */}
-      <div style={{ marginBottom: '32px' }}>
-        <h2 style={{ fontSize: '15px', fontWeight: '600', color: theme.textSecondary, marginBottom: '16px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-          What would you like to import?
-        </h2>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
-          {fileTypes.map((type) => (
-            <div
-              key={type.id}
-              onClick={() => !type.comingSoon && setSelectedFileType(type.id)}
-              style={{
-                background: selectedFileType === type.id 
-                  ? (theme.mode === 'dark' ? 'rgba(139, 92, 246, 0.15)' : '#EEF2FF')
-                  : theme.bgCard,
-                border: `2px solid ${selectedFileType === type.id ? theme.primary : theme.borderLight}`,
-                borderRadius: '16px',
-                padding: '24px',
-                cursor: type.comingSoon ? 'default' : 'pointer',
-                transition: 'all 0.2s ease',
-                opacity: type.comingSoon ? 0.5 : 1,
-                position: 'relative'
-              }}
-            >
-              {type.comingSoon && (
-                <span style={{
+      {/* Category Selection */}
+      {!selectedCategory && (
+        <div style={{ marginBottom: '32px' }}>
+          <h2 style={{ fontSize: '15px', fontWeight: '600', color: theme.textSecondary, marginBottom: '16px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+            What would you like to import?
+          </h2>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px' }}>
+            {currentHubConfig.categories.map((category) => (
+              <div
+                key={category.id}
+                onClick={() => setSelectedCategory(category)}
+                onMouseEnter={() => setHoveredCard(category.id)}
+                onMouseLeave={() => setHoveredCard(null)}
+                style={{
+                  background: theme.bgCard,
+                  border: `2px solid ${hoveredCard === category.id ? category.color : theme.borderLight}`,
+                  borderRadius: '20px',
+                  padding: '28px',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                  transform: hoveredCard === category.id ? 'translateY(-4px)' : 'translateY(0)',
+                  boxShadow: hoveredCard === category.id 
+                    ? `0 12px 32px ${category.color}25` 
+                    : theme.cardShadow,
+                  position: 'relative',
+                  overflow: 'hidden'
+                }}
+              >
+                {/* Gradient accent bar */}
+                <div style={{
                   position: 'absolute',
-                  top: '12px',
-                  right: '12px',
-                  background: theme.textMuted,
-                  color: 'white',
-                  fontSize: '10px',
-                  fontWeight: '600',
-                  padding: '4px 8px',
-                  borderRadius: '6px',
-                  textTransform: 'uppercase'
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  height: '4px',
+                  background: `linear-gradient(90deg, ${category.color}, ${category.color}80)`,
+                  opacity: hoveredCard === category.id ? 1 : 0,
+                  transition: 'opacity 0.3s ease'
+                }} />
+                
+                <div style={{ 
+                  width: '56px', 
+                  height: '56px', 
+                  borderRadius: '16px',
+                  background: `${category.color}15`,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '28px',
+                  marginBottom: '16px',
+                  transition: 'transform 0.3s ease',
+                  transform: hoveredCard === category.id ? 'scale(1.1)' : 'scale(1)'
                 }}>
-                  Coming Soon
-                </span>
-              )}
-              <div style={{ 
-                width: '48px', 
-                height: '48px', 
-                borderRadius: '12px',
-                background: `${type.color}15`,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '24px',
-                marginBottom: '16px'
-              }}>
-                {type.icon}
+                  {category.icon}
+                </div>
+                <div style={{ fontSize: '18px', fontWeight: '700', color: theme.textPrimary, marginBottom: '6px' }}>
+                  {category.title}
+                </div>
+                <div style={{ fontSize: '14px', color: theme.textMuted, marginBottom: '16px', lineHeight: '1.5' }}>
+                  {category.description}
+                </div>
+                <div style={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: '8px',
+                  color: category.color,
+                  fontSize: '14px',
+                  fontWeight: '600'
+                }}>
+                  <span>{category.fileTypes.length} import types</span>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                    <path d="M5 12h14M12 5l7 7-7 7"/>
+                  </svg>
+                </div>
               </div>
-              <div style={{ fontSize: '16px', fontWeight: '600', color: theme.textPrimary, marginBottom: '4px' }}>
-                {type.title}
-              </div>
-              <div style={{ fontSize: '13px', color: theme.textMuted, marginBottom: '12px', lineHeight: '1.4' }}>
-                {type.desc}
-              </div>
-              <div style={{ display: 'flex', gap: '6px' }}>
-                {type.formats.map((format) => (
-                  <span key={format} style={{
-                    fontSize: '11px',
-                    fontWeight: '600',
-                    color: theme.textSecondary,
-                    background: theme.mode === 'dark' ? 'rgba(255,255,255,0.1)' : '#F3F4F6',
-                    padding: '4px 8px',
-                    borderRadius: '6px'
-                  }}>
-                    {format}
-                  </span>
-                ))}
-              </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* Upload Area */}
-      <div
-        onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
-        onDragLeave={() => setDragOver(false)}
-        onDrop={(e) => { e.preventDefault(); setDragOver(false); handleFile(e.dataTransfer.files[0]); }}
-        onClick={() => fileInputRef.current?.click()}
-        style={{
-          background: dragOver 
-            ? (theme.mode === 'dark' ? 'rgba(139, 92, 246, 0.15)' : '#EEF2FF') 
-            : theme.bgCard,
-          border: `2px dashed ${dragOver ? theme.primary : theme.border}`,
-          borderRadius: '24px',
-          padding: '64px 40px',
-          textAlign: 'center',
-          cursor: 'pointer',
-          marginBottom: '32px',
-          transition: 'all 0.3s ease',
-          boxShadow: dragOver ? `0 0 0 4px ${theme.primary}20` : theme.cardShadow
-        }}
-      >
-        <input 
-          ref={fileInputRef} 
-          type="file" 
-          accept=".csv,.xlsx,.xls" 
-          onChange={(e) => handleFile(e.target.files[0])} 
-          style={{ display: 'none' }} 
-        />
-
-        {importing ? (
-          <div>
-            <div style={{ 
-              width: '80px', 
-              height: '80px', 
-              borderRadius: '50%',
-              background: `linear-gradient(135deg, ${theme.primary}20, ${theme.primary}40)`,
+      {/* File Type Selection - After category is selected */}
+      {selectedCategory && !selectedFileType && (
+        <div style={{ marginBottom: '32px' }}>
+          <button
+            onClick={() => setSelectedCategory(null)}
+            onMouseEnter={(e) => e.target.style.background = theme.mode === 'dark' ? 'rgba(255,255,255,0.1)' : '#F3F4F6'}
+            onMouseLeave={(e) => e.target.style.background = 'transparent'}
+            style={{
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center',
-              margin: '0 auto 24px'
-            }}>
-              <div style={{ fontSize: '36px' }}>⏳</div>
-            </div>
-            <div style={{ fontSize: '20px', fontWeight: '600', color: theme.textPrimary, marginBottom: '8px' }}>
-              Processing your file...
-            </div>
-            <div style={{ color: theme.textMuted }}>This may take a moment</div>
-          </div>
-        ) : (
-          <div>
-            <div style={{ 
-              width: '88px', 
-              height: '88px', 
-              borderRadius: '22px',
-              background: `linear-gradient(135deg, ${theme.primary}10, ${theme.primary}25)`,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              margin: '0 auto 24px',
-              transition: 'transform 0.2s ease'
-            }}>
-              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke={theme.primary} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                <polyline points="17 8 12 3 7 8"/>
-                <line x1="12" y1="3" x2="12" y2="15"/>
-              </svg>
-            </div>
-            <div style={{ fontSize: '22px', fontWeight: '600', color: theme.textPrimary, marginBottom: '8px' }}>
-              Drop your file here
-            </div>
-            <div style={{ color: theme.textMuted, marginBottom: '24px', fontSize: '15px' }}>
-              or click to browse from your computer
-            </div>
-            <button style={{ 
-              padding: '14px 36px', 
-              background: theme.primary, 
-              color: 'white', 
-              border: 'none', 
-              borderRadius: '12px', 
-              fontSize: '16px', 
-              fontWeight: '600', 
+              gap: '8px',
+              padding: '10px 16px',
+              background: 'transparent',
+              border: 'none',
+              borderRadius: '10px',
+              color: theme.textSecondary,
+              fontSize: '14px',
+              fontWeight: '500',
               cursor: 'pointer',
-              boxShadow: `0 4px 14px ${theme.primary}40`,
-              transition: 'all 0.2s ease'
+              marginBottom: '16px',
+              transition: 'background 0.2s ease'
+            }}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+              <path d="M19 12H5M12 19l-7-7 7-7"/>
+            </svg>
+            Back to categories
+          </button>
+
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '16px', 
+            marginBottom: '24px',
+            padding: '20px 24px',
+            background: `${selectedCategory.color}10`,
+            borderRadius: '16px',
+            border: `1px solid ${selectedCategory.color}30`
+          }}>
+            <div style={{ 
+              width: '48px', 
+              height: '48px', 
+              borderRadius: '12px',
+              background: `${selectedCategory.color}20`,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '24px'
             }}>
-              Choose File
-            </button>
-            <div style={{ marginTop: '20px', fontSize: '13px', color: theme.textMuted }}>
-              Supports CSV, XLSX, and XLS formats • Max 10MB
+              {selectedCategory.icon}
+            </div>
+            <div>
+              <h2 style={{ fontSize: '20px', fontWeight: '700', color: theme.textPrimary, marginBottom: '2px' }}>
+                {selectedCategory.title}
+              </h2>
+              <p style={{ fontSize: '14px', color: theme.textMuted }}>{selectedCategory.description}</p>
             </div>
           </div>
-        )}
-      </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
+            {selectedCategory.fileTypes.map((type) => (
+              <div
+                key={type.id}
+                onClick={() => !type.comingSoon && setSelectedFileType(type)}
+                onMouseEnter={() => !type.comingSoon && setHoveredCard(type.id)}
+                onMouseLeave={() => setHoveredCard(null)}
+                style={{
+                  background: theme.bgCard,
+                  border: `2px solid ${hoveredCard === type.id ? selectedCategory.color : theme.borderLight}`,
+                  borderRadius: '16px',
+                  padding: '24px',
+                  cursor: type.comingSoon ? 'default' : 'pointer',
+                  transition: 'all 0.2s ease',
+                  opacity: type.comingSoon ? 0.6 : 1,
+                  transform: hoveredCard === type.id ? 'translateY(-2px)' : 'translateY(0)',
+                  boxShadow: hoveredCard === type.id ? `0 8px 24px ${selectedCategory.color}20` : 'none',
+                  position: 'relative'
+                }}
+              >
+                {type.comingSoon && (
+                  <span style={{
+                    position: 'absolute',
+                    top: '12px',
+                    right: '12px',
+                    background: theme.textMuted,
+                    color: 'white',
+                    fontSize: '10px',
+                    fontWeight: '600',
+                    padding: '4px 8px',
+                    borderRadius: '6px',
+                    textTransform: 'uppercase'
+                  }}>
+                    Coming Soon
+                  </span>
+                )}
+                <div style={{ 
+                  width: '48px', 
+                  height: '48px', 
+                  borderRadius: '12px',
+                  background: `${selectedCategory.color}15`,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '24px',
+                  marginBottom: '14px'
+                }}>
+                  {type.icon}
+                </div>
+                <div style={{ fontSize: '16px', fontWeight: '600', color: theme.textPrimary, marginBottom: '4px' }}>
+                  {type.title}
+                </div>
+                <div style={{ fontSize: '13px', color: theme.textMuted, marginBottom: '12px', lineHeight: '1.4' }}>
+                  {type.desc}
+                </div>
+                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                  {type.formats.map((format) => (
+                    <span key={format} style={{
+                      fontSize: '11px',
+                      fontWeight: '600',
+                      color: theme.textSecondary,
+                      background: theme.mode === 'dark' ? 'rgba(255,255,255,0.1)' : '#F3F4F6',
+                      padding: '4px 8px',
+                      borderRadius: '6px'
+                    }}>
+                      {format}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Upload Area - After file type is selected */}
+      {selectedFileType && (
+        <div style={{ marginBottom: '32px' }}>
+          <button
+            onClick={() => setSelectedFileType(null)}
+            onMouseEnter={(e) => e.target.style.background = theme.mode === 'dark' ? 'rgba(255,255,255,0.1)' : '#F3F4F6'}
+            onMouseLeave={(e) => e.target.style.background = 'transparent'}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              padding: '10px 16px',
+              background: 'transparent',
+              border: 'none',
+              borderRadius: '10px',
+              color: theme.textSecondary,
+              fontSize: '14px',
+              fontWeight: '500',
+              cursor: 'pointer',
+              marginBottom: '16px',
+              transition: 'background 0.2s ease'
+            }}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+              <path d="M19 12H5M12 19l-7-7 7-7"/>
+            </svg>
+            Back to {selectedCategory.title}
+          </button>
+
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '16px', 
+            marginBottom: '24px',
+            padding: '20px 24px',
+            background: `${selectedCategory.color}10`,
+            borderRadius: '16px',
+            border: `1px solid ${selectedCategory.color}30`
+          }}>
+            <div style={{ 
+              width: '48px', 
+              height: '48px', 
+              borderRadius: '12px',
+              background: `${selectedCategory.color}20`,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '24px'
+            }}>
+              {selectedFileType.icon}
+            </div>
+            <div style={{ flex: 1 }}>
+              <h2 style={{ fontSize: '20px', fontWeight: '700', color: theme.textPrimary, marginBottom: '2px' }}>
+                Import {selectedFileType.title}
+              </h2>
+              <p style={{ fontSize: '14px', color: theme.textMuted }}>{selectedFileType.desc}</p>
+            </div>
+            <div style={{ display: 'flex', gap: '6px' }}>
+              {selectedFileType.formats.map((format) => (
+                <span key={format} style={{
+                  fontSize: '12px',
+                  fontWeight: '600',
+                  color: selectedCategory.color,
+                  background: `${selectedCategory.color}15`,
+                  padding: '6px 12px',
+                  borderRadius: '8px'
+                }}>
+                  {format}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          {/* Drop Zone */}
+          <div
+            onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+            onDragLeave={() => setDragOver(false)}
+            onDrop={(e) => { e.preventDefault(); setDragOver(false); handleFile(e.dataTransfer.files[0]); }}
+            onClick={() => fileInputRef.current?.click()}
+            style={{
+              background: dragOver 
+                ? `${selectedCategory.color}10` 
+                : theme.bgCard,
+              border: `2px dashed ${dragOver ? selectedCategory.color : theme.border}`,
+              borderRadius: '24px',
+              padding: '64px 40px',
+              textAlign: 'center',
+              cursor: 'pointer',
+              transition: 'all 0.3s ease',
+              boxShadow: dragOver ? `0 0 0 4px ${selectedCategory.color}20` : theme.cardShadow
+            }}
+          >
+            <input 
+              ref={fileInputRef} 
+              type="file" 
+              accept=".csv,.xlsx,.xls,.ofx,.qfx" 
+              onChange={(e) => handleFile(e.target.files[0])} 
+              style={{ display: 'none' }} 
+            />
+
+            {importing ? (
+              <div>
+                <div style={{ 
+                  width: '80px', 
+                  height: '80px', 
+                  borderRadius: '50%',
+                  background: `${selectedCategory.color}20`,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  margin: '0 auto 24px',
+                  animation: 'pulse 1.5s infinite'
+                }}>
+                  <div style={{ fontSize: '36px' }}>⏳</div>
+                </div>
+                <div style={{ fontSize: '20px', fontWeight: '600', color: theme.textPrimary, marginBottom: '8px' }}>
+                  Processing your file...
+                </div>
+                <div style={{ color: theme.textMuted }}>This may take a moment</div>
+              </div>
+            ) : (
+              <div>
+                <div style={{ 
+                  width: '88px', 
+                  height: '88px', 
+                  borderRadius: '22px',
+                  background: `${selectedCategory.color}10`,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  margin: '0 auto 24px',
+                  transition: 'transform 0.2s ease'
+                }}>
+                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke={selectedCategory.color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                    <polyline points="17 8 12 3 7 8"/>
+                    <line x1="12" y1="3" x2="12" y2="15"/>
+                  </svg>
+                </div>
+                <div style={{ fontSize: '22px', fontWeight: '600', color: theme.textPrimary, marginBottom: '8px' }}>
+                  Drop your {selectedFileType.title.toLowerCase()} file here
+                </div>
+                <div style={{ color: theme.textMuted, marginBottom: '24px', fontSize: '15px' }}>
+                  or click to browse from your computer
+                </div>
+                <button 
+                  onMouseEnter={(e) => { e.target.style.transform = 'translateY(-2px)'; e.target.style.boxShadow = `0 8px 24px ${selectedCategory.color}50`; }}
+                  onMouseLeave={(e) => { e.target.style.transform = 'translateY(0)'; e.target.style.boxShadow = `0 4px 14px ${selectedCategory.color}40`; }}
+                  style={{ 
+                    padding: '14px 36px', 
+                    background: selectedCategory.color, 
+                    color: 'white', 
+                    border: 'none', 
+                    borderRadius: '12px', 
+                    fontSize: '16px', 
+                    fontWeight: '600', 
+                    cursor: 'pointer',
+                    boxShadow: `0 4px 14px ${selectedCategory.color}40`,
+                    transition: 'all 0.2s ease'
+                  }}
+                >
+                  Choose File
+                </button>
+                <div style={{ marginTop: '20px', fontSize: '13px', color: theme.textMuted }}>
+                  Supports {selectedFileType.formats.join(', ')} formats • Max 10MB
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Import Result */}
       {importResult && (
@@ -8347,6 +8706,21 @@ function ImportTabDS({ onImport, parseCSV, transactionCount, theme }) {
                 : importResult.error}
             </div>
           </div>
+          <button
+            onClick={() => setImportResult(null)}
+            style={{
+              padding: '8px 16px',
+              background: importResult.success ? '#D1FAE5' : '#FEE2E2',
+              border: 'none',
+              borderRadius: '8px',
+              color: importResult.success ? '#047857' : '#DC2626',
+              fontSize: '13px',
+              fontWeight: '500',
+              cursor: 'pointer'
+            }}
+          >
+            Dismiss
+          </button>
         </div>
       )}
 
@@ -8359,21 +8733,28 @@ function ImportTabDS({ onImport, parseCSV, transactionCount, theme }) {
         border: `1px solid ${theme.borderLight}`
       }}>
         <h3 style={{ fontSize: '15px', fontWeight: '600', color: theme.textSecondary, marginBottom: '20px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-          Works with all major banks
+          {activeHub === 'bizbudget' ? 'Works with business banks' : 'Works with all major banks'}
         </h3>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
-          {supportedBanks.map((bank, i) => (
-            <div key={i} style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              background: theme.mode === 'dark' ? 'rgba(255,255,255,0.05)' : '#F9FAFB',
-              padding: '10px 16px',
-              borderRadius: '10px',
-              fontSize: '14px',
-              color: theme.textPrimary,
-              fontWeight: '500'
-            }}>
+          {(activeHub === 'bizbudget' ? businessBanks : supportedBanks).map((bank, i) => (
+            <div 
+              key={i} 
+              onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                background: theme.mode === 'dark' ? 'rgba(255,255,255,0.05)' : '#F9FAFB',
+                padding: '10px 16px',
+                borderRadius: '10px',
+                fontSize: '14px',
+                color: theme.textPrimary,
+                fontWeight: '500',
+                transition: 'all 0.2s ease',
+                cursor: 'default'
+              }}
+            >
               <span>{bank.logo}</span>
               {bank.name}
             </div>
