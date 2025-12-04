@@ -69,7 +69,7 @@ const fallbackData = {
   monthlyProgress: []
 };
 
-export default function RetirementTab({ theme: propTheme, retirementData }) {
+export default function RetirementTab({ theme: propTheme, retirementData, lastImportDate }) {
   const [localDarkMode] = useState(() => {
     try {
       return localStorage.getItem('pn_darkMode') === 'true';
@@ -81,6 +81,18 @@ export default function RetirementTab({ theme: propTheme, retirementData }) {
 
   const [activeView, setActiveView] = useState('overview');
   const [selectedOwner, setSelectedOwner] = useState('all');
+  
+  // Collapsible sections state
+  const [collapsedSections, setCollapsedSections] = useState({
+    portfolioGrowth: false,
+    allocation: false,
+    accounts: false,
+    monthlyProgress: false
+  });
+  
+  const toggleSection = (section) => {
+    setCollapsedSections(prev => ({ ...prev, [section]: !prev[section] }));
+  };
 
   // Use passed data or fallback
   const data = retirementData || fallbackData;
@@ -124,12 +136,11 @@ export default function RetirementTab({ theme: propTheme, retirementData }) {
   // Calculate returns by owner (weighted average based on account values)
   const getOwnerReturns = (owner) => {
     const ownerAccounts = accounts.filter(a => a.owner === owner && a.ytdReturn !== undefined);
-    if (ownerAccounts.length === 0) return summary; // Return overall summary if no specific data
+    if (ownerAccounts.length === 0) return summary;
     
     const totalValue = ownerAccounts.reduce((sum, a) => sum + a.value, 0);
     const weightedYtd = ownerAccounts.reduce((sum, a) => sum + (a.ytdReturn * a.value / totalValue), 0);
     
-    // Estimate other returns based on YTD ratio
     const ratio = weightedYtd / summary.ytdReturn;
     return {
       ytdReturn: weightedYtd.toFixed(2),
@@ -139,7 +150,6 @@ export default function RetirementTab({ theme: propTheme, retirementData }) {
     };
   };
   
-  // Get returns based on selection
   const displayReturns = selectedOwner === 'all' ? summary : getOwnerReturns(selectedOwner);
 
   // Type colors
@@ -154,38 +164,6 @@ export default function RetirementTab({ theme: propTheme, retirementData }) {
     'roth': 'Roth IRA',
     'insurance': 'VUL Insurance'
   };
-
-  // Stat cards
-  const statCards = [
-    { 
-      label: 'Total Portfolio', 
-      value: formatCurrency(totalPortfolio), 
-      subValue: `+${summary.ytdReturn}% YTD`,
-      color: theme.success, 
-      icon: '💰' 
-    },
-    { 
-      label: 'Monthly Change', 
-      value: formatCurrency(currentMonth.changeInValue || 0), 
-      subValue: currentMonth.month || '',
-      color: (currentMonth.changeInValue || 0) >= 0 ? theme.success : theme.danger, 
-      icon: (currentMonth.changeInValue || 0) >= 0 ? '📈' : '📉' 
-    },
-    { 
-      label: 'Contributions', 
-      value: formatCurrency(currentMonth.netContributions || 0), 
-      subValue: 'This Month',
-      color: theme.info, 
-      icon: '💵' 
-    },
-    { 
-      label: 'Accounts', 
-      value: accounts.length, 
-      subValue: `${owners.length} family members`,
-      color: theme.primary, 
-      icon: '🏦' 
-    },
-  ];
 
   // Portfolio growth chart data points
   const chartData = [...monthlyProgress].reverse();
@@ -207,10 +185,20 @@ export default function RetirementTab({ theme: propTheme, retirementData }) {
             <span style={{ fontSize: '24px' }}>🏖️</span>
           </div>
           <div>
-            <h1 style={{ fontSize: '24px', fontWeight: '700', color: theme.textPrimary, margin: 0 }}>Retirement</h1>
-            <p style={{ fontSize: '13px', color: theme.textMuted, margin: 0 }}>
-              As of {data.asOfDate} • Ameriprise Financial
-            </p>
+            <h1 style={{ fontSize: '28px', fontWeight: '700', color: theme.textPrimary, margin: 0, letterSpacing: '-0.5px' }}>Retirement</h1>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <p style={{ fontSize: '13px', color: theme.textMuted, margin: 0 }}>
+                As of {data.asOfDate} • Ameriprise Financial
+              </p>
+              {lastImportDate && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '4px 10px', background: '#10B98115', borderRadius: '8px' }}>
+                  <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10B981' }} />
+                  <span style={{ fontSize: '12px', color: '#10B981', fontWeight: '500' }}>
+                    Last import: {new Date(lastImportDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                  </span>
+                </div>
+              )}
+            </div>
           </div>
         </div>
         
@@ -278,110 +266,173 @@ export default function RetirementTab({ theme: propTheme, retirementData }) {
         ))}
       </div>
 
-      {/* Stat Cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '24px' }}>
-        {statCards.map((card, i) => (
-          <div key={i} style={{
-            background: theme.bgCard,
-            borderRadius: '16px',
-            padding: '20px',
-            border: `1px solid ${theme.borderLight}`,
-            boxShadow: theme.cardShadow,
-            position: 'relative',
-            overflow: 'hidden'
-          }}>
-            <div style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              height: '4px',
-              background: card.color
-            }} />
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-              <span style={{ fontSize: '20px' }}>{card.icon}</span>
-              <span style={{ fontSize: '13px', color: theme.textMuted, fontWeight: '500' }}>{card.label}</span>
-            </div>
-            <div style={{ fontSize: '28px', fontWeight: '700', color: theme.textPrimary }}>{card.value}</div>
-            <div style={{ fontSize: '12px', color: card.color, fontWeight: '500', marginTop: '4px' }}>{card.subValue}</div>
+      {/* Stat Cards - Gradient style matching Dashboard */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px', marginBottom: '32px' }}>
+        {/* Total Portfolio Card - Cyan */}
+        <div style={{
+          background: isDark ? 'linear-gradient(135deg, #164E63 0%, #0E4A5C 100%)' : 'linear-gradient(135deg, #E0F7FA 0%, #B2EBF2 100%)',
+          borderRadius: '20px',
+          padding: '20px',
+          boxShadow: '0 4px 20px rgba(0, 188, 212, 0.15)',
+          border: `1px solid ${isDark ? 'rgba(0, 188, 212, 0.3)' : 'rgba(0, 188, 212, 0.2)'}`
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
+            <div style={{ 
+              width: '40px', height: '40px', borderRadius: '12px', 
+              background: isDark ? 'rgba(0, 188, 212, 0.3)' : 'rgba(0, 188, 212, 0.2)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' 
+            }}>💰</div>
+            <span style={{ fontSize: '14px', color: isDark ? '#67E8F9' : '#00838F', fontWeight: '600' }}>Total Portfolio</span>
           </div>
-        ))}
+          <div style={{ fontSize: '28px', fontWeight: '700', color: isDark ? '#E0F7FA' : '#006064' }}>{formatCurrency(totalPortfolio)}</div>
+          <div style={{ fontSize: '12px', color: isDark ? '#67E8F9' : '#00838F', marginTop: '4px' }}>+{summary.ytdReturn}% YTD</div>
+        </div>
+
+        {/* Monthly Change Card - Green/Red based on value */}
+        <div style={{
+          background: (currentMonth.changeInValue || 0) >= 0 
+            ? (isDark ? 'linear-gradient(135deg, #14532D 0%, #115E2B 100%)' : 'linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%)')
+            : (isDark ? 'linear-gradient(135deg, #7C2D12 0%, #6B2A0F 100%)' : 'linear-gradient(135deg, #FFF3E0 0%, #FFE0B2 100%)'),
+          borderRadius: '20px',
+          padding: '20px',
+          boxShadow: (currentMonth.changeInValue || 0) >= 0 
+            ? '0 4px 20px rgba(76, 175, 80, 0.15)' 
+            : '0 4px 20px rgba(255, 152, 0, 0.15)',
+          border: `1px solid ${(currentMonth.changeInValue || 0) >= 0 
+            ? (isDark ? 'rgba(76, 175, 80, 0.3)' : 'rgba(76, 175, 80, 0.2)')
+            : (isDark ? 'rgba(255, 152, 0, 0.3)' : 'rgba(255, 152, 0, 0.2)')}`
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
+            <div style={{ 
+              width: '40px', height: '40px', borderRadius: '12px', 
+              background: (currentMonth.changeInValue || 0) >= 0 
+                ? (isDark ? 'rgba(76, 175, 80, 0.3)' : 'rgba(76, 175, 80, 0.2)')
+                : (isDark ? 'rgba(255, 152, 0, 0.3)' : 'rgba(255, 152, 0, 0.2)'),
+              display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' 
+            }}>{(currentMonth.changeInValue || 0) >= 0 ? '📈' : '📉'}</div>
+            <span style={{ fontSize: '14px', color: (currentMonth.changeInValue || 0) >= 0 ? (isDark ? '#86EFAC' : '#2E7D32') : (isDark ? '#FDBA74' : '#E65100'), fontWeight: '600' }}>Monthly Change</span>
+          </div>
+          <div style={{ fontSize: '28px', fontWeight: '700', color: (currentMonth.changeInValue || 0) >= 0 ? (isDark ? '#E8F5E9' : '#1B5E20') : (isDark ? '#FFF3E0' : '#BF360C') }}>
+            {formatCurrency(currentMonth.changeInValue || 0)}
+          </div>
+          <div style={{ fontSize: '12px', color: (currentMonth.changeInValue || 0) >= 0 ? (isDark ? '#86EFAC' : '#2E7D32') : (isDark ? '#FDBA74' : '#E65100'), marginTop: '4px' }}>{currentMonth.month || ''}</div>
+        </div>
+
+        {/* Contributions Card - Purple */}
+        <div style={{
+          background: isDark ? 'linear-gradient(135deg, #4A1D6B 0%, #3D1A5A 100%)' : 'linear-gradient(135deg, #F3E5F5 0%, #E1BEE7 100%)',
+          borderRadius: '20px',
+          padding: '20px',
+          boxShadow: '0 4px 20px rgba(156, 39, 176, 0.15)',
+          border: `1px solid ${isDark ? 'rgba(156, 39, 176, 0.3)' : 'rgba(156, 39, 176, 0.2)'}`
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
+            <div style={{ 
+              width: '40px', height: '40px', borderRadius: '12px', 
+              background: isDark ? 'rgba(156, 39, 176, 0.3)' : 'rgba(156, 39, 176, 0.2)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' 
+            }}>💵</div>
+            <span style={{ fontSize: '14px', color: isDark ? '#D8B4FE' : '#7B1FA2', fontWeight: '600' }}>Contributions</span>
+          </div>
+          <div style={{ fontSize: '28px', fontWeight: '700', color: isDark ? '#F3E5F5' : '#4A148C' }}>{formatCurrency(currentMonth.netContributions || 0)}</div>
+          <div style={{ fontSize: '12px', color: isDark ? '#D8B4FE' : '#7B1FA2', marginTop: '4px' }}>This Month</div>
+        </div>
+
+        {/* Accounts Card - Orange */}
+        <div style={{
+          background: isDark ? 'linear-gradient(135deg, #7C2D12 0%, #6B2A0F 100%)' : 'linear-gradient(135deg, #FFF3E0 0%, #FFE0B2 100%)',
+          borderRadius: '20px',
+          padding: '20px',
+          boxShadow: '0 4px 20px rgba(255, 152, 0, 0.15)',
+          border: `1px solid ${isDark ? 'rgba(255, 152, 0, 0.3)' : 'rgba(255, 152, 0, 0.2)'}`
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
+            <div style={{ 
+              width: '40px', height: '40px', borderRadius: '12px', 
+              background: isDark ? 'rgba(255, 152, 0, 0.3)' : 'rgba(255, 152, 0, 0.2)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' 
+            }}>🏦</div>
+            <span style={{ fontSize: '14px', color: isDark ? '#FDBA74' : '#E65100', fontWeight: '600' }}>Accounts</span>
+          </div>
+          <div style={{ fontSize: '28px', fontWeight: '700', color: isDark ? '#FFF3E0' : '#BF360C' }}>{accounts.length}</div>
+          <div style={{ fontSize: '12px', color: isDark ? '#FDBA74' : '#E65100', marginTop: '4px' }}>{owners.length} family members</div>
+        </div>
       </div>
 
       {/* Investment Rate of Return Cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '24px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px', marginBottom: '32px' }}>
         <div style={{
-          background: theme.mode === 'dark' ? 'linear-gradient(135deg, #14532D 0%, #115E2B 100%)' : 'linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%)',
+          background: isDark ? 'linear-gradient(135deg, #14532D 0%, #115E2B 100%)' : 'linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%)',
           borderRadius: '16px',
           padding: '20px',
           boxShadow: '0 4px 20px rgba(76, 175, 80, 0.15)',
-          border: `1px solid ${theme.mode === 'dark' ? 'rgba(76, 175, 80, 0.3)' : 'rgba(76, 175, 80, 0.2)'}`
+          border: `1px solid ${isDark ? 'rgba(76, 175, 80, 0.3)' : 'rgba(76, 175, 80, 0.2)'}`
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
             <span style={{ fontSize: '16px' }}>📊</span>
-            <span style={{ fontSize: '12px', color: theme.mode === 'dark' ? '#86EFAC' : '#2E7D32', fontWeight: '500' }}>YTD Return</span>
+            <span style={{ fontSize: '12px', color: isDark ? '#86EFAC' : '#2E7D32', fontWeight: '500' }}>YTD Return</span>
           </div>
-          <div style={{ fontSize: '28px', fontWeight: '700', color: theme.mode === 'dark' ? '#E8F5E9' : '#1B5E20' }}>
+          <div style={{ fontSize: '28px', fontWeight: '700', color: isDark ? '#E8F5E9' : '#1B5E20' }}>
             +{displayReturns.ytdReturn}%
           </div>
-          <div style={{ fontSize: '11px', color: theme.mode === 'dark' ? '#86EFAC' : '#2E7D32', marginTop: '4px' }}>
+          <div style={{ fontSize: '11px', color: isDark ? '#86EFAC' : '#2E7D32', marginTop: '4px' }}>
             {selectedOwner === 'all' ? 'All Members' : selectedOwner}
           </div>
         </div>
         
         <div style={{
-          background: theme.mode === 'dark' ? 'linear-gradient(135deg, #164E63 0%, #0E4A5C 100%)' : 'linear-gradient(135deg, #E0F7FA 0%, #B2EBF2 100%)',
+          background: isDark ? 'linear-gradient(135deg, #164E63 0%, #0E4A5C 100%)' : 'linear-gradient(135deg, #E0F7FA 0%, #B2EBF2 100%)',
           borderRadius: '16px',
           padding: '20px',
           boxShadow: '0 4px 20px rgba(0, 188, 212, 0.15)',
-          border: `1px solid ${theme.mode === 'dark' ? 'rgba(0, 188, 212, 0.3)' : 'rgba(0, 188, 212, 0.2)'}`
+          border: `1px solid ${isDark ? 'rgba(0, 188, 212, 0.3)' : 'rgba(0, 188, 212, 0.2)'}`
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
             <span style={{ fontSize: '16px' }}>📈</span>
-            <span style={{ fontSize: '12px', color: theme.mode === 'dark' ? '#67E8F9' : '#00838F', fontWeight: '500' }}>1-Year Return</span>
+            <span style={{ fontSize: '12px', color: isDark ? '#67E8F9' : '#00838F', fontWeight: '500' }}>1-Year Return</span>
           </div>
-          <div style={{ fontSize: '28px', fontWeight: '700', color: theme.mode === 'dark' ? '#E0F7FA' : '#006064' }}>
+          <div style={{ fontSize: '28px', fontWeight: '700', color: isDark ? '#E0F7FA' : '#006064' }}>
             +{displayReturns.oneYearReturn}%
           </div>
-          <div style={{ fontSize: '11px', color: theme.mode === 'dark' ? '#67E8F9' : '#00838F', marginTop: '4px' }}>
+          <div style={{ fontSize: '11px', color: isDark ? '#67E8F9' : '#00838F', marginTop: '4px' }}>
             {selectedOwner === 'all' ? 'All Members' : selectedOwner}
           </div>
         </div>
         
         <div style={{
-          background: theme.mode === 'dark' ? 'linear-gradient(135deg, #4A1D6B 0%, #3D1A5A 100%)' : 'linear-gradient(135deg, #F3E5F5 0%, #E1BEE7 100%)',
+          background: isDark ? 'linear-gradient(135deg, #4A1D6B 0%, #3D1A5A 100%)' : 'linear-gradient(135deg, #F3E5F5 0%, #E1BEE7 100%)',
           borderRadius: '16px',
           padding: '20px',
           boxShadow: '0 4px 20px rgba(156, 39, 176, 0.15)',
-          border: `1px solid ${theme.mode === 'dark' ? 'rgba(156, 39, 176, 0.3)' : 'rgba(156, 39, 176, 0.2)'}`
+          border: `1px solid ${isDark ? 'rgba(156, 39, 176, 0.3)' : 'rgba(156, 39, 176, 0.2)'}`
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
             <span style={{ fontSize: '16px' }}>🎯</span>
-            <span style={{ fontSize: '12px', color: theme.mode === 'dark' ? '#D8B4FE' : '#7B1FA2', fontWeight: '500' }}>3-Year Return</span>
+            <span style={{ fontSize: '12px', color: isDark ? '#D8B4FE' : '#7B1FA2', fontWeight: '500' }}>3-Year Return</span>
           </div>
-          <div style={{ fontSize: '28px', fontWeight: '700', color: theme.mode === 'dark' ? '#F3E5F5' : '#4A148C' }}>
+          <div style={{ fontSize: '28px', fontWeight: '700', color: isDark ? '#F3E5F5' : '#4A148C' }}>
             +{displayReturns.threeYearReturn}%
           </div>
-          <div style={{ fontSize: '11px', color: theme.mode === 'dark' ? '#D8B4FE' : '#7B1FA2', marginTop: '4px' }}>
+          <div style={{ fontSize: '11px', color: isDark ? '#D8B4FE' : '#7B1FA2', marginTop: '4px' }}>
             {selectedOwner === 'all' ? 'All Members' : selectedOwner}
           </div>
         </div>
         
         <div style={{
-          background: theme.mode === 'dark' ? 'linear-gradient(135deg, #7C2D12 0%, #6B2A0F 100%)' : 'linear-gradient(135deg, #FFF3E0 0%, #FFE0B2 100%)',
+          background: isDark ? 'linear-gradient(135deg, #7C2D12 0%, #6B2A0F 100%)' : 'linear-gradient(135deg, #FFF3E0 0%, #FFE0B2 100%)',
           borderRadius: '16px',
           padding: '20px',
           boxShadow: '0 4px 20px rgba(255, 152, 0, 0.15)',
-          border: `1px solid ${theme.mode === 'dark' ? 'rgba(255, 152, 0, 0.3)' : 'rgba(255, 152, 0, 0.2)'}`
+          border: `1px solid ${isDark ? 'rgba(255, 152, 0, 0.3)' : 'rgba(255, 152, 0, 0.2)'}`
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
             <span style={{ fontSize: '16px' }}>🏆</span>
-            <span style={{ fontSize: '12px', color: theme.mode === 'dark' ? '#FDBA74' : '#E65100', fontWeight: '500' }}>5-Year Return</span>
+            <span style={{ fontSize: '12px', color: isDark ? '#FDBA74' : '#E65100', fontWeight: '500' }}>5-Year Return</span>
           </div>
-          <div style={{ fontSize: '28px', fontWeight: '700', color: theme.mode === 'dark' ? '#FFF3E0' : '#BF360C' }}>
+          <div style={{ fontSize: '28px', fontWeight: '700', color: isDark ? '#FFF3E0' : '#BF360C' }}>
             +{displayReturns.fiveYearReturn}%
           </div>
-          <div style={{ fontSize: '11px', color: theme.mode === 'dark' ? '#FDBA74' : '#E65100', marginTop: '4px' }}>
+          <div style={{ fontSize: '11px', color: isDark ? '#FDBA74' : '#E65100', marginTop: '4px' }}>
             {selectedOwner === 'all' ? 'All Members' : selectedOwner}
           </div>
         </div>
@@ -389,21 +440,70 @@ export default function RetirementTab({ theme: propTheme, retirementData }) {
 
       {activeView === 'overview' && (
         <>
-          {/* Portfolio Growth Chart */}
+          {/* ═══════════════════════════════════════════════════════════════════ */}
+          {/* PORTFOLIO GROWTH (Collapsible Section) */}
+          {/* ═══════════════════════════════════════════════════════════════════ */}
+          <div 
+            onClick={() => toggleSection('portfolioGrowth')}
+            style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '12px', 
+              marginBottom: collapsedSections.portfolioGrowth ? '24px' : '16px',
+              cursor: 'pointer',
+              userSelect: 'none'
+            }}
+          >
+            <div style={{ 
+              width: '4px', 
+              height: '24px', 
+              background: 'linear-gradient(180deg, #8B5CF6 0%, #06B6D4 100%)', 
+              borderRadius: '2px' 
+            }} />
+            <h2 style={{ 
+              fontSize: '18px', 
+              fontWeight: '700', 
+              color: theme.textPrimary, 
+              margin: 0,
+              letterSpacing: '-0.3px'
+            }}>Portfolio Growth</h2>
+            <span style={{ 
+              fontSize: '12px', 
+              color: theme.success,
+              background: theme.bgMain,
+              padding: '4px 10px',
+              borderRadius: '6px',
+              fontWeight: '500'
+            }}>+{summary.ytdReturn}% YTD</span>
+            <span style={{ 
+              marginLeft: 'auto', 
+              fontSize: '12px', 
+              color: theme.textMuted,
+              transition: 'transform 0.2s',
+              transform: collapsedSections.portfolioGrowth ? 'rotate(-90deg)' : 'rotate(0deg)'
+            }}>▼</span>
+          </div>
+
+          {!collapsedSections.portfolioGrowth && (
           <div style={{
             background: theme.bgCard,
             borderRadius: '16px',
             padding: '24px',
-            marginBottom: '24px',
+            marginBottom: '32px',
             border: `1px solid ${theme.borderLight}`,
-            boxShadow: theme.cardShadow
+            boxShadow: theme.cardShadow,
+            position: 'relative',
+            overflow: 'hidden'
           }}>
-            <h3 style={{ fontSize: '16px', fontWeight: '600', color: theme.textPrimary, marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              📈 Portfolio Growth
-              <span style={{ fontSize: '12px', color: theme.success, fontWeight: '500', marginLeft: 'auto' }}>
-                +{summary.ytdReturn}% YTD
-              </span>
-            </h3>
+            {/* Gradient top accent */}
+            <div style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              height: '3px',
+              background: 'linear-gradient(90deg, #8B5CF6 0%, #06B6D4 100%)'
+            }} />
             
             <div style={{ height: '300px', position: 'relative' }}>
               <svg width="100%" height="100%" viewBox="0 0 700 280" preserveAspectRatio="xMidYMid meet" style={{ overflow: 'visible' }}>
@@ -477,17 +577,72 @@ export default function RetirementTab({ theme: propTheme, retirementData }) {
               </svg>
             </div>
           </div>
+          )}
 
-          {/* Bottom Grid */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '24px' }}>
+          {/* ═══════════════════════════════════════════════════════════════════ */}
+          {/* ALLOCATION (Collapsible Section) */}
+          {/* ═══════════════════════════════════════════════════════════════════ */}
+          <div 
+            onClick={() => toggleSection('allocation')}
+            style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '12px', 
+              marginBottom: collapsedSections.allocation ? '24px' : '16px',
+              cursor: 'pointer',
+              userSelect: 'none'
+            }}
+          >
+            <div style={{ 
+              width: '4px', 
+              height: '24px', 
+              background: 'linear-gradient(180deg, #EC4899 0%, #F59E0B 100%)', 
+              borderRadius: '2px' 
+            }} />
+            <h2 style={{ 
+              fontSize: '18px', 
+              fontWeight: '700', 
+              color: theme.textPrimary, 
+              margin: 0,
+              letterSpacing: '-0.3px'
+            }}>Portfolio Allocation</h2>
+            <span style={{ 
+              fontSize: '12px', 
+              color: theme.textMuted,
+              background: theme.bgMain,
+              padding: '4px 10px',
+              borderRadius: '6px'
+            }}>{accounts.length} accounts</span>
+            <span style={{ 
+              marginLeft: 'auto', 
+              fontSize: '12px', 
+              color: theme.textMuted,
+              transition: 'transform 0.2s',
+              transform: collapsedSections.allocation ? 'rotate(-90deg)' : 'rotate(0deg)'
+            }}>▼</span>
+          </div>
+
+          {!collapsedSections.allocation && (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '24px' }}>
             {/* Portfolio Allocation by Type */}
             <div style={{
               background: theme.bgCard,
               borderRadius: '16px',
               padding: '24px',
               border: `1px solid ${theme.borderLight}`,
-              boxShadow: theme.cardShadow
+              boxShadow: theme.cardShadow,
+              position: 'relative',
+              overflow: 'hidden'
             }}>
+              {/* Gradient top accent */}
+              <div style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                height: '3px',
+                background: 'linear-gradient(90deg, #8B5CF6 0%, #3B82F6 100%)'
+              }} />
               <h3 style={{ fontSize: '16px', fontWeight: '600', color: theme.textPrimary, marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 🥧 Allocation by Type
               </h3>
@@ -496,35 +651,17 @@ export default function RetirementTab({ theme: propTheme, retirementData }) {
                 {/* Pie Chart */}
                 <div style={{ position: 'relative', width: '160px', height: '160px', flexShrink: 0 }}>
                   <svg width="160" height="160" viewBox="0 0 160 160">
-                    {/* Advisory slice */}
-                    <circle 
-                      cx="80" cy="80" r="60" 
-                      fill="none" 
-                      stroke={typeColors.advisory}
-                      strokeWidth="24" 
+                    <circle cx="80" cy="80" r="60" fill="none" stroke={typeColors.advisory} strokeWidth="24" 
                       strokeDasharray={`${(advisoryTotal / totalPortfolio) * 377} 377`}
-                      transform="rotate(-90 80 80)" 
-                    />
-                    {/* Roth slice */}
-                    <circle 
-                      cx="80" cy="80" r="60" 
-                      fill="none" 
-                      stroke={typeColors.roth}
-                      strokeWidth="24" 
+                      transform="rotate(-90 80 80)" />
+                    <circle cx="80" cy="80" r="60" fill="none" stroke={typeColors.roth} strokeWidth="24" 
                       strokeDasharray={`${(rothTotal / totalPortfolio) * 377} 377`}
                       strokeDashoffset={`-${(advisoryTotal / totalPortfolio) * 377}`}
-                      transform="rotate(-90 80 80)" 
-                    />
-                    {/* Insurance slice */}
-                    <circle 
-                      cx="80" cy="80" r="60" 
-                      fill="none" 
-                      stroke={typeColors.insurance}
-                      strokeWidth="24" 
+                      transform="rotate(-90 80 80)" />
+                    <circle cx="80" cy="80" r="60" fill="none" stroke={typeColors.insurance} strokeWidth="24" 
                       strokeDasharray={`${(insuranceTotal / totalPortfolio) * 377} 377`}
                       strokeDashoffset={`-${((advisoryTotal + rothTotal) / totalPortfolio) * 377}`}
-                      transform="rotate(-90 80 80)" 
-                    />
+                      transform="rotate(-90 80 80)" />
                   </svg>
                   <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
                     <div style={{ fontSize: '11px', color: theme.textMuted }}>Total</div>
@@ -552,227 +689,284 @@ export default function RetirementTab({ theme: propTheme, retirementData }) {
               </div>
             </div>
 
-            {/* Portfolio Allocation by Owner */}
+            {/* Allocation by Family Member */}
             <div style={{
               background: theme.bgCard,
               borderRadius: '16px',
               padding: '24px',
               border: `1px solid ${theme.borderLight}`,
-              boxShadow: theme.cardShadow
+              boxShadow: theme.cardShadow,
+              position: 'relative',
+              overflow: 'hidden'
             }}>
+              {/* Gradient top accent */}
+              <div style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                height: '3px',
+                background: 'linear-gradient(90deg, #EC4899 0%, #F59E0B 100%)'
+              }} />
               <h3 style={{ fontSize: '16px', fontWeight: '600', color: theme.textPrimary, marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                👨‍👩‍👧‍👦 Allocation by Family Member
+                👥 Allocation by Family Member
               </h3>
               
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                {Object.entries(ownerTotals).sort((a, b) => b[1] - a[1]).map(([owner, total]) => (
-                  <div key={owner}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <div style={{
-                          width: '28px',
-                          height: '28px',
-                          borderRadius: '8px',
-                          background: ownerColors[owner],
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          color: 'white',
-                          fontSize: '12px',
-                          fontWeight: '600'
-                        }}>
-                          {owner.charAt(0)}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {owners.map(owner => {
+                  const ownerTotal = ownerTotals[owner] || 0;
+                  const percentage = totalPortfolio > 0 ? (ownerTotal / totalPortfolio) * 100 : 0;
+                  return (
+                    <div key={owner}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          <div style={{
+                            width: '28px', height: '28px', borderRadius: '8px',
+                            background: ownerColors[owner] || theme.primary,
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            color: 'white', fontSize: '12px', fontWeight: '600'
+                          }}>
+                            {owner.charAt(0)}
+                          </div>
+                          <span style={{ fontSize: '14px', fontWeight: '500', color: theme.textPrimary }}>{owner}</span>
                         </div>
-                        <span style={{ fontSize: '14px', fontWeight: '500', color: theme.textPrimary }}>{owner}</span>
+                        <div style={{ textAlign: 'right' }}>
+                          <span style={{ fontSize: '14px', fontWeight: '600', color: theme.textPrimary }}>{formatCurrency(ownerTotal)}</span>
+                          <span style={{ fontSize: '12px', color: theme.textMuted, marginLeft: '8px' }}>{percentage.toFixed(0)}%</span>
+                        </div>
                       </div>
-                      <div style={{ textAlign: 'right' }}>
-                        <span style={{ fontSize: '14px', fontWeight: '600', color: theme.textPrimary }}>{formatCurrency(total)}</span>
-                        <span style={{ fontSize: '12px', color: theme.textMuted, marginLeft: '8px' }}>
-                          {Math.round((total / totalPortfolio) * 100)}%
-                        </span>
+                      <div style={{ height: '6px', background: theme.borderLight, borderRadius: '3px', overflow: 'hidden' }}>
+                        <div style={{
+                          height: '100%',
+                          width: `${percentage}%`,
+                          background: ownerColors[owner] || theme.primary,
+                          borderRadius: '3px',
+                          transition: 'width 0.5s ease'
+                        }} />
                       </div>
                     </div>
-                    <div style={{
-                      height: '8px',
-                      background: isDark ? 'rgba(255,255,255,0.1)' : theme.bgMain,
-                      borderRadius: '4px',
-                      overflow: 'hidden'
-                    }}>
-                      <div style={{
-                        height: '100%',
-                        width: `${(total / totalPortfolio) * 100}%`,
-                        background: ownerColors[owner],
-                        borderRadius: '4px',
-                        transition: 'width 0.3s ease'
-                      }} />
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           </div>
+          )}
         </>
       )}
 
       {activeView === 'accounts' && (
-        <div style={{
-          background: theme.bgCard,
-          borderRadius: '16px',
-          padding: '24px',
-          border: `1px solid ${theme.borderLight}`,
-          boxShadow: theme.cardShadow
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
-            <h3 style={{ fontSize: '16px', fontWeight: '600', color: theme.textPrimary, display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
-              💼 Investment Accounts
-              <span style={{ 
-                fontSize: '12px', 
-                color: theme.textMuted, 
-                fontWeight: '400',
-                background: isDark ? 'rgba(255,255,255,0.1)' : theme.bgMain,
-                padding: '4px 10px',
-                borderRadius: '12px'
-              }}>
-                {filteredAccounts.length} accounts • {formatCurrency(filteredTotal)}
-              </span>
-            </h3>
+        <>
+          {/* ═══════════════════════════════════════════════════════════════════ */}
+          {/* ACCOUNTS LIST (Collapsible Section) */}
+          {/* ═══════════════════════════════════════════════════════════════════ */}
+          <div 
+            onClick={() => toggleSection('accounts')}
+            style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '12px', 
+              marginBottom: collapsedSections.accounts ? '0' : '16px',
+              cursor: 'pointer',
+              userSelect: 'none'
+            }}
+          >
+            <div style={{ 
+              width: '4px', 
+              height: '24px', 
+              background: 'linear-gradient(180deg, #3B82F6 0%, #10B981 100%)', 
+              borderRadius: '2px' 
+            }} />
+            <h2 style={{ 
+              fontSize: '18px', 
+              fontWeight: '700', 
+              color: theme.textPrimary, 
+              margin: 0,
+              letterSpacing: '-0.3px'
+            }}>Investment Accounts</h2>
+            <span style={{ 
+              fontSize: '12px', 
+              color: theme.textMuted,
+              background: theme.bgMain,
+              padding: '4px 10px',
+              borderRadius: '6px'
+            }}>{filteredAccounts.length} accounts</span>
+            <span style={{ 
+              marginLeft: 'auto', 
+              fontSize: '12px', 
+              color: theme.textMuted,
+              transition: 'transform 0.2s',
+              transform: collapsedSections.accounts ? 'rotate(-90deg)' : 'rotate(0deg)'
+            }}>▼</span>
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {filteredAccounts.map(acc => (
-              <div key={acc.id} style={{
-                background: isDark ? 'rgba(255,255,255,0.05)' : theme.bgMain,
-                borderRadius: '12px',
-                padding: '20px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                border: `1px solid ${theme.borderLight}`,
-                flexWrap: 'wrap',
-                gap: '16px'
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                  <div style={{
-                    width: '48px',
-                    height: '48px',
-                    borderRadius: '12px',
-                    background: ownerColors[acc.owner],
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: 'white',
-                    fontSize: '18px',
-                    fontWeight: '600'
-                  }}>
-                    {acc.owner.charAt(0)}
-                  </div>
-                  <div>
-                    <div style={{ fontWeight: '600', color: theme.textPrimary, fontSize: '15px', marginBottom: '4px' }}>
-                      {acc.name}
-                    </div>
-                    <div style={{ fontSize: '13px', color: theme.textMuted, display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-                      <span style={{ 
-                        background: typeColors[acc.type] + '20',
-                        color: typeColors[acc.type],
-                        padding: '2px 8px',
-                        borderRadius: '4px',
-                        fontSize: '11px',
-                        fontWeight: '500'
-                      }}>
-                        {typeLabels[acc.type]}
-                      </span>
-                      <span>{acc.owner}</span>
-                      {acc.accountNumber && <span>{acc.accountNumber}</span>}
-                    </div>
-                  </div>
-                </div>
-                <div style={{ textAlign: 'right' }}>
-                  <div style={{ fontWeight: '700', color: theme.textPrimary, fontSize: '20px', marginBottom: '4px' }}>
-                    {formatCurrencyDetailed(acc.value)}
-                  </div>
-                  {acc.ytdReturn !== undefined && acc.ytdReturn !== null && (
-                    <div style={{ 
-                      fontSize: '13px', 
-                      color: acc.ytdReturn >= 0 ? theme.success : theme.danger,
-                      fontWeight: '500'
-                    }}>
-                      {acc.ytdReturn >= 0 ? '+' : ''}{acc.ytdReturn}% YTD
-                    </div>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {activeView === 'progress' && (
-        <div style={{
-          background: theme.bgCard,
-          borderRadius: '16px',
-          padding: '24px',
-          border: `1px solid ${theme.borderLight}`,
-          boxShadow: theme.cardShadow
-        }}>
-          <h3 style={{ fontSize: '16px', fontWeight: '600', color: theme.textPrimary, marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            📅 Monthly Progress
-          </h3>
-
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '600px' }}>
+          {!collapsedSections.accounts && (
+          <div style={{
+            background: theme.bgCard,
+            borderRadius: '16px',
+            overflow: 'hidden',
+            border: `1px solid ${theme.borderLight}`,
+            boxShadow: theme.cardShadow,
+            position: 'relative'
+          }}>
+            {/* Gradient top accent */}
+            <div style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              height: '3px',
+              background: 'linear-gradient(90deg, #3B82F6 0%, #10B981 100%)'
+            }} />
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
-                <tr>
-                  <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '12px', fontWeight: '600', color: theme.textMuted, borderBottom: `1px solid ${theme.border}` }}>Month</th>
-                  <th style={{ padding: '12px 16px', textAlign: 'right', fontSize: '12px', fontWeight: '600', color: theme.textMuted, borderBottom: `1px solid ${theme.border}` }}>Starting</th>
-                  <th style={{ padding: '12px 16px', textAlign: 'right', fontSize: '12px', fontWeight: '600', color: theme.textMuted, borderBottom: `1px solid ${theme.border}` }}>Contributions</th>
-                  <th style={{ padding: '12px 16px', textAlign: 'right', fontSize: '12px', fontWeight: '600', color: theme.textMuted, borderBottom: `1px solid ${theme.border}` }}>Market Change</th>
-                  <th style={{ padding: '12px 16px', textAlign: 'right', fontSize: '12px', fontWeight: '600', color: theme.textMuted, borderBottom: `1px solid ${theme.border}` }}>Ending</th>
+                <tr style={{ background: theme.bgMain }}>
+                  <th style={{ padding: '16px 24px', textAlign: 'left', fontSize: '13px', fontWeight: '600', color: theme.textMuted }}>Account</th>
+                  <th style={{ padding: '16px 24px', textAlign: 'left', fontSize: '13px', fontWeight: '600', color: theme.textMuted }}>Owner</th>
+                  <th style={{ padding: '16px 24px', textAlign: 'left', fontSize: '13px', fontWeight: '600', color: theme.textMuted }}>Type</th>
+                  <th style={{ padding: '16px 24px', textAlign: 'right', fontSize: '13px', fontWeight: '600', color: theme.textMuted }}>Value</th>
+                  <th style={{ padding: '16px 24px', textAlign: 'right', fontSize: '13px', fontWeight: '600', color: theme.textMuted }}>YTD Return</th>
                 </tr>
               </thead>
               <tbody>
-                {monthlyProgress.map((m, i) => (
-                  <tr key={i} style={{ background: i === 0 ? (isDark ? 'rgba(139, 92, 246, 0.1)' : 'rgba(99, 102, 241, 0.05)') : 'transparent' }}>
-                    <td style={{ padding: '16px', fontSize: '14px', fontWeight: i === 0 ? '600' : '400', color: theme.textPrimary, borderBottom: `1px solid ${theme.borderLight}` }}>
-                      {m.month}
-                      {i === 0 && <span style={{ marginLeft: '8px', fontSize: '10px', background: theme.primary, color: 'white', padding: '2px 6px', borderRadius: '4px' }}>Current</span>}
+                {filteredAccounts.map((account, i) => (
+                  <tr key={i} style={{ borderBottom: `1px solid ${theme.borderLight}` }}>
+                    <td style={{ padding: '16px 24px', fontSize: '14px', fontWeight: '500', color: theme.textPrimary }}>{account.name}</td>
+                    <td style={{ padding: '16px 24px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <div style={{
+                          width: '24px', height: '24px', borderRadius: '6px',
+                          background: ownerColors[account.owner] || theme.primary,
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          color: 'white', fontSize: '11px', fontWeight: '600'
+                        }}>
+                          {account.owner.charAt(0)}
+                        </div>
+                        <span style={{ fontSize: '14px', color: theme.textPrimary }}>{account.owner}</span>
+                      </div>
                     </td>
-                    <td style={{ padding: '16px', textAlign: 'right', fontSize: '14px', color: theme.textSecondary, borderBottom: `1px solid ${theme.borderLight}` }}>
-                      {formatCurrency(m.startingBalance)}
+                    <td style={{ padding: '16px 24px' }}>
+                      <span style={{
+                        padding: '4px 10px',
+                        borderRadius: '6px',
+                        background: `${typeColors[account.type]}20`,
+                        color: typeColors[account.type],
+                        fontSize: '12px',
+                        fontWeight: '500'
+                      }}>
+                        {typeLabels[account.type]}
+                      </span>
                     </td>
-                    <td style={{ padding: '16px', textAlign: 'right', fontSize: '14px', color: theme.info, fontWeight: '500', borderBottom: `1px solid ${theme.borderLight}` }}>
-                      +{formatCurrency(m.netContributions)}
+                    <td style={{ padding: '16px 24px', textAlign: 'right', fontSize: '14px', fontWeight: '600', color: theme.textPrimary }}>
+                      {formatCurrencyDetailed(account.value)}
                     </td>
-                    <td style={{ padding: '16px', textAlign: 'right', fontSize: '14px', fontWeight: '500', color: m.changeInValue >= 0 ? theme.success : theme.danger, borderBottom: `1px solid ${theme.borderLight}` }}>
-                      {m.changeInValue >= 0 ? '+' : ''}{formatCurrency(m.changeInValue)}
-                    </td>
-                    <td style={{ padding: '16px', textAlign: 'right', fontSize: '14px', fontWeight: '600', color: theme.textPrimary, borderBottom: `1px solid ${theme.borderLight}` }}>
-                      {formatCurrency(m.endingBalance)}
+                    <td style={{ padding: '16px 24px', textAlign: 'right', fontSize: '14px', fontWeight: '600', color: theme.success }}>
+                      +{account.ytdReturn || 0}%
                     </td>
                   </tr>
                 ))}
               </tbody>
-              <tfoot>
-                <tr style={{ background: isDark ? 'rgba(255,255,255,0.05)' : theme.bgMain }}>
-                  <td style={{ padding: '16px', fontSize: '14px', fontWeight: '600', color: theme.textPrimary }}>
-                    6-Month Total
-                  </td>
-                  <td style={{ padding: '16px', textAlign: 'right', fontSize: '14px', color: theme.textSecondary }}>
-                    {formatCurrency(monthlyProgress[monthlyProgress.length - 1]?.startingBalance || 0)}
-                  </td>
-                  <td style={{ padding: '16px', textAlign: 'right', fontSize: '14px', color: theme.info, fontWeight: '600' }}>
-                    +{formatCurrency(monthlyProgress.reduce((sum, m) => sum + m.netContributions, 0))}
-                  </td>
-                  <td style={{ padding: '16px', textAlign: 'right', fontSize: '14px', fontWeight: '600', color: theme.success }}>
-                    +{formatCurrency(monthlyProgress.reduce((sum, m) => sum + m.changeInValue, 0))}
-                  </td>
-                  <td style={{ padding: '16px', textAlign: 'right', fontSize: '14px', fontWeight: '700', color: theme.textPrimary }}>
-                    {formatCurrency(monthlyProgress[0]?.endingBalance || 0)}
-                  </td>
-                </tr>
-              </tfoot>
             </table>
           </div>
-        </div>
+          )}
+        </>
+      )}
+
+      {activeView === 'progress' && (
+        <>
+          {/* ═══════════════════════════════════════════════════════════════════ */}
+          {/* MONTHLY PROGRESS (Collapsible Section) */}
+          {/* ═══════════════════════════════════════════════════════════════════ */}
+          <div 
+            onClick={() => toggleSection('monthlyProgress')}
+            style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '12px', 
+              marginBottom: collapsedSections.monthlyProgress ? '0' : '16px',
+              cursor: 'pointer',
+              userSelect: 'none'
+            }}
+          >
+            <div style={{ 
+              width: '4px', 
+              height: '24px', 
+              background: 'linear-gradient(180deg, #10B981 0%, #06B6D4 100%)', 
+              borderRadius: '2px' 
+            }} />
+            <h2 style={{ 
+              fontSize: '18px', 
+              fontWeight: '700', 
+              color: theme.textPrimary, 
+              margin: 0,
+              letterSpacing: '-0.3px'
+            }}>Monthly Progress</h2>
+            <span style={{ 
+              fontSize: '12px', 
+              color: theme.textMuted,
+              background: theme.bgMain,
+              padding: '4px 10px',
+              borderRadius: '6px'
+            }}>{monthlyProgress.length} months</span>
+            <span style={{ 
+              marginLeft: 'auto', 
+              fontSize: '12px', 
+              color: theme.textMuted,
+              transition: 'transform 0.2s',
+              transform: collapsedSections.monthlyProgress ? 'rotate(-90deg)' : 'rotate(0deg)'
+            }}>▼</span>
+          </div>
+
+          {!collapsedSections.monthlyProgress && (
+          <div style={{
+            background: theme.bgCard,
+            borderRadius: '16px',
+            overflow: 'hidden',
+            border: `1px solid ${theme.borderLight}`,
+            boxShadow: theme.cardShadow,
+            position: 'relative'
+          }}>
+            {/* Gradient top accent */}
+            <div style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              height: '3px',
+              background: 'linear-gradient(90deg, #10B981 0%, #06B6D4 100%)'
+            }} />
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr style={{ background: theme.bgMain }}>
+                  <th style={{ padding: '16px 24px', textAlign: 'left', fontSize: '13px', fontWeight: '600', color: theme.textMuted }}>Month</th>
+                  <th style={{ padding: '16px 24px', textAlign: 'right', fontSize: '13px', fontWeight: '600', color: theme.textMuted }}>Starting Balance</th>
+                  <th style={{ padding: '16px 24px', textAlign: 'right', fontSize: '13px', fontWeight: '600', color: theme.textMuted }}>Contributions</th>
+                  <th style={{ padding: '16px 24px', textAlign: 'right', fontSize: '13px', fontWeight: '600', color: theme.textMuted }}>Change</th>
+                  <th style={{ padding: '16px 24px', textAlign: 'right', fontSize: '13px', fontWeight: '600', color: theme.textMuted }}>Ending Balance</th>
+                </tr>
+              </thead>
+              <tbody>
+                {monthlyProgress.map((month, i) => (
+                  <tr key={i} style={{ borderBottom: `1px solid ${theme.borderLight}` }}>
+                    <td style={{ padding: '16px 24px', fontSize: '14px', fontWeight: '500', color: theme.textPrimary }}>{month.month}</td>
+                    <td style={{ padding: '16px 24px', textAlign: 'right', fontSize: '14px', color: theme.textPrimary }}>
+                      {formatCurrency(month.startingBalance)}
+                    </td>
+                    <td style={{ padding: '16px 24px', textAlign: 'right', fontSize: '14px', color: theme.info }}>
+                      +{formatCurrency(month.netContributions)}
+                    </td>
+                    <td style={{ padding: '16px 24px', textAlign: 'right', fontSize: '14px', fontWeight: '600', color: month.changeInValue >= 0 ? theme.success : theme.danger }}>
+                      {month.changeInValue >= 0 ? '+' : ''}{formatCurrency(month.changeInValue)}
+                    </td>
+                    <td style={{ padding: '16px 24px', textAlign: 'right', fontSize: '14px', fontWeight: '600', color: theme.textPrimary }}>
+                      {formatCurrency(month.endingBalance)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          )}
+        </>
       )}
     </div>
   );
