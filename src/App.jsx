@@ -11,7 +11,6 @@ import TransactionsTab from './components/TransactionsTab';
 import ReportsTab from './components/ReportsTab';
 import RetirementTab from './components/RetirementTab';
 import SalesTrackerTab from './components/SalesTrackerTab';
-import TasksTab from './components/TasksTab';
 import ProsperNestLandingV4 from './components/ProsperNestLandingV4';
 // Default data - baked in from real bank/retirement imports
 import { DEFAULT_TRANSACTIONS, DEFAULT_RETIREMENT_DATA } from './data/defaultData';
@@ -1285,6 +1284,7 @@ const saveProfileToDB = async (userId, profile, forceUpdate = false) => {
       gender: profile.gender,
       photo_url: profile.photoUrl,
       sidehustle_name: profile.sidehustleName,
+      account_labels: profile.accountLabels ? JSON.stringify(profile.accountLabels) : null,
       updated_at: new Date().toISOString()
     }, { onConflict: 'user_id' });
     
@@ -1296,16 +1296,27 @@ const saveProfileToDB = async (userId, profile, forceUpdate = false) => {
 };
 
 // Convert DB profile to app format
-const dbToAppProfile = (p) => ({
-  firstName: p?.first_name || '',
-  lastName: p?.last_name || '',
-  email: p?.email || '',
-  phone: p?.phone || '',
-  dateOfBirth: p?.date_of_birth || '',
-  gender: p?.gender || '',
-  photoUrl: p?.photo_url || '',
-  sidehustleName: p?.sidehustle_name || ''
-});
+const dbToAppProfile = (p) => {
+  let accountLabels = { personal: 'Personal', sidehustle: 'Side Hustle' };
+  try {
+    if (p?.account_labels) {
+      accountLabels = typeof p.account_labels === 'string' ? JSON.parse(p.account_labels) : p.account_labels;
+    }
+  } catch (e) {
+    console.log('Failed to parse account_labels:', e);
+  }
+  return {
+    firstName: p?.first_name || '',
+    lastName: p?.last_name || '',
+    email: p?.email || '',
+    phone: p?.phone || '',
+    dateOfBirth: p?.date_of_birth || '',
+    gender: p?.gender || '',
+    photoUrl: p?.photo_url || '',
+    sidehustleName: p?.sidehustle_name || '',
+    accountLabels
+  };
+};
 
 // Convert DB transaction to app format
 const dbToAppTransaction = (t) => ({
@@ -3015,12 +3026,24 @@ function Dashboard({
   });
   const [editingAccountLabel, setEditingAccountLabel] = useState(null);
   
-  // Update account labels and persist
-  const updateAccountLabel = (type, newLabel) => {
+  // Update account labels and persist to Supabase
+  const updateAccountLabel = async (type, newLabel) => {
     const updated = { ...accountLabels, [type]: newLabel };
     setAccountLabels(updated);
+    // Also save to localStorage as fallback
     localStorage.setItem('pn_accountLabels', JSON.stringify(updated));
     setEditingAccountLabel(null);
+    
+    // Save to Supabase via profile update
+    if (user?.id && profile) {
+      try {
+        const newProfile = { ...profile, accountLabels: updated };
+        await saveProfileToDB(user.id, newProfile, true);
+        console.log('✅ Account labels synced to database');
+      } catch (e) {
+        console.error('Failed to sync account labels:', e);
+      }
+    }
   };
   
   // Close dropdowns when clicking outside
@@ -3059,6 +3082,16 @@ function Dashboard({
     };
     loadSubscription();
   }, [user?.id]);
+  
+  // Sync accountLabels from profile when it loads
+  useEffect(() => {
+    if (profile?.accountLabels) {
+      setAccountLabels(profile.accountLabels);
+      // Also update localStorage as fallback
+      localStorage.setItem('pn_accountLabels', JSON.stringify(profile.accountLabels));
+      console.log('📥 Account labels synced from database:', profile.accountLabels);
+    }
+  }, [profile?.accountLabels]);
   
   // Get subscription access status
   const subscriptionAccess = subscription ? checkSubscriptionAccess(subscription) : { hasAccess: false, reason: 'loading' };
@@ -3735,49 +3768,49 @@ function Dashboard({
                 }}>
                   <span style={{ 
                     background: 'linear-gradient(135deg, #F59E0B, #D97706)', 
-                    padding: '1px 5px', 
-                    borderRadius: '4px', 
-                    fontSize: '8px', 
+                    padding: '2px 8px', 
+                    borderRadius: '6px', 
+                    fontSize: '9px', 
                     fontWeight: '700', 
                     color: 'white',
                     textTransform: 'uppercase',
-                    letterSpacing: '0.3px'
+                    letterSpacing: '0.5px'
                   }}>Beta</span>
                   {/* Role Badge for Admin/Tester */}
                   {userRole === USER_ROLES.ADMIN && (
                     <span style={{ 
                       background: 'linear-gradient(135deg, #8B5CF6, #7C3AED)', 
-                      padding: '1px 5px', 
-                      borderRadius: '4px', 
-                      fontSize: '8px', 
+                      padding: '2px 8px', 
+                      borderRadius: '6px', 
+                      fontSize: '9px', 
                       fontWeight: '700', 
                       color: 'white',
                       textTransform: 'uppercase',
-                      letterSpacing: '0.3px'
+                      letterSpacing: '0.5px'
                     }}>Admin</span>
                   )}
                   {userRole === USER_ROLES.TESTER && (
                     <span style={{ 
                       background: 'linear-gradient(135deg, #EF4444, #DC2626)', 
-                      padding: '1px 5px', 
-                      borderRadius: '4px', 
-                      fontSize: '8px', 
+                      padding: '2px 8px', 
+                      borderRadius: '6px', 
+                      fontSize: '9px', 
                       fontWeight: '700', 
                       color: 'white',
                       textTransform: 'uppercase',
-                      letterSpacing: '0.3px'
+                      letterSpacing: '0.5px'
                     }}>Tester</span>
                   )}
                   {userRole === USER_ROLES.OWNER && (
                     <span style={{ 
                       background: 'linear-gradient(135deg, #10B981, #059669)', 
-                      padding: '1px 5px', 
-                      borderRadius: '4px', 
-                      fontSize: '8px', 
+                      padding: '2px 8px', 
+                      borderRadius: '6px', 
+                      fontSize: '9px', 
                       fontWeight: '700', 
                       color: 'white',
                       textTransform: 'uppercase',
-                      letterSpacing: '0.3px'
+                      letterSpacing: '0.5px'
                     }}>Owner</span>
                   )}
                   <SiteStatusIndicator showLabel={false} darkMode={true} />
@@ -3890,7 +3923,7 @@ function Dashboard({
                     <span style={{ fontSize: '14px' }}>⏱️</span>
                   </div>
                   <span style={{ fontSize: '13px', fontWeight: '700', color: '#FBBF24' }}>
-                    Trial: {subscriptionAccess.daysLeft} days left
+                    Trial: {(userRole === USER_ROLES.OWNER || userRole === USER_ROLES.ADMIN || userRole === USER_ROLES.TESTER) ? 14 : subscriptionAccess.daysLeft} days left
                   </span>
                 </div>
                 <button
@@ -3955,7 +3988,7 @@ function Dashboard({
                 cursor: 'pointer',
                 fontSize: '20px'
               }}
-              title={`Trial: ${subscriptionAccess.daysLeft} days left`}
+              title={`Trial: ${(userRole === USER_ROLES.OWNER || userRole === USER_ROLES.ADMIN || userRole === USER_ROLES.TESTER) ? 14 : subscriptionAccess.daysLeft} days left`}
             >
               ⏱️
             </div>
@@ -4315,6 +4348,9 @@ function Dashboard({
             )
           ))}
         </nav>
+
+        {/* Spacer for better logout visibility */}
+        <div style={{ height: '48px' }} />
 
         {/* Logout Button - Dark Sidebar Style */}
         <div style={{ 
@@ -7082,9 +7118,9 @@ function DashboardHome({ transactions, goals, bills = [], tasks = [], theme, las
   );
 }
 // ============================================================================
-// TASKS TAB - Task Management (Image 6 inspired) [DEPRECATED - Now imported from ./components/TasksTab]
+// TASKS TAB - Task Management (Image 6 inspired)
 // ============================================================================
-function _TasksTabInline({ tasks, onUpdateTasks, theme, lastImportDate }) {
+function TasksTab({ tasks, onUpdateTasks, theme, lastImportDate }) {
   const [filter, setFilter] = useState('all');
   const [showAddModal, setShowAddModal] = useState(false);
   const [newTask, setNewTask] = useState({ title: '', description: '', dueDate: '', priority: 'medium', category: 'Personal' });
@@ -7475,11 +7511,28 @@ function _TasksTabInline({ tasks, onUpdateTasks, theme, lastImportDate }) {
   );
 }
 // ============================================================================
-// TRANSACTIONS TAB - DASHSTACK TABLE STYLE
+// TRANSACTIONS TAB - DASHSTACK TABLE STYLE with Dashboard Consistency
 // ============================================================================
 function TransactionsTabDS({ transactions, onNavigateToImport, theme, lastImportDate, accountLabels }) {
+  const isDark = theme?.mode === 'dark';
   const [filter, setFilter] = useState({ date: '', type: '', status: '' });
   const [selectedTxns, setSelectedTxns] = useState([]);
+  
+  // Collapsible sections state
+  const [collapsedSections, setCollapsedSections] = useState({
+    transactionList: false
+  });
+  
+  const toggleSection = (section) => {
+    setCollapsedSections(prev => ({ ...prev, [section]: !prev[section] }));
+  };
+  
+  // Calculate stats
+  const totalTransactions = transactions.length;
+  const incomeTransactions = transactions.filter(t => parseFloat(t.amount) > 0);
+  const expenseTransactions = transactions.filter(t => parseFloat(t.amount) < 0);
+  const totalIncome = incomeTransactions.reduce((sum, t) => sum + parseFloat(t.amount), 0);
+  const totalExpenses = Math.abs(expenseTransactions.reduce((sum, t) => sum + parseFloat(t.amount), 0));
   
   const handleBulkDelete = () => {
     if (selectedTxns.length === 0) return;
@@ -7506,13 +7559,95 @@ function TransactionsTabDS({ transactions, onNavigateToImport, theme, lastImport
 
   return (
     <div>
+      {/* Header */}
       <div style={{ marginBottom: '24px' }}>
-        <h1 style={{ fontSize: '24px', fontWeight: '700', color: theme.textPrimary, marginBottom: '4px' }}>Transactions</h1>
-        <div style={{ display: 'flex', alignItems: 'center' }}>
+        <h1 style={{ fontSize: '28px', fontWeight: '700', color: theme.textPrimary, marginBottom: '4px', letterSpacing: '-0.5px' }}>Transactions</h1>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <p style={{ fontSize: '14px', color: theme.textMuted, margin: 0 }}>
             {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
           </p>
           <LastImportIndicator lastImportDate={lastImportDate} />
+        </div>
+      </div>
+
+      {/* Stats Cards - Gradient style matching Dashboard */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px', marginBottom: '32px' }}>
+        {/* Total Transactions Card - Cyan */}
+        <div style={{
+          background: isDark ? 'linear-gradient(135deg, #164E63 0%, #0E4A5C 100%)' : 'linear-gradient(135deg, #E0F7FA 0%, #B2EBF2 100%)',
+          borderRadius: '20px',
+          padding: '20px',
+          boxShadow: '0 4px 20px rgba(0, 188, 212, 0.15)',
+          border: `1px solid ${isDark ? 'rgba(0, 188, 212, 0.3)' : 'rgba(0, 188, 212, 0.2)'}`
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
+            <div style={{ 
+              width: '40px', height: '40px', borderRadius: '12px', 
+              background: isDark ? 'rgba(0, 188, 212, 0.3)' : 'rgba(0, 188, 212, 0.2)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' 
+            }}>📋</div>
+            <span style={{ fontSize: '14px', color: isDark ? '#67E8F9' : '#00838F', fontWeight: '600' }}>Total</span>
+          </div>
+          <div style={{ fontSize: '28px', fontWeight: '700', color: isDark ? '#E0F7FA' : '#006064' }}>{totalTransactions.toLocaleString()}</div>
+        </div>
+
+        {/* Income Card - Green */}
+        <div style={{
+          background: isDark ? 'linear-gradient(135deg, #14532D 0%, #115E2B 100%)' : 'linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%)',
+          borderRadius: '20px',
+          padding: '20px',
+          boxShadow: '0 4px 20px rgba(76, 175, 80, 0.15)',
+          border: `1px solid ${isDark ? 'rgba(76, 175, 80, 0.3)' : 'rgba(76, 175, 80, 0.2)'}`
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
+            <div style={{ 
+              width: '40px', height: '40px', borderRadius: '12px', 
+              background: isDark ? 'rgba(76, 175, 80, 0.3)' : 'rgba(76, 175, 80, 0.2)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' 
+            }}>💰</div>
+            <span style={{ fontSize: '14px', color: isDark ? '#86EFAC' : '#2E7D32', fontWeight: '600' }}>Income</span>
+          </div>
+          <div style={{ fontSize: '28px', fontWeight: '700', color: isDark ? '#E8F5E9' : '#1B5E20' }}>{formatCurrency(totalIncome)}</div>
+        </div>
+
+        {/* Expenses Card - Orange */}
+        <div style={{
+          background: isDark ? 'linear-gradient(135deg, #7C2D12 0%, #6B2A0F 100%)' : 'linear-gradient(135deg, #FFF3E0 0%, #FFE0B2 100%)',
+          borderRadius: '20px',
+          padding: '20px',
+          boxShadow: '0 4px 20px rgba(255, 152, 0, 0.15)',
+          border: `1px solid ${isDark ? 'rgba(255, 152, 0, 0.3)' : 'rgba(255, 152, 0, 0.2)'}`
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
+            <div style={{ 
+              width: '40px', height: '40px', borderRadius: '12px', 
+              background: isDark ? 'rgba(255, 152, 0, 0.3)' : 'rgba(255, 152, 0, 0.2)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' 
+            }}>💸</div>
+            <span style={{ fontSize: '14px', color: isDark ? '#FDBA74' : '#E65100', fontWeight: '600' }}>Expenses</span>
+          </div>
+          <div style={{ fontSize: '28px', fontWeight: '700', color: isDark ? '#FFF3E0' : '#BF360C' }}>{formatCurrency(totalExpenses)}</div>
+        </div>
+
+        {/* Net Card - Purple */}
+        <div style={{
+          background: isDark ? 'linear-gradient(135deg, #4A1D6B 0%, #3D1A5A 100%)' : 'linear-gradient(135deg, #F3E5F5 0%, #E1BEE7 100%)',
+          borderRadius: '20px',
+          padding: '20px',
+          boxShadow: '0 4px 20px rgba(156, 39, 176, 0.15)',
+          border: `1px solid ${isDark ? 'rgba(156, 39, 176, 0.3)' : 'rgba(156, 39, 176, 0.2)'}`
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
+            <div style={{ 
+              width: '40px', height: '40px', borderRadius: '12px', 
+              background: isDark ? 'rgba(156, 39, 176, 0.3)' : 'rgba(156, 39, 176, 0.2)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' 
+            }}>📊</div>
+            <span style={{ fontSize: '14px', color: isDark ? '#D8B4FE' : '#7B1FA2', fontWeight: '600' }}>Net</span>
+          </div>
+          <div style={{ fontSize: '28px', fontWeight: '700', color: totalIncome - totalExpenses >= 0 ? (isDark ? '#86EFAC' : '#1B5E20') : (isDark ? '#FCA5A5' : '#DC2626') }}>
+            {totalIncome - totalExpenses >= 0 ? '+' : ''}{formatCurrency(totalIncome - totalExpenses)}
+          </div>
         </div>
       </div>
 
@@ -7567,9 +7702,62 @@ function TransactionsTabDS({ transactions, onNavigateToImport, theme, lastImport
           }}>Cancel</button>
         </div>
       )}
+
+      {/* ═══════════════════════════════════════════════════════════════════ */}
+      {/* TRANSACTION LIST (Collapsible Section) */}
+      {/* ═══════════════════════════════════════════════════════════════════ */}
+      <div 
+        onClick={() => toggleSection('transactionList')}
+        style={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          gap: '12px', 
+          marginBottom: collapsedSections.transactionList ? '0' : '16px',
+          cursor: 'pointer',
+          userSelect: 'none'
+        }}
+      >
+        <div style={{ 
+          width: '4px', 
+          height: '24px', 
+          background: 'linear-gradient(180deg, #8B5CF6 0%, #06B6D4 100%)', 
+          borderRadius: '2px' 
+        }} />
+        <h2 style={{ 
+          fontSize: '18px', 
+          fontWeight: '700', 
+          color: theme.textPrimary, 
+          margin: 0,
+          letterSpacing: '-0.3px'
+        }}>Transaction History</h2>
+        <span style={{ 
+          fontSize: '12px', 
+          color: theme.textMuted,
+          background: theme.bgMain,
+          padding: '4px 10px',
+          borderRadius: '6px'
+        }}>{transactions.length} records</span>
+        <span style={{ 
+          marginLeft: 'auto', 
+          fontSize: '12px', 
+          color: theme.textMuted,
+          transition: 'transform 0.2s',
+          transform: collapsedSections.transactionList ? 'rotate(-90deg)' : 'rotate(0deg)'
+        }}>▼</span>
+      </div>
       
       {/* Table */}
-      <div style={{ background: theme.bgCard, borderRadius: '16px', overflow: 'hidden', boxShadow: theme.cardShadow, border: `1px solid ${theme.borderLight}` }}>
+      {!collapsedSections.transactionList && (
+      <div style={{ background: theme.bgCard, borderRadius: '16px', overflow: 'hidden', boxShadow: theme.cardShadow, border: `1px solid ${theme.borderLight}`, position: 'relative' }}>
+        {/* Gradient top accent */}
+        <div style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          height: '3px',
+          background: 'linear-gradient(90deg, #8B5CF6 0%, #06B6D4 100%)'
+        }} />
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
             <tr style={{ background: theme.bgMain }}>
@@ -7675,6 +7863,7 @@ function TransactionsTabDS({ transactions, onNavigateToImport, theme, lastImport
           </div>
         )}
       </div>
+      )}
     </div>
   );
 }
