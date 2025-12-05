@@ -912,10 +912,10 @@ class ErrorBoundary extends React.Component {
   render() {
     if (this.state.hasError) {
       return (
-        <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: theme.bgMain }}>
+        <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#F9FAFB' }}>
           <div style={{ textAlign: 'center', padding: '40px', background: 'white', borderRadius: '16px', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }}>
-            <h1 style={{ color: theme.textPrimary }}>Something went wrong</h1>
-            <button onClick={() => window.location.reload()} style={{ padding: '12px 24px', background: theme.primary, border: 'none', borderRadius: '8px', color: 'white', cursor: 'pointer', marginTop: '16px' }}>
+            <h1 style={{ color: '#111827' }}>Something went wrong</h1>
+            <button onClick={() => window.location.reload()} style={{ padding: '12px 24px', background: '#6366F1', border: 'none', borderRadius: '8px', color: 'white', cursor: 'pointer', marginTop: '16px' }}>
               Reload App
             </button>
           </div>
@@ -2069,12 +2069,12 @@ function App() {
 
   if (loading) {
     return (
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: theme.bgMain }}>
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: lightTheme.bgMain }}>
         <div style={{ textAlign: 'center' }}>
           <div style={{ animation: 'pulse 2s infinite' }}>
             <PennyLogo size={64} />
           </div>
-          <p style={{ marginTop: '16px', color: theme.textSecondary }}>Loading ProsperNest...</p>
+          <p style={{ marginTop: '16px', color: lightTheme.textSecondary }}>Loading ProsperNest...</p>
         </div>
         <style>{`@keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.7; transform: scale(0.95); } }`}</style>
       </div>
