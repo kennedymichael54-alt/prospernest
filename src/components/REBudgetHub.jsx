@@ -5,14 +5,52 @@ import React, { useState, useMemo } from 'react';
 // A comprehensive real estate deal analyzer with beautiful visualizations
 // ═══════════════════════════════════════════════════════════════════════════════
 
-const REBudgetHub = ({ theme, profile, initialTab = 'analyzer' }) => {
+const REBudgetHub = ({ theme: themeProp = {}, profile, initialTab = 'analyzer' }) => {
   // ═══════════════════════════════════════════════════════════════════════════
   // STATE MANAGEMENT
   // ═══════════════════════════════════════════════════════════════════════════
+  
+  // Default theme values for safety
+  const theme = {
+    bgCard: themeProp.bgCard || '#FFFFFF',
+    bgMain: themeProp.bgMain || '#F9FAFB',
+    cardShadow: themeProp.cardShadow || '0 4px 6px rgba(0, 0, 0, 0.1)',
+    borderLight: themeProp.borderLight || '#E5E7EB',
+    textPrimary: themeProp.textPrimary || '#111827',
+    textSecondary: themeProp.textSecondary || '#6B7280',
+    textMuted: themeProp.textMuted || '#9CA3AF',
+    mode: themeProp.mode || 'light',
+    border: themeProp.border || '#E5E7EB',
+    primary: themeProp.primary || '#6366F1',
+    success: themeProp.success || '#10B981',
+    danger: themeProp.danger || '#EF4444',
+    ...themeProp
+  };
+  
   // Map 'ai' to 'aianalysis' for tab matching
   const mappedInitialTab = initialTab === 'ai' ? 'aianalysis' : initialTab;
   const [activeTab, setActiveTab] = useState(mappedInitialTab);
   const [collapsedSections, setCollapsedSections] = useState({});
+  
+  // Simulation Criteria State
+  const [simulationCriteria, setSimulationCriteria] = useState({
+    minCashOnCash: 8,
+    minCapRate: 5,
+    minMonthlyCashFlow: 200,
+    minAnnualCashFlow: 2400,
+    maxLTV: 80,
+    minDSCR: 1.2,
+    minTotalROI: 12,
+    maxPurchasePrice: 500000,
+    minEquityYear5: 100000,
+    maxVacancyRate: 5,
+    minAppreciation: 3,
+    maxDebtToIncome: 45
+  });
+  
+  const updateCriteria = (field, value) => {
+    setSimulationCriteria(prev => ({ ...prev, [field]: parseFloat(value) || 0 }));
+  };
   
   // Property Input State
   const [propertyData, setPropertyData] = useState({
@@ -356,26 +394,6 @@ const REBudgetHub = ({ theme, profile, initialTab = 'analyzer' }) => {
     { id: 'simulation', label: 'Deal Simulation', icon: '🎯', color: '#EF4444' },
     { id: 'aianalysis', label: 'AI Analysis', icon: '🪙', color: '#F472B6' }
   ];
-  
-  // Simulation Criteria State
-  const [simulationCriteria, setSimulationCriteria] = useState({
-    minCashOnCash: 8,
-    minCapRate: 5,
-    minMonthlyCashFlow: 200,
-    minAnnualCashFlow: 2400,
-    maxLTV: 80,
-    minDSCR: 1.2,
-    minTotalROI: 12,
-    maxPurchasePrice: 500000,
-    minEquityYear5: 100000,
-    maxVacancyRate: 5,
-    minAppreciation: 3,
-    maxDebtToIncome: 45
-  });
-  
-  const updateCriteria = (field, value) => {
-    setSimulationCriteria(prev => ({ ...prev, [field]: parseFloat(value) || 0 }));
-  };
 
   // ═══════════════════════════════════════════════════════════════════════════
   // RENDER: DEAL ANALYZER TAB
