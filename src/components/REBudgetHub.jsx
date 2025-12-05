@@ -352,8 +352,13 @@ const REBudgetHub = ({ theme: themeProp = {}, profile, initialTab = 'analyzer' }
   // ═══════════════════════════════════════════════════════════════════════════
   // FORMATTERS
   // ═══════════════════════════════════════════════════════════════════════════
+  const safeNumber = (value, fallback = 0) => {
+    if (typeof value === 'number' && isFinite(value) && !isNaN(value)) return value;
+    return fallback;
+  };
+  
   const formatCurrency = (value) => {
-    const safeValue = (typeof value === 'number' && isFinite(value)) ? value : 0;
+    const safeValue = safeNumber(value, 0);
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
@@ -363,8 +368,12 @@ const REBudgetHub = ({ theme: themeProp = {}, profile, initialTab = 'analyzer' }
   };
 
   const formatPercent = (value, decimals = 2) => {
-    const safeValue = (typeof value === 'number' && isFinite(value)) ? value : 0;
+    const safeValue = safeNumber(value, 0);
     return `${safeValue.toFixed(decimals)}%`;
+  };
+  
+  const safeFixed = (value, decimals = 2) => {
+    return safeNumber(value, 0).toFixed(decimals);
   };
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -1473,7 +1482,7 @@ const REBudgetHub = ({ theme: themeProp = {}, profile, initialTab = 'analyzer' }
         id: 'dscr',
         name: 'Debt Service Coverage Ratio',
         icon: '🛡️',
-        actual: calculations.noi / calculations.annualPI,
+        actual: calculations.annualPI > 0 ? calculations.noi / calculations.annualPI : 0,
         target: simulationCriteria.minDSCR,
         unit: 'x',
         comparison: 'min',
@@ -1597,7 +1606,7 @@ const REBudgetHub = ({ theme: themeProp = {}, profile, initialTab = 'analyzer' }
             
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '24px' }}>
               {[
-                { label: 'Pass Rate', value: `${passRate.toFixed(0)}%`, color: passRate >= 70 ? '#10B981' : '#EF4444' },
+                { label: 'Pass Rate', value: `${safeFixed(passRate, 0)}%`, color: passRate >= 70 ? '#10B981' : '#EF4444' },
                 { label: 'Critical Fails', value: criticalFails.length, color: criticalFails.length === 0 ? '#10B981' : '#EF4444' },
                 { label: 'High Priority Fails', value: results.filter(r => !r.passed && r.importance === 'high').length, color: '#F59E0B' },
                 { label: 'Areas to Improve', value: results.filter(r => !r.passed).length, color: '#8B5CF6' }
@@ -1713,7 +1722,7 @@ const REBudgetHub = ({ theme: themeProp = {}, profile, initialTab = 'analyzer' }
                 <div style={{ textAlign: 'center' }}>
                   <div style={{ fontSize: '11px', color: theme.textMuted, marginBottom: '4px' }}>Actual</div>
                   <div style={{ fontSize: '16px', fontWeight: '700', color: result.passed ? '#10B981' : '#EF4444' }}>
-                    {result.unit === '$' ? formatCurrency(result.actual) : `${result.actual.toFixed(2)}${result.unit}`}
+                    {result.unit === '$' ? formatCurrency(result.actual) : `${safeFixed(result.actual, 2)}${result.unit}`}
                   </div>
                 </div>
                 
@@ -1778,7 +1787,7 @@ const REBudgetHub = ({ theme: themeProp = {}, profile, initialTab = 'analyzer' }
                       <span style={{ fontWeight: '600', color: '#EF4444' }}>{result.name}</span>
                     </div>
                     <div style={{ fontSize: '13px', color: theme.textSecondary, lineHeight: 1.5 }}>
-                      <strong>Gap:</strong> {result.unit === '$' ? formatCurrency(Math.abs(gap)) : `${Math.abs(gap).toFixed(2)}${result.unit}`} {result.comparison === 'min' ? 'below' : 'above'} target
+                      <strong>Gap:</strong> {result.unit === '$' ? formatCurrency(Math.abs(gap)) : `${safeFixed(Math.abs(gap), 2)}${result.unit}`} {result.comparison === 'min' ? 'below' : 'above'} target
                     </div>
                     <div style={{ fontSize: '13px', color: theme.textPrimary, marginTop: '8px', lineHeight: 1.5 }}>
                       <strong>💡 Suggestion:</strong> {fixSuggestion}
@@ -1848,13 +1857,13 @@ const REBudgetHub = ({ theme: themeProp = {}, profile, initialTab = 'analyzer' }
       }
       
       // DSCR Analysis
-      const dscr = calculations.noi / calculations.annualPI;
+      const dscr = calculations.annualPI > 0 ? calculations.noi / calculations.annualPI : 0;
       if (dscr < 1.0) {
         insights.push({
           type: 'critical',
           category: 'Risk',
           title: 'DSCR Below 1.0 - High Risk',
-          message: `A DSCR of ${dscr.toFixed(2)}x means the property cannot cover its debt payments from rental income alone.`,
+          message: `A DSCR of ${safeFixed(dscr, 2)}x means the property cannot cover its debt payments from rental income alone.`,
           recommendation: 'This deal is risky. Increase down payment or negotiate better terms before proceeding.'
         });
       } else if (dscr < 1.25) {
@@ -1862,13 +1871,13 @@ const REBudgetHub = ({ theme: themeProp = {}, profile, initialTab = 'analyzer' }
           type: 'caution',
           category: 'Risk',
           title: 'DSCR Below Lender Threshold',
-          message: `Most lenders require DSCR of 1.25x minimum. Your ${dscr.toFixed(2)}x may affect financing options.`,
+          message: `Most lenders require DSCR of 1.25x minimum. Your ${safeFixed(dscr, 2)}x may affect financing options.`,
           recommendation: 'Consider increasing rent or down payment to improve DSCR above 1.25x.'
         });
       }
       
       // LTV Analysis
-      const ltv = (calculations.loanAmount / propertyData.purchasePrice) * 100;
+      const ltv = propertyData.purchasePrice > 0 ? (calculations.loanAmount / propertyData.purchasePrice) * 100 : 0;
       if (ltv > 80) {
         insights.push({
           type: 'caution',
@@ -1899,7 +1908,7 @@ const REBudgetHub = ({ theme: themeProp = {}, profile, initialTab = 'analyzer' }
       }
       
       // Expense Ratio Analysis
-      const expenseRatio = (calculations.totalOperatingExpenses / calculations.grossPotentialIncome) * 100;
+      const expenseRatio = calculations.grossPotentialIncome > 0 ? (calculations.totalOperatingExpenses / calculations.grossPotentialIncome) * 100 : 0;
       if (expenseRatio > 50) {
         insights.push({
           type: 'caution',
@@ -1941,11 +1950,13 @@ const REBudgetHub = ({ theme: themeProp = {}, profile, initialTab = 'analyzer' }
     const warningCount = insights.filter(i => i.type === 'warning' || i.type === 'critical').length;
     
     // Industry Benchmarks
+    const safeDSCR = calculations.annualPI > 0 ? calculations.noi / calculations.annualPI : 0;
+    const safeExpenseRatio = calculations.grossPotentialIncome > 0 ? (calculations.totalOperatingExpenses / calculations.grossPotentialIncome) * 100 : 0;
     const benchmarks = [
       { metric: 'Cap Rate', yours: calculations.capRate, industry: '5-8%', status: calculations.capRate >= 5 ? 'good' : 'low' },
       { metric: 'Cash on Cash', yours: calculations.cashOnCashReturn, industry: '8-12%', status: calculations.cashOnCashReturn >= 8 ? 'good' : 'low' },
-      { metric: 'DSCR', yours: calculations.noi / calculations.annualPI, industry: '1.25-1.5x', status: (calculations.noi / calculations.annualPI) >= 1.25 ? 'good' : 'low' },
-      { metric: 'Expense Ratio', yours: (calculations.totalOperatingExpenses / calculations.grossPotentialIncome) * 100, industry: '35-45%', status: (calculations.totalOperatingExpenses / calculations.grossPotentialIncome) * 100 <= 45 ? 'good' : 'high' },
+      { metric: 'DSCR', yours: safeDSCR, industry: '1.25-1.5x', status: safeDSCR >= 1.25 ? 'good' : 'low' },
+      { metric: 'Expense Ratio', yours: safeExpenseRatio, industry: '35-45%', status: safeExpenseRatio <= 45 ? 'good' : 'high' },
       { metric: 'Total ROI', yours: calculations.totalROI, industry: '12-20%', status: calculations.totalROI >= 12 ? 'good' : 'low' }
     ];
     
@@ -2073,7 +2084,7 @@ const REBudgetHub = ({ theme: themeProp = {}, profile, initialTab = 'analyzer' }
               }}>
                 <div style={{ fontSize: '12px', color: theme.textMuted, marginBottom: '8px' }}>{b.metric}</div>
                 <div style={{ fontSize: '24px', fontWeight: '800', color: b.status === 'good' ? '#10B981' : '#EF4444', marginBottom: '4px' }}>
-                  {typeof b.yours === 'number' ? (b.metric.includes('Ratio') || b.metric.includes('Rate') || b.metric.includes('ROI') || b.metric.includes('Cash') ? formatPercent(b.yours) : b.yours.toFixed(2) + 'x') : b.yours}
+                  {typeof b.yours === 'number' ? (b.metric.includes('Ratio') || b.metric.includes('Rate') || b.metric.includes('ROI') || b.metric.includes('Cash') ? formatPercent(b.yours) : safeFixed(b.yours, 2) + 'x') : b.yours}
                 </div>
                 <div style={{ fontSize: '11px', color: theme.textMuted }}>Industry: {b.industry}</div>
                 <div style={{ 
