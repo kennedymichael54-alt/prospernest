@@ -4454,6 +4454,7 @@ function Dashboard({
           profile={profile}
           subscription={subscription}
           subscriptionAccess={subscriptionAccess}
+          permissions={permissions}
           onNavigate={setActiveTab}
           onShowUpgrade={() => setShowUpgradeModal(true)}
         /></GradientSection>;
@@ -7330,81 +7331,148 @@ function Dashboard({
 // Features: Product walkthrough, news articles, upgrade prompts
 // ============================================================================
 
-function NewsfeedHome({ theme, user, profile, subscription, subscriptionAccess, onNavigate, onShowUpgrade }) {
+function NewsfeedHome({ theme, user, profile, subscription, subscriptionAccess, onNavigate, onShowUpgrade, permissions = {} }) {
   const [activeSection, setActiveSection] = useState('welcome');
   const [newsLoading, setNewsLoading] = useState(false);
+  const [selectedArticle, setSelectedArticle] = useState(null); // For in-app article viewer
   
-  // Sample news articles (would be fetched from API in production)
+  // Determine user's access levels
+  const hasBizBudgetAccess = permissions.canAccessBizBudget || subscriptionAccess?.perpetualLicense;
+  const hasREBudgetAccess = permissions.canAccessREBudget || subscriptionAccess?.perpetualLicense;
+  const planType = subscription?.plan_type?.toLowerCase() || 'starter';
+  const isPremium = planType.includes('pro') || planType.includes('bundle') || planType.includes('family') || subscriptionAccess?.perpetualLicense;
+  
+  // Sample news articles with real-looking URLs
   const newsArticles = [
     {
       id: 1,
       category: 'Tax Tips',
       title: '5 Year-End Tax Moves That Could Save You Thousands',
       summary: 'From maximizing retirement contributions to harvesting tax losses, these strategies can significantly reduce your tax bill.',
+      content: `<h2>Maximize Your Tax Savings Before Year-End</h2>
+        <p>As the year comes to a close, savvy taxpayers are looking for ways to reduce their tax burden. Here are five proven strategies that could save you thousands:</p>
+        <h3>1. Max Out Your 401(k) Contributions</h3>
+        <p>For 2024, you can contribute up to $23,000 to your 401(k), plus an additional $7,500 if you're 50 or older. These contributions reduce your taxable income dollar for dollar.</p>
+        <h3>2. Harvest Tax Losses</h3>
+        <p>If you have investments that have lost value, consider selling them to offset capital gains. You can deduct up to $3,000 in net losses against ordinary income.</p>
+        <h3>3. Contribute to an HSA</h3>
+        <p>Health Savings Accounts offer triple tax benefits: tax-deductible contributions, tax-free growth, and tax-free withdrawals for medical expenses.</p>
+        <h3>4. Make Charitable Donations</h3>
+        <p>Bunching charitable donations in a single year can help you exceed the standard deduction and maximize your tax benefit.</p>
+        <h3>5. Review Your Withholdings</h3>
+        <p>Adjust your W-4 to avoid a large refund (an interest-free loan to the government) or an unexpected tax bill.</p>`,
       source: 'ProsperNest Insights',
       date: new Date().toLocaleDateString(),
       icon: '💰',
-      color: '#10B981',
-      url: '#'
+      color: '#10B981'
     },
     {
       id: 2,
       category: 'Budgeting',
       title: 'The 50/30/20 Rule: Is It Right for You?',
       summary: 'Learn how this popular budgeting framework can help you balance needs, wants, and savings goals.',
+      content: `<h2>Understanding the 50/30/20 Budget Rule</h2>
+        <p>The 50/30/20 rule is one of the most popular budgeting frameworks. Here's how it works:</p>
+        <h3>50% - Needs</h3>
+        <p>Half of your after-tax income should go to necessities: housing, utilities, groceries, insurance, minimum debt payments, and transportation.</p>
+        <h3>30% - Wants</h3>
+        <p>This covers discretionary spending: dining out, entertainment, hobbies, subscriptions, and non-essential shopping.</p>
+        <h3>20% - Savings & Debt</h3>
+        <p>The remaining 20% should go toward savings goals, investments, and paying down debt beyond minimums.</p>
+        <h3>Is It Right for You?</h3>
+        <p>This framework works well for moderate incomes but may need adjustment if you live in a high-cost area or have significant debt. Use ProsperNest's Budget tab to customize these percentages to your situation.</p>`,
       source: 'ProsperNest Insights',
       date: new Date().toLocaleDateString(),
       icon: '📊',
-      color: '#3B82F6',
-      url: '#'
+      color: '#3B82F6'
     },
     {
       id: 3,
       category: 'Investing',
       title: 'Building Wealth Through Real Estate: A Beginner Guide',
       summary: 'Discover how real estate investing can diversify your portfolio and generate passive income.',
+      content: `<h2>Real Estate Investing 101</h2>
+        <p>Real estate remains one of the most reliable wealth-building strategies. Here's what beginners need to know:</p>
+        <h3>Why Real Estate?</h3>
+        <p>Real estate offers multiple return streams: appreciation, rental income, tax benefits, and equity buildup through mortgage paydown.</p>
+        <h3>Getting Started</h3>
+        <p>You don't need to buy a property to invest. Options include REITs, real estate crowdfunding, and house hacking (renting out part of your primary residence).</p>
+        <h3>Key Metrics to Know</h3>
+        <p>Learn about cap rate, cash-on-cash return, and the 1% rule. Use ProsperNest's REBudget Hub to analyze potential deals.</p>
+        <h3>Common Mistakes to Avoid</h3>
+        <p>Underestimating expenses, overleveraging, and emotional decision-making are the biggest pitfalls for new investors.</p>`,
       source: 'ProsperNest Insights',
       date: new Date().toLocaleDateString(),
       icon: '🏠',
-      color: '#8B5CF6',
-      url: '#'
+      color: '#8B5CF6'
     },
     {
       id: 4,
       category: 'Personal Finance',
       title: 'Emergency Fund Essentials: How Much Do You Really Need?',
       summary: 'Financial experts weigh in on the right amount to save for unexpected expenses.',
+      content: `<h2>Building Your Financial Safety Net</h2>
+        <p>An emergency fund is the foundation of financial security. But how much is enough?</p>
+        <h3>The Standard Advice</h3>
+        <p>Most experts recommend 3-6 months of living expenses. However, this depends on your situation.</p>
+        <h3>Factors to Consider</h3>
+        <p><strong>Job stability:</strong> Freelancers and those in volatile industries should aim for 6-12 months.</p>
+        <p><strong>Health:</strong> If you have chronic conditions, consider a larger fund.</p>
+        <p><strong>Dependents:</strong> Families generally need more than singles.</p>
+        <h3>Where to Keep It</h3>
+        <p>A high-yield savings account offers the best balance of accessibility and returns. Avoid tying up emergency funds in investments.</p>
+        <h3>Building Your Fund</h3>
+        <p>Start with a goal of $1,000, then work toward one month's expenses. Use automatic transfers to make saving painless.</p>`,
       source: 'ProsperNest Insights',
       date: new Date().toLocaleDateString(),
       icon: '🛡️',
-      color: '#F59E0B',
-      url: '#'
+      color: '#F59E0B'
     },
     {
       id: 5,
       category: 'Side Hustles',
       title: 'Turn Your Passion Into Profit: Side Hustle Ideas for 2024',
       summary: 'From freelancing to e-commerce, explore the most lucrative side hustles trending this year.',
+      content: `<h2>Top Side Hustle Opportunities</h2>
+        <p>Looking to earn extra income? Here are the most profitable side hustles for 2024:</p>
+        <h3>High-Income Skills</h3>
+        <p><strong>Freelance writing/design:</strong> Rates range from $50-200/hour for experienced professionals.</p>
+        <p><strong>Web development:</strong> Build websites for small businesses ($1,000-5,000 per project).</p>
+        <h3>Passive Income Ideas</h3>
+        <p><strong>Digital products:</strong> Create courses, templates, or ebooks that sell while you sleep.</p>
+        <p><strong>Rental income:</strong> Rent out a spare room, parking space, or equipment.</p>
+        <h3>Gig Economy</h3>
+        <p>Flexible options like rideshare, delivery, and task-based work offer immediate income.</p>
+        <h3>Track Your Side Hustle</h3>
+        <p>Use ProsperNest's BizBudget Hub to track income, expenses, and prepare for taxes on your side hustle earnings.</p>`,
       source: 'ProsperNest Insights',
       date: new Date().toLocaleDateString(),
       icon: '🚀',
-      color: '#EC4899',
-      url: '#'
+      color: '#EC4899'
     },
     {
       id: 6,
       category: 'Savings',
       title: 'High-Yield Savings Accounts: Maximize Your Money',
       summary: 'Compare top high-yield savings accounts and learn how to make your emergency fund work harder.',
+      content: `<h2>Get More From Your Savings</h2>
+        <p>With interest rates at multi-year highs, your savings account should be earning 4-5% APY. Here's what to know:</p>
+        <h3>What to Look For</h3>
+        <p><strong>APY:</strong> Look for accounts offering 4.5% or higher.</p>
+        <p><strong>No fees:</strong> Avoid monthly maintenance fees that eat into earnings.</p>
+        <p><strong>FDIC insurance:</strong> Ensure your deposits are protected up to $250,000.</p>
+        <h3>Top Options</h3>
+        <p>Online banks typically offer the best rates since they have lower overhead costs. Popular options include Marcus, Ally, and Discover.</p>
+        <h3>Savings Strategy</h3>
+        <p>Keep your emergency fund in a high-yield account for safety and accessibility. For longer-term goals, consider CDs or I-bonds for even higher returns.</p>`,
       source: 'ProsperNest Insights',
       date: new Date().toLocaleDateString(),
       icon: '💎',
-      color: '#06B6D4',
-      url: '#'
+      color: '#06B6D4'
     }
   ];
   
-  // Product features for walkthrough
+  // Product features for walkthrough - with dynamic access
   const productFeatures = [
     {
       id: 'import',
@@ -7414,9 +7482,9 @@ function NewsfeedHome({ theme, user, profile, subscription, subscriptionAccess, 
       icon: '🔗',
       color: '#10B981',
       gradient: 'linear-gradient(135deg, #10B981, #34D399)',
-      image: '/images/import-preview.png',
       action: () => onNavigate('import'),
-      buttonText: 'Start Importing'
+      buttonText: 'Start Importing',
+      hasAccess: true // Everyone can import
     },
     {
       id: 'homebudget',
@@ -7428,7 +7496,8 @@ function NewsfeedHome({ theme, user, profile, subscription, subscriptionAccess, 
       gradient: 'linear-gradient(135deg, #EC4899, #F472B6)',
       features: ['Dashboard Overview', 'Transaction Tracking', 'Bill Calendar', 'Savings Goals', 'Budget Planning', 'Reports & Analytics'],
       action: () => onNavigate('home'),
-      buttonText: 'Explore HomeBudget'
+      buttonText: 'Go to HomeBudget Hub',
+      hasAccess: true // Everyone has HomeBudget
     },
     {
       id: 'bizbudget',
@@ -7439,9 +7508,10 @@ function NewsfeedHome({ theme, user, profile, subscription, subscriptionAccess, 
       color: '#8B5CF6',
       gradient: 'linear-gradient(135deg, #8B5CF6, #A78BFA)',
       features: ['Business Dashboard', 'Sales Pipeline', 'Revenue Forecast', 'Tax Preparation', 'Profit/Loss Statements', 'Expense Tracking'],
-      action: () => onNavigate('bizbudget-dashboard'),
-      buttonText: 'Explore BizBudget',
-      premium: true
+      action: () => hasBizBudgetAccess ? onNavigate('bizbudget-dashboard') : onShowUpgrade(),
+      buttonText: hasBizBudgetAccess ? 'Go to BizBudget Hub' : 'Upgrade to Access',
+      hasAccess: hasBizBudgetAccess,
+      premium: !hasBizBudgetAccess
     },
     {
       id: 'rebudget',
@@ -7452,19 +7522,24 @@ function NewsfeedHome({ theme, user, profile, subscription, subscriptionAccess, 
       color: '#06B6D4',
       gradient: 'linear-gradient(135deg, #06B6D4, #22D3EE)',
       features: ['Deal Analyzer', 'Cash Flow Calculator', 'ROI Analysis', 'Equity Tracker', 'Sale Projections', 'AI Deal Analysis'],
-      action: () => onNavigate('rebudget-analyzer'),
-      buttonText: 'Explore REBudget',
-      premium: true
+      action: () => hasREBudgetAccess ? onNavigate('rebudget-analyzer') : onShowUpgrade(),
+      buttonText: hasREBudgetAccess ? 'Go to REBudget Hub' : 'Upgrade to Access',
+      hasAccess: hasREBudgetAccess,
+      premium: !hasREBudgetAccess
     }
   ];
   
-  // Subscription tier benefits
-  const tierBenefits = {
-    starter: { hubs: ['HomeBudget'], features: 'Basic features' },
-    family: { hubs: ['HomeBudget', 'BizBudget'], features: 'Advanced features + Reports' },
-    pro: { hubs: ['HomeBudget', 'BizBudget', 'REBudget'], features: 'All features + Priority Support' },
-    bundle: { hubs: ['All Hubs'], features: 'Everything + Team Access' }
+  // Determine the primary hub button based on subscription
+  const getPrimaryHubButton = () => {
+    if (hasREBudgetAccess) {
+      return { text: 'Go to REBudget Hub', action: () => onNavigate('rebudget-analyzer'), icon: '🏢' };
+    } else if (hasBizBudgetAccess) {
+      return { text: 'Go to BizBudget Hub', action: () => onNavigate('bizbudget-dashboard'), icon: '💼' };
+    }
+    return { text: 'Go to HomeBudget Hub', action: () => onNavigate('home'), icon: '🏠' };
   };
+  
+  const primaryHub = getPrimaryHubButton();
   
   const cardStyle = {
     background: theme.bgCard,
@@ -7480,6 +7555,144 @@ function NewsfeedHome({ theme, user, profile, subscription, subscriptionAccess, 
       maxWidth: '1400px',
       margin: '0 auto'
     }}>
+      {/* Article Viewer Modal */}
+      {selectedArticle && (
+        <div 
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0,0,0,0.7)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+            padding: '20px'
+          }}
+          onClick={() => setSelectedArticle(null)}
+        >
+          <div 
+            style={{
+              background: theme.bgCard,
+              borderRadius: '24px',
+              width: '100%',
+              maxWidth: '800px',
+              maxHeight: '90vh',
+              overflow: 'hidden',
+              display: 'flex',
+              flexDirection: 'column'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div style={{
+              padding: '20px 24px',
+              borderBottom: `1px solid ${theme.borderLight}`,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              background: selectedArticle.color + '10'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <div style={{
+                  width: '40px',
+                  height: '40px',
+                  borderRadius: '10px',
+                  background: selectedArticle.color,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '20px'
+                }}>
+                  {selectedArticle.icon}
+                </div>
+                <div>
+                  <div style={{ fontSize: '11px', color: selectedArticle.color, fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                    {selectedArticle.category}
+                  </div>
+                  <div style={{ fontSize: '10px', color: theme.textMuted }}>
+                    {selectedArticle.source} • {selectedArticle.date}
+                  </div>
+                </div>
+              </div>
+              <button
+                onClick={() => setSelectedArticle(null)}
+                style={{
+                  width: '36px',
+                  height: '36px',
+                  borderRadius: '10px',
+                  border: 'none',
+                  background: theme.bgMain,
+                  color: theme.textSecondary,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '18px'
+                }}
+              >
+                ✕
+              </button>
+            </div>
+            
+            {/* Modal Content */}
+            <div style={{
+              padding: '24px',
+              overflowY: 'auto',
+              flex: 1
+            }}>
+              <h2 style={{ 
+                fontSize: '24px', 
+                fontWeight: '700', 
+                color: theme.textPrimary,
+                marginBottom: '20px',
+                lineHeight: '1.3'
+              }}>
+                {selectedArticle.title}
+              </h2>
+              <div 
+                style={{ 
+                  fontSize: '15px', 
+                  color: theme.textSecondary,
+                  lineHeight: '1.8'
+                }}
+                dangerouslySetInnerHTML={{ __html: selectedArticle.content }}
+              />
+            </div>
+            
+            {/* Modal Footer */}
+            <div style={{
+              padding: '16px 24px',
+              borderTop: `1px solid ${theme.borderLight}`,
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center'
+            }}>
+              <span style={{ fontSize: '12px', color: theme.textMuted }}>
+                Powered by ProsperNest Insights
+              </span>
+              <button
+                onClick={() => setSelectedArticle(null)}
+                style={{
+                  padding: '10px 20px',
+                  borderRadius: '10px',
+                  background: selectedArticle.color,
+                  border: 'none',
+                  color: 'white',
+                  fontSize: '13px',
+                  fontWeight: '600',
+                  cursor: 'pointer'
+                }}
+              >
+                Close Article
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      
       {/* Welcome Hero Section */}
       <div style={{
         ...cardStyle,
@@ -7511,6 +7724,7 @@ function NewsfeedHome({ theme, user, profile, subscription, subscriptionAccess, 
         
         <div style={{ position: 'relative', zIndex: 1 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '16px' }}>
+            {/* Penny Logo */}
             <div style={{
               width: '64px',
               height: '64px',
@@ -7519,19 +7733,22 @@ function NewsfeedHome({ theme, user, profile, subscription, subscriptionAccess, 
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              fontSize: '32px',
-              boxShadow: '0 8px 24px rgba(236, 72, 153, 0.3)'
+              boxShadow: '0 8px 24px rgba(236, 72, 153, 0.3)',
+              padding: '8px'
             }}>
-              🪙
+              <PennyLogo size={48} />
             </div>
             <div>
               <h1 style={{ 
                 fontSize: '32px', 
                 fontWeight: '800', 
                 color: 'white',
-                marginBottom: '4px'
+                marginBottom: '4px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px'
               }}>
-                Welcome to ProsperNest{profile?.firstName ? `, ${profile.firstName}` : ''}! 
+                Welcome to <span style={{ color: '#EC4899' }}>Prosper</span><span style={{ color: '#10B981' }}>Nest</span>{profile?.firstName ? `, ${profile.firstName}` : ''}!
               </h1>
               <p style={{ fontSize: '16px', color: 'rgba(255,255,255,0.7)' }}>
                 Your all-in-one financial command center
@@ -7575,7 +7792,7 @@ function NewsfeedHome({ theme, user, profile, subscription, subscriptionAccess, 
             </button>
             
             <button
-              onClick={() => onNavigate('home')}
+              onClick={primaryHub.action}
               style={{
                 padding: '14px 28px',
                 borderRadius: '12px',
@@ -7597,7 +7814,7 @@ function NewsfeedHome({ theme, user, profile, subscription, subscriptionAccess, 
                 e.currentTarget.style.background = 'rgba(255,255,255,0.1)';
               }}
             >
-              <span>📊</span> Go to Dashboard
+              <span>{primaryHub.icon}</span> {primaryHub.text}
             </button>
           </div>
         </div>
@@ -7613,7 +7830,7 @@ function NewsfeedHome({ theme, user, profile, subscription, subscriptionAccess, 
         {[
           { label: 'Your Plan', value: subscription?.plan_type?.replace('_', ' ')?.toUpperCase() || 'FREE', icon: '⭐', color: '#F59E0B' },
           { label: 'Status', value: subscriptionAccess?.hasAccess ? 'Active' : 'Inactive', icon: '✅', color: '#10B981' },
-          { label: 'Available Hubs', value: subscriptionAccess?.perpetualLicense ? '3' : '1-3', icon: '🎯', color: '#3B82F6' },
+          { label: 'Available Hubs', value: hasREBudgetAccess ? '3' : hasBizBudgetAccess ? '2' : '1', icon: '🎯', color: '#3B82F6' },
           { label: 'AI Features', value: 'Enabled', icon: '🤖', color: '#8B5CF6' }
         ].map((stat, i) => (
           <div key={i} style={{
@@ -7639,7 +7856,7 @@ function NewsfeedHome({ theme, user, profile, subscription, subscriptionAccess, 
           alignItems: 'center',
           gap: '10px'
         }}>
-          <span>🎯</span> Explore ProsperNest Features
+          <span>🎯</span> Explore <span style={{ color: '#EC4899' }}>Prosper</span><span style={{ color: '#10B981' }}>Nest</span> Features
         </h2>
         
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '20px' }}>
@@ -7652,7 +7869,8 @@ function NewsfeedHome({ theme, user, profile, subscription, subscriptionAccess, 
                 position: 'relative',
                 overflow: 'hidden',
                 cursor: 'pointer',
-                transition: 'transform 0.2s, box-shadow 0.2s'
+                transition: 'transform 0.2s, box-shadow 0.2s',
+                opacity: feature.hasAccess ? 1 : 0.85
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.transform = 'translateY(-4px)';
@@ -7663,7 +7881,7 @@ function NewsfeedHome({ theme, user, profile, subscription, subscriptionAccess, 
                 e.currentTarget.style.boxShadow = theme.cardShadow;
               }}
             >
-              {/* Premium badge */}
+              {/* Premium/Locked badge */}
               {feature.premium && (
                 <div style={{
                   position: 'absolute',
@@ -7678,7 +7896,26 @@ function NewsfeedHome({ theme, user, profile, subscription, subscriptionAccess, 
                   textTransform: 'uppercase',
                   letterSpacing: '0.5px'
                 }}>
-                  Premium
+                  🔒 Premium
+                </div>
+              )}
+              
+              {/* Included badge for accessible features */}
+              {feature.hasAccess && !feature.premium && feature.id !== 'import' && (
+                <div style={{
+                  position: 'absolute',
+                  top: '16px',
+                  right: '16px',
+                  background: 'linear-gradient(135deg, #10B981, #34D399)',
+                  color: 'white',
+                  fontSize: '10px',
+                  fontWeight: '700',
+                  padding: '4px 10px',
+                  borderRadius: '20px',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.5px'
+                }}>
+                  ✓ Included
                 </div>
               )}
               
@@ -7765,7 +8002,7 @@ function NewsfeedHome({ theme, user, profile, subscription, subscriptionAccess, 
                     style={{
                       padding: '10px 20px',
                       borderRadius: '10px',
-                      background: feature.gradient,
+                      background: feature.hasAccess ? feature.gradient : 'linear-gradient(135deg, #6B7280, #9CA3AF)',
                       border: 'none',
                       color: 'white',
                       fontSize: '13px',
@@ -7774,7 +8011,7 @@ function NewsfeedHome({ theme, user, profile, subscription, subscriptionAccess, 
                       display: 'flex',
                       alignItems: 'center',
                       gap: '6px',
-                      boxShadow: `0 4px 12px ${feature.color}30`,
+                      boxShadow: `0 4px 12px ${feature.hasAccess ? feature.color : '#6B7280'}30`,
                       transition: 'transform 0.2s'
                     }}
                     onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.02)'}
@@ -7793,7 +8030,7 @@ function NewsfeedHome({ theme, user, profile, subscription, subscriptionAccess, 
       </div>
       
       {/* Upgrade Banner (for non-premium users) */}
-      {subscriptionAccess?.reason !== 'perpetual' && subscription?.plan_type !== 'pro' && subscription?.plan_type !== 'bundle' && (
+      {!isPremium && (
         <div style={{
           ...cardStyle,
           background: 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)',
@@ -7864,10 +8101,7 @@ function NewsfeedHome({ theme, user, profile, subscription, subscriptionAccess, 
                 position: 'relative',
                 overflow: 'hidden'
               }}
-              onClick={() => {
-                // In production, this would open the article URL
-                console.log('Opening article:', article.title);
-              }}
+              onClick={() => setSelectedArticle(article)}
               onMouseEnter={(e) => {
                 e.currentTarget.style.transform = 'translateY(-4px)';
                 e.currentTarget.style.boxShadow = '0 12px 40px rgba(0,0,0,0.12)';
@@ -7938,8 +8172,15 @@ function NewsfeedHome({ theme, user, profile, subscription, subscriptionAccess, 
                 <span style={{ fontSize: '11px', color: theme.textMuted }}>
                   {article.source}
                 </span>
-                <span style={{ fontSize: '11px', color: theme.textMuted }}>
-                  {article.date}
+                <span style={{ 
+                  fontSize: '11px', 
+                  color: article.color,
+                  fontWeight: '600',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px'
+                }}>
+                  Read More →
                 </span>
               </div>
             </div>
