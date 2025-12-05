@@ -10,6 +10,34 @@ const DEMO_DEALS = [
 
 const formatCurrency = (amount) => amount == null ? '-' : new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount);
 
+// Monthly data for forecasts and historical tracking
+const MONTHLY_DATA = [
+  { month: 'Jan', revenue: 58000, profit: 54520, commissions: 3480, deals: 1 },
+  { month: 'Feb', revenue: 0, profit: 0, commissions: 0, deals: 0 },
+  { month: 'Mar', revenue: 0, profit: 0, commissions: 0, deals: 0 },
+  { month: 'Apr', revenue: 0, profit: 0, commissions: 0, deals: 0 },
+  { month: 'May', revenue: 25000, profit: 10000, commissions: 1500, deals: 1 },
+  { month: 'Jun', revenue: 0, profit: 0, commissions: 0, deals: 0 },
+  { month: 'Jul', revenue: 0, profit: 0, commissions: 0, deals: 0 },
+  { month: 'Aug', revenue: 95000, profit: 15172, commissions: 2850, deals: 1 },
+  { month: 'Sep', revenue: 0, profit: 0, commissions: 0, deals: 0 },
+  { month: 'Oct', revenue: 0, profit: 0, commissions: 0, deals: 0 },
+  { month: 'Nov', revenue: 0, profit: 0, commissions: 0, deals: 0 },
+  { month: 'Dec', revenue: 0, profit: 0, commissions: 0, deals: 0 },
+];
+
+// Budget categories
+const BUDGET_CATEGORIES = [
+  { category: 'Marketing & Advertising', budgeted: 5000, actual: 3200, icon: '📢' },
+  { category: 'Renovations & Repairs', budgeted: 30000, actual: 27000, icon: '🔧' },
+  { category: 'Closing Costs', budgeted: 8000, actual: 4300, icon: '📋' },
+  { category: 'Interest & Financing', budgeted: 6000, actual: 5887, icon: '💳' },
+  { category: 'Professional Services', budgeted: 3000, actual: 1800, icon: '👔' },
+  { category: 'Software & Tools', budgeted: 1200, actual: 1100, icon: '💻' },
+  { category: 'Vehicle & Travel', budgeted: 4000, actual: 2800, icon: '🚗' },
+  { category: 'Office & Supplies', budgeted: 2000, actual: 1500, icon: '📦' },
+];
+
 export default function BizBudgetHub({ theme, lastImportDate, userEmail, initialTab = 'dashboard', profile, onUpdateProfile }) {
   const isDark = theme?.mode === 'dark';
   const activeTab = initialTab;
@@ -59,6 +87,72 @@ export default function BizBudgetHub({ theme, lastImportDate, userEmail, initial
     const points = data.map((v, i) => `${(i / (data.length - 1)) * width},${height - ((v - min) / range) * (height - 8)}`).join(' ');
     return <svg width={width} height={height}><polyline points={points} fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>;
   };
+
+  // Collapsible Section Header Component
+  const SectionHeader = ({ title, badge, badgeColor, gradient, sectionKey, icon }) => (
+    <div 
+      onClick={() => toggleSection(sectionKey)} 
+      style={{ 
+        display: 'flex', 
+        alignItems: 'center', 
+        gap: '12px', 
+        marginBottom: collapsedSections[sectionKey] ? '24px' : '16px', 
+        cursor: 'pointer', 
+        userSelect: 'none' 
+      }}
+    >
+      <div style={{ width: '4px', height: '24px', background: gradient, borderRadius: '2px' }} />
+      {icon && <span style={{ fontSize: '20px' }}>{icon}</span>}
+      <h2 style={{ fontSize: '18px', fontWeight: '700', color: theme.textPrimary, margin: 0 }}>{title}</h2>
+      {badge && (
+        <span style={{ 
+          fontSize: '12px', 
+          color: badgeColor || theme.textMuted, 
+          background: badgeColor ? `${badgeColor}15` : theme.bgMain, 
+          padding: '4px 10px', 
+          borderRadius: '6px',
+          fontWeight: '500'
+        }}>
+          {badge}
+        </span>
+      )}
+      <span style={{ 
+        marginLeft: 'auto', 
+        fontSize: '12px', 
+        color: theme.textMuted, 
+        transform: collapsedSections[sectionKey] ? 'rotate(-90deg)' : 'rotate(0deg)', 
+        transition: 'transform 0.2s' 
+      }}>▼</span>
+    </div>
+  );
+
+  // KPI Card Component
+  const KPICard = ({ title, value, subtitle, gradient, trend, trendUp }) => (
+    <div style={{ 
+      background: theme.bgCard, 
+      borderRadius: '16px', 
+      padding: '20px', 
+      border: `1px solid ${theme.borderLight}`, 
+      position: 'relative', 
+      overflow: 'hidden' 
+    }}>
+      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '3px', background: gradient }} />
+      <div style={{ fontSize: '13px', color: theme.textMuted, marginBottom: '8px' }}>{title}</div>
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
+        <div style={{ fontSize: '24px', fontWeight: '700', color: theme.textPrimary }}>{value}</div>
+        {trend && (
+          <span style={{ 
+            fontSize: '12px', 
+            color: trendUp ? '#10B981' : '#EF4444', 
+            fontWeight: '500' 
+          }}>
+            {trendUp ? '↑' : '↓'} {trend}
+          </span>
+        )}
+      </div>
+      {subtitle && <div style={{ fontSize: '11px', color: theme.textMuted, marginTop: '4px' }}>{subtitle}</div>}
+    </div>
+  );
 
   return (
     <div>
@@ -111,46 +205,26 @@ export default function BizBudgetHub({ theme, lastImportDate, userEmail, initial
       {/* DASHBOARD TAB */}
       {activeTab === 'dashboard' && (
         <div>
-          <div onClick={() => toggleSection('kpiOverview')} style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: collapsedSections.kpiOverview ? '24px' : '16px', cursor: 'pointer', userSelect: 'none' }}>
-            <div style={{ width: '4px', height: '24px', background: 'linear-gradient(180deg, #8B5CF6, #EC4899)', borderRadius: '2px' }} />
-            <h2 style={{ fontSize: '18px', fontWeight: '700', color: theme.textPrimary, margin: 0 }}>Key Performance Indicators</h2>
-            <span style={{ marginLeft: 'auto', fontSize: '12px', color: theme.textMuted, transform: collapsedSections.kpiOverview ? 'rotate(-90deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}>▼</span>
-          </div>
+          <SectionHeader 
+            title="Key Performance Indicators" 
+            gradient="linear-gradient(180deg, #8B5CF6, #EC4899)" 
+            sectionKey="kpiOverview"
+          />
           {!collapsedSections.kpiOverview && (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '32px' }}>
-              <div style={{ background: theme.bgCard, borderRadius: '16px', padding: '20px', border: `1px solid ${theme.borderLight}`, position: 'relative', overflow: 'hidden' }}>
-                <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '3px', background: 'linear-gradient(90deg, #8B5CF6, #06B6D4)' }} />
-                <div style={{ fontSize: '13px', color: theme.textMuted, marginBottom: '8px' }}>Projected Annual Revenue</div>
-                <div style={{ fontSize: '24px', fontWeight: '700', color: theme.textPrimary }}>{formatCurrency(stats.projectedAnnualRevenue)}</div>
-                <div style={{ marginTop: '8px' }}><MiniSparkline data={[45000, 52000, 48000, 58000, 55000, 62000]} color="#8B5CF6" /></div>
-              </div>
-              <div style={{ background: theme.bgCard, borderRadius: '16px', padding: '20px', border: `1px solid ${theme.borderLight}`, position: 'relative', overflow: 'hidden' }}>
-                <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '3px', background: 'linear-gradient(90deg, #10B981, #06B6D4)' }} />
-                <div style={{ fontSize: '13px', color: theme.textMuted, marginBottom: '8px' }}>Projected Annual Profit</div>
-                <div style={{ fontSize: '24px', fontWeight: '700', color: theme.success }}>{formatCurrency(stats.projectedAnnualProfit)}</div>
-                <div style={{ marginTop: '8px' }}><MiniSparkline data={[12000, 15000, 13000, 18000, 16000, 20000]} color="#10B981" /></div>
-              </div>
-              <div style={{ background: theme.bgCard, borderRadius: '16px', padding: '20px', border: `1px solid ${theme.borderLight}`, position: 'relative', overflow: 'hidden' }}>
-                <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '3px', background: 'linear-gradient(90deg, #F59E0B, #EF4444)' }} />
-                <div style={{ fontSize: '13px', color: theme.textMuted, marginBottom: '8px' }}>Tax Reserves (Total)</div>
-                <div style={{ fontSize: '24px', fontWeight: '700', color: theme.warning }}>{formatCurrency(stats.commissionTaxReserve + stats.profitTaxReserve)}</div>
-                <div style={{ fontSize: '11px', color: theme.textMuted, marginTop: '4px' }}>Commissions: {formatCurrency(stats.commissionTaxReserve)} | Profit: {formatCurrency(stats.profitTaxReserve)}</div>
-              </div>
-              <div style={{ background: theme.bgCard, borderRadius: '16px', padding: '20px', border: `1px solid ${theme.borderLight}`, position: 'relative', overflow: 'hidden' }}>
-                <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '3px', background: 'linear-gradient(90deg, #EC4899, #8B5CF6)' }} />
-                <div style={{ fontSize: '13px', color: theme.textMuted, marginBottom: '8px' }}>Deal Velocity</div>
-                <div style={{ fontSize: '24px', fontWeight: '700', color: theme.textPrimary }}>{(stats.closedCount / Math.max(new Date().getMonth(), 1)).toFixed(1)}</div>
-                <div style={{ fontSize: '11px', color: theme.textMuted, marginTop: '4px' }}>Deals per month · Avg {stats.avgDOM} DOM</div>
-              </div>
+              <KPICard title="Projected Annual Revenue" value={formatCurrency(stats.projectedAnnualRevenue)} subtitle={`Based on ${stats.closedCount} deals · ${new Date().getMonth() + 1} months`} gradient="linear-gradient(90deg, #8B5CF6, #06B6D4)" trend="12%" trendUp={true} />
+              <KPICard title="Projected Annual Profit" value={formatCurrency(stats.projectedAnnualProfit)} subtitle={`${((stats.totalProfit / stats.totalRevenue) * 100 || 0).toFixed(1)}% margin`} gradient="linear-gradient(90deg, #10B981, #06B6D4)" trend="8%" trendUp={true} />
+              <KPICard title="Pipeline Value" value={formatCurrency(stats.pipelineValue)} subtitle={`${stats.pendingCount} active properties`} gradient="linear-gradient(90deg, #F59E0B, #EF4444)" />
+              <KPICard title="Deal Velocity" value={(stats.closedCount / Math.max(new Date().getMonth(), 1)).toFixed(1)} subtitle={`Deals per month · Avg ${stats.avgDOM} DOM`} gradient="linear-gradient(90deg, #EC4899, #8B5CF6)" />
             </div>
           )}
 
-          <div onClick={() => toggleSection('dealsPipeline')} style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: collapsedSections.dealsPipeline ? '24px' : '16px', cursor: 'pointer', userSelect: 'none' }}>
-            <div style={{ width: '4px', height: '24px', background: 'linear-gradient(180deg, #F59E0B, #EF4444)', borderRadius: '2px' }} />
-            <h2 style={{ fontSize: '18px', fontWeight: '700', color: theme.textPrimary, margin: 0 }}>Pipeline Overview</h2>
-            <span style={{ fontSize: '12px', color: theme.textMuted, background: theme.bgMain, padding: '4px 10px', borderRadius: '6px' }}>{stats.pendingCount} active · {stats.closedCount} closed</span>
-            <span style={{ marginLeft: 'auto', fontSize: '12px', color: theme.textMuted, transform: collapsedSections.dealsPipeline ? 'rotate(-90deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}>▼</span>
-          </div>
+          <SectionHeader 
+            title="Pipeline Overview" 
+            badge={`${stats.pendingCount} active · ${stats.closedCount} closed`}
+            gradient="linear-gradient(180deg, #F59E0B, #EF4444)" 
+            sectionKey="dealsPipeline"
+          />
           {!collapsedSections.dealsPipeline && (
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '32px' }}>
               <div style={{ background: theme.bgCard, borderRadius: '16px', padding: '20px', border: `1px solid ${theme.borderLight}`, position: 'relative', overflow: 'hidden' }}>
@@ -176,26 +250,17 @@ export default function BizBudgetHub({ theme, lastImportDate, userEmail, initial
             </div>
           )}
 
-          <div onClick={() => toggleSection('taxReserves')} style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: collapsedSections.taxReserves ? '0' : '16px', cursor: 'pointer', userSelect: 'none' }}>
-            <div style={{ width: '4px', height: '24px', background: 'linear-gradient(180deg, #3B82F6, #8B5CF6)', borderRadius: '2px' }} />
-            <h2 style={{ fontSize: '18px', fontWeight: '700', color: theme.textPrimary, margin: 0 }}>Tax Reserve Summary</h2>
-            <span style={{ fontSize: '12px', color: '#3B82F6', background: isDark ? 'rgba(59, 130, 246, 0.2)' : 'rgba(59, 130, 246, 0.1)', padding: '4px 10px', borderRadius: '6px', fontWeight: '500' }}>For Novo Banking</span>
-            <span style={{ marginLeft: 'auto', fontSize: '12px', color: theme.textMuted, transform: collapsedSections.taxReserves ? 'rotate(-90deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}>▼</span>
-          </div>
+          <SectionHeader 
+            title="Tax Reserve Summary" 
+            badge="For Novo Banking"
+            badgeColor="#3B82F6"
+            gradient="linear-gradient(180deg, #3B82F6, #8B5CF6)" 
+            sectionKey="taxReserves"
+          />
           {!collapsedSections.taxReserves && (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
-              <div style={{ background: theme.bgCard, borderRadius: '16px', padding: '20px', border: `1px solid ${theme.borderLight}`, position: 'relative', overflow: 'hidden' }}>
-                <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '3px', background: 'linear-gradient(90deg, #8B5CF6, #A78BFA)' }} />
-                <div style={{ fontSize: '13px', color: theme.textMuted, marginBottom: '8px' }}>Commission Tax (46%)</div>
-                <div style={{ fontSize: '24px', fontWeight: '700', color: theme.warning }}>{formatCurrency(stats.commissionTaxReserve)}</div>
-                <div style={{ fontSize: '11px', color: theme.textMuted, marginTop: '4px' }}>From {formatCurrency(stats.totalCommissions)} earned</div>
-              </div>
-              <div style={{ background: theme.bgCard, borderRadius: '16px', padding: '20px', border: `1px solid ${theme.borderLight}`, position: 'relative', overflow: 'hidden' }}>
-                <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '3px', background: 'linear-gradient(90deg, #10B981, #34D399)' }} />
-                <div style={{ fontSize: '13px', color: theme.textMuted, marginBottom: '8px' }}>Profit Tax (31%)</div>
-                <div style={{ fontSize: '24px', fontWeight: '700', color: theme.warning }}>{formatCurrency(stats.profitTaxReserve)}</div>
-                <div style={{ fontSize: '11px', color: theme.textMuted, marginTop: '4px' }}>From {formatCurrency(stats.totalProfit)} profit</div>
-              </div>
+              <KPICard title="Commission Tax (46%)" value={formatCurrency(stats.commissionTaxReserve)} subtitle={`From ${formatCurrency(stats.totalCommissions)} earned`} gradient="linear-gradient(90deg, #8B5CF6, #A78BFA)" />
+              <KPICard title="Profit Tax (31%)" value={formatCurrency(stats.profitTaxReserve)} subtitle={`From ${formatCurrency(stats.totalProfit)} profit`} gradient="linear-gradient(90deg, #10B981, #34D399)" />
               <div style={{ background: isDark ? 'rgba(245, 158, 11, 0.1)' : 'rgba(245, 158, 11, 0.05)', borderRadius: '16px', padding: '20px', border: '1px solid rgba(245, 158, 11, 0.2)' }}>
                 <div style={{ fontSize: '13px', color: theme.warning, marginBottom: '8px', fontWeight: '600' }}>💡 Novo Auto-Transfer</div>
                 <div style={{ fontSize: '13px', color: theme.textSecondary }}>Set up automatic transfers: <strong>46%</strong> of commissions and <strong>31%</strong> of profits to tax savings account.</div>
@@ -211,12 +276,13 @@ export default function BizBudgetHub({ theme, lastImportDate, userEmail, initial
           <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '16px' }}>
             <button style={{ padding: '10px 20px', background: `linear-gradient(135deg, ${theme.primary}, ${theme.secondary})`, border: 'none', borderRadius: '10px', color: 'white', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', boxShadow: '0 4px 12px rgba(139, 92, 246, 0.3)' }}>+ Add New Deal</button>
           </div>
-          <div onClick={() => toggleSection('pendingDeals')} style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: collapsedSections.pendingDeals ? '24px' : '16px', cursor: 'pointer', userSelect: 'none' }}>
-            <div style={{ width: '4px', height: '24px', background: 'linear-gradient(180deg, #F59E0B, #EF4444)', borderRadius: '2px' }} />
-            <h2 style={{ fontSize: '18px', fontWeight: '700', color: theme.textPrimary, margin: 0 }}>Pending Transactions</h2>
-            <span style={{ fontSize: '12px', color: theme.textMuted, background: theme.bgMain, padding: '4px 10px', borderRadius: '6px' }}>{deals.filter(d => d.status !== 'Closed').length} deals</span>
-            <span style={{ marginLeft: 'auto', fontSize: '12px', color: theme.textMuted, transform: collapsedSections.pendingDeals ? 'rotate(-90deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}>▼</span>
-          </div>
+          
+          <SectionHeader 
+            title="Pending Transactions" 
+            badge={`${deals.filter(d => d.status !== 'Closed').length} deals`}
+            gradient="linear-gradient(180deg, #F59E0B, #EF4444)" 
+            sectionKey="pendingDeals"
+          />
           {!collapsedSections.pendingDeals && (
             <div style={{ background: theme.bgCard, borderRadius: '16px', overflow: 'hidden', marginBottom: '32px', border: `1px solid ${theme.borderLight}`, position: 'relative' }}>
               <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '3px', background: 'linear-gradient(90deg, #F59E0B, #EF4444)' }} />
@@ -230,12 +296,13 @@ export default function BizBudgetHub({ theme, lastImportDate, userEmail, initial
               </table>
             </div>
           )}
-          <div onClick={() => toggleSection('closedDeals')} style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: collapsedSections.closedDeals ? '0' : '16px', cursor: 'pointer', userSelect: 'none' }}>
-            <div style={{ width: '4px', height: '24px', background: 'linear-gradient(180deg, #10B981, #06B6D4)', borderRadius: '2px' }} />
-            <h2 style={{ fontSize: '18px', fontWeight: '700', color: theme.textPrimary, margin: 0 }}>Closed Deals</h2>
-            <span style={{ fontSize: '12px', color: theme.textMuted, background: theme.bgMain, padding: '4px 10px', borderRadius: '6px' }}>{deals.filter(d => d.status === 'Closed').length} deals</span>
-            <span style={{ marginLeft: 'auto', fontSize: '12px', color: theme.textMuted, transform: collapsedSections.closedDeals ? 'rotate(-90deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}>▼</span>
-          </div>
+          
+          <SectionHeader 
+            title="Closed Deals" 
+            badge={`${deals.filter(d => d.status === 'Closed').length} deals`}
+            gradient="linear-gradient(180deg, #10B981, #06B6D4)" 
+            sectionKey="closedDeals"
+          />
           {!collapsedSections.closedDeals && (
             <div style={{ background: theme.bgCard, borderRadius: '16px', overflow: 'hidden', border: `1px solid ${theme.borderLight}`, position: 'relative' }}>
               <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '3px', background: 'linear-gradient(90deg, #10B981, #06B6D4)' }} />
@@ -248,12 +315,579 @@ export default function BizBudgetHub({ theme, lastImportDate, userEmail, initial
         </div>
       )}
 
-      {/* Other tabs show placeholder */}
-      {['forecast', 'tax', 'history', 'statements', 'budget'].includes(activeTab) && (
-        <div style={{ background: theme.bgCard, borderRadius: '16px', padding: '40px', textAlign: 'center', border: `1px solid ${theme.borderLight}` }}>
-          <div style={{ fontSize: '48px', marginBottom: '16px' }}>{activeTab === 'forecast' ? '📊' : activeTab === 'tax' ? '💰' : activeTab === 'history' ? '📅' : activeTab === 'statements' ? '📈' : '⚖️'}</div>
-          <h3 style={{ fontSize: '18px', fontWeight: '600', color: theme.textPrimary, marginBottom: '8px' }}>{activeTab === 'forecast' ? 'Revenue Forecast' : activeTab === 'tax' ? 'Tax Planning' : activeTab === 'history' ? 'Deal History' : activeTab === 'statements' ? 'Financial Statements' : 'Budget vs Actuals'}</h3>
-          <p style={{ fontSize: '14px', color: theme.textMuted }}>This section will show detailed {activeTab === 'forecast' ? 'commission and franchise revenue forecasts' : activeTab === 'tax' ? 'tax breakdowns for Novo banking integration' : activeTab === 'history' ? 'transaction history and anniversaries' : activeTab === 'statements' ? 'P&L and cash flow statements' : 'budget comparison metrics'}.</p>
+      {/* REVENUE FORECAST TAB */}
+      {activeTab === 'forecast' && (
+        <div>
+          <SectionHeader 
+            title="Revenue Projections" 
+            icon="📊"
+            badge="Based on current pipeline"
+            gradient="linear-gradient(180deg, #8B5CF6, #06B6D4)" 
+            sectionKey="revenueProjections"
+          />
+          {!collapsedSections.revenueProjections && (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '32px' }}>
+              <KPICard title="Q4 2025 Forecast" value={formatCurrency(stats.pipelineValue)} subtitle="From active pipeline" gradient="linear-gradient(90deg, #8B5CF6, #06B6D4)" />
+              <KPICard title="Full Year Projection" value={formatCurrency(stats.projectedAnnualRevenue)} subtitle={`At current ${(stats.closedCount / Math.max(new Date().getMonth(), 1)).toFixed(1)} deals/mo`} gradient="linear-gradient(90deg, #10B981, #34D399)" trend="18%" trendUp={true} />
+              <KPICard title="Avg Deal Size" value={formatCurrency(stats.totalRevenue / Math.max(stats.closedCount, 1))} subtitle={`${stats.closedCount} deals closed YTD`} gradient="linear-gradient(90deg, #F59E0B, #EF4444)" />
+              <KPICard title="Profit Margin" value={`${((stats.totalProfit / stats.totalRevenue) * 100 || 0).toFixed(1)}%`} subtitle="On closed deals" gradient="linear-gradient(90deg, #EC4899, #8B5CF6)" trend="3%" trendUp={true} />
+            </div>
+          )}
+
+          <SectionHeader 
+            title="Monthly Breakdown" 
+            icon="📅"
+            gradient="linear-gradient(180deg, #10B981, #06B6D4)" 
+            sectionKey="monthlyBreakdown"
+          />
+          {!collapsedSections.monthlyBreakdown && (
+            <div style={{ background: theme.bgCard, borderRadius: '16px', overflow: 'hidden', marginBottom: '32px', border: `1px solid ${theme.borderLight}`, position: 'relative' }}>
+              <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '3px', background: 'linear-gradient(90deg, #10B981, #06B6D4)' }} />
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead><tr style={{ background: theme.bgMain }}><th style={{ padding: '16px 20px', textAlign: 'left', fontSize: '13px', fontWeight: '600', color: theme.textMuted }}>Month</th><th style={{ padding: '16px 20px', textAlign: 'right', fontSize: '13px', fontWeight: '600', color: theme.textMuted }}>Revenue</th><th style={{ padding: '16px 20px', textAlign: 'right', fontSize: '13px', fontWeight: '600', color: theme.textMuted }}>Profit</th><th style={{ padding: '16px 20px', textAlign: 'right', fontSize: '13px', fontWeight: '600', color: theme.textMuted }}>Commissions</th><th style={{ padding: '16px 20px', textAlign: 'center', fontSize: '13px', fontWeight: '600', color: theme.textMuted }}>Deals</th></tr></thead>
+                <tbody>{MONTHLY_DATA.map((m, i) => (
+                  <tr key={m.month} style={{ borderBottom: `1px solid ${theme.borderLight}`, opacity: i > new Date().getMonth() ? 0.5 : 1 }}>
+                    <td style={{ padding: '16px 20px', fontSize: '14px', fontWeight: '500', color: theme.textPrimary }}>{m.month} 2025</td>
+                    <td style={{ padding: '16px 20px', textAlign: 'right', fontSize: '14px', color: m.revenue > 0 ? theme.success : theme.textMuted }}>{formatCurrency(m.revenue)}</td>
+                    <td style={{ padding: '16px 20px', textAlign: 'right', fontSize: '14px', color: m.profit > 0 ? theme.success : theme.textMuted }}>{formatCurrency(m.profit)}</td>
+                    <td style={{ padding: '16px 20px', textAlign: 'right', fontSize: '14px', color: theme.primary }}>{formatCurrency(m.commissions)}</td>
+                    <td style={{ padding: '16px 20px', textAlign: 'center', fontSize: '14px', color: theme.textPrimary }}>{m.deals}</td>
+                  </tr>
+                ))}</tbody>
+              </table>
+            </div>
+          )}
+
+          <SectionHeader 
+            title="Pipeline Potential" 
+            icon="🎯"
+            badge={`${stats.pendingCount} active deals`}
+            gradient="linear-gradient(180deg, #F59E0B, #EF4444)" 
+            sectionKey="pipelinePotential"
+          />
+          {!collapsedSections.pipelinePotential && (
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+              <div style={{ background: theme.bgCard, borderRadius: '16px', padding: '20px', border: `1px solid ${theme.borderLight}`, position: 'relative', overflow: 'hidden' }}>
+                <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '3px', background: 'linear-gradient(90deg, #F59E0B, #EF4444)' }} />
+                <h4 style={{ fontSize: '14px', fontWeight: '600', color: theme.textSecondary, marginBottom: '16px' }}>Expected Closings</h4>
+                {deals.filter(d => d.status !== 'Closed').map(deal => {
+                  const estProfit = (deal.listingPrice || 0) - (deal.purchasePrice || 0) - (deal.closingCosts || 0) - (deal.renovationCosts || 0);
+                  return (
+                    <div key={deal.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 0', borderBottom: `1px solid ${theme.borderLight}` }}>
+                      <div>
+                        <div style={{ fontSize: '13px', fontWeight: '500', color: theme.textPrimary }}>{deal.property.split(',')[0]}</div>
+                        <span style={{ padding: '2px 8px', borderRadius: '12px', background: getStatusColor(deal.status).bg, color: getStatusColor(deal.status).color, fontSize: '10px', fontWeight: '500' }}>{deal.status}</span>
+                      </div>
+                      <div style={{ textAlign: 'right' }}>
+                        <div style={{ fontSize: '13px', fontWeight: '600', color: theme.success }}>{formatCurrency(estProfit)}</div>
+                        <div style={{ fontSize: '11px', color: theme.textMuted }}>Est. Profit</div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              <div style={{ background: theme.bgCard, borderRadius: '16px', padding: '20px', border: `1px solid ${theme.borderLight}`, position: 'relative', overflow: 'hidden' }}>
+                <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '3px', background: 'linear-gradient(90deg, #8B5CF6, #EC4899)' }} />
+                <h4 style={{ fontSize: '14px', fontWeight: '600', color: theme.textSecondary, marginBottom: '16px' }}>Quarterly Goals</h4>
+                <div style={{ marginBottom: '20px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                    <span style={{ fontSize: '13px', color: theme.textMuted }}>Q4 Revenue Goal</span>
+                    <span style={{ fontSize: '13px', fontWeight: '600', color: theme.textPrimary }}>{formatCurrency(stats.pipelineValue)} / $250,000</span>
+                  </div>
+                  <div style={{ height: '8px', background: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)', borderRadius: '4px', overflow: 'hidden' }}>
+                    <div style={{ width: `${Math.min((stats.pipelineValue / 250000) * 100, 100)}%`, height: '100%', background: 'linear-gradient(90deg, #8B5CF6, #EC4899)', borderRadius: '4px' }} />
+                  </div>
+                </div>
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                    <span style={{ fontSize: '13px', color: theme.textMuted }}>Q4 Deal Count Goal</span>
+                    <span style={{ fontSize: '13px', fontWeight: '600', color: theme.textPrimary }}>{stats.pendingCount} / 5 deals</span>
+                  </div>
+                  <div style={{ height: '8px', background: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)', borderRadius: '4px', overflow: 'hidden' }}>
+                    <div style={{ width: `${Math.min((stats.pendingCount / 5) * 100, 100)}%`, height: '100%', background: 'linear-gradient(90deg, #10B981, #06B6D4)', borderRadius: '4px' }} />
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* TAX PLANNING TAB */}
+      {activeTab === 'tax' && (
+        <div>
+          <SectionHeader 
+            title="Tax Reserve Summary" 
+            icon="💰"
+            badge="Novo Banking Integration"
+            badgeColor="#3B82F6"
+            gradient="linear-gradient(180deg, #3B82F6, #8B5CF6)" 
+            sectionKey="taxSummary"
+          />
+          {!collapsedSections.taxSummary && (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '32px' }}>
+              <KPICard title="Total Tax Reserve" value={formatCurrency(stats.commissionTaxReserve + stats.profitTaxReserve)} subtitle="Combined reserves needed" gradient="linear-gradient(90deg, #EF4444, #F59E0B)" />
+              <KPICard title="Commission Tax (46%)" value={formatCurrency(stats.commissionTaxReserve)} subtitle={`From ${formatCurrency(stats.totalCommissions)}`} gradient="linear-gradient(90deg, #8B5CF6, #A78BFA)" />
+              <KPICard title="Profit Tax (31%)" value={formatCurrency(stats.profitTaxReserve)} subtitle={`From ${formatCurrency(stats.totalProfit)}`} gradient="linear-gradient(90deg, #10B981, #34D399)" />
+              <KPICard title="Est. Quarterly Payment" value={formatCurrency((stats.commissionTaxReserve + stats.profitTaxReserve) / 4)} subtitle="Due quarterly" gradient="linear-gradient(90deg, #06B6D4, #3B82F6)" />
+            </div>
+          )}
+
+          <SectionHeader 
+            title="Quarterly Estimates" 
+            icon="📆"
+            gradient="linear-gradient(180deg, #F59E0B, #EF4444)" 
+            sectionKey="quarterlyEstimates"
+          />
+          {!collapsedSections.quarterlyEstimates && (
+            <div style={{ background: theme.bgCard, borderRadius: '16px', padding: '20px', marginBottom: '32px', border: `1px solid ${theme.borderLight}`, position: 'relative', overflow: 'hidden' }}>
+              <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '3px', background: 'linear-gradient(90deg, #F59E0B, #EF4444)' }} />
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }}>
+                {['Q1', 'Q2', 'Q3', 'Q4'].map((q, i) => {
+                  const isPast = i < Math.floor(new Date().getMonth() / 3);
+                  const isCurrent = i === Math.floor(new Date().getMonth() / 3);
+                  const quarterAmount = (stats.commissionTaxReserve + stats.profitTaxReserve) / 4;
+                  return (
+                    <div key={q} style={{ 
+                      padding: '20px', 
+                      borderRadius: '12px', 
+                      background: isCurrent ? (isDark ? 'rgba(139, 92, 246, 0.2)' : 'rgba(139, 92, 246, 0.1)') : 'transparent',
+                      border: `1px solid ${isCurrent ? theme.primary : theme.borderLight}`,
+                      opacity: isPast ? 0.5 : 1
+                    }}>
+                      <div style={{ fontSize: '14px', fontWeight: '600', color: theme.textPrimary, marginBottom: '8px' }}>{q} 2025</div>
+                      <div style={{ fontSize: '20px', fontWeight: '700', color: isCurrent ? theme.primary : theme.textPrimary }}>{formatCurrency(quarterAmount)}</div>
+                      <div style={{ fontSize: '11px', color: theme.textMuted, marginTop: '4px' }}>
+                        {isPast ? '✅ Paid' : isCurrent ? '⏰ Due Now' : `Due ${['Apr 15', 'Jun 15', 'Sep 15', 'Jan 15'][i]}`}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          <SectionHeader 
+            title="Tax Breakdown by Deal" 
+            icon="🧾"
+            badge={`${stats.closedCount} deals`}
+            gradient="linear-gradient(180deg, #10B981, #06B6D4)" 
+            sectionKey="taxByDeal"
+          />
+          {!collapsedSections.taxByDeal && (
+            <div style={{ background: theme.bgCard, borderRadius: '16px', overflow: 'hidden', marginBottom: '32px', border: `1px solid ${theme.borderLight}`, position: 'relative' }}>
+              <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '3px', background: 'linear-gradient(90deg, #10B981, #06B6D4)' }} />
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead><tr style={{ background: theme.bgMain }}><th style={{ padding: '16px 20px', textAlign: 'left', fontSize: '13px', fontWeight: '600', color: theme.textMuted }}>Property</th><th style={{ padding: '16px 20px', textAlign: 'right', fontSize: '13px', fontWeight: '600', color: theme.textMuted }}>Net Profit</th><th style={{ padding: '16px 20px', textAlign: 'right', fontSize: '13px', fontWeight: '600', color: theme.textMuted }}>Commission</th><th style={{ padding: '16px 20px', textAlign: 'right', fontSize: '13px', fontWeight: '600', color: theme.textMuted }}>Profit Tax (31%)</th><th style={{ padding: '16px 20px', textAlign: 'right', fontSize: '13px', fontWeight: '600', color: theme.textMuted }}>Comm Tax (46%)</th><th style={{ padding: '16px 20px', textAlign: 'right', fontSize: '13px', fontWeight: '600', color: theme.textMuted }}>Total Reserve</th></tr></thead>
+                <tbody>{deals.filter(d => d.status === 'Closed').map(deal => (
+                  <tr key={deal.id} style={{ borderBottom: `1px solid ${theme.borderLight}` }}>
+                    <td style={{ padding: '16px 20px', fontSize: '14px', fontWeight: '500', color: theme.textPrimary }}>{deal.property.split(',')[0]}</td>
+                    <td style={{ padding: '16px 20px', textAlign: 'right', fontSize: '14px', color: theme.success }}>{formatCurrency(deal.netProfit)}</td>
+                    <td style={{ padding: '16px 20px', textAlign: 'right', fontSize: '14px', color: theme.primary }}>{formatCurrency(deal.ourCommission)}</td>
+                    <td style={{ padding: '16px 20px', textAlign: 'right', fontSize: '14px', color: theme.warning }}>{formatCurrency((deal.netProfit || 0) * 0.31)}</td>
+                    <td style={{ padding: '16px 20px', textAlign: 'right', fontSize: '14px', color: theme.warning }}>{formatCurrency((deal.ourCommission || 0) * 0.46)}</td>
+                    <td style={{ padding: '16px 20px', textAlign: 'right', fontSize: '14px', fontWeight: '600', color: theme.danger }}>{formatCurrency((deal.netProfit || 0) * 0.31 + (deal.ourCommission || 0) * 0.46)}</td>
+                  </tr>
+                ))}</tbody>
+              </table>
+            </div>
+          )}
+
+          <SectionHeader 
+            title="Novo Auto-Transfer Setup" 
+            icon="🏦"
+            badge="Recommended"
+            badgeColor="#10B981"
+            gradient="linear-gradient(180deg, #8B5CF6, #EC4899)" 
+            sectionKey="novoSetup"
+          />
+          {!collapsedSections.novoSetup && (
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+              <div style={{ background: isDark ? 'rgba(139, 92, 246, 0.1)' : 'rgba(139, 92, 246, 0.05)', borderRadius: '16px', padding: '24px', border: '1px solid rgba(139, 92, 246, 0.2)' }}>
+                <div style={{ fontSize: '16px', fontWeight: '600', color: theme.primary, marginBottom: '12px' }}>💼 Commission Auto-Transfer</div>
+                <div style={{ fontSize: '32px', fontWeight: '700', color: theme.textPrimary, marginBottom: '8px' }}>46%</div>
+                <div style={{ fontSize: '13px', color: theme.textSecondary, marginBottom: '16px' }}>Transfer this percentage of every commission payment to your tax reserve account automatically.</div>
+                <button style={{ padding: '10px 20px', background: theme.primary, color: 'white', border: 'none', borderRadius: '8px', fontWeight: '600', cursor: 'pointer' }}>Configure in Novo</button>
+              </div>
+              <div style={{ background: isDark ? 'rgba(16, 185, 129, 0.1)' : 'rgba(16, 185, 129, 0.05)', borderRadius: '16px', padding: '24px', border: '1px solid rgba(16, 185, 129, 0.2)' }}>
+                <div style={{ fontSize: '16px', fontWeight: '600', color: theme.success, marginBottom: '12px' }}>💰 Profit Auto-Transfer</div>
+                <div style={{ fontSize: '32px', fontWeight: '700', color: theme.textPrimary, marginBottom: '8px' }}>31%</div>
+                <div style={{ fontSize: '13px', color: theme.textSecondary, marginBottom: '16px' }}>Transfer this percentage of every profit disbursement to your tax reserve account automatically.</div>
+                <button style={{ padding: '10px 20px', background: theme.success, color: 'white', border: 'none', borderRadius: '8px', fontWeight: '600', cursor: 'pointer' }}>Configure in Novo</button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* DEAL HISTORY TAB */}
+      {activeTab === 'history' && (
+        <div>
+          <SectionHeader 
+            title="Transaction Timeline" 
+            icon="📅"
+            badge={`${deals.length} total deals`}
+            gradient="linear-gradient(180deg, #8B5CF6, #EC4899)" 
+            sectionKey="timeline"
+          />
+          {!collapsedSections.timeline && (
+            <div style={{ background: theme.bgCard, borderRadius: '16px', padding: '20px', marginBottom: '32px', border: `1px solid ${theme.borderLight}`, position: 'relative', overflow: 'hidden' }}>
+              <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '3px', background: 'linear-gradient(90deg, #8B5CF6, #EC4899)' }} />
+              {deals.sort((a, b) => new Date(b.purchaseDate) - new Date(a.purchaseDate)).map((deal, idx) => (
+                <div key={deal.id} style={{ display: 'flex', gap: '16px', padding: '20px 0', borderBottom: idx < deals.length - 1 ? `1px solid ${theme.borderLight}` : 'none' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                    <div style={{ 
+                      width: '40px', 
+                      height: '40px', 
+                      borderRadius: '50%', 
+                      background: deal.status === 'Closed' ? 'linear-gradient(135deg, #10B981, #06B6D4)' : 'linear-gradient(135deg, #F59E0B, #EF4444)',
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      justifyContent: 'center',
+                      color: 'white',
+                      fontWeight: '700',
+                      fontSize: '14px'
+                    }}>
+                      {deal.status === 'Closed' ? '✓' : idx + 1}
+                    </div>
+                    {idx < deals.length - 1 && <div style={{ width: '2px', flex: 1, background: theme.borderLight, marginTop: '8px' }} />}
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
+                      <div>
+                        <div style={{ fontSize: '15px', fontWeight: '600', color: theme.textPrimary }}>{deal.property}</div>
+                        <span style={{ padding: '2px 8px', borderRadius: '12px', background: getStatusColor(deal.status).bg, color: getStatusColor(deal.status).color, fontSize: '11px', fontWeight: '500' }}>{deal.status}</span>
+                      </div>
+                      {deal.netProfit && <div style={{ fontSize: '16px', fontWeight: '700', color: theme.success }}>{formatCurrency(deal.netProfit)}</div>}
+                    </div>
+                    <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap', fontSize: '13px', color: theme.textMuted }}>
+                      <span>📅 Purchased: {deal.purchaseDate}</span>
+                      {deal.soldDate && <span>✅ Sold: {deal.soldDate}</span>}
+                      {deal.dom && <span>⏱️ DOM: {deal.dom} days</span>}
+                      {deal.agent && <span>👤 Agent: {deal.agent}</span>}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <SectionHeader 
+            title="Anniversary Reminders" 
+            icon="🎂"
+            badge="Client follow-ups"
+            gradient="linear-gradient(180deg, #EC4899, #F59E0B)" 
+            sectionKey="anniversaries"
+          />
+          {!collapsedSections.anniversaries && (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '32px' }}>
+              {deals.filter(d => d.status === 'Closed').map(deal => {
+                const soldDate = new Date(deal.soldDate);
+                const anniversary = new Date(soldDate);
+                anniversary.setFullYear(anniversary.getFullYear() + 1);
+                const daysUntil = Math.ceil((anniversary - new Date()) / (1000 * 60 * 60 * 24));
+                return (
+                  <div key={deal.id} style={{ 
+                    background: theme.bgCard, 
+                    borderRadius: '16px', 
+                    padding: '20px', 
+                    border: `1px solid ${daysUntil <= 30 ? 'rgba(236, 72, 153, 0.3)' : theme.borderLight}`,
+                    position: 'relative',
+                    overflow: 'hidden'
+                  }}>
+                    {daysUntil <= 30 && <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '3px', background: 'linear-gradient(90deg, #EC4899, #F59E0B)' }} />}
+                    <div style={{ fontSize: '13px', color: theme.textMuted, marginBottom: '8px' }}>{deal.property.split(',')[0]}</div>
+                    <div style={{ fontSize: '16px', fontWeight: '600', color: theme.textPrimary, marginBottom: '4px' }}>
+                      {anniversary.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                    </div>
+                    <div style={{ fontSize: '12px', color: daysUntil <= 30 ? '#EC4899' : theme.textMuted }}>
+                      {daysUntil <= 0 ? '🎉 Anniversary passed!' : daysUntil <= 30 ? `⚡ ${daysUntil} days away` : `${daysUntil} days until anniversary`}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          <SectionHeader 
+            title="Performance Trends" 
+            icon="📈"
+            gradient="linear-gradient(180deg, #10B981, #06B6D4)" 
+            sectionKey="trends"
+          />
+          {!collapsedSections.trends && (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
+              <div style={{ background: theme.bgCard, borderRadius: '16px', padding: '20px', border: `1px solid ${theme.borderLight}`, position: 'relative', overflow: 'hidden' }}>
+                <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '3px', background: 'linear-gradient(90deg, #10B981, #06B6D4)' }} />
+                <div style={{ fontSize: '13px', color: theme.textMuted, marginBottom: '12px' }}>Avg Deal Size</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <div style={{ fontSize: '24px', fontWeight: '700', color: theme.textPrimary }}>{formatCurrency(stats.totalRevenue / Math.max(stats.closedCount, 1))}</div>
+                  <MiniSparkline data={[45000, 58000, 72000, 59000, 85000]} color="#10B981" />
+                </div>
+              </div>
+              <div style={{ background: theme.bgCard, borderRadius: '16px', padding: '20px', border: `1px solid ${theme.borderLight}`, position: 'relative', overflow: 'hidden' }}>
+                <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '3px', background: 'linear-gradient(90deg, #8B5CF6, #EC4899)' }} />
+                <div style={{ fontSize: '13px', color: theme.textMuted, marginBottom: '12px' }}>Avg DOM</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <div style={{ fontSize: '24px', fontWeight: '700', color: theme.textPrimary }}>{stats.avgDOM} days</div>
+                  <MiniSparkline data={[85, 72, 65, 52, 45]} color="#8B5CF6" />
+                </div>
+              </div>
+              <div style={{ background: theme.bgCard, borderRadius: '16px', padding: '20px', border: `1px solid ${theme.borderLight}`, position: 'relative', overflow: 'hidden' }}>
+                <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '3px', background: 'linear-gradient(90deg, #F59E0B, #EF4444)' }} />
+                <div style={{ fontSize: '13px', color: theme.textMuted, marginBottom: '12px' }}>Profit Margin</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <div style={{ fontSize: '24px', fontWeight: '700', color: theme.textPrimary }}>{((stats.totalProfit / stats.totalRevenue) * 100 || 0).toFixed(1)}%</div>
+                  <MiniSparkline data={[35, 42, 38, 45, 44]} color="#F59E0B" />
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* FINANCIAL STATEMENTS TAB */}
+      {activeTab === 'statements' && (
+        <div>
+          <SectionHeader 
+            title="Profit & Loss Statement" 
+            icon="📈"
+            badge="YTD Summary"
+            gradient="linear-gradient(180deg, #10B981, #06B6D4)" 
+            sectionKey="pnl"
+          />
+          {!collapsedSections.pnl && (
+            <div style={{ background: theme.bgCard, borderRadius: '16px', padding: '24px', marginBottom: '32px', border: `1px solid ${theme.borderLight}`, position: 'relative', overflow: 'hidden' }}>
+              <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '3px', background: 'linear-gradient(90deg, #10B981, #06B6D4)' }} />
+              
+              {/* Revenue Section */}
+              <div style={{ marginBottom: '24px' }}>
+                <div style={{ fontSize: '14px', fontWeight: '600', color: theme.textSecondary, marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Revenue</div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 0', borderBottom: `1px solid ${theme.borderLight}` }}>
+                  <span style={{ fontSize: '14px', color: theme.textPrimary }}>Property Sales</span>
+                  <span style={{ fontSize: '14px', fontWeight: '500', color: theme.textPrimary }}>{formatCurrency(stats.totalRevenue)}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 0', borderBottom: `1px solid ${theme.borderLight}` }}>
+                  <span style={{ fontSize: '14px', color: theme.textPrimary }}>Commission Income</span>
+                  <span style={{ fontSize: '14px', fontWeight: '500', color: theme.textPrimary }}>{formatCurrency(stats.totalCommissions)}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 0', background: isDark ? 'rgba(16, 185, 129, 0.1)' : 'rgba(16, 185, 129, 0.05)', margin: '0 -24px', padding: '12px 24px' }}>
+                  <span style={{ fontSize: '14px', fontWeight: '700', color: theme.success }}>Total Revenue</span>
+                  <span style={{ fontSize: '14px', fontWeight: '700', color: theme.success }}>{formatCurrency(stats.totalRevenue + stats.totalCommissions)}</span>
+                </div>
+              </div>
+
+              {/* Expenses Section */}
+              <div style={{ marginBottom: '24px' }}>
+                <div style={{ fontSize: '14px', fontWeight: '600', color: theme.textSecondary, marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Cost of Goods Sold</div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 0', borderBottom: `1px solid ${theme.borderLight}` }}>
+                  <span style={{ fontSize: '14px', color: theme.textPrimary }}>Property Acquisitions</span>
+                  <span style={{ fontSize: '14px', fontWeight: '500', color: theme.textPrimary }}>({formatCurrency(deals.filter(d => d.status === 'Closed').reduce((s, d) => s + (d.purchasePrice || 0), 0))})</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 0', borderBottom: `1px solid ${theme.borderLight}` }}>
+                  <span style={{ fontSize: '14px', color: theme.textPrimary }}>Renovation Costs</span>
+                  <span style={{ fontSize: '14px', fontWeight: '500', color: theme.textPrimary }}>({formatCurrency(deals.reduce((s, d) => s + (d.renovationCosts || 0), 0))})</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 0', borderBottom: `1px solid ${theme.borderLight}` }}>
+                  <span style={{ fontSize: '14px', color: theme.textPrimary }}>Interest Paid</span>
+                  <span style={{ fontSize: '14px', fontWeight: '500', color: theme.textPrimary }}>({formatCurrency(deals.reduce((s, d) => s + (d.interestPaid || 0), 0))})</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 0', borderBottom: `1px solid ${theme.borderLight}` }}>
+                  <span style={{ fontSize: '14px', color: theme.textPrimary }}>Agent Commissions</span>
+                  <span style={{ fontSize: '14px', fontWeight: '500', color: theme.textPrimary }}>({formatCurrency(deals.reduce((s, d) => s + (d.agentCommission || 0), 0))})</span>
+                </div>
+              </div>
+
+              {/* Net Profit */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '16px 24px', background: isDark ? 'rgba(139, 92, 246, 0.1)' : 'rgba(139, 92, 246, 0.05)', margin: '0 -24px', borderRadius: '0 0 16px 16px' }}>
+                <span style={{ fontSize: '16px', fontWeight: '700', color: theme.primary }}>Net Profit</span>
+                <span style={{ fontSize: '16px', fontWeight: '700', color: theme.primary }}>{formatCurrency(stats.totalProfit)}</span>
+              </div>
+            </div>
+          )}
+
+          <SectionHeader 
+            title="Cash Flow Analysis" 
+            icon="💵"
+            gradient="linear-gradient(180deg, #8B5CF6, #EC4899)" 
+            sectionKey="cashflow"
+          />
+          {!collapsedSections.cashflow && (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '32px' }}>
+              <div style={{ background: theme.bgCard, borderRadius: '16px', padding: '20px', border: `1px solid ${theme.borderLight}`, position: 'relative', overflow: 'hidden' }}>
+                <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '3px', background: 'linear-gradient(90deg, #10B981, #34D399)' }} />
+                <div style={{ fontSize: '13px', color: theme.textMuted, marginBottom: '8px' }}>Cash Inflows</div>
+                <div style={{ fontSize: '28px', fontWeight: '700', color: theme.success }}>{formatCurrency(stats.totalRevenue)}</div>
+                <div style={{ fontSize: '11px', color: theme.textMuted, marginTop: '4px' }}>From property sales</div>
+              </div>
+              <div style={{ background: theme.bgCard, borderRadius: '16px', padding: '20px', border: `1px solid ${theme.borderLight}`, position: 'relative', overflow: 'hidden' }}>
+                <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '3px', background: 'linear-gradient(90deg, #EF4444, #F59E0B)' }} />
+                <div style={{ fontSize: '13px', color: theme.textMuted, marginBottom: '8px' }}>Cash Outflows</div>
+                <div style={{ fontSize: '28px', fontWeight: '700', color: theme.danger }}>{formatCurrency(stats.totalRevenue - stats.totalProfit)}</div>
+                <div style={{ fontSize: '11px', color: theme.textMuted, marginTop: '4px' }}>Acquisitions + expenses</div>
+              </div>
+              <div style={{ background: theme.bgCard, borderRadius: '16px', padding: '20px', border: `1px solid ${theme.borderLight}`, position: 'relative', overflow: 'hidden' }}>
+                <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '3px', background: 'linear-gradient(90deg, #8B5CF6, #A78BFA)' }} />
+                <div style={{ fontSize: '13px', color: theme.textMuted, marginBottom: '8px' }}>Net Cash Flow</div>
+                <div style={{ fontSize: '28px', fontWeight: '700', color: theme.primary }}>{formatCurrency(stats.totalProfit)}</div>
+                <div style={{ fontSize: '11px', color: theme.textMuted, marginTop: '4px' }}>Available for distribution</div>
+              </div>
+            </div>
+          )}
+
+          <SectionHeader 
+            title="Partner Distribution" 
+            icon="👥"
+            badge="50/50 Split"
+            gradient="linear-gradient(180deg, #F59E0B, #EF4444)" 
+            sectionKey="distribution"
+          />
+          {!collapsedSections.distribution && (
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+              <div style={{ background: isDark ? 'rgba(139, 92, 246, 0.1)' : 'rgba(139, 92, 246, 0.05)', borderRadius: '16px', padding: '24px', border: '1px solid rgba(139, 92, 246, 0.2)' }}>
+                <div style={{ fontSize: '14px', fontWeight: '600', color: theme.primary, marginBottom: '12px' }}>Michael Kennedy</div>
+                <div style={{ fontSize: '32px', fontWeight: '700', color: theme.textPrimary, marginBottom: '8px' }}>{formatCurrency(stats.michaelTotal)}</div>
+                <div style={{ fontSize: '13px', color: theme.textMuted }}>50% of {formatCurrency(stats.totalProfit)} net profit</div>
+              </div>
+              <div style={{ background: isDark ? 'rgba(236, 72, 153, 0.1)' : 'rgba(236, 72, 153, 0.05)', borderRadius: '16px', padding: '24px', border: '1px solid rgba(236, 72, 153, 0.2)' }}>
+                <div style={{ fontSize: '14px', fontWeight: '600', color: '#EC4899', marginBottom: '12px' }}>Anthony Partner</div>
+                <div style={{ fontSize: '32px', fontWeight: '700', color: theme.textPrimary, marginBottom: '8px' }}>{formatCurrency(stats.anthonyTotal)}</div>
+                <div style={{ fontSize: '13px', color: theme.textMuted }}>50% of {formatCurrency(stats.totalProfit)} net profit</div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* BUDGET VS ACTUALS TAB */}
+      {activeTab === 'budget' && (
+        <div>
+          <SectionHeader 
+            title="Budget Overview" 
+            icon="⚖️"
+            badge="2025 Fiscal Year"
+            gradient="linear-gradient(180deg, #8B5CF6, #06B6D4)" 
+            sectionKey="budgetOverview"
+          />
+          {!collapsedSections.budgetOverview && (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '32px' }}>
+              <KPICard 
+                title="Total Budget" 
+                value={formatCurrency(BUDGET_CATEGORIES.reduce((s, c) => s + c.budgeted, 0))} 
+                subtitle="Annual allocation" 
+                gradient="linear-gradient(90deg, #8B5CF6, #06B6D4)" 
+              />
+              <KPICard 
+                title="Spent YTD" 
+                value={formatCurrency(BUDGET_CATEGORIES.reduce((s, c) => s + c.actual, 0))} 
+                subtitle={`${((BUDGET_CATEGORIES.reduce((s, c) => s + c.actual, 0) / BUDGET_CATEGORIES.reduce((s, c) => s + c.budgeted, 0)) * 100).toFixed(0)}% of budget`}
+                gradient="linear-gradient(90deg, #F59E0B, #EF4444)" 
+              />
+              <KPICard 
+                title="Remaining" 
+                value={formatCurrency(BUDGET_CATEGORIES.reduce((s, c) => s + c.budgeted, 0) - BUDGET_CATEGORIES.reduce((s, c) => s + c.actual, 0))} 
+                subtitle="Available to spend" 
+                gradient="linear-gradient(90deg, #10B981, #34D399)" 
+                trend="12%" 
+                trendUp={true}
+              />
+              <KPICard 
+                title="Variance" 
+                value={`+${formatCurrency(BUDGET_CATEGORIES.reduce((s, c) => s + c.budgeted, 0) - BUDGET_CATEGORIES.reduce((s, c) => s + c.actual, 0))}`} 
+                subtitle="Under budget" 
+                gradient="linear-gradient(90deg, #EC4899, #8B5CF6)" 
+              />
+            </div>
+          )}
+
+          <SectionHeader 
+            title="Category Breakdown" 
+            icon="📊"
+            gradient="linear-gradient(180deg, #10B981, #06B6D4)" 
+            sectionKey="categoryBreakdown"
+          />
+          {!collapsedSections.categoryBreakdown && (
+            <div style={{ background: theme.bgCard, borderRadius: '16px', padding: '20px', marginBottom: '32px', border: `1px solid ${theme.borderLight}`, position: 'relative', overflow: 'hidden' }}>
+              <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '3px', background: 'linear-gradient(90deg, #10B981, #06B6D4)' }} />
+              {BUDGET_CATEGORIES.map((cat, idx) => {
+                const percentage = (cat.actual / cat.budgeted) * 100;
+                const isOverBudget = percentage > 100;
+                return (
+                  <div key={cat.category} style={{ padding: '16px 0', borderBottom: idx < BUDGET_CATEGORIES.length - 1 ? `1px solid ${theme.borderLight}` : 'none' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <span style={{ fontSize: '18px' }}>{cat.icon}</span>
+                        <span style={{ fontSize: '14px', fontWeight: '500', color: theme.textPrimary }}>{cat.category}</span>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                        <span style={{ fontSize: '13px', color: theme.textMuted }}>{formatCurrency(cat.actual)} / {formatCurrency(cat.budgeted)}</span>
+                        <span style={{ 
+                          fontSize: '12px', 
+                          fontWeight: '600', 
+                          color: isOverBudget ? '#EF4444' : percentage > 80 ? '#F59E0B' : '#10B981',
+                          background: isOverBudget ? 'rgba(239, 68, 68, 0.1)' : percentage > 80 ? 'rgba(245, 158, 11, 0.1)' : 'rgba(16, 185, 129, 0.1)',
+                          padding: '2px 8px',
+                          borderRadius: '4px'
+                        }}>
+                          {percentage.toFixed(0)}%
+                        </span>
+                      </div>
+                    </div>
+                    <div style={{ height: '8px', background: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)', borderRadius: '4px', overflow: 'hidden' }}>
+                      <div style={{ 
+                        width: `${Math.min(percentage, 100)}%`, 
+                        height: '100%', 
+                        background: isOverBudget ? 'linear-gradient(90deg, #EF4444, #F59E0B)' : percentage > 80 ? 'linear-gradient(90deg, #F59E0B, #FBBF24)' : 'linear-gradient(90deg, #10B981, #34D399)',
+                        borderRadius: '4px',
+                        transition: 'width 0.5s ease'
+                      }} />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          <SectionHeader 
+            title="Spending Trends" 
+            icon="📈"
+            gradient="linear-gradient(180deg, #F59E0B, #EF4444)" 
+            sectionKey="spendingTrends"
+          />
+          {!collapsedSections.spendingTrends && (
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+              <div style={{ background: theme.bgCard, borderRadius: '16px', padding: '20px', border: `1px solid ${theme.borderLight}`, position: 'relative', overflow: 'hidden' }}>
+                <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '3px', background: 'linear-gradient(90deg, #F59E0B, #EF4444)' }} />
+                <h4 style={{ fontSize: '14px', fontWeight: '600', color: theme.textSecondary, marginBottom: '16px' }}>Monthly Spending</h4>
+                {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'].map((month, idx) => {
+                  const spent = [8500, 5200, 12000, 6800, 4300, 6800][idx];
+                  const budget = 9916;
+                  return (
+                    <div key={month} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '8px 0' }}>
+                      <span style={{ fontSize: '13px', color: theme.textMuted, width: '40px' }}>{month}</span>
+                      <div style={{ flex: 1, height: '8px', background: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)', borderRadius: '4px', overflow: 'hidden' }}>
+                        <div style={{ width: `${(spent / budget) * 100}%`, height: '100%', background: spent > budget ? '#EF4444' : '#10B981', borderRadius: '4px' }} />
+                      </div>
+                      <span style={{ fontSize: '12px', fontWeight: '500', color: theme.textPrimary, width: '60px', textAlign: 'right' }}>{formatCurrency(spent)}</span>
+                    </div>
+                  );
+                })}
+              </div>
+              <div style={{ background: theme.bgCard, borderRadius: '16px', padding: '20px', border: `1px solid ${theme.borderLight}`, position: 'relative', overflow: 'hidden' }}>
+                <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '3px', background: 'linear-gradient(90deg, #8B5CF6, #EC4899)' }} />
+                <h4 style={{ fontSize: '14px', fontWeight: '600', color: theme.textSecondary, marginBottom: '16px' }}>Top Expense Categories</h4>
+                {BUDGET_CATEGORIES.sort((a, b) => b.actual - a.actual).slice(0, 5).map((cat, idx) => (
+                  <div key={cat.category} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: idx < 4 ? `1px solid ${theme.borderLight}` : 'none' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <span style={{ fontSize: '16px' }}>{cat.icon}</span>
+                      <span style={{ fontSize: '13px', color: theme.textPrimary }}>{cat.category}</span>
+                    </div>
+                    <span style={{ fontSize: '13px', fontWeight: '600', color: theme.textPrimary }}>{formatCurrency(cat.actual)}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
