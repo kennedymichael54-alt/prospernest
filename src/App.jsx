@@ -7392,7 +7392,7 @@ function DashboardHome({ transactions, goals, bills = [], tasks = [], theme, las
                     </div>
                     <div style={{ background: theme.mode === 'dark' ? 'rgba(245, 158, 11, 0.08)' : 'rgba(245, 158, 11, 0.05)', padding: '10px 12px', borderRadius: '8px' }}>
                       <div style={{ color: theme.textMuted, marginBottom: '4px' }}>Bills On Time</div>
-                      <div style={{ color: '#F59E0B', fontWeight: '600' }}>{billsOnTimePercent.toFixed(0)}% × 10% = {(billsOnTimePercent * 0.10).toFixed(1)} pts</div>
+                      <div style={{ color: '#F59E0B', fontWeight: '600' }}>{billsOnTimeRate.toFixed(0)}% × 10% = {(billsOnTimeRate * 0.10).toFixed(1)} pts</div>
                     </div>
                     <div style={{ background: theme.mode === 'dark' ? 'rgba(139, 92, 246, 0.08)' : 'rgba(139, 92, 246, 0.05)', padding: '10px 12px', borderRadius: '8px' }}>
                       <div style={{ color: theme.textMuted, marginBottom: '4px' }}>Goal Progress</div>
@@ -7567,7 +7567,7 @@ function DashboardHome({ transactions, goals, bills = [], tasks = [], theme, las
                             </span>
                           </div>
                           <span style={{ fontSize: '20px', fontWeight: '700', color: '#10B981' }}>
-                            {formatCurrency(estimatedAssets)}
+                            {formatCurrency(totalAssets)}
                           </span>
                         </div>
                       </div>
@@ -7587,7 +7587,7 @@ function DashboardHome({ transactions, goals, bills = [], tasks = [], theme, las
                             </span>
                           </div>
                           <span style={{ fontSize: '20px', fontWeight: '700', color: '#EF4444' }}>
-                            {formatCurrency(estimatedLiabilities)}
+                            {formatCurrency(totalLiabilities)}
                           </span>
                         </div>
                       </div>
