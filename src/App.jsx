@@ -7357,6 +7357,118 @@ function NewsfeedHome({ theme, user, profile, subscription, subscriptionAccess, 
     socialMedia: false
   });
   
+  // Edit layout mode state
+  const [isEditLayoutMode, setIsEditLayoutMode] = useState(false);
+  const [selectedSections, setSelectedSections] = useState([]);
+  
+  // Section order - persisted to localStorage
+  const defaultSectionOrder = ['quickStats', 'features', 'news', 'realEstateNews', 'socialMedia'];
+  const [sectionOrder, setSectionOrder] = useState(() => {
+    const saved = localStorage.getItem('pn_newsfeed_section_order');
+    return saved ? JSON.parse(saved) : defaultSectionOrder;
+  });
+  
+  // Save section order to localStorage
+  useEffect(() => {
+    localStorage.setItem('pn_newsfeed_section_order', JSON.stringify(sectionOrder));
+  }, [sectionOrder]);
+  
+  // Section metadata for display
+  const sectionMeta = {
+    quickStats: { icon: '📊', title: 'Quick Stats' },
+    features: { icon: '🎯', title: 'Explore Features' },
+    news: { icon: '📰', title: 'Financial News & Tips' },
+    realEstateNews: { icon: '🏠', title: 'Real Estate & Rate News' },
+    socialMedia: { icon: '📱', title: 'Social Media Hub' }
+  };
+  
+  // Toggle section selection in edit mode
+  const toggleSectionSelection = (sectionId) => {
+    setSelectedSections(prev => 
+      prev.includes(sectionId) 
+        ? prev.filter(id => id !== sectionId)
+        : [...prev, sectionId]
+    );
+  };
+  
+  // Move selected sections up
+  const moveSelectedUp = () => {
+    if (selectedSections.length === 0) return;
+    const newOrder = [...sectionOrder];
+    const selectedIndices = selectedSections.map(s => newOrder.indexOf(s)).sort((a, b) => a - b);
+    
+    // Check if we can move up (first selected item is not at top)
+    if (selectedIndices[0] > 0) {
+      selectedIndices.forEach(idx => {
+        if (idx > 0 && !selectedSections.includes(newOrder[idx - 1])) {
+          [newOrder[idx - 1], newOrder[idx]] = [newOrder[idx], newOrder[idx - 1]];
+        }
+      });
+      setSectionOrder(newOrder);
+    }
+  };
+  
+  // Move selected sections down
+  const moveSelectedDown = () => {
+    if (selectedSections.length === 0) return;
+    const newOrder = [...sectionOrder];
+    const selectedIndices = selectedSections.map(s => newOrder.indexOf(s)).sort((a, b) => b - a);
+    
+    // Check if we can move down (last selected item is not at bottom)
+    if (selectedIndices[0] < newOrder.length - 1) {
+      selectedIndices.forEach(idx => {
+        if (idx < newOrder.length - 1 && !selectedSections.includes(newOrder[idx + 1])) {
+          [newOrder[idx + 1], newOrder[idx]] = [newOrder[idx], newOrder[idx + 1]];
+        }
+      });
+      setSectionOrder(newOrder);
+    }
+  };
+  
+  // Select all sections
+  const selectAllSections = () => {
+    setSelectedSections([...sectionOrder]);
+  };
+  
+  // Deselect all sections
+  const deselectAllSections = () => {
+    setSelectedSections([]);
+  };
+  
+  // Collapse all sections
+  const collapseAllSections = () => {
+    setCollapsedSections({
+      quickStats: true,
+      features: true,
+      news: true,
+      realEstateNews: true,
+      socialMedia: true
+    });
+  };
+  
+  // Expand all sections
+  const expandAllSections = () => {
+    setCollapsedSections({
+      quickStats: false,
+      features: false,
+      news: false,
+      realEstateNews: false,
+      socialMedia: false
+    });
+  };
+  
+  // Save layout and exit edit mode
+  const saveLayout = () => {
+    setIsEditLayoutMode(false);
+    setSelectedSections([]);
+  };
+  
+  // Reset to default order
+  const resetToDefault = () => {
+    setSectionOrder(defaultSectionOrder);
+    setSelectedSections([]);
+  };
+  
   // Connected social media accounts (would be stored in database in production)
   const [connectedSocials, setConnectedSocials] = useState(() => {
     // Load from localStorage
@@ -8119,11 +8231,17 @@ function NewsfeedHome({ theme, user, profile, subscription, subscriptionAccess, 
       {/* Welcome Hero Section */}
       <div style={{
         ...cardStyle,
-        background: 'linear-gradient(135deg, #1E293B 0%, #0F172A 100%)',
+        background: theme === lightTheme 
+          ? 'linear-gradient(135deg, #FFFFFF 0%, #F8FAFC 50%, #F1F5F9 100%)'
+          : 'linear-gradient(135deg, #1E293B 0%, #0F172A 100%)',
         marginBottom: '24px',
         padding: '40px',
         position: 'relative',
-        overflow: 'hidden'
+        overflow: 'hidden',
+        border: theme === lightTheme ? '1px solid #E2E8F0' : 'none',
+        boxShadow: theme === lightTheme 
+          ? '0 4px 20px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.05)'
+          : '0 4px 20px rgba(0, 0, 0, 0.3)'
       }}>
         {/* Background decoration */}
         <div style={{
@@ -8132,7 +8250,9 @@ function NewsfeedHome({ theme, user, profile, subscription, subscriptionAccess, 
           right: '-10%',
           width: '500px',
           height: '500px',
-          background: 'radial-gradient(circle, rgba(236, 72, 153, 0.15) 0%, transparent 70%)',
+          background: theme === lightTheme 
+            ? 'radial-gradient(circle, rgba(236, 72, 153, 0.08) 0%, transparent 70%)'
+            : 'radial-gradient(circle, rgba(236, 72, 153, 0.15) 0%, transparent 70%)',
           pointerEvents: 'none'
         }} />
         <div style={{
@@ -8141,9 +8261,23 @@ function NewsfeedHome({ theme, user, profile, subscription, subscriptionAccess, 
           left: '-5%',
           width: '400px',
           height: '400px',
-          background: 'radial-gradient(circle, rgba(59, 130, 246, 0.1) 0%, transparent 70%)',
+          background: theme === lightTheme 
+            ? 'radial-gradient(circle, rgba(16, 185, 129, 0.08) 0%, transparent 70%)'
+            : 'radial-gradient(circle, rgba(59, 130, 246, 0.1) 0%, transparent 70%)',
           pointerEvents: 'none'
         }} />
+        {/* Additional light mode accent */}
+        {theme === lightTheme && (
+          <div style={{
+            position: 'absolute',
+            top: '0',
+            left: '0',
+            right: '0',
+            height: '4px',
+            background: 'linear-gradient(90deg, #EC4899 0%, #8B5CF6 50%, #10B981 100%)',
+            borderRadius: '16px 16px 0 0'
+          }} />
+        )}
         
         <div style={{ position: 'relative', zIndex: 1 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '16px' }}>
@@ -8156,7 +8290,9 @@ function NewsfeedHome({ theme, user, profile, subscription, subscriptionAccess, 
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              boxShadow: '0 8px 24px rgba(236, 72, 153, 0.3)',
+              boxShadow: theme === lightTheme 
+                ? '0 8px 24px rgba(236, 72, 153, 0.2)'
+                : '0 8px 24px rgba(236, 72, 153, 0.3)',
               padding: '8px'
             }}>
               <PennyLogo size={48} />
@@ -8165,7 +8301,7 @@ function NewsfeedHome({ theme, user, profile, subscription, subscriptionAccess, 
               <h1 style={{ 
                 fontSize: '32px', 
                 fontWeight: '800', 
-                color: 'white',
+                color: theme === lightTheme ? '#1E293B' : 'white',
                 marginBottom: '4px',
                 display: 'flex',
                 alignItems: 'center',
@@ -8173,7 +8309,7 @@ function NewsfeedHome({ theme, user, profile, subscription, subscriptionAccess, 
               }}>
                 Welcome to <span style={{ color: '#EC4899' }}>Prosper</span><span style={{ color: '#10B981' }}>Nest</span>{profile?.firstName ? `, ${profile.firstName}` : ''}!
               </h1>
-              <p style={{ fontSize: '16px', color: 'rgba(255,255,255,0.7)' }}>
+              <p style={{ fontSize: '16px', color: theme === lightTheme ? '#64748B' : 'rgba(255,255,255,0.7)' }}>
                 Your all-in-one financial command center
               </p>
             </div>
@@ -8181,7 +8317,7 @@ function NewsfeedHome({ theme, user, profile, subscription, subscriptionAccess, 
           
           <p style={{ 
             fontSize: '18px', 
-            color: 'rgba(255,255,255,0.8)', 
+            color: theme === lightTheme ? '#475569' : 'rgba(255,255,255,0.8)', 
             maxWidth: '700px',
             lineHeight: '1.6',
             marginBottom: '24px'
@@ -8220,9 +8356,9 @@ function NewsfeedHome({ theme, user, profile, subscription, subscriptionAccess, 
               style={{
                 padding: '14px 24px',
                 borderRadius: '12px',
-                background: 'rgba(236, 72, 153, 0.2)',
-                border: '1px solid rgba(236, 72, 153, 0.4)',
-                color: 'white',
+                background: theme === lightTheme ? 'rgba(236, 72, 153, 0.1)' : 'rgba(236, 72, 153, 0.2)',
+                border: theme === lightTheme ? '1px solid rgba(236, 72, 153, 0.3)' : '1px solid rgba(236, 72, 153, 0.4)',
+                color: theme === lightTheme ? '#DB2777' : 'white',
                 fontSize: '14px',
                 fontWeight: '600',
                 cursor: 'pointer',
@@ -8232,11 +8368,11 @@ function NewsfeedHome({ theme, user, profile, subscription, subscriptionAccess, 
                 transition: 'all 0.2s'
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'rgba(236, 72, 153, 0.3)';
+                e.currentTarget.style.background = theme === lightTheme ? 'rgba(236, 72, 153, 0.15)' : 'rgba(236, 72, 153, 0.3)';
                 e.currentTarget.style.transform = 'translateY(-2px)';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'rgba(236, 72, 153, 0.2)';
+                e.currentTarget.style.background = theme === lightTheme ? 'rgba(236, 72, 153, 0.1)' : 'rgba(236, 72, 153, 0.2)';
                 e.currentTarget.style.transform = 'translateY(0)';
               }}
             >
@@ -8250,9 +8386,9 @@ function NewsfeedHome({ theme, user, profile, subscription, subscriptionAccess, 
                 style={{
                   padding: '14px 24px',
                   borderRadius: '12px',
-                  background: 'rgba(139, 92, 246, 0.2)',
-                  border: '1px solid rgba(139, 92, 246, 0.4)',
-                  color: 'white',
+                  background: theme === lightTheme ? 'rgba(139, 92, 246, 0.1)' : 'rgba(139, 92, 246, 0.2)',
+                  border: theme === lightTheme ? '1px solid rgba(139, 92, 246, 0.3)' : '1px solid rgba(139, 92, 246, 0.4)',
+                  color: theme === lightTheme ? '#7C3AED' : 'white',
                   fontSize: '14px',
                   fontWeight: '600',
                   cursor: 'pointer',
@@ -8262,11 +8398,11 @@ function NewsfeedHome({ theme, user, profile, subscription, subscriptionAccess, 
                   transition: 'all 0.2s'
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.background = 'rgba(139, 92, 246, 0.3)';
+                  e.currentTarget.style.background = theme === lightTheme ? 'rgba(139, 92, 246, 0.15)' : 'rgba(139, 92, 246, 0.3)';
                   e.currentTarget.style.transform = 'translateY(-2px)';
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.background = 'rgba(139, 92, 246, 0.2)';
+                  e.currentTarget.style.background = theme === lightTheme ? 'rgba(139, 92, 246, 0.1)' : 'rgba(139, 92, 246, 0.2)';
                   e.currentTarget.style.transform = 'translateY(0)';
                 }}
               >
@@ -8281,9 +8417,9 @@ function NewsfeedHome({ theme, user, profile, subscription, subscriptionAccess, 
                 style={{
                   padding: '14px 24px',
                   borderRadius: '12px',
-                  background: 'rgba(6, 182, 212, 0.2)',
-                  border: '1px solid rgba(6, 182, 212, 0.4)',
-                  color: 'white',
+                  background: theme === lightTheme ? 'rgba(6, 182, 212, 0.1)' : 'rgba(6, 182, 212, 0.2)',
+                  border: theme === lightTheme ? '1px solid rgba(6, 182, 212, 0.3)' : '1px solid rgba(6, 182, 212, 0.4)',
+                  color: theme === lightTheme ? '#0891B2' : 'white',
                   fontSize: '14px',
                   fontWeight: '600',
                   cursor: 'pointer',
@@ -8293,11 +8429,11 @@ function NewsfeedHome({ theme, user, profile, subscription, subscriptionAccess, 
                   transition: 'all 0.2s'
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.background = 'rgba(6, 182, 212, 0.3)';
+                  e.currentTarget.style.background = theme === lightTheme ? 'rgba(6, 182, 212, 0.15)' : 'rgba(6, 182, 212, 0.3)';
                   e.currentTarget.style.transform = 'translateY(-2px)';
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.background = 'rgba(6, 182, 212, 0.2)';
+                  e.currentTarget.style.background = theme === lightTheme ? 'rgba(6, 182, 212, 0.1)' : 'rgba(6, 182, 212, 0.2)';
                   e.currentTarget.style.transform = 'translateY(0)';
                 }}
               >
@@ -8310,89 +8446,412 @@ function NewsfeedHome({ theme, user, profile, subscription, subscriptionAccess, 
           <div style={{
             marginTop: '20px',
             padding: '12px 16px',
-            background: 'rgba(255,255,255,0.05)',
+            background: theme === lightTheme ? 'rgba(0,0,0,0.03)' : 'rgba(255,255,255,0.05)',
             borderRadius: '10px',
             display: 'inline-flex',
             alignItems: 'center',
-            gap: '16px'
+            gap: '16px',
+            border: theme === lightTheme ? '1px solid rgba(0,0,0,0.06)' : 'none'
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <span style={{ fontSize: '16px' }}>📅</span>
-              <span style={{ fontSize: '14px', color: 'rgba(255,255,255,0.9)', fontWeight: '500' }}>{currentDate}</span>
+              <span style={{ fontSize: '14px', color: theme === lightTheme ? '#475569' : 'rgba(255,255,255,0.9)', fontWeight: '500' }}>{currentDate}</span>
             </div>
-            <div style={{ width: '1px', height: '20px', background: 'rgba(255,255,255,0.2)' }} />
+            <div style={{ width: '1px', height: '20px', background: theme === lightTheme ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.2)' }} />
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <span style={{ fontSize: '16px' }}>🕐</span>
-              <span style={{ fontSize: '14px', color: 'rgba(255,255,255,0.9)', fontWeight: '500' }}>{currentTimeStr}</span>
+              <span style={{ fontSize: '14px', color: theme === lightTheme ? '#475569' : 'rgba(255,255,255,0.9)', fontWeight: '500' }}>{currentTimeStr}</span>
             </div>
           </div>
         </div>
       </div>
       
-      {/* Quick Stats Row - Collapsible */}
-      <div style={{ marginBottom: '24px' }}>
+      {/* Collapse All / Expand All + Edit Layout Toolbar */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        marginBottom: '16px',
+        padding: '12px 16px',
+        background: theme.bgCard,
+        borderRadius: '12px',
+        border: `1px solid ${theme.borderLight}`
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <button
+            onClick={collapseAllSections}
+            style={{
+              padding: '8px 14px',
+              borderRadius: '8px',
+              background: theme.bgMain,
+              border: `1px solid ${theme.borderLight}`,
+              color: theme.textSecondary,
+              fontSize: '13px',
+              fontWeight: '500',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              transition: 'all 0.2s'
+            }}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <polyline points="4 14 10 14 10 20"/>
+              <polyline points="20 10 14 10 14 4"/>
+              <line x1="14" y1="10" x2="21" y2="3"/>
+              <line x1="3" y1="21" x2="10" y2="14"/>
+            </svg>
+            Collapse All
+          </button>
+          <button
+            onClick={expandAllSections}
+            style={{
+              padding: '8px 14px',
+              borderRadius: '8px',
+              background: theme.bgMain,
+              border: `1px solid ${theme.borderLight}`,
+              color: theme.textSecondary,
+              fontSize: '13px',
+              fontWeight: '500',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              transition: 'all 0.2s'
+            }}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <polyline points="15 3 21 3 21 9"/>
+              <polyline points="9 21 3 21 3 15"/>
+              <line x1="21" y1="3" x2="14" y2="10"/>
+              <line x1="3" y1="21" x2="10" y2="14"/>
+            </svg>
+            Expand All
+          </button>
+        </div>
+        
         <button
-          onClick={() => toggleSection('quickStats')}
+          onClick={() => {
+            if (isEditLayoutMode) {
+              saveLayout();
+            } else {
+              setIsEditLayoutMode(true);
+            }
+          }}
           style={{
-            width: '100%',
+            padding: '8px 16px',
+            borderRadius: '8px',
+            background: isEditLayoutMode ? 'linear-gradient(135deg, #10B981, #34D399)' : theme.bgMain,
+            border: isEditLayoutMode ? 'none' : `1px solid ${theme.borderLight}`,
+            color: isEditLayoutMode ? 'white' : theme.textSecondary,
+            fontSize: '13px',
+            fontWeight: '600',
+            cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: '12px 16px',
-            background: theme.bgCard,
-            border: `1px solid ${theme.borderLight}`,
-            borderRadius: collapsedSections.quickStats ? '12px' : '12px 12px 0 0',
-            cursor: 'pointer',
-            marginBottom: collapsedSections.quickStats ? '0' : '-1px'
+            gap: '6px',
+            transition: 'all 0.2s'
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <span style={{ fontSize: '18px' }}>📊</span>
-            <span style={{ fontSize: '16px', fontWeight: '600', color: theme.textPrimary }}>Quick Stats</span>
-          </div>
-          <svg 
-            width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={theme.textSecondary} strokeWidth="2"
-            style={{ transform: collapsedSections.quickStats ? 'rotate(-90deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}
-          >
-            <polyline points="6 9 12 15 18 9"/>
-          </svg>
+          {isEditLayoutMode ? (
+            <>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+              Save Layout
+            </>
+          ) : (
+            <>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+              </svg>
+              Edit Layout
+            </>
+          )}
         </button>
-        
-        {!collapsedSections.quickStats && (
-          <div style={{ 
-            display: 'grid', 
-            gridTemplateColumns: 'repeat(4, 1fr)', 
-            gap: '16px',
-            padding: '16px',
-            background: theme.bgCard,
-            border: `1px solid ${theme.borderLight}`,
-            borderTop: 'none',
-            borderRadius: '0 0 12px 12px'
-          }}>
-            {[
-              { label: 'Your Plan', value: subscription?.plan_type?.replace('_', ' ')?.toUpperCase() || 'FREE', icon: '⭐', color: '#F59E0B' },
-              { label: 'Status', value: subscriptionAccess?.hasAccess ? 'Active' : 'Inactive', icon: '✅', color: '#10B981' },
-              { label: 'Available Hubs', value: hasREBudgetAccess ? '3' : hasBizBudgetAccess ? '2' : '1', icon: '🎯', color: '#3B82F6' },
-              { label: 'AI Features', value: 'Enabled', icon: '🤖', color: '#8B5CF6' }
-            ].map((stat, i) => (
-              <div key={i} style={{
-                padding: '20px',
-                textAlign: 'center',
-                background: theme.bgMain,
-                borderRadius: '12px',
-                border: `1px solid ${theme.borderLight}`
+      </div>
+      
+      {/* Edit Layout Mode Panel */}
+      {isEditLayoutMode && (
+        <div style={{
+          marginBottom: '16px',
+          padding: '16px',
+          background: theme === lightTheme 
+            ? 'linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%)'
+            : 'linear-gradient(135deg, #422006 0%, #78350F 100%)',
+          borderRadius: '12px',
+          border: `2px solid ${theme === lightTheme ? '#F59E0B' : '#D97706'}`
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '18px' }}>✏️</span>
+              <span style={{ fontSize: '15px', fontWeight: '600', color: theme === lightTheme ? '#92400E' : '#FCD34D' }}>
+                Edit Layout Mode
+              </span>
+              <span style={{ 
+                fontSize: '11px', 
+                padding: '3px 8px', 
+                background: theme === lightTheme ? 'rgba(146, 64, 14, 0.15)' : 'rgba(252, 211, 77, 0.2)', 
+                borderRadius: '4px',
+                color: theme === lightTheme ? '#92400E' : '#FCD34D'
               }}>
-                <div style={{ fontSize: '28px', marginBottom: '8px' }}>{stat.icon}</div>
-                <div style={{ fontSize: '20px', fontWeight: '700', color: stat.color, marginBottom: '4px' }}>{stat.value}</div>
-                <div style={{ fontSize: '12px', color: theme.textMuted, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{stat.label}</div>
+                {selectedSections.length} selected
+              </span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <button
+                onClick={selectAllSections}
+                style={{
+                  padding: '6px 12px',
+                  borderRadius: '6px',
+                  background: theme === lightTheme ? 'rgba(146, 64, 14, 0.1)' : 'rgba(252, 211, 77, 0.15)',
+                  border: 'none',
+                  color: theme === lightTheme ? '#92400E' : '#FCD34D',
+                  fontSize: '12px',
+                  fontWeight: '500',
+                  cursor: 'pointer'
+                }}
+              >
+                Select All
+              </button>
+              <button
+                onClick={deselectAllSections}
+                style={{
+                  padding: '6px 12px',
+                  borderRadius: '6px',
+                  background: theme === lightTheme ? 'rgba(146, 64, 14, 0.1)' : 'rgba(252, 211, 77, 0.15)',
+                  border: 'none',
+                  color: theme === lightTheme ? '#92400E' : '#FCD34D',
+                  fontSize: '12px',
+                  fontWeight: '500',
+                  cursor: 'pointer'
+                }}
+              >
+                Deselect All
+              </button>
+              <button
+                onClick={resetToDefault}
+                style={{
+                  padding: '6px 12px',
+                  borderRadius: '6px',
+                  background: theme === lightTheme ? 'rgba(146, 64, 14, 0.1)' : 'rgba(252, 211, 77, 0.15)',
+                  border: 'none',
+                  color: theme === lightTheme ? '#92400E' : '#FCD34D',
+                  fontSize: '12px',
+                  fontWeight: '500',
+                  cursor: 'pointer'
+                }}
+              >
+                Reset Order
+              </button>
+            </div>
+          </div>
+          
+          {/* Reorder Controls */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+            <button
+              onClick={moveSelectedUp}
+              disabled={selectedSections.length === 0}
+              style={{
+                padding: '10px 16px',
+                borderRadius: '8px',
+                background: selectedSections.length > 0 ? '#3B82F6' : theme.bgMain,
+                border: 'none',
+                color: selectedSections.length > 0 ? 'white' : theme.textMuted,
+                fontSize: '13px',
+                fontWeight: '600',
+                cursor: selectedSections.length > 0 ? 'pointer' : 'not-allowed',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                opacity: selectedSections.length > 0 ? 1 : 0.5
+              }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polyline points="18 15 12 9 6 15"/>
+              </svg>
+              Move Up
+            </button>
+            <button
+              onClick={moveSelectedDown}
+              disabled={selectedSections.length === 0}
+              style={{
+                padding: '10px 16px',
+                borderRadius: '8px',
+                background: selectedSections.length > 0 ? '#3B82F6' : theme.bgMain,
+                border: 'none',
+                color: selectedSections.length > 0 ? 'white' : theme.textMuted,
+                fontSize: '13px',
+                fontWeight: '600',
+                cursor: selectedSections.length > 0 ? 'pointer' : 'not-allowed',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                opacity: selectedSections.length > 0 ? 1 : 0.5
+              }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polyline points="6 9 12 15 18 9"/>
+              </svg>
+              Move Down
+            </button>
+            <span style={{ fontSize: '12px', color: theme === lightTheme ? '#92400E' : '#FCD34D', marginLeft: '8px' }}>
+              💡 Tip: Select multiple sections using checkboxes, then use Move Up/Down to reorder
+            </span>
+          </div>
+          
+          {/* Section Order List */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {sectionOrder.map((sectionId, index) => (
+              <div
+                key={sectionId}
+                onClick={() => toggleSectionSelection(sectionId)}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px',
+                  padding: '12px 16px',
+                  background: selectedSections.includes(sectionId) 
+                    ? (theme === lightTheme ? 'rgba(59, 130, 246, 0.15)' : 'rgba(59, 130, 246, 0.25)')
+                    : theme.bgCard,
+                  borderRadius: '10px',
+                  border: selectedSections.includes(sectionId) 
+                    ? '2px solid #3B82F6' 
+                    : `1px solid ${theme.borderLight}`,
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
+                }}
+              >
+                {/* Checkbox */}
+                <div style={{
+                  width: '20px',
+                  height: '20px',
+                  borderRadius: '4px',
+                  background: selectedSections.includes(sectionId) ? '#3B82F6' : theme.bgMain,
+                  border: selectedSections.includes(sectionId) ? 'none' : `2px solid ${theme.borderLight}`,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
+                  {selectedSections.includes(sectionId) && (
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3">
+                      <polyline points="20 6 9 17 4 12"/>
+                    </svg>
+                  )}
+                </div>
+                
+                {/* Position number */}
+                <div style={{
+                  width: '24px',
+                  height: '24px',
+                  borderRadius: '6px',
+                  background: theme === lightTheme ? '#E2E8F0' : '#374151',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '12px',
+                  fontWeight: '700',
+                  color: theme.textSecondary
+                }}>
+                  {index + 1}
+                </div>
+                
+                {/* Section icon and name */}
+                <span style={{ fontSize: '18px' }}>{sectionMeta[sectionId]?.icon}</span>
+                <span style={{ fontSize: '14px', fontWeight: '500', color: theme.textPrimary }}>
+                  {sectionMeta[sectionId]?.title}
+                </span>
+                
+                {/* Drag indicator */}
+                <div style={{ marginLeft: 'auto', color: theme.textMuted }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                    <circle cx="9" cy="5" r="1.5"/>
+                    <circle cx="15" cy="5" r="1.5"/>
+                    <circle cx="9" cy="12" r="1.5"/>
+                    <circle cx="15" cy="12" r="1.5"/>
+                    <circle cx="9" cy="19" r="1.5"/>
+                    <circle cx="15" cy="19" r="1.5"/>
+                  </svg>
+                </div>
               </div>
             ))}
           </div>
-        )}
-      </div>
+        </div>
+      )}
       
-      {/* Product Walkthrough Section - Collapsible */}
-      <div style={{ marginBottom: '24px' }}>
+      {/* Render sections in user-defined order */}
+      {sectionOrder.map((sectionId) => {
+        // Quick Stats Section
+        if (sectionId === 'quickStats') {
+          return (
+            <div key="quickStats" style={{ marginBottom: '24px' }}>
+              <button
+                onClick={() => toggleSection('quickStats')}
+                style={{
+                  width: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '12px 16px',
+                  background: theme.bgCard,
+                  border: `1px solid ${theme.borderLight}`,
+                  borderRadius: collapsedSections.quickStats ? '12px' : '12px 12px 0 0',
+                  cursor: 'pointer',
+                  marginBottom: collapsedSections.quickStats ? '0' : '-1px'
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <span style={{ fontSize: '18px' }}>📊</span>
+                  <span style={{ fontSize: '16px', fontWeight: '600', color: theme.textPrimary }}>Quick Stats</span>
+                </div>
+                <svg 
+                  width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={theme.textSecondary} strokeWidth="2"
+                  style={{ transform: collapsedSections.quickStats ? 'rotate(-90deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}
+                >
+                  <polyline points="6 9 12 15 18 9"/>
+                </svg>
+              </button>
+              
+              {!collapsedSections.quickStats && (
+                <div style={{ 
+                  display: 'grid', 
+                  gridTemplateColumns: 'repeat(4, 1fr)', 
+                  gap: '16px',
+                  padding: '16px',
+                  background: theme.bgCard,
+                  border: `1px solid ${theme.borderLight}`,
+                  borderTop: 'none',
+                  borderRadius: '0 0 12px 12px'
+                }}>
+                  {[
+                    { label: 'Your Plan', value: subscription?.plan_type?.replace('_', ' ')?.toUpperCase() || 'FREE', icon: '⭐', color: '#F59E0B' },
+                    { label: 'Status', value: subscriptionAccess?.hasAccess ? 'Active' : 'Inactive', icon: '✅', color: '#10B981' },
+                    { label: 'Available Hubs', value: hasREBudgetAccess ? '3' : hasBizBudgetAccess ? '2' : '1', icon: '🎯', color: '#3B82F6' },
+                    { label: 'AI Features', value: 'Enabled', icon: '🤖', color: '#8B5CF6' }
+                  ].map((stat, i) => (
+                    <div key={i} style={{
+                      padding: '20px',
+                      textAlign: 'center',
+                      background: theme.bgMain,
+                      borderRadius: '12px',
+                      border: `1px solid ${theme.borderLight}`
+                    }}>
+                      <div style={{ fontSize: '28px', marginBottom: '8px' }}>{stat.icon}</div>
+                      <div style={{ fontSize: '20px', fontWeight: '700', color: stat.color, marginBottom: '4px' }}>{stat.value}</div>
+                      <div style={{ fontSize: '12px', color: theme.textMuted, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{stat.label}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        }
+        
+        // Features/Product Walkthrough Section
+        if (sectionId === 'features') {
+          return (
+      <div key="features" style={{ marginBottom: '24px' }}>
         <button
           onClick={() => toggleSection('features')}
           style={{
@@ -8601,8 +9060,14 @@ function NewsfeedHome({ theme, user, profile, subscription, subscriptionAccess, 
           </div>
         )}
       </div>
-      
-      {/* Upgrade Banner (for non-premium users) */}
+          );
+        }
+        
+        // News Section (Financial News & Tips)
+        if (sectionId === 'news') {
+          return (
+            <React.Fragment key="news">
+      {/* Upgrade Banner (for non-premium users) - Between features and news */}
       {!isPremium && (
         <div style={{
           ...cardStyle,
@@ -8823,9 +9288,14 @@ function NewsfeedHome({ theme, user, profile, subscription, subscriptionAccess, 
           </div>
         )}
       </div>
-      
-      {/* Real Estate & Interest Rate News - Collapsible */}
-      <div style={{ marginBottom: '24px' }}>
+            </React.Fragment>
+          );
+        }
+        
+        // Real Estate & Interest Rate News Section
+        if (sectionId === 'realEstateNews') {
+          return (
+      <div key="realEstateNews" style={{ marginBottom: '24px' }}>
         <button
           onClick={() => toggleSection('realEstateNews')}
           style={{
@@ -9073,9 +9543,13 @@ function NewsfeedHome({ theme, user, profile, subscription, subscriptionAccess, 
           </div>
         )}
       </div>
-      
-      {/* Social Media Integration - Collapsible */}
-      <div style={{ marginBottom: '24px' }}>
+          );
+        }
+        
+        // Social Media Hub Section
+        if (sectionId === 'socialMedia') {
+          return (
+      <div key="socialMedia" style={{ marginBottom: '24px' }}>
         <button
           onClick={() => toggleSection('socialMedia')}
           style={{
@@ -9375,6 +9849,11 @@ function NewsfeedHome({ theme, user, profile, subscription, subscriptionAccess, 
           </div>
         )}
       </div>
+          );
+        }
+        
+        return null;
+      })}
     </div>
   );
 }
