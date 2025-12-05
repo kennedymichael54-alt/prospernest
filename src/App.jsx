@@ -6069,181 +6069,174 @@ function Dashboard({
         <div style={{ 
           position: 'fixed', 
           inset: 0, 
-          background: 'rgba(0,0,0,0.8)', 
-          backdropFilter: 'blur(12px)', 
+          background: 'rgba(0,0,0,0.5)', 
+          backdropFilter: 'blur(8px)', 
           display: 'flex', 
           alignItems: 'center', 
           justifyContent: 'center', 
           zIndex: 2500,
           animation: 'fadeIn 0.3s ease'
         }}>
+          <style>{`
+            @keyframes floatPenny {
+              0%, 100% { transform: translateY(0px); }
+              50% { transform: translateY(-8px); }
+            }
+            @keyframes heartBeat {
+              0%, 100% { transform: scale(1); }
+              50% { transform: scale(1.1); }
+            }
+          `}</style>
           <div style={{ 
-            background: 'linear-gradient(165deg, #1E3A5F 0%, #0D2137 50%, #1E1B4B 100%)',
-            borderRadius: '32px', 
-            padding: '0', 
+            background: '#FFFFFF',
+            borderRadius: '24px', 
+            padding: '48px 56px', 
             textAlign: 'center', 
-            maxWidth: '520px',
+            maxWidth: '480px',
             width: '90%',
-            boxShadow: '0 30px 100px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.1)',
-            overflow: 'hidden',
-            animation: 'slideUp 0.4s ease'
+            boxShadow: '0 25px 80px rgba(0,0,0,0.15)',
+            position: 'relative'
           }}>
-            {/* Header with gradient accent */}
+            {/* Penny Icon at Top */}
             <div style={{
-              background: 'linear-gradient(135deg, #F59E0B 0%, #FBBF24 50%, #F59E0B 100%)',
-              padding: '24px 40px 20px',
-              position: 'relative'
+              position: 'absolute',
+              top: '-50px',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              animation: 'floatPenny 3s ease-in-out infinite'
             }}>
               <div style={{
-                fontFamily: "'Georgia', serif",
-                fontSize: '32px',
-                fontWeight: '700',
-                color: '#1E3A5F',
-                letterSpacing: '2px',
-                textTransform: 'uppercase'
-              }}>
-                ProsperNest
-              </div>
-            </div>
-            
-            {/* Penny Avatar with Trophy */}
-            <div style={{
-              marginTop: '-30px',
-              position: 'relative',
-              zIndex: 10
-            }}>
-              <div style={{
-                width: '120px',
-                height: '120px',
+                width: '100px',
+                height: '100px',
                 borderRadius: '50%',
-                background: 'linear-gradient(135deg, #F59E0B, #FBBF24)',
+                background: 'linear-gradient(145deg, #FFD93D 0%, #F4C430 50%, #DAA520 100%)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                margin: '0 auto',
-                boxShadow: '0 8px 32px rgba(245, 158, 11, 0.4), 0 0 0 4px rgba(255,255,255,0.2)',
-                position: 'relative'
+                boxShadow: '0 12px 40px rgba(244, 196, 48, 0.4), inset 0 -4px 8px rgba(0,0,0,0.1), inset 0 4px 8px rgba(255,255,255,0.4)',
+                border: '4px solid #FFFFFF'
               }}>
-                {/* Penny emoji */}
-                <span style={{ fontSize: '70px' }}>🏆</span>
+                {/* Penny Face */}
+                <div style={{ position: 'relative' }}>
+                  {/* Dollar sign on forehead */}
+                  <div style={{
+                    position: 'absolute',
+                    top: '-18px',
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    fontSize: '16px',
+                    fontWeight: '700',
+                    color: '#B8860B'
+                  }}>$</div>
+                  {/* Eyes */}
+                  <div style={{ display: 'flex', gap: '16px', marginBottom: '4px' }}>
+                    <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#1F2937' }} />
+                    <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#1F2937' }} />
+                  </div>
+                  {/* Smile */}
+                  <div style={{
+                    width: '28px',
+                    height: '14px',
+                    borderRadius: '0 0 28px 28px',
+                    border: '3px solid #1F2937',
+                    borderTop: 'none',
+                    margin: '0 auto'
+                  }} />
+                </div>
               </div>
             </div>
             
-            {/* Content */}
-            <div style={{ padding: '24px 40px 40px' }}>
-              <h2 style={{ 
-                fontSize: '28px', 
-                fontWeight: '800', 
-                color: '#F59E0B',
-                marginBottom: '8px',
-                letterSpacing: '1px'
-              }}>
-                WELCOME TO THE TEAM
-              </h2>
-              
+            {/* Thank You Text */}
+            <div style={{ marginTop: '40px', marginBottom: '24px' }}>
               <div style={{
-                width: '60px',
-                height: '3px',
-                background: 'linear-gradient(90deg, #F59E0B, #FBBF24)',
-                margin: '16px auto 24px',
-                borderRadius: '2px'
-              }} />
-              
-              <p style={{ 
-                color: 'rgba(255,255,255,0.9)', 
-                fontSize: '16px', 
-                lineHeight: 1.7, 
-                marginBottom: '16px'
+                fontFamily: "'Georgia', 'Times New Roman', serif",
+                fontSize: '52px',
+                fontWeight: '400',
+                color: '#374151',
+                lineHeight: 1.1,
+                fontStyle: 'italic',
+                letterSpacing: '-1px'
               }}>
-                Hi <strong style={{ color: '#FBBF24' }}>{profile?.firstName || user?.email?.split('@')[0] || 'Friend'}</strong>! 🎉
-              </p>
-              
-              <p style={{ 
-                color: 'rgba(255,255,255,0.8)', 
-                fontSize: '15px', 
-                lineHeight: 1.7, 
-                marginBottom: '16px'
-              }}>
-                Penny and the entire ProsperNest team are <strong style={{ color: '#F59E0B' }}>thrilled</strong> to have you as a valued member of our community.
-              </p>
-              
-              <p style={{ 
-                color: 'rgba(255,255,255,0.75)', 
-                fontSize: '14px', 
-                lineHeight: 1.7, 
-                marginBottom: '24px'
-              }}>
-                Your trust means everything to us. We're committed to helping you build the financial future you deserve. Together, we'll make your money work smarter! 💪
-              </p>
-              
-              {/* Penny's signature */}
+                Thank you
+                <span style={{ 
+                  display: 'inline-block',
+                  marginLeft: '8px',
+                  animation: 'heartBeat 1.5s ease-in-out infinite',
+                  color: '#9CA3AF'
+                }}>♡</span>
+              </div>
+            </div>
+            
+            {/* Message */}
+            <div style={{
+              color: '#6B7280',
+              fontSize: '15px',
+              lineHeight: 1.8,
+              fontStyle: 'italic',
+              maxWidth: '360px',
+              margin: '0 auto 32px'
+            }}>
+              Thank you so much for being part of our community!
+              <br /><br />
+              We really appreciate all the support you have given us, 
+              and look forward to continuing to connect with you in the future.
+            </div>
+            
+            {/* Signature */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '12px',
+              marginBottom: '28px',
+              padding: '16px 24px',
+              background: '#F9FAFB',
+              borderRadius: '12px'
+            }}>
               <div style={{
+                width: '40px',
+                height: '40px',
+                borderRadius: '50%',
+                background: 'linear-gradient(135deg, #EC4899, #F472B6)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                gap: '12px',
-                marginBottom: '28px',
-                padding: '16px 24px',
-                background: 'rgba(255,255,255,0.05)',
-                borderRadius: '16px',
-                border: '1px solid rgba(255,255,255,0.1)'
+                fontSize: '18px'
               }}>
-                <div style={{
-                  width: '48px',
-                  height: '48px',
-                  borderRadius: '50%',
-                  background: 'linear-gradient(135deg, #EC4899, #F472B6)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '24px',
-                  boxShadow: '0 4px 12px rgba(236, 72, 153, 0.3)'
-                }}>
-                  😊
-                </div>
-                <div style={{ textAlign: 'left' }}>
-                  <div style={{ color: '#F472B6', fontSize: '14px', fontWeight: '600' }}>With gratitude,</div>
-                  <div style={{ color: 'white', fontSize: '18px', fontWeight: '700' }}>Penny & Team ProsperNest</div>
-                </div>
+                💜
               </div>
-              
-              {/* CTA Button */}
-              <button 
-                onClick={() => setShowWelcomeModal(false)}
-                onMouseEnter={(e) => {
-                  e.target.style.transform = 'translateY(-2px)';
-                  e.target.style.boxShadow = '0 12px 32px rgba(245, 158, 11, 0.5)';
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.transform = 'translateY(0)';
-                  e.target.style.boxShadow = '0 8px 24px rgba(245, 158, 11, 0.4)';
-                }}
-                style={{ 
-                  padding: '16px 48px', 
-                  background: 'linear-gradient(135deg, #F59E0B 0%, #FBBF24 100%)',
-                  border: 'none', 
-                  borderRadius: '14px', 
-                  color: '#1E3A5F',
-                  fontSize: '16px', 
-                  fontWeight: '700', 
-                  cursor: 'pointer',
-                  boxShadow: '0 8px 24px rgba(245, 158, 11, 0.4)',
-                  transition: 'all 0.2s ease',
-                  letterSpacing: '0.5px'
-                }}
-              >
-                Let's Get Started! →
-              </button>
-              
-              {/* Footer note */}
-              <div style={{ 
-                marginTop: '20px', 
-                fontSize: '12px', 
-                color: 'rgba(255,255,255,0.5)' 
-              }}>
-                Questions? We're always here to help! 💬
+              <div style={{ textAlign: 'left' }}>
+                <div style={{ color: '#9CA3AF', fontSize: '12px' }}>With gratitude,</div>
+                <div style={{ color: '#374151', fontSize: '15px', fontWeight: '600' }}>Penny & Team ProsperNest</div>
               </div>
             </div>
+            
+            {/* Continue Button */}
+            <button 
+              onClick={() => setShowWelcomeModal(false)}
+              onMouseEnter={(e) => {
+                e.target.style.transform = 'translateY(-2px)';
+                e.target.style.boxShadow = '0 8px 24px rgba(139, 92, 246, 0.4)';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.transform = 'translateY(0)';
+                e.target.style.boxShadow = '0 4px 16px rgba(139, 92, 246, 0.3)';
+              }}
+              style={{ 
+                padding: '14px 40px', 
+                background: 'linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%)',
+                border: 'none', 
+                borderRadius: '12px', 
+                color: 'white',
+                fontSize: '15px', 
+                fontWeight: '600', 
+                cursor: 'pointer',
+                boxShadow: '0 4px 16px rgba(139, 92, 246, 0.3)',
+                transition: 'all 0.2s ease'
+              }}
+            >
+              Continue to Dashboard
+            </button>
           </div>
         </div>
       )}
