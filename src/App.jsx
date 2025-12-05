@@ -12,9 +12,7 @@ import ReportsTab from './components/ReportsTab';
 import RetirementTab from './components/RetirementTab';
 import SalesTrackerTab from './components/SalesTrackerTab';
 import BizBudgetHub from './components/BizBudgetHub';
-import RealEstateCommandCenter from './components/RealEstateCommandCenter';
 import ProsperNestLandingV4 from './components/ProsperNestLandingV4';
-import { InfoTooltip, MetricLabel, ProjectionBadge, ActualDataBadge, FINANCIAL_TOOLTIPS } from './components/InfoTooltip';
 // Default data - baked in from real bank/retirement imports
 import { DEFAULT_TRANSACTIONS, DEFAULT_RETIREMENT_DATA } from './data/defaultData';
 
@@ -62,22 +60,20 @@ function SiteStatusIndicator({ showLabel = true, darkMode = true }) {
         style={{
           display: 'inline-flex',
           alignItems: 'center',
-          gap: showLabel ? '6px' : '0',
-          padding: showLabel ? '6px 12px' : '0',
-          background: showLabel ? (darkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)') : 'transparent',
-          border: showLabel ? `1px solid ${darkMode ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.1)'}` : 'none',
+          gap: '6px',
+          padding: showLabel ? '6px 12px' : '6px 8px',
+          background: darkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
+          border: `1px solid ${darkMode ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.1)'}`,
           borderRadius: '20px',
           cursor: isClickable ? 'pointer' : 'default',
-          transition: 'all 0.2s',
-          flexShrink: 0
+          transition: 'all 0.2s'
         }}
         title={`Site Status: ${config.label}`}
       >
         <span style={{ 
           color: config.color, 
-          fontSize: showLabel ? '10px' : '7px',
-          lineHeight: 1,
-          flexShrink: 0
+          fontSize: '10px',
+          lineHeight: 1
         }}>
           {config.dot}
         </span>
@@ -1348,7 +1344,6 @@ const saveProfileToDB = async (userId, profile, forceUpdate = false) => {
       gender: profile.gender,
       photo_url: profile.photoUrl,
       sidehustle_name: profile.sidehustleName,
-      side_hustle: profile.sideHustle,
       account_labels: profile.accountLabels ? JSON.stringify(profile.accountLabels) : null,
       updated_at: new Date().toISOString()
     }, { onConflict: 'user_id' });
@@ -1366,12 +1361,6 @@ const dbToAppProfile = (p) => {
   try {
     if (p?.account_labels) {
       accountLabels = typeof p.account_labels === 'string' ? JSON.parse(p.account_labels) : p.account_labels;
-    } else {
-      // Check localStorage as fallback
-      const savedLabels = localStorage.getItem('pn_accountLabels');
-      if (savedLabels) {
-        accountLabels = JSON.parse(savedLabels);
-      }
     }
   } catch (e) {
     console.log('Failed to parse account_labels:', e);
@@ -1385,7 +1374,6 @@ const dbToAppProfile = (p) => {
     gender: p?.gender || '',
     photoUrl: p?.photo_url || '',
     sidehustleName: p?.sidehustle_name || '',
-    sideHustle: p?.side_hustle || '',
     accountLabels
   };
 };
@@ -1589,22 +1577,12 @@ function App() {
     dateOfBirth: '',
     gender: '',
     photoUrl: '',
-    sidehustleName: '',
-    sideHustle: ''
+    sidehustleName: ''
   });
-  const [userPreferences, setUserPreferences] = useState(() => {
-    // Initialize from localStorage for immediate access
-    try {
-      const savedAvatar = localStorage.getItem('pn_userAvatar');
-      const savedTheme = localStorage.getItem('pn_darkMode');
-      return {
-        theme: savedTheme === 'true' ? 'dark' : 'light',
-        language: 'en',
-        avatar: savedAvatar || '👨‍💼'
-      };
-    } catch {
-      return { theme: 'light', language: 'en', avatar: '👨‍💼' };
-    }
+  const [userPreferences, setUserPreferences] = useState({
+    theme: 'light',
+    language: 'en',
+    avatar: '👨‍💼'
   });
   const [lastImportDate, setLastImportDate] = useState(() => {
     try {
@@ -1634,7 +1612,7 @@ function App() {
       const savedProfile = localStorage.getItem(`pn_profile_${userId}`);
       if (savedProfile) {
         localProfile = JSON.parse(savedProfile);
-        localHasRealData = !!(localProfile.firstName || localProfile.lastName || localProfile.phone || localProfile.sideHustle);
+        localHasRealData = !!(localProfile.firstName || localProfile.lastName || localProfile.phone);
         console.log('📦 [Data] Found localStorage profile:', localProfile.firstName, localProfile.lastName, '| hasRealData:', localHasRealData);
       }
     } catch (e) {
@@ -1677,7 +1655,7 @@ function App() {
         }
         
         // Check if DB profile has actual meaningful data
-        const dbHasRealData = !!(loadedProfile.firstName || loadedProfile.lastName || loadedProfile.phone || loadedProfile.dateOfBirth || loadedProfile.sideHustle);
+        const dbHasRealData = !!(loadedProfile.firstName || loadedProfile.lastName || loadedProfile.phone || loadedProfile.dateOfBirth);
         
         console.log('🔍 [Data] DB profile check - hasRealData:', dbHasRealData, '| firstName:', loadedProfile.firstName, '| lastName:', loadedProfile.lastName);
         
@@ -1741,20 +1719,10 @@ function App() {
       
       // Load user preferences/settings
       if (dbData.settings) {
-        // Get saved avatar from localStorage (user's last explicit choice)
-        const savedLocalAvatar = localStorage.getItem('pn_userAvatar');
-        const dbAvatar = dbData.settings.avatar;
-        
-        // Prefer localStorage avatar if DB has default or no value
-        // This preserves user's choice even if DB sync failed
-        const finalAvatar = (savedLocalAvatar && savedLocalAvatar !== '👨‍💼') 
-          ? savedLocalAvatar 
-          : (dbAvatar || savedLocalAvatar || '👨‍💼');
-        
         const prefs = {
           theme: dbData.settings.theme || 'light',
           language: dbData.settings.language || 'en',
-          avatar: finalAvatar
+          avatar: dbData.settings.avatar || '👨‍💼'
         };
         setUserPreferences(prefs);
         
@@ -1819,10 +1787,10 @@ function App() {
     console.log('💾 [Profile] handleUpdateProfile called:', newProfile);
     
     // VALIDATION: Check if the new profile has any meaningful data
-    const hasNewData = !!(newProfile.firstName || newProfile.lastName || newProfile.phone || newProfile.dateOfBirth || newProfile.gender || newProfile.sideHustle || newProfile.sidehustleName);
+    const hasNewData = !!(newProfile.firstName || newProfile.lastName || newProfile.phone || newProfile.dateOfBirth || newProfile.gender);
     
     // Check if current profile has data
-    const currentHasData = !!(profile.firstName || profile.lastName || profile.phone || profile.sideHustle);
+    const currentHasData = !!(profile.firstName || profile.lastName || profile.phone);
     
     // PROTECTION: Don't overwrite existing data with empty data unless user explicitly provided empty values
     if (!hasNewData && currentHasData && forceUpdate) {
@@ -1840,8 +1808,7 @@ function App() {
         dateOfBirth: newProfile.dateOfBirth || profile.dateOfBirth,
         gender: newProfile.gender || profile.gender,
         photoUrl: newProfile.photoUrl || profile.photoUrl,
-        sidehustleName: newProfile.sidehustleName || profile.sidehustleName,
-        sideHustle: newProfile.sideHustle || profile.sideHustle
+        sidehustleName: newProfile.sidehustleName || profile.sidehustleName
       };
       
       console.log('🛡️ [Profile] Merged profile to preserve data:', mergedProfile.firstName, mergedProfile.lastName);
@@ -3092,14 +3059,7 @@ function Dashboard({
   const [tabRestored, setTabRestored] = useState(false); // Track if we've restored the tab
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
-  const [notificationsDismissed, setNotificationsDismissed] = useState(() => {
-    // Initialize from localStorage
-    try {
-      return localStorage.getItem('pn_notificationsDismissed') === 'true';
-    } catch {
-      return false;
-    }
-  });
+  const [notificationsDismissed, setNotificationsDismissed] = useState(false);
   const [showSearchResults, setShowSearchResults] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
@@ -3243,30 +3203,10 @@ function Dashboard({
   // Sync accountLabels from profile when it loads
   useEffect(() => {
     if (profile?.accountLabels) {
-      // Check if profile has non-default labels
-      const profileHasCustomLabels = profile.accountLabels.personal !== 'Personal' || 
-                                      profile.accountLabels.sidehustle !== 'Side Hustle';
-      
-      // Get current localStorage labels
-      const savedLabels = localStorage.getItem('pn_accountLabels');
-      const localLabels = savedLabels ? JSON.parse(savedLabels) : null;
-      const localHasCustomLabels = localLabels && 
-        (localLabels.personal !== 'Personal' || localLabels.sidehustle !== 'Side Hustle');
-      
-      // Prefer localStorage if it has custom labels and profile doesn't
-      if (localHasCustomLabels && !profileHasCustomLabels) {
-        console.log('🛡️ Preserving localStorage account labels:', localLabels);
-        setAccountLabels(localLabels);
-        // Push localStorage labels to database to fix sync
-        if (user?.id) {
-          const newProfile = { ...profile, accountLabels: localLabels };
-          saveProfileToDB(user.id, newProfile, true);
-        }
-      } else if (profileHasCustomLabels) {
-        setAccountLabels(profile.accountLabels);
-        localStorage.setItem('pn_accountLabels', JSON.stringify(profile.accountLabels));
-        console.log('📥 Account labels synced from database:', profile.accountLabels);
-      }
+      setAccountLabels(profile.accountLabels);
+      // Also update localStorage as fallback
+      localStorage.setItem('pn_accountLabels', JSON.stringify(profile.accountLabels));
+      console.log('📥 Account labels synced from database:', profile.accountLabels);
     }
   }, [profile?.accountLabels]);
   
@@ -3328,8 +3268,7 @@ function Dashboard({
         dateOfBirth: profile.dateOfBirth || '',
         gender: profile.gender || '',
         photoUrl: profile.photoUrl || '',
-        sidehustleName: profile.sidehustleName || '',
-        sideHustle: profile.sideHustle || ''
+        sidehustleName: profile.sidehustleName || ''
       });
     }
   }, [showManageAccountModal, profile, user?.email]);
@@ -3474,8 +3413,7 @@ function Dashboard({
         dateOfBirth: '',
         gender: '',
         photoUrl: '',
-        sidehustleName: '',
-        sideHustle: ''
+        sidehustleName: ''
       });
       
       console.log('✅ [Auth] State cleared, navigating to landing');
@@ -3669,11 +3607,7 @@ function Dashboard({
       case 'home':
         return <GradientSection tab="home"><DashboardHome transactions={transactions} goals={goals} bills={bills} tasks={tasks || []} theme={theme} lastImportDate={lastImportDate} accountLabels={accountLabels} editingAccountLabel={editingAccountLabel} setEditingAccountLabel={setEditingAccountLabel} updateAccountLabel={updateAccountLabel} /></GradientSection>;
       case 'sales':
-        // Conditional rendering: Real Estate users get specialized Command Center
-        if (profile.sideHustle === 'real-estate') {
-          return <GradientSection tab="sales"><RealEstateCommandCenter theme={theme} isDarkMode={theme.mode === 'dark'} lastImportDate={lastImportDate} userId={user?.id} userEmail={user?.email} profile={profile} onUpdateProfile={saveProfileToDB} /></GradientSection>;
-        }
-        return <GradientSection tab="sales"><SalesTrackerTab theme={theme} lastImportDate={lastImportDate} userId={user?.id} userEmail={user?.email} sideHustle={profile.sideHustle} profile={profile} /></GradientSection>;
+        return <GradientSection tab="sales"><SalesTrackerTab theme={theme} lastImportDate={lastImportDate} userId={user?.id} userEmail={user?.email} /></GradientSection>;
       case 'budget':
         return <GradientSection tab="budget"><BudgetTab transactions={transactions} onNavigateToImport={() => setActiveTab('import')} theme={theme} lastImportDate={lastImportDate} /></GradientSection>;
       case 'transactions':
@@ -3717,7 +3651,6 @@ function Dashboard({
           userAvatar={userAvatar}
           onAvatarChange={(avatar) => {
             setUserAvatar(avatar);
-            localStorage.setItem('pn_userAvatar', avatar); // Immediate persistence
           }}
           memojiAvatars={memojiAvatars}
           languages={languages}
@@ -3963,12 +3896,12 @@ function Dashboard({
       }}>
         {/* Logo Area with Collapse Button */}
         <div style={{ 
-          padding: sidebarCollapsed ? '16px 12px' : '20px 20px', 
+          padding: sidebarCollapsed ? '20px 16px' : '20px 20px', 
           borderBottom: `1px solid ${theme.mode === 'light' ? 'rgba(255, 255, 255, 0.1)' : theme.borderLight}`, 
           display: 'flex',
           alignItems: 'center',
           justifyContent: sidebarCollapsed ? 'center' : 'space-between',
-          minHeight: sidebarCollapsed ? '70px' : '80px'
+          minHeight: '80px'
         }}>
           {/* Logo */}
           <div 
@@ -3979,15 +3912,15 @@ function Dashboard({
               gap: '12px',
               cursor: 'pointer',
               overflow: 'hidden',
-              flex: sidebarCollapsed ? 'none' : 1,
+              flex: 1,
               minWidth: 0,
-              marginRight: sidebarCollapsed ? '0' : '12px'
+              marginRight: '12px'
             }}
           >
             <div style={{
-              width: sidebarCollapsed ? '44px' : '42px',
-              height: sidebarCollapsed ? '44px' : '42px',
-              minWidth: sidebarCollapsed ? '44px' : '42px',
+              width: '42px',
+              height: '42px',
+              minWidth: '42px',
               flexShrink: 0,
               borderRadius: '12px',
               background: 'linear-gradient(135deg, #EC4899 0%, #F472B6 100%)',
@@ -3996,7 +3929,7 @@ function Dashboard({
               justifyContent: 'center',
               boxShadow: '0 4px 16px rgba(236, 72, 153, 0.4)'
             }}>
-              <PennyLogo size={sidebarCollapsed ? 30 : 28} />
+              <PennyLogo size={28} />
             </div>
             {!sidebarCollapsed && (
               <div style={{ minWidth: 0, overflow: 'hidden' }}>
@@ -4013,58 +3946,58 @@ function Dashboard({
                 <div style={{
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '4px',
+                  gap: '6px',
                   marginTop: '2px',
-                  flexWrap: 'nowrap'
+                  flexWrap: 'wrap'
                 }}>
                   <span style={{ 
                     background: 'linear-gradient(135deg, #F59E0B, #D97706)', 
-                    padding: '1px 5px', 
-                    borderRadius: '4px', 
-                    fontSize: '8px', 
+                    padding: '2px 8px', 
+                    borderRadius: '6px', 
+                    fontSize: '9px', 
                     fontWeight: '700', 
                     color: 'white',
                     textTransform: 'uppercase',
-                    letterSpacing: '0.3px',
+                    letterSpacing: '0.5px',
                     flexShrink: 0
                   }}>Beta</span>
                   {/* Role Badge for Admin/Tester */}
                   {userRole === USER_ROLES.ADMIN && (
                     <span style={{ 
                       background: 'linear-gradient(135deg, #8B5CF6, #7C3AED)', 
-                      padding: '1px 5px', 
-                      borderRadius: '4px', 
-                      fontSize: '8px', 
+                      padding: '2px 8px', 
+                      borderRadius: '6px', 
+                      fontSize: '9px', 
                       fontWeight: '700', 
                       color: 'white',
                       textTransform: 'uppercase',
-                      letterSpacing: '0.3px',
+                      letterSpacing: '0.5px',
                       flexShrink: 0
                     }}>Admin</span>
                   )}
                   {userRole === USER_ROLES.TESTER && (
                     <span style={{ 
                       background: 'linear-gradient(135deg, #EF4444, #DC2626)', 
-                      padding: '1px 5px', 
-                      borderRadius: '4px', 
-                      fontSize: '8px', 
+                      padding: '2px 8px', 
+                      borderRadius: '6px', 
+                      fontSize: '9px', 
                       fontWeight: '700', 
                       color: 'white',
                       textTransform: 'uppercase',
-                      letterSpacing: '0.3px',
+                      letterSpacing: '0.5px',
                       flexShrink: 0
                     }}>Tester</span>
                   )}
                   {userRole === USER_ROLES.OWNER && (
                     <span style={{ 
                       background: 'linear-gradient(135deg, #10B981, #059669)', 
-                      padding: '1px 5px', 
-                      borderRadius: '4px', 
-                      fontSize: '8px', 
+                      padding: '2px 8px', 
+                      borderRadius: '6px', 
+                      fontSize: '9px', 
                       fontWeight: '700', 
                       color: 'white',
                       textTransform: 'uppercase',
-                      letterSpacing: '0.3px',
+                      letterSpacing: '0.5px',
                       flexShrink: 0
                     }}>Owner</span>
                   )}
@@ -4610,6 +4543,71 @@ function Dashboard({
             )
           ))}
         </nav>
+
+        {/* Spacer for better logout visibility */}
+        <div style={{ height: '48px' }} />
+
+        {/* Logout Button - Dark Sidebar Style */}
+        <div style={{ 
+          padding: sidebarCollapsed ? '12px 8px' : '16px', 
+          borderTop: '1px solid rgba(255, 255, 255, 0.08)'
+        }}>
+          {sidebarCollapsed ? (
+            <div style={{ display: 'flex', justifyContent: 'center' }}>
+              <div
+                onClick={handleSignOut}
+                style={{
+                  width: '48px',
+                  height: '48px',
+                  borderRadius: '12px',
+                  background: 'rgba(239, 68, 68, 0.15)',
+                  border: '1px solid rgba(239, 68, 68, 0.25)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#F87171',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease'
+                }}
+                title="Logout"
+              >
+                <Icons.SignOut />
+              </div>
+            </div>
+          ) : (
+            <div
+              onClick={handleSignOut}
+              className="logout-btn"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
+                padding: '12px 16px',
+                borderRadius: '12px',
+                cursor: 'pointer',
+                color: '#F87171',
+                fontSize: '14px',
+                fontWeight: '600',
+                background: 'rgba(239, 68, 68, 0.12)',
+                border: '1px solid rgba(239, 68, 68, 0.2)',
+                transition: 'all 0.2s ease'
+              }}
+            >
+              <div style={{
+                width: '32px',
+                height: '32px',
+                borderRadius: '8px',
+                background: 'rgba(239, 68, 68, 0.15)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                <Icons.SignOut />
+              </div>
+              <span>Logout</span>
+            </div>
+          )}
+        </div>
       </aside>
 
       {/* Main Content */}
@@ -5034,10 +5032,7 @@ function Dashboard({
                       </span>
                     </div>
                     <button
-                      onClick={() => {
-                        setNotificationsDismissed(true);
-                        localStorage.setItem('pn_notificationsDismissed', 'true');
-                      }}
+                      onClick={() => setNotificationsDismissed(true)}
                       style={{
                         background: notificationsDismissed ? '#E5E7EB' : '#6366F115',
                         border: 'none',
@@ -5269,29 +5264,6 @@ function Dashboard({
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={activeTab === 'settings' ? theme.primary : theme.textMuted} strokeWidth="2" strokeLinecap="round">
                   <circle cx="12" cy="12" r="3"/>
                   <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
-                </svg>
-              </button>
-              
-              {/* Logout Button */}
-              <button
-                onClick={handleSignOut}
-                title="Logout"
-                style={{
-                  background: 'transparent',
-                  border: 'none',
-                  cursor: 'pointer',
-                  padding: '8px',
-                  borderRadius: '8px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  transition: 'background 0.2s'
-                }}
-              >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#EF4444" strokeWidth="2" strokeLinecap="round">
-                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-                  <polyline points="16 17 21 12 16 7"/>
-                  <line x1="21" y1="12" x2="9" y2="12"/>
                 </svg>
               </button>
             </div>
@@ -5807,8 +5779,7 @@ function Dashboard({
                       <button
                         key={i}
                         onClick={() => { 
-                          setUserAvatar(emoji);
-                          localStorage.setItem('pn_userAvatar', emoji); // Immediate persistence
+                          setUserAvatar(emoji); // This now syncs to database
                         }}
                         style={{
                           width: '44px',
@@ -5851,8 +5822,7 @@ function Dashboard({
                           if (file) {
                             const reader = new FileReader();
                             reader.onloadend = () => {
-                              setUserAvatar(reader.result);
-                              localStorage.setItem('pn_userAvatar', reader.result); // Immediate persistence
+                              setUserAvatar(reader.result); // This now syncs to database
                             };
                             reader.readAsDataURL(file);
                           }
@@ -5949,80 +5919,6 @@ function Dashboard({
               </div>
             </div>
             
-            {/* Side Hustle / Profession Selector */}
-            <div style={{ marginBottom: '24px' }}>
-              <label style={{ display: 'block', fontSize: '14px', color: theme.textSecondary, marginBottom: '6px' }}>
-                Side Hustle / Profession
-              </label>
-              <select 
-                value={editProfile.sideHustle || ''}
-                onChange={(e) => setEditProfile({...editProfile, sideHustle: e.target.value})}
-                style={{ 
-                  width: '100%', 
-                  padding: '12px', 
-                  background: theme.inputBg, 
-                  border: editProfile.sideHustle === 'real-estate' ? '2px solid #10B981' : `1px solid ${theme.border}`, 
-                  borderRadius: '8px', 
-                  color: theme.textPrimary, 
-                  fontSize: '14px', 
-                  boxSizing: 'border-box',
-                  cursor: 'pointer'
-                }}
-              >
-                <option value="">Select your profession...</option>
-                <option value="real-estate">🏠 Real Estate Agent ⭐</option>
-                <option value="photographer">📸 Photographer</option>
-                <option value="hair-stylist">💇 Hair Stylist</option>
-                <option value="makeup-artist">💄 Makeup Artist</option>
-                <option value="fitness-trainer">💪 Fitness Trainer</option>
-                <option value="freelance-creative">🎨 Freelance Creative</option>
-                <option value="content-creator">📱 Content Creator</option>
-                <option value="music-dj">🎵 Musician / DJ</option>
-                <option value="consultant">💼 Consultant</option>
-                <option value="event-planner">🎉 Event Planner</option>
-                <option value="ecommerce">🛒 E-commerce Seller</option>
-                <option value="handyman">🔧 Handyman / Contractor</option>
-                <option value="pet-services">🐕 Pet Services</option>
-                <option value="notary">📋 Notary / Mobile Services</option>
-                <option value="general-sales">💰 General Sales</option>
-                <option value="other">✨ Other</option>
-              </select>
-              {editProfile.sideHustle === 'real-estate' && (
-                <div style={{ 
-                  marginTop: '8px', 
-                  padding: '10px 14px', 
-                  background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(6, 182, 212, 0.1))', 
-                  borderRadius: '8px',
-                  border: '1px solid rgba(16, 185, 129, 0.3)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px'
-                }}>
-                  <span style={{ fontSize: '16px' }}>🏠</span>
-                  <span style={{ fontSize: '13px', color: '#10B981', fontWeight: '600' }}>
-                    Real Estate Command Center unlocked!
-                  </span>
-                </div>
-              )}
-              {editProfile.sideHustle && editProfile.sideHustle !== 'real-estate' && (
-                <div style={{ 
-                  marginTop: '8px', 
-                  padding: '10px 14px', 
-                  background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(236, 72, 153, 0.1))', 
-                  borderRadius: '8px',
-                  border: '1px solid rgba(139, 92, 246, 0.3)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px'
-                }}>
-                  <span style={{ fontSize: '16px' }}>📊</span>
-                  <span style={{ fontSize: '13px', color: theme.primary, fontWeight: '600' }}>
-                    Sales Professional dashboard ready!
-                  </span>
-                </div>
-              )}
-            </div>
-            
             {/* Save Button */}
             <button 
               onClick={() => { saveProfile(editProfile); setShowManageAccountModal(false); setShowAvatarPicker(false); }}
@@ -6088,13 +5984,7 @@ function DashboardHome({ transactions, goals, bills = [], tasks = [], theme, las
     quickActions: false,
     financialOverview: false,
     spendingAnalysis: false,
-    transactions: false,
-    healthScore: false,
-    spendingCategory: false,
-    cashFlow: false,
-    recurring: false,
-    netWorth: false,
-    milestones: false
+    transactions: false
   });
   
   const toggleSection = (section) => {
@@ -6159,207 +6049,6 @@ function DashboardHome({ transactions, goals, bills = [], tasks = [], theme, las
     const expenses = monthTxns.filter(t => parseFloat(t.amount) < 0).reduce((sum, t) => sum + Math.abs(parseFloat(t.amount)), 0);
     monthlyData.push({ month: monthNames[i], income, expenses });
   }
-
-  // ═══════════════════════════════════════════════════════════════════════════
-  // REAL MONTH-OVER-MONTH CALCULATIONS - Based on actual transaction data
-  // ═══════════════════════════════════════════════════════════════════════════
-  const currentMonth = new Date().getMonth(); // 0-11
-  const lastMonth = currentMonth === 0 ? 11 : currentMonth - 1;
-  
-  const currentMonthData = monthlyData[currentMonth] || { income: 0, expenses: 0 };
-  const lastMonthData = monthlyData[lastMonth] || { income: 0, expenses: 0 };
-  
-  // Calculate real percentage changes
-  const calcPercentChange = (current, previous) => {
-    if (previous === 0) return current > 0 ? 100 : 0;
-    return ((current - previous) / previous) * 100;
-  };
-  
-  const monthOverMonth = {
-    income: {
-      current: currentMonthData.income,
-      previous: lastMonthData.income,
-      change: calcPercentChange(currentMonthData.income, lastMonthData.income),
-      isUp: currentMonthData.income >= lastMonthData.income
-    },
-    expenses: {
-      current: currentMonthData.expenses,
-      previous: lastMonthData.expenses,
-      change: calcPercentChange(currentMonthData.expenses, lastMonthData.expenses),
-      isUp: currentMonthData.expenses >= lastMonthData.expenses
-    },
-    savings: {
-      current: currentMonthData.income - currentMonthData.expenses,
-      previous: lastMonthData.income - lastMonthData.expenses,
-      change: calcPercentChange(
-        currentMonthData.income - currentMonthData.expenses,
-        lastMonthData.income - lastMonthData.expenses
-      ),
-      isUp: (currentMonthData.income - currentMonthData.expenses) >= (lastMonthData.income - lastMonthData.expenses)
-    }
-  };
-  
-  // Transaction count by month
-  const currentMonthStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}`;
-  const lastMonthYear = currentMonth === 0 ? currentYear - 1 : currentYear;
-  const lastMonthStr = `${lastMonthYear}-${String(lastMonth + 1).padStart(2, '0')}`;
-  
-  const currentMonthTxnCount = activeTransactions.filter(t => t.date?.startsWith(currentMonthStr)).length;
-  const lastMonthTxnCount = activeTransactions.filter(t => t.date?.startsWith(lastMonthStr)).length;
-  
-  monthOverMonth.transactions = {
-    current: currentMonthTxnCount,
-    previous: lastMonthTxnCount,
-    change: calcPercentChange(currentMonthTxnCount, lastMonthTxnCount),
-    isUp: currentMonthTxnCount >= lastMonthTxnCount
-  };
-
-  // ═══════════════════════════════════════════════════════════════════════════
-  // REAL DEBT DETECTION - From actual transaction categories
-  // ═══════════════════════════════════════════════════════════════════════════
-  const debtKeywords = ['loan', 'debt', 'credit', 'mortgage', 'payment', 'finance', 'lending'];
-  const debtTransactions = activeTransactions.filter(t => {
-    const category = (t.category || '').toLowerCase();
-    const description = (t.description || '').toLowerCase();
-    return debtKeywords.some(keyword => category.includes(keyword) || description.includes(keyword)) &&
-           parseFloat(t.amount) < 0;
-  });
-  const totalDebtPayments = debtTransactions.reduce((sum, t) => sum + Math.abs(parseFloat(t.amount)), 0);
-  const monthlyDebtPayments = totalDebtPayments / Math.max(1, new Set(debtTransactions.map(t => t.date?.slice(0, 7))).size);
-
-  // ═══════════════════════════════════════════════════════════════════════════
-  // REAL RECURRING TRANSACTION DETECTION - Pattern matching
-  // ═══════════════════════════════════════════════════════════════════════════
-  const detectRecurringTransactions = () => {
-    const descriptionGroups = {};
-    activeTransactions.forEach(t => {
-      const normalizedDesc = (t.description || '').toLowerCase().replace(/[0-9#]/g, '').trim();
-      if (normalizedDesc.length > 3) {
-        if (!descriptionGroups[normalizedDesc]) {
-          descriptionGroups[normalizedDesc] = [];
-        }
-        descriptionGroups[normalizedDesc].push(t);
-      }
-    });
-    
-    const recurring = [];
-    Object.entries(descriptionGroups).forEach(([desc, txns]) => {
-      if (txns.length >= 2) {
-        const avgAmount = txns.reduce((sum, t) => sum + Math.abs(parseFloat(t.amount)), 0) / txns.length;
-        const isSubscription = ['netflix', 'spotify', 'hulu', 'disney', 'hbo', 'apple', 'amazon prime', 
-                                'youtube', 'adobe', 'microsoft', 'gym', 'membership'].some(s => desc.includes(s));
-        recurring.push({
-          description: txns[0].description,
-          count: txns.length,
-          avgAmount,
-          isSubscription,
-          category: txns[0].category,
-          lastDate: txns.sort((a, b) => new Date(b.date) - new Date(a.date))[0].date
-        });
-      }
-    });
-    return recurring.sort((a, b) => b.avgAmount - a.avgAmount);
-  };
-  
-  const recurringTransactions = detectRecurringTransactions();
-  const totalMonthlyRecurring = recurringTransactions.reduce((sum, r) => sum + r.avgAmount, 0);
-  const subscriptions = recurringTransactions.filter(r => r.isSubscription);
-  const fixedBills = recurringTransactions.filter(r => !r.isSubscription);
-
-  // ═══════════════════════════════════════════════════════════════════════════
-  // REAL NET WORTH CALCULATION - Assets vs Liabilities
-  // ═══════════════════════════════════════════════════════════════════════════
-  const calculateRealNetWorth = () => {
-    // Assets from goals (savings)
-    const savingsFromGoals = goals.reduce((sum, g) => sum + (parseFloat(g.currentAmount) || 0), 0);
-    
-    // Retirement assets (if available from default data for owner account)
-    let retirementAssets = 0;
-    if (user?.email === 'kennedymichael54@gmail.com' && DEFAULT_RETIREMENT_DATA) {
-      retirementAssets = DEFAULT_RETIREMENT_DATA.accounts?.reduce((sum, acc) => sum + (acc.balance || 0), 0) || 0;
-    }
-    
-    // Estimate checking/savings from recent positive balances (net positive months)
-    const recentPositiveFlow = monthlyData.slice(-6).reduce((sum, m) => {
-      const net = m.income - m.expenses;
-      return sum + (net > 0 ? net : 0);
-    }, 0);
-    
-    // Total Assets
-    const totalAssets = savingsFromGoals + retirementAssets + recentPositiveFlow;
-    
-    // Liabilities - estimated from debt payments (annual payments / typical interest = principal estimate)
-    const estimatedDebtPrincipal = monthlyDebtPayments * 12 * 5; // Rough estimate: 5 years of payments
-    
-    // Credit card spending detection (revolving debt indicator)
-    const creditCardSpending = activeTransactions.filter(t => {
-      const desc = (t.description || '').toLowerCase();
-      return desc.includes('credit') || desc.includes('visa') || desc.includes('mastercard') || 
-             desc.includes('amex') || desc.includes('discover');
-    }).reduce((sum, t) => sum + Math.abs(parseFloat(t.amount) < 0 ? parseFloat(t.amount) : 0), 0);
-    
-    const totalLiabilities = estimatedDebtPrincipal + (creditCardSpending * 0.3); // Assume 30% of CC spending is carried
-    
-    return {
-      assets: {
-        savings: savingsFromGoals,
-        retirement: retirementAssets,
-        recentSavings: recentPositiveFlow,
-        total: totalAssets
-      },
-      liabilities: {
-        estimatedDebt: estimatedDebtPrincipal,
-        estimatedCreditCard: creditCardSpending * 0.3,
-        total: totalLiabilities
-      },
-      netWorth: totalAssets - totalLiabilities,
-      isEstimated: true // Flag that some values are estimates
-    };
-  };
-  
-  const realNetWorth = calculateRealNetWorth();
-
-  // ═══════════════════════════════════════════════════════════════════════════
-  // REAL FINANCIAL HEALTH METRICS
-  // ═══════════════════════════════════════════════════════════════════════════
-  const realFinancialMetrics = {
-    // Savings Rate (actual)
-    savingsRate: activeTotals.income > 0 
-      ? Math.max(0, ((activeTotals.income - activeTotals.expenses) / activeTotals.income) * 100)
-      : 0,
-    
-    // Debt-to-Income Ratio (actual)
-    debtToIncome: activeTotals.income > 0 
-      ? (monthlyDebtPayments / (activeTotals.income / Math.max(1, monthlyData.filter(m => m.income > 0).length))) * 100
-      : 0,
-    
-    // Emergency Fund Coverage (actual months)
-    emergencyFundMonths: (() => {
-      const emergencyGoal = goals.find(g => g.name?.toLowerCase().includes('emergency'));
-      const emergencySavings = emergencyGoal?.currentAmount || 0;
-      const avgMonthlyExpenses = activeTotals.expenses / Math.max(1, monthlyData.filter(m => m.expenses > 0).length);
-      return avgMonthlyExpenses > 0 ? emergencySavings / avgMonthlyExpenses : 0;
-    })(),
-    
-    // Bills on time (actual from bills data)
-    billsOnTimeRate: bills.length > 0 
-      ? (bills.filter(b => b.status === 'paid' || b.isPaid).length / bills.length) * 100
-      : 100,
-    
-    // Goal progress (actual)
-    avgGoalProgress: goals.length > 0
-      ? goals.reduce((sum, g) => sum + (((g.currentAmount || 0) / (g.targetAmount || 1)) * 100), 0) / goals.length
-      : 0,
-    
-    // Days under budget this month
-    daysUnderBudget: (() => {
-      const today = new Date();
-      const dayOfMonth = today.getDate();
-      const dailyBudget = totalBudget / 30;
-      const dailySpent = totalSpentOnBudgeted / dayOfMonth;
-      return dailySpent <= dailyBudget ? dayOfMonth : Math.floor(dayOfMonth * (dailyBudget / dailySpent));
-    })()
-  };
 
   // Budget calculations
   const budgets = [
@@ -6786,8 +6475,7 @@ function DashboardHome({ transactions, goals, bills = [], tasks = [], theme, las
         </div>
       )}
 
-      
-            {/* Top Stats Row - Soft Gradient Cards */}
+      {/* Top Stats Row - Soft Gradient Cards */}
       <div className="stat-grid-4" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px', marginBottom: '24px' }}>
         {/* Income Card - Cyan Gradient */}
         <div style={{ 
@@ -6803,22 +6491,16 @@ function DashboardHome({ transactions, goals, bills = [], tasks = [], theme, las
               background: theme.mode === 'dark' ? 'rgba(0, 188, 212, 0.3)' : 'rgba(0, 188, 212, 0.2)',
               display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' 
             }}>💰</div>
-            <span style={{ fontSize: '14px', color: theme.mode === 'dark' ? '#67E8F9' : '#00838F', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              Income
-              <InfoTooltip {...FINANCIAL_TOOLTIPS.income} isDarkMode={theme.mode === 'dark'} size="small" />
-            </span>
+            <span style={{ fontSize: '14px', color: theme.mode === 'dark' ? '#67E8F9' : '#00838F', fontWeight: '600' }}>Income</span>
           </div>
           <div style={{ fontSize: '28px', fontWeight: '700', color: theme.mode === 'dark' ? '#E0F7FA' : '#006064', marginBottom: '8px' }}>
             {formatCurrency(activeTotals.income)}
           </div>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ fontSize: '12px', color: theme.mode === 'dark' ? '#67E8F9' : '#00695C', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                vs last month
-                <InfoTooltip {...FINANCIAL_TOOLTIPS.monthOverMonthChange} isDarkMode={theme.mode === 'dark'} size="small" />
-              </span>
-              <span style={{ fontSize: '12px', fontWeight: '600', color: monthOverMonth.income.isUp ? '#10B981' : '#EF4444', display: 'flex', alignItems: 'center', gap: '2px' }}>
-                {monthOverMonth.income.isUp ? '↗' : '↘'} {Math.abs(monthOverMonth.income.change).toFixed(0)}%
+              <span style={{ fontSize: '12px', color: theme.mode === 'dark' ? '#67E8F9' : '#00695C' }}>vs last month</span>
+              <span style={{ fontSize: '12px', fontWeight: '600', color: '#10B981', display: 'flex', alignItems: 'center', gap: '2px' }}>
+                ↗ 25%
               </span>
             </div>
             <Sparkline data={monthlyData.map(m => m.income)} color="#00BCD4" width={70} height={40} />
@@ -6839,10 +6521,7 @@ function DashboardHome({ transactions, goals, bills = [], tasks = [], theme, las
               background: theme.mode === 'dark' ? 'rgba(255, 152, 0, 0.3)' : 'rgba(255, 152, 0, 0.2)',
               display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' 
             }}>🔥</div>
-            <span style={{ fontSize: '14px', color: theme.mode === 'dark' ? '#FDBA74' : '#E65100', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              Expenses
-              <InfoTooltip {...FINANCIAL_TOOLTIPS.expenses} isDarkMode={theme.mode === 'dark'} size="small" />
-            </span>
+            <span style={{ fontSize: '14px', color: theme.mode === 'dark' ? '#FDBA74' : '#E65100', fontWeight: '600' }}>Expenses</span>
           </div>
           <div style={{ fontSize: '28px', fontWeight: '700', color: theme.mode === 'dark' ? '#FFF3E0' : '#BF360C', marginBottom: '8px' }}>
             {formatCurrency(activeTotals.expenses)}
@@ -6850,8 +6529,8 @@ function DashboardHome({ transactions, goals, bills = [], tasks = [], theme, las
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <span style={{ fontSize: '12px', color: theme.mode === 'dark' ? '#FDBA74' : '#E65100' }}>vs last month</span>
-              <span style={{ fontSize: '12px', fontWeight: '600', color: monthOverMonth.expenses.isUp ? '#EF4444' : '#10B981', display: 'flex', alignItems: 'center', gap: '2px' }}>
-                {monthOverMonth.expenses.isUp ? '↗' : '↘'} {Math.abs(monthOverMonth.expenses.change).toFixed(0)}%
+              <span style={{ fontSize: '12px', fontWeight: '600', color: '#EF4444', display: 'flex', alignItems: 'center', gap: '2px' }}>
+                ↗ 5%
               </span>
             </div>
             <Sparkline data={monthlyData.map(m => m.expenses)} color="#FF9800" width={70} height={40} />
@@ -6872,19 +6551,16 @@ function DashboardHome({ transactions, goals, bills = [], tasks = [], theme, las
               background: theme.mode === 'dark' ? 'rgba(76, 175, 80, 0.3)' : 'rgba(76, 175, 80, 0.2)',
               display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' 
             }}>🏦</div>
-            <span style={{ fontSize: '14px', color: theme.mode === 'dark' ? '#86EFAC' : '#2E7D32', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              Savings
-              <InfoTooltip {...FINANCIAL_TOOLTIPS.savings} isDarkMode={theme.mode === 'dark'} size="small" />
-            </span>
+            <span style={{ fontSize: '14px', color: theme.mode === 'dark' ? '#86EFAC' : '#2E7D32', fontWeight: '600' }}>Savings</span>
           </div>
           <div style={{ fontSize: '28px', fontWeight: '700', color: theme.mode === 'dark' ? '#E8F5E9' : '#1B5E20', marginBottom: '8px' }}>
-            {formatCurrency(activeTotals.net)}
+            {formatCurrency(Math.max(0, activeTotals.net))}
           </div>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <span style={{ fontSize: '12px', color: theme.mode === 'dark' ? '#86EFAC' : '#2E7D32' }}>vs last month</span>
-              <span style={{ fontSize: '12px', fontWeight: '600', color: monthOverMonth.savings.isUp ? '#10B981' : '#EF4444', display: 'flex', alignItems: 'center', gap: '2px' }}>
-                {monthOverMonth.savings.isUp ? '↗' : '↘'} {Math.abs(monthOverMonth.savings.change).toFixed(0)}%
+              <span style={{ fontSize: '12px', fontWeight: '600', color: activeTotals.net >= 0 ? '#10B981' : '#EF4444', display: 'flex', alignItems: 'center', gap: '2px' }}>
+                {activeTotals.net >= 0 ? '↗' : '↘'} 15%
               </span>
             </div>
             <Sparkline data={monthlyData.map(m => m.income - m.expenses)} color="#4CAF50" width={70} height={40} />
@@ -6905,18 +6581,7 @@ function DashboardHome({ transactions, goals, bills = [], tasks = [], theme, las
               background: theme.mode === 'dark' ? 'rgba(156, 39, 176, 0.3)' : 'rgba(156, 39, 176, 0.2)',
               display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' 
             }}>📊</div>
-            <span style={{ fontSize: '14px', color: theme.mode === 'dark' ? '#D8B4FE' : '#7B1FA2', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              Transactions
-              <InfoTooltip 
-                title="Total Transactions"
-                definition="The number of financial transactions (both income and expenses) imported from your bank."
-                dataSource="Your imported bank transactions"
-                calculation="Count of all transactions in the selected time period"
-                tips={['More transactions means better data for tracking patterns', 'Import regularly to keep your data current']}
-                isDarkMode={theme.mode === 'dark'} 
-                size="small" 
-              />
-            </span>
+            <span style={{ fontSize: '14px', color: theme.mode === 'dark' ? '#D8B4FE' : '#7B1FA2', fontWeight: '600' }}>Transactions</span>
           </div>
           <div style={{ fontSize: '28px', fontWeight: '700', color: theme.mode === 'dark' ? '#F3E5F5' : '#4A148C', marginBottom: '8px' }}>
             {activeTransactions.length.toLocaleString()}
@@ -6924,1455 +6589,16 @@ function DashboardHome({ transactions, goals, bills = [], tasks = [], theme, las
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <span style={{ fontSize: '12px', color: theme.mode === 'dark' ? '#D8B4FE' : '#7B1FA2' }}>vs last month</span>
-              <span style={{ fontSize: '12px', fontWeight: '600', color: monthOverMonth.transactions.isUp ? '#10B981' : '#EF4444', display: 'flex', alignItems: 'center', gap: '2px' }}>
-                {monthOverMonth.transactions.isUp ? '↗' : '↘'} {Math.abs(monthOverMonth.transactions.change).toFixed(0)}%
+              <span style={{ fontSize: '12px', fontWeight: '600', color: '#10B981', display: 'flex', alignItems: 'center', gap: '2px' }}>
+                ↗ 10%
               </span>
             </div>
-            <Sparkline data={monthlyData.map(m => {
-              const monthStr = `${currentYear}-${String(monthNames.indexOf(m.month) + 1).padStart(2, '0')}`;
-              return activeTransactions.filter(t => t.date?.startsWith(monthStr)).length;
-            })} color="#9C27B0" width={70} height={40} />
+            <Sparkline data={[30, 45, 35, 50, 40, 55, 60]} color="#9C27B0" width={70} height={40} />
           </div>
         </div>
       </div>
 
-
-{/* ═══════════════════════════════════════════════════════════════════ */}
-      {/* 🌟 FINANCIAL HEALTH SCORE - Premium Section */}
       {/* ═══════════════════════════════════════════════════════════════════ */}
-      {(() => {
-        // Calculate comprehensive health metrics
-        const totalBudget = budgets.reduce((sum, b) => sum + b.budget, 0);
-        const totalSpent = budgets.reduce((sum, b) => sum + (categorySpending[b.category] || 0), 0);
-        
-        const savingsRateCalc = activeTotals.income > 0 
-          ? Math.max(0, ((activeTotals.income - activeTotals.expenses) / activeTotals.income) * 100) 
-          : 0;
-        
-        const budgetAdherenceCalc = totalBudget > 0 
-          ? Math.max(0, Math.min(100, (1 - Math.max(0, totalSpent - totalBudget) / totalBudget) * 100))
-          : 100;
-        
-        const monthlyExpensesAvg = activeTotals.expenses / 6 || 1;
-        const emergencySavings = goals.find(g => g.name?.toLowerCase().includes('emergency'))?.currentAmount || 
-                                 goals.reduce((sum, g) => sum + (g.currentAmount || 0), 0) * 0.3;
-        const emergencyMonthsCovered = emergencySavings / monthlyExpensesAvg;
-        
-        const debtPaymentsCalc = activeTransactions.filter(t => 
-          t.category?.toLowerCase().includes('loan') || 
-          t.category?.toLowerCase().includes('debt') ||
-          t.category?.toLowerCase().includes('credit') ||
-          t.category?.toLowerCase().includes('mortgage')
-        ).reduce((sum, t) => sum + Math.abs(parseFloat(t.amount) || 0), 0);
-        const debtToIncomeRatio = activeTotals.income > 0 ? (debtPaymentsCalc / activeTotals.income) * 100 : 0;
-        
-        const paidBillsCount = bills.filter(b => b.status === 'paid').length;
-        const billsOnTimeRate = bills.length > 0 ? (paidBillsCount / bills.length) * 100 : 100;
-        
-        const avgGoalProgress = goals.length > 0 
-          ? (goals.reduce((sum, g) => sum + ((g.currentAmount || 0) / (g.targetAmount || 1)), 0) / goals.length) * 100 
-          : 0;
-        
-        const overallHealthScore = Math.round(Math.min(100, Math.max(0,
-          savingsRateCalc * 0.25 +
-          budgetAdherenceCalc * 0.25 +
-          Math.min(emergencyMonthsCovered * 8, 20) +
-          (100 - Math.min(debtToIncomeRatio, 100)) * 0.15 +
-          billsOnTimeRate * 0.10 +
-          avgGoalProgress * 0.05
-        )));
-        
-        const getScoreColor = (score) => {
-          if (score >= 80) return '#10B981';
-          if (score >= 60) return '#06B6D4';
-          if (score >= 40) return '#F59E0B';
-          return '#EF4444';
-        };
-        
-        const getScoreLabel = (score) => {
-          if (score >= 80) return { label: 'Excellent', emoji: '🌟' };
-          if (score >= 60) return { label: 'Good', emoji: '💪' };
-          if (score >= 40) return { label: 'Fair', emoji: '📈' };
-          return { label: 'Needs Work', emoji: '🎯' };
-        };
-        
-        const scoreColor = getScoreColor(overallHealthScore);
-        const scoreLabel = getScoreLabel(overallHealthScore);
-        
-        return (
-          <div style={{ marginBottom: '24px' }}>
-            <div 
-              onClick={() => toggleSection('healthScore')}
-              style={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                gap: '12px', 
-                marginBottom: collapsedSections.healthScore ? '0px' : '16px',
-                cursor: 'pointer',
-                userSelect: 'none'
-              }}
-            >
-              <div style={{ 
-                width: '4px', 
-                height: '24px', 
-                background: 'linear-gradient(180deg, #10B981, #06B6D4)', 
-                borderRadius: '2px' 
-              }} />
-              <h2 style={{ fontSize: '18px', fontWeight: '700', color: theme.textPrimary, margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                Financial Health Score
-                <InfoTooltip {...FINANCIAL_TOOLTIPS.financialHealthScore} isDarkMode={theme.mode === 'dark'} size="small" />
-              </h2>
-              <span style={{ 
-                background: `${scoreColor}20`,
-                color: scoreColor,
-                padding: '4px 12px',
-                borderRadius: '20px',
-                fontSize: '12px',
-                fontWeight: '600',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '4px'
-              }}>
-                {scoreLabel.emoji} {scoreLabel.label}
-              </span>
-              <span style={{ 
-                fontSize: '12px', 
-                color: theme.textMuted,
-                marginLeft: 'auto',
-                transition: 'transform 0.2s',
-                transform: collapsedSections.healthScore ? 'rotate(-90deg)' : 'rotate(0deg)'
-              }}>▼</span>
-            </div>
-            
-            {!collapsedSections.healthScore && (
-              <div style={{
-                background: theme.bgCard,
-                borderRadius: '20px',
-                padding: '28px',
-                boxShadow: theme.cardShadow,
-                border: `1px solid ${theme.borderLight}`,
-                position: 'relative',
-                overflow: 'hidden'
-              }}>
-                {/* Premium gradient accent */}
-                <div style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  height: '4px',
-                  background: 'linear-gradient(90deg, #10B981, #06B6D4, #8B5CF6, #EC4899)'
-                }} />
-                
-                <div style={{ display: 'grid', gridTemplateColumns: '280px 1fr', gap: '40px', alignItems: 'center' }}>
-                  {/* Left: Animated Score Gauge */}
-                  <div style={{ textAlign: 'center' }}>
-                    <svg width="220" height="140" viewBox="0 0 220 140">
-                      <defs>
-                        <linearGradient id="healthScoreGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                          <stop offset="0%" stopColor="#EF4444" />
-                          <stop offset="25%" stopColor="#F59E0B" />
-                          <stop offset="50%" stopColor="#06B6D4" />
-                          <stop offset="75%" stopColor="#10B981" />
-                          <stop offset="100%" stopColor="#10B981" />
-                        </linearGradient>
-                        <filter id="glow">
-                          <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
-                          <feMerge>
-                            <feMergeNode in="coloredBlur"/>
-                            <feMergeNode in="SourceGraphic"/>
-                          </feMerge>
-                        </filter>
-                      </defs>
-                      
-                      {/* Background arc */}
-                      <path
-                        d="M 20 120 A 90 90 0 0 1 200 120"
-                        fill="none"
-                        stroke={theme.borderLight}
-                        strokeWidth="14"
-                        strokeLinecap="round"
-                      />
-                      
-                      {/* Progress arc */}
-                      <path
-                        d="M 20 120 A 90 90 0 0 1 200 120"
-                        fill="none"
-                        stroke="url(#healthScoreGradient)"
-                        strokeWidth="14"
-                        strokeLinecap="round"
-                        strokeDasharray={`${(overallHealthScore / 100) * 283} 283`}
-                        filter="url(#glow)"
-                        style={{ transition: 'stroke-dasharray 1.5s ease-out' }}
-                      />
-                      
-                      {/* Score display */}
-                      <text x="110" y="95" textAnchor="middle" fontSize="48" fontWeight="800" fill={scoreColor}>
-                        {overallHealthScore}
-                      </text>
-                      <text x="110" y="118" textAnchor="middle" fontSize="13" fill={theme.textMuted} fontWeight="500">
-                        out of 100
-                      </text>
-                    </svg>
-                    
-                    <div style={{ 
-                      marginTop: '12px',
-                      padding: '10px 20px',
-                      background: `${scoreColor}10`,
-                      borderRadius: '12px',
-                      display: 'inline-block'
-                    }}>
-                      <span style={{ fontSize: '14px', fontWeight: '600', color: scoreColor }}>
-                        {scoreLabel.emoji} {scoreLabel.label} Financial Health
-                      </span>
-                    </div>
-                  </div>
-                  
-                  {/* Right: Metrics Grid */}
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
-                    {/* Savings Rate */}
-                    <div style={{
-                      background: theme.mode === 'dark' ? 'rgba(16, 185, 129, 0.08)' : 'rgba(16, 185, 129, 0.04)',
-                      borderRadius: '16px',
-                      padding: '18px',
-                      border: `1px solid ${theme.mode === 'dark' ? 'rgba(16, 185, 129, 0.2)' : 'rgba(16, 185, 129, 0.15)'}`
-                    }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
-                        <span style={{ fontSize: '18px' }}>💰</span>
-                        <span style={{ fontSize: '12px', color: theme.textMuted, fontWeight: '500', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                          Savings Rate
-                          <InfoTooltip {...FINANCIAL_TOOLTIPS.savingsRate} isDarkMode={theme.mode === 'dark'} size="small" />
-                        </span>
-                      </div>
-                      <div style={{ 
-                        fontSize: '26px', 
-                        fontWeight: '700', 
-                        color: savingsRateCalc >= 20 ? '#10B981' : savingsRateCalc >= 10 ? '#F59E0B' : '#EF4444',
-                        marginBottom: '6px'
-                      }}>
-                        {savingsRateCalc.toFixed(0)}%
-                      </div>
-                      <div style={{ fontSize: '11px', color: theme.textMuted }}>
-                        of income saved
-                        <span style={{ 
-                          marginLeft: '6px',
-                          padding: '2px 6px',
-                          borderRadius: '4px',
-                          background: savingsRateCalc >= 20 ? '#10B98115' : savingsRateCalc >= 10 ? '#F59E0B15' : '#EF444415',
-                          color: savingsRateCalc >= 20 ? '#10B981' : savingsRateCalc >= 10 ? '#F59E0B' : '#EF4444',
-                          fontSize: '9px',
-                          fontWeight: '600'
-                        }}>
-                          {savingsRateCalc >= 20 ? '✓ Great' : savingsRateCalc >= 10 ? '⚠ OK' : '! Low'}
-                        </span>
-                      </div>
-                    </div>
-                    
-                    {/* Budget Adherence */}
-                    <div style={{
-                      background: theme.mode === 'dark' ? 'rgba(59, 130, 246, 0.08)' : 'rgba(59, 130, 246, 0.04)',
-                      borderRadius: '16px',
-                      padding: '18px',
-                      border: `1px solid ${theme.mode === 'dark' ? 'rgba(59, 130, 246, 0.2)' : 'rgba(59, 130, 246, 0.15)'}`
-                    }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
-                        <span style={{ fontSize: '18px' }}>📊</span>
-                        <span style={{ fontSize: '12px', color: theme.textMuted, fontWeight: '500', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                          Budget Adherence
-                          <InfoTooltip {...FINANCIAL_TOOLTIPS.budgetAdherence} isDarkMode={theme.mode === 'dark'} size="small" />
-                        </span>
-                      </div>
-                      <div style={{ 
-                        fontSize: '26px', 
-                        fontWeight: '700', 
-                        color: budgetAdherenceCalc >= 90 ? '#10B981' : budgetAdherenceCalc >= 70 ? '#F59E0B' : '#EF4444',
-                        marginBottom: '6px'
-                      }}>
-                        {budgetAdherenceCalc.toFixed(0)}%
-                      </div>
-                      <div style={{ fontSize: '11px', color: theme.textMuted }}>
-                        within budget
-                        <span style={{ 
-                          marginLeft: '6px',
-                          padding: '2px 6px',
-                          borderRadius: '4px',
-                          background: budgetAdherenceCalc >= 90 ? '#10B98115' : budgetAdherenceCalc >= 70 ? '#F59E0B15' : '#EF444415',
-                          color: budgetAdherenceCalc >= 90 ? '#10B981' : budgetAdherenceCalc >= 70 ? '#F59E0B' : '#EF4444',
-                          fontSize: '9px',
-                          fontWeight: '600'
-                        }}>
-                          {budgetAdherenceCalc >= 90 ? '✓ On Track' : budgetAdherenceCalc >= 70 ? '⚠ Watch' : '! Over'}
-                        </span>
-                      </div>
-                    </div>
-                    
-                    {/* Emergency Fund */}
-                    <div style={{
-                      background: theme.mode === 'dark' ? 'rgba(139, 92, 246, 0.08)' : 'rgba(139, 92, 246, 0.04)',
-                      borderRadius: '16px',
-                      padding: '18px',
-                      border: `1px solid ${theme.mode === 'dark' ? 'rgba(139, 92, 246, 0.2)' : 'rgba(139, 92, 246, 0.15)'}`
-                    }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
-                        <span style={{ fontSize: '18px' }}>🛡️</span>
-                        <span style={{ fontSize: '12px', color: theme.textMuted, fontWeight: '500', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                          Emergency Fund
-                          <InfoTooltip {...FINANCIAL_TOOLTIPS.emergencyFund} isDarkMode={theme.mode === 'dark'} size="small" />
-                        </span>
-                      </div>
-                      <div style={{ 
-                        fontSize: '26px', 
-                        fontWeight: '700', 
-                        color: emergencyMonthsCovered >= 3 ? '#10B981' : emergencyMonthsCovered >= 1 ? '#F59E0B' : '#EF4444',
-                        marginBottom: '6px'
-                      }}>
-                        {emergencyMonthsCovered.toFixed(1)}mo
-                      </div>
-                      <div style={{ fontSize: '11px', color: theme.textMuted }}>
-                        expenses covered
-                        <span style={{ 
-                          marginLeft: '6px',
-                          padding: '2px 6px',
-                          borderRadius: '4px',
-                          background: emergencyMonthsCovered >= 3 ? '#10B98115' : emergencyMonthsCovered >= 1 ? '#F59E0B15' : '#EF444415',
-                          color: emergencyMonthsCovered >= 3 ? '#10B981' : emergencyMonthsCovered >= 1 ? '#F59E0B' : '#EF4444',
-                          fontSize: '9px',
-                          fontWeight: '600'
-                        }}>
-                          {emergencyMonthsCovered >= 3 ? '✓ Safe' : emergencyMonthsCovered >= 1 ? '⚠ Build' : '! Priority'}
-                        </span>
-                      </div>
-                    </div>
-                    
-                    {/* Debt-to-Income */}
-                    <div style={{
-                      background: theme.mode === 'dark' ? 'rgba(236, 72, 153, 0.08)' : 'rgba(236, 72, 153, 0.04)',
-                      borderRadius: '16px',
-                      padding: '18px',
-                      border: `1px solid ${theme.mode === 'dark' ? 'rgba(236, 72, 153, 0.2)' : 'rgba(236, 72, 153, 0.15)'}`
-                    }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
-                        <span style={{ fontSize: '18px' }}>📉</span>
-                        <span style={{ fontSize: '12px', color: theme.textMuted, fontWeight: '500', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                          Debt-to-Income
-                          <InfoTooltip {...FINANCIAL_TOOLTIPS.debtToIncome} isDarkMode={theme.mode === 'dark'} size="small" />
-                        </span>
-                      </div>
-                      <div style={{ 
-                        fontSize: '26px', 
-                        fontWeight: '700', 
-                        color: debtToIncomeRatio <= 30 ? '#10B981' : debtToIncomeRatio <= 40 ? '#F59E0B' : '#EF4444',
-                        marginBottom: '6px'
-                      }}>
-                        {debtToIncomeRatio.toFixed(0)}%
-                      </div>
-                      <div style={{ fontSize: '11px', color: theme.textMuted }}>
-                        of income to debt
-                        <span style={{ 
-                          marginLeft: '6px',
-                          padding: '2px 6px',
-                          borderRadius: '4px',
-                          background: debtToIncomeRatio <= 30 ? '#10B98115' : debtToIncomeRatio <= 40 ? '#F59E0B15' : '#EF444415',
-                          color: debtToIncomeRatio <= 30 ? '#10B981' : debtToIncomeRatio <= 40 ? '#F59E0B' : '#EF4444',
-                          fontSize: '9px',
-                          fontWeight: '600'
-                        }}>
-                          {debtToIncomeRatio <= 30 ? '✓ Healthy' : debtToIncomeRatio <= 40 ? '⚠ Caution' : '! High'}
-                        </span>
-                      </div>
-                    </div>
-                    
-                    {/* Bills On Time */}
-                    <div style={{
-                      background: theme.mode === 'dark' ? 'rgba(6, 182, 212, 0.08)' : 'rgba(6, 182, 212, 0.04)',
-                      borderRadius: '16px',
-                      padding: '18px',
-                      border: `1px solid ${theme.mode === 'dark' ? 'rgba(6, 182, 212, 0.2)' : 'rgba(6, 182, 212, 0.15)'}`
-                    }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
-                        <span style={{ fontSize: '18px' }}>📅</span>
-                        <span style={{ fontSize: '12px', color: theme.textMuted, fontWeight: '500', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                          Bills On Time
-                          <InfoTooltip {...FINANCIAL_TOOLTIPS.billsOnTime} isDarkMode={theme.mode === 'dark'} size="small" />
-                        </span>
-                      </div>
-                      <div style={{ 
-                        fontSize: '26px', 
-                        fontWeight: '700', 
-                        color: billsOnTimeRate >= 95 ? '#10B981' : billsOnTimeRate >= 80 ? '#F59E0B' : '#EF4444',
-                        marginBottom: '6px'
-                      }}>
-                        {billsOnTimeRate.toFixed(0)}%
-                      </div>
-                      <div style={{ fontSize: '11px', color: theme.textMuted }}>
-                        paid on schedule
-                        <span style={{ 
-                          marginLeft: '6px',
-                          padding: '2px 6px',
-                          borderRadius: '4px',
-                          background: billsOnTimeRate >= 95 ? '#10B98115' : billsOnTimeRate >= 80 ? '#F59E0B15' : '#EF444415',
-                          color: billsOnTimeRate >= 95 ? '#10B981' : billsOnTimeRate >= 80 ? '#F59E0B' : '#EF4444',
-                          fontSize: '9px',
-                          fontWeight: '600'
-                        }}>
-                          {billsOnTimeRate >= 95 ? '✓ Perfect' : billsOnTimeRate >= 80 ? '⚠ Good' : '! Late'}
-                        </span>
-                      </div>
-                    </div>
-                    
-                    {/* Goal Progress */}
-                    <div style={{
-                      background: theme.mode === 'dark' ? 'rgba(245, 158, 11, 0.08)' : 'rgba(245, 158, 11, 0.04)',
-                      borderRadius: '16px',
-                      padding: '18px',
-                      border: `1px solid ${theme.mode === 'dark' ? 'rgba(245, 158, 11, 0.2)' : 'rgba(245, 158, 11, 0.15)'}`
-                    }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
-                        <span style={{ fontSize: '18px' }}>🎯</span>
-                        <span style={{ fontSize: '12px', color: theme.textMuted, fontWeight: '500', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                          Goal Progress
-                          <InfoTooltip {...FINANCIAL_TOOLTIPS.goalProgress} isDarkMode={theme.mode === 'dark'} size="small" />
-                        </span>
-                      </div>
-                      <div style={{ 
-                        fontSize: '26px', 
-                        fontWeight: '700', 
-                        color: '#8B5CF6',
-                        marginBottom: '6px'
-                      }}>
-                        {avgGoalProgress.toFixed(0)}%
-                      </div>
-                      <div style={{ fontSize: '11px', color: theme.textMuted }}>
-                        avg completion
-                        <span style={{ 
-                          marginLeft: '6px',
-                          padding: '2px 6px',
-                          borderRadius: '4px',
-                          background: '#8B5CF615',
-                          color: '#8B5CF6',
-                          fontSize: '9px',
-                          fontWeight: '600'
-                        }}>
-                          {goals.length} goals
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                
-                {/* How Score is Calculated - Educational Panel */}
-                <div style={{ 
-                  marginTop: '24px', 
-                  padding: '18px 22px', 
-                  background: theme.mode === 'dark' ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)',
-                  borderRadius: '14px',
-                  border: `1px solid ${theme.borderLight}`
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
-                    <span style={{ fontSize: '18px' }}>🧮</span>
-                    <span style={{ fontSize: '14px', fontWeight: '600', color: theme.textPrimary }}>How Your Score is Calculated</span>
-                    <InfoTooltip {...FINANCIAL_TOOLTIPS.healthScoreFormula} isDarkMode={theme.mode === 'dark'} size="small" />
-                  </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', fontSize: '12px' }}>
-                    <div style={{ background: theme.mode === 'dark' ? 'rgba(16, 185, 129, 0.08)' : 'rgba(16, 185, 129, 0.05)', padding: '10px 12px', borderRadius: '8px' }}>
-                      <div style={{ color: theme.textMuted, marginBottom: '4px' }}>Savings Rate</div>
-                      <div style={{ color: '#10B981', fontWeight: '600' }}>{savingsRateCalc.toFixed(0)}% × 25% = {(savingsRateCalc * 0.25).toFixed(1)} pts</div>
-                    </div>
-                    <div style={{ background: theme.mode === 'dark' ? 'rgba(59, 130, 246, 0.08)' : 'rgba(59, 130, 246, 0.05)', padding: '10px 12px', borderRadius: '8px' }}>
-                      <div style={{ color: theme.textMuted, marginBottom: '4px' }}>Budget Adherence</div>
-                      <div style={{ color: '#3B82F6', fontWeight: '600' }}>{budgetAdherenceCalc.toFixed(0)}% × 25% = {(budgetAdherenceCalc * 0.25).toFixed(1)} pts</div>
-                    </div>
-                    <div style={{ background: theme.mode === 'dark' ? 'rgba(6, 182, 212, 0.08)' : 'rgba(6, 182, 212, 0.05)', padding: '10px 12px', borderRadius: '8px' }}>
-                      <div style={{ color: theme.textMuted, marginBottom: '4px' }}>Emergency Fund</div>
-                      <div style={{ color: '#06B6D4', fontWeight: '600' }}>{Math.min(100, emergencyMonthsCovered * 16.7).toFixed(0)}% × 20% = {(Math.min(100, emergencyMonthsCovered * 16.7) * 0.20).toFixed(1)} pts</div>
-                    </div>
-                    <div style={{ background: theme.mode === 'dark' ? 'rgba(236, 72, 153, 0.08)' : 'rgba(236, 72, 153, 0.05)', padding: '10px 12px', borderRadius: '8px' }}>
-                      <div style={{ color: theme.textMuted, marginBottom: '4px' }}>Low Debt</div>
-                      <div style={{ color: '#EC4899', fontWeight: '600' }}>{Math.max(0, 100 - debtToIncomeRatio).toFixed(0)}% × 15% = {(Math.max(0, 100 - debtToIncomeRatio) * 0.15).toFixed(1)} pts</div>
-                    </div>
-                    <div style={{ background: theme.mode === 'dark' ? 'rgba(245, 158, 11, 0.08)' : 'rgba(245, 158, 11, 0.05)', padding: '10px 12px', borderRadius: '8px' }}>
-                      <div style={{ color: theme.textMuted, marginBottom: '4px' }}>Bills On Time</div>
-                      <div style={{ color: '#F59E0B', fontWeight: '600' }}>{billsOnTimeRate.toFixed(0)}% × 10% = {(billsOnTimeRate * 0.10).toFixed(1)} pts</div>
-                    </div>
-                    <div style={{ background: theme.mode === 'dark' ? 'rgba(139, 92, 246, 0.08)' : 'rgba(139, 92, 246, 0.05)', padding: '10px 12px', borderRadius: '8px' }}>
-                      <div style={{ color: theme.textMuted, marginBottom: '4px' }}>Goal Progress</div>
-                      <div style={{ color: '#8B5CF6', fontWeight: '600' }}>{avgGoalProgress.toFixed(0)}% × 5% = {(avgGoalProgress * 0.05).toFixed(1)} pts</div>
-                    </div>
-                  </div>
-                  <div style={{ 
-                    marginTop: '14px', 
-                    paddingTop: '12px', 
-                    borderTop: `1px solid ${theme.borderLight}`,
-                    display: 'flex',
-                    justifyContent: 'flex-end',
-                    alignItems: 'center',
-                    gap: '8px'
-                  }}>
-                    <span style={{ fontSize: '13px', color: theme.textMuted }}>Total Score:</span>
-                    <span style={{ fontSize: '18px', fontWeight: '700', color: scoreColor }}>{overallHealthScore} / 100</span>
-                  </div>
-                </div>
-                
-                {/* Smart Recommendations */}
-                <div style={{ 
-                  marginTop: '24px', 
-                  padding: '18px 22px', 
-                  background: `linear-gradient(135deg, ${theme.mode === 'dark' ? 'rgba(139, 92, 246, 0.12)' : 'rgba(139, 92, 246, 0.06)'}, ${theme.mode === 'dark' ? 'rgba(59, 130, 246, 0.08)' : 'rgba(59, 130, 246, 0.04)'})`,
-                  borderRadius: '14px',
-                  border: '1px solid rgba(139, 92, 246, 0.2)'
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
-                    <span style={{ fontSize: '18px' }}>💡</span>
-                    <span style={{ fontSize: '14px', fontWeight: '600', color: '#8B5CF6' }}>Smart Recommendations</span>
-                  </div>
-                  <div style={{ fontSize: '13px', color: theme.textSecondary, lineHeight: '1.6' }}>
-                    {savingsRateCalc < 20 && <span style={{ display: 'block', marginBottom: '6px' }}>• Boost your savings rate to 20% for stronger financial security. Consider automating transfers to savings.</span>}
-                    {emergencyMonthsCovered < 3 && <span style={{ display: 'block', marginBottom: '6px' }}>• Build your emergency fund to cover 3-6 months of expenses. Even small regular contributions help!</span>}
-                    {budgetAdherenceCalc < 90 && <span style={{ display: 'block', marginBottom: '6px' }}>• Review your budget categories to stay on track. Look for areas where you can cut back.</span>}
-                    {debtToIncomeRatio > 30 && <span style={{ display: 'block', marginBottom: '6px' }}>• Focus on reducing debt. Consider the avalanche or snowball method for faster payoff.</span>}
-                    {savingsRateCalc >= 20 && budgetAdherenceCalc >= 90 && emergencyMonthsCovered >= 3 && debtToIncomeRatio <= 30 && (
-                      <span style={{ display: 'block' }}>🎉 Excellent work! You're on track with your financial goals. Consider investing surplus savings for long-term growth.</span>
-                    )}
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        );
-      })()}
-
-      
-{/* ═══════════════════════════════════════════════════════════════════ */}
-      {/* 💰 NET WORTH TRACKER - Wealth Building */}
-      {/* ═══════════════════════════════════════════════════════════════════ */}
-      {(() => {
-        // Use the real net worth calculation from earlier
-        const netWorthValue = realNetWorth.netWorth;
-        const monthlyChange = monthOverMonth.savings.current;
-        const totalAssets = realNetWorth.assets.total;
-        const totalLiabilities = realNetWorth.liabilities.total;
-        
-        // Build trend from actual monthly net savings (cumulative)
-        const trendData = [];
-        let cumulativeNetWorth = netWorthValue - (monthlyData.slice(-6).reduce((sum, m) => sum + (m.income - m.expenses), 0));
-        const last6Months = monthlyData.slice(-6);
-        last6Months.forEach((m, i) => {
-          cumulativeNetWorth += (m.income - m.expenses);
-          trendData.push({ month: m.month, value: cumulativeNetWorth });
-        });
-        
-        // If no trend data, use current value
-        if (trendData.length === 0) {
-          trendData.push({ month: 'Now', value: netWorthValue });
-        }
-        
-        const minVal = Math.min(...trendData.map(d => d.value)) * 0.95;
-        const maxVal = Math.max(...trendData.map(d => d.value)) * 1.05;
-        
-        return (
-          <div style={{ marginBottom: '24px' }}>
-            <div 
-              onClick={() => toggleSection('netWorth')}
-              style={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                gap: '12px', 
-                marginBottom: collapsedSections.netWorth ? '0px' : '16px',
-                cursor: 'pointer',
-                userSelect: 'none'
-              }}
-            >
-              <div style={{ 
-                width: '4px', 
-                height: '24px', 
-                background: 'linear-gradient(180deg, #10B981, #3B82F6)', 
-                borderRadius: '2px' 
-              }} />
-              <h2 style={{ fontSize: '18px', fontWeight: '700', color: theme.textPrimary, margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                Net Worth
-                <InfoTooltip {...FINANCIAL_TOOLTIPS.netWorth} isDarkMode={theme.mode === 'dark'} size="small" />
-              </h2>
-              {realNetWorth.isEstimated && (
-                <ProjectionBadge isDarkMode={theme.mode === 'dark'} />
-              )}
-              <span style={{ 
-                background: monthlyChange >= 0 ? '#10B98120' : '#EF444420',
-                color: monthlyChange >= 0 ? '#10B981' : '#EF4444',
-                padding: '4px 12px',
-                borderRadius: '20px',
-                fontSize: '12px',
-                fontWeight: '600'
-              }}>
-                {monthlyChange >= 0 ? '+' : ''}{formatCurrency(monthlyChange)} this month
-              </span>
-              <span style={{ 
-                fontSize: '12px', 
-                color: theme.textMuted,
-                marginLeft: 'auto',
-                transition: 'transform 0.2s',
-                transform: collapsedSections.netWorth ? 'rotate(-90deg)' : 'rotate(0deg)'
-              }}>▼</span>
-            </div>
-            
-            {!collapsedSections.netWorth && (
-              <div style={{
-                background: theme.bgCard,
-                borderRadius: '20px',
-                padding: '28px',
-                boxShadow: theme.cardShadow,
-                border: `1px solid ${theme.borderLight}`,
-                position: 'relative',
-                overflow: 'hidden'
-              }}>
-                <div style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  height: '4px',
-                  background: 'linear-gradient(90deg, #10B981, #3B82F6, #8B5CF6)'
-                }} />
-                
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr', gap: '40px' }}>
-                  {/* Left: Net Worth Display */}
-                  <div>
-                    <div style={{ fontSize: '13px', color: theme.textMuted, marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      Total Net Worth
-                      {realNetWorth.isEstimated && <span style={{ fontSize: '10px', color: '#F59E0B' }}>(Estimated)</span>}
-                    </div>
-                    <div style={{ 
-                      fontSize: '40px', 
-                      fontWeight: '800', 
-                      color: netWorthValue >= 0 ? '#10B981' : '#EF4444',
-                      marginBottom: '28px',
-                      letterSpacing: '-1px'
-                    }}>
-                      {formatCurrency(netWorthValue)}
-                    </div>
-                    
-                    {/* Assets & Liabilities */}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                      <div style={{
-                        background: theme.mode === 'dark' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(16, 185, 129, 0.05)',
-                        borderRadius: '14px',
-                        padding: '18px 20px',
-                        border: '1px solid rgba(16, 185, 129, 0.2)'
-                      }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                            <span style={{ fontSize: '22px' }}>📈</span>
-                            <span style={{ fontSize: '14px', color: theme.textSecondary, fontWeight: '500', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                              Total Assets
-                              <InfoTooltip {...FINANCIAL_TOOLTIPS.totalAssets} isDarkMode={theme.mode === 'dark'} size="small" />
-                            </span>
-                          </div>
-                          <span style={{ fontSize: '20px', fontWeight: '700', color: '#10B981' }}>
-                            {formatCurrency(totalAssets)}
-                          </span>
-                        </div>
-                      </div>
-                      
-                      <div style={{
-                        background: theme.mode === 'dark' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(239, 68, 68, 0.05)',
-                        borderRadius: '14px',
-                        padding: '18px 20px',
-                        border: '1px solid rgba(239, 68, 68, 0.2)'
-                      }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                            <span style={{ fontSize: '22px' }}>📉</span>
-                            <span style={{ fontSize: '14px', color: theme.textSecondary, fontWeight: '500', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                              Total Liabilities
-                              <InfoTooltip {...FINANCIAL_TOOLTIPS.totalLiabilities} isDarkMode={theme.mode === 'dark'} size="small" />
-                            </span>
-                          </div>
-                          <span style={{ fontSize: '20px', fontWeight: '700', color: '#EF4444' }}>
-                            {formatCurrency(totalLiabilities)}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  {/* Right: Trend Chart */}
-                  <div>
-                    <div style={{ fontSize: '13px', color: theme.textMuted, marginBottom: '16px' }}>6 Month Trend</div>
-                    <svg width="100%" height="180" viewBox="0 0 350 180" preserveAspectRatio="xMidYMid meet">
-                      <defs>
-                        <linearGradient id="netWorthAreaGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                          <stop offset="0%" stopColor="#10B981" stopOpacity="0.3" />
-                          <stop offset="100%" stopColor="#10B981" stopOpacity="0" />
-                        </linearGradient>
-                      </defs>
-                      
-                      {/* Grid */}
-                      {[0, 1, 2, 3].map(i => (
-                        <line key={i} x1="30" y1={30 + i * 35} x2="340" y2={30 + i * 35} stroke={theme.borderLight} strokeWidth="1" opacity="0.4" />
-                      ))}
-                      
-                      {/* Area */}
-                      <path
-                        d={`M 30 ${150 - ((trendData[0].value - minVal) / (maxVal - minVal)) * 120} 
-                            ${trendData.map((d, i) => `L ${30 + i * 62} ${150 - ((d.value - minVal) / (maxVal - minVal)) * 120}`).join(' ')} 
-                            L 340 150 L 30 150 Z`}
-                        fill="url(#netWorthAreaGrad)"
-                      />
-                      
-                      {/* Line */}
-                      <path
-                        d={`M 30 ${150 - ((trendData[0].value - minVal) / (maxVal - minVal)) * 120} 
-                            ${trendData.map((d, i) => `L ${30 + i * 62} ${150 - ((d.value - minVal) / (maxVal - minVal)) * 120}`).join(' ')}`}
-                        fill="none"
-                        stroke="#10B981"
-                        strokeWidth="3"
-                        strokeLinecap="round"
-                      />
-                      
-                      {/* Points and labels */}
-                      {trendData.map((d, i) => (
-                        <g key={i}>
-                          <circle
-                            cx={30 + i * 62}
-                            cy={150 - ((d.value - minVal) / (maxVal - minVal)) * 120}
-                            r="5"
-                            fill="#10B981"
-                            stroke="white"
-                            strokeWidth="2"
-                          />
-                          <text x={30 + i * 62} y="170" fill={theme.textMuted} fontSize="11" textAnchor="middle">
-                            {d.month}
-                          </text>
-                        </g>
-                      ))}
-                    </svg>
-                    
-                    {/* Growth indicator */}
-                    <div style={{
-                      marginTop: '16px',
-                      padding: '14px 18px',
-                      background: theme.mode === 'dark' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(16, 185, 129, 0.05)',
-                      borderRadius: '12px',
-                      border: '1px solid rgba(16, 185, 129, 0.2)',
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center'
-                    }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span style={{ fontSize: '18px' }}>🚀</span>
-                        <span style={{ fontSize: '13px', color: theme.textSecondary }}>6-Month Growth</span>
-                      </div>
-                      <span style={{ fontSize: '18px', fontWeight: '700', color: '#10B981' }}>
-                        +{((trendData[5].value - trendData[0].value) / trendData[0].value * 100).toFixed(1)}%
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        );
-      })()}
-
-      
-{/* ═══════════════════════════════════════════════════════════════════ */}
-      {/* 📈 CASH FLOW FORECAST - 30-Day Projection */}
-      {/* ═══════════════════════════════════════════════════════════════════ */}
-      {(() => {
-        const today = new Date();
-        const forecastDays = 30;
-        const dailyAvgIncome = activeTotals.income / 30;
-        const dailyAvgExpenses = activeTotals.expenses / 30;
-        let runningBal = activeTotals.income - activeTotals.expenses;
-        
-        const forecastData = [];
-        let minBal = runningBal, maxBal = runningBal;
-        
-        for (let i = 0; i <= forecastDays; i++) {
-          const d = new Date(today);
-          d.setDate(d.getDate() + i);
-          const isPayday = d.getDate() === 1 || d.getDate() === 15;
-          const dayIncome = isPayday ? dailyAvgIncome * 14 : 0;
-          const dayExpenses = i === 0 ? 0 : dailyAvgExpenses * (0.7 + Math.random() * 0.6);
-          
-          // Check for bills due
-          const dueBills = bills.filter(b => {
-            const bd = new Date(b.dueDate || b.date);
-            return bd.toDateString() === d.toDateString() && b.status !== 'paid';
-          });
-          const billsAmount = dueBills.reduce((s, b) => s + (parseFloat(b.amount) || 0), 0);
-          
-          runningBal += dayIncome - dayExpenses - billsAmount;
-          if (runningBal < minBal) minBal = runningBal;
-          if (runningBal > maxBal) maxBal = runningBal;
-          
-          forecastData.push({ day: i, date: d, balance: runningBal, income: dayIncome, expenses: dayExpenses + billsAmount, isPayday, bills: dueBills });
-        }
-        
-        const startBalance = activeTotals.income - activeTotals.expenses;
-        const endBalance = forecastData[forecastData.length - 1]?.balance || startBalance;
-        const netChange = endBalance - startBalance;
-        
-        // Chart dimensions
-        const cWidth = 700, cHeight = 180, pad = { t: 20, r: 20, b: 30, l: 60 };
-        const chartW = cWidth - pad.l - pad.r;
-        const chartH = cHeight - pad.t - pad.b;
-        const yMin = Math.min(0, minBal * 1.1);
-        const yMax = maxBal * 1.15;
-        const yRange = yMax - yMin;
-        
-        const getY = (v) => pad.t + (1 - (v - yMin) / yRange) * chartH;
-        const getX = (day) => pad.l + (day / forecastDays) * chartW;
-        
-        const pathD = forecastData.map((d, i) => `${i === 0 ? 'M' : 'L'} ${getX(d.day)} ${getY(d.balance)}`).join(' ');
-        const areaD = `${pathD} L ${getX(forecastDays)} ${getY(yMin)} L ${getX(0)} ${getY(yMin)} Z`;
-        
-        return (
-          <div style={{ marginBottom: '24px' }}>
-            <div 
-              onClick={() => toggleSection('cashFlow')}
-              style={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                gap: '12px', 
-                marginBottom: collapsedSections.cashFlow ? '0px' : '16px',
-                cursor: 'pointer',
-                userSelect: 'none'
-              }}
-            >
-              <div style={{ 
-                width: '4px', 
-                height: '24px', 
-                background: 'linear-gradient(180deg, #3B82F6, #06B6D4)', 
-                borderRadius: '2px' 
-              }} />
-              <h2 style={{ fontSize: '18px', fontWeight: '700', color: theme.textPrimary, margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                Cash Flow Forecast
-                <InfoTooltip {...FINANCIAL_TOOLTIPS.cashFlowForecast} isDarkMode={theme.mode === 'dark'} size="small" />
-              </h2>
-              <ProjectionBadge isDarkMode={theme.mode === 'dark'} />
-              <span style={{ 
-                background: netChange >= 0 ? '#10B98120' : '#EF444420',
-                color: netChange >= 0 ? '#10B981' : '#EF4444',
-                padding: '4px 12px',
-                borderRadius: '20px',
-                fontSize: '12px',
-                fontWeight: '600'
-              }}>
-                {netChange >= 0 ? '↗' : '↘'} {formatCurrency(Math.abs(netChange))} projected
-              </span>
-              <span style={{ 
-                fontSize: '12px', 
-                color: theme.textMuted,
-                marginLeft: 'auto',
-                transition: 'transform 0.2s',
-                transform: collapsedSections.cashFlow ? 'rotate(-90deg)' : 'rotate(0deg)'
-              }}>▼</span>
-            </div>
-            
-            {!collapsedSections.cashFlow && (
-              <div style={{
-                background: theme.bgCard,
-                borderRadius: '20px',
-                padding: '28px',
-                boxShadow: theme.cardShadow,
-                border: `1px solid ${theme.borderLight}`,
-                position: 'relative',
-                overflow: 'hidden'
-              }}>
-                <div style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  height: '4px',
-                  background: 'linear-gradient(90deg, #3B82F6, #06B6D4, #10B981)'
-                }} />
-                
-                {/* Balance Summary */}
-                <div style={{ display: 'flex', gap: '32px', marginBottom: '24px' }}>
-                  <div>
-                    <div style={{ fontSize: '12px', color: theme.textMuted, marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      Current Balance
-                      <ActualDataBadge isDarkMode={theme.mode === 'dark'} />
-                    </div>
-                    <div style={{ fontSize: '28px', fontWeight: '700', color: theme.textPrimary }}>
-                      {formatCurrency(startBalance)}
-                    </div>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', color: theme.textMuted, fontSize: '24px' }}>→</div>
-                  <div>
-                    <div style={{ fontSize: '12px', color: theme.textMuted, marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      Projected in 30 Days
-                      <InfoTooltip {...FINANCIAL_TOOLTIPS.projectedBalance} isDarkMode={theme.mode === 'dark'} size="small" />
-                    </div>
-                    <div style={{ 
-                      fontSize: '28px', 
-                      fontWeight: '700', 
-                      color: endBalance >= startBalance ? '#10B981' : '#EF4444'
-                    }}>
-                      {formatCurrency(endBalance)}
-                    </div>
-                  </div>
-                  <div style={{ marginLeft: 'auto', display: 'flex', gap: '12px' }}>
-                    <div style={{
-                      padding: '12px 18px',
-                      background: theme.mode === 'dark' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(16, 185, 129, 0.05)',
-                      borderRadius: '12px',
-                      border: '1px solid rgba(16, 185, 129, 0.2)',
-                      textAlign: 'center'
-                    }}>
-                      <div style={{ fontSize: '10px', color: '#10B981', fontWeight: '600', marginBottom: '4px' }}>LOWEST</div>
-                      <div style={{ fontSize: '16px', fontWeight: '700', color: theme.textPrimary }}>{formatCurrency(minBal)}</div>
-                    </div>
-                    <div style={{
-                      padding: '12px 18px',
-                      background: theme.mode === 'dark' ? 'rgba(59, 130, 246, 0.1)' : 'rgba(59, 130, 246, 0.05)',
-                      borderRadius: '12px',
-                      border: '1px solid rgba(59, 130, 246, 0.2)',
-                      textAlign: 'center'
-                    }}>
-                      <div style={{ fontSize: '10px', color: '#3B82F6', fontWeight: '600', marginBottom: '4px' }}>HIGHEST</div>
-                      <div style={{ fontSize: '16px', fontWeight: '700', color: theme.textPrimary }}>{formatCurrency(maxBal)}</div>
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Chart */}
-                <div style={{ marginBottom: '20px' }}>
-                  <svg width="100%" height={cHeight} viewBox={`0 0 ${cWidth} ${cHeight}`} preserveAspectRatio="xMidYMid meet">
-                    <defs>
-                      <linearGradient id="cashFlowFill" x1="0%" y1="0%" x2="0%" y2="100%">
-                        <stop offset="0%" stopColor="#3B82F6" stopOpacity="0.25" />
-                        <stop offset="100%" stopColor="#3B82F6" stopOpacity="0.02" />
-                      </linearGradient>
-                    </defs>
-                    
-                    {/* Zero line */}
-                    {yMin < 0 && (
-                      <line x1={pad.l} y1={getY(0)} x2={cWidth - pad.r} y2={getY(0)} stroke="#EF4444" strokeWidth="1" strokeDasharray="4,4" opacity="0.5" />
-                    )}
-                    
-                    {/* Grid */}
-                    {[0.25, 0.5, 0.75, 1].map((r, i) => {
-                      const val = yMin + yRange * r;
-                      return (
-                        <g key={i}>
-                          <line x1={pad.l} y1={getY(val)} x2={cWidth - pad.r} y2={getY(val)} stroke={theme.borderLight} strokeWidth="1" opacity="0.3" />
-                          <text x={pad.l - 8} y={getY(val)} fill={theme.textMuted} fontSize="10" textAnchor="end" dominantBaseline="middle">
-                            ${Math.round(val / 1000)}k
-                          </text>
-                        </g>
-                      );
-                    })}
-                    
-                    {/* Area */}
-                    <path d={areaD} fill="url(#cashFlowFill)" />
-                    
-                    {/* Line */}
-                    <path d={pathD} fill="none" stroke="#3B82F6" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-                    
-                    {/* Paydays */}
-                    {forecastData.filter(d => d.isPayday && d.day > 0).map((d, i) => (
-                      <g key={i}>
-                        <circle cx={getX(d.day)} cy={getY(d.balance)} r="7" fill="#10B981" stroke="white" strokeWidth="2" />
-                        <text x={getX(d.day)} y={getY(d.balance) - 14} fill="#10B981" fontSize="12" textAnchor="middle">💰</text>
-                      </g>
-                    ))}
-                    
-                    {/* End point */}
-                    <circle cx={getX(forecastDays)} cy={getY(endBalance)} r="8" fill={endBalance >= startBalance ? '#10B981' : '#EF4444'} stroke="white" strokeWidth="3" />
-                    
-                    {/* Day labels */}
-                    {[0, 7, 14, 21, 30].map((day, i) => (
-                      <text key={i} x={getX(day)} y={cHeight - 8} fill={theme.textMuted} fontSize="10" textAnchor="middle">
-                        {day === 0 ? 'Today' : `Day ${day}`}
-                      </text>
-                    ))}
-                  </svg>
-                </div>
-                
-                {/* Legend */}
-                <div style={{ display: 'flex', gap: '24px', justifyContent: 'center' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <div style={{ width: '12px', height: '3px', background: '#3B82F6', borderRadius: '2px' }} />
-                    <span style={{ fontSize: '12px', color: theme.textMuted }}>Projected Balance</span>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <div style={{ width: '10px', height: '10px', background: '#10B981', borderRadius: '50%' }} />
-                    <span style={{ fontSize: '12px', color: theme.textMuted }}>Paydays</span>
-                  </div>
-                  {yMin < 0 && (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <div style={{ width: '12px', height: '2px', background: '#EF4444', borderRadius: '1px' }} />
-                      <span style={{ fontSize: '12px', color: theme.textMuted }}>Zero Line</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
-        );
-      })()}
-
-
-{/* ═══════════════════════════════════════════════════════════════════ */}
-      {/* 📊 SPENDING BY CATEGORY - Premium Horizontal Bar Chart */}
-      {/* ═══════════════════════════════════════════════════════════════════ */}
-      {(() => {
-        const getCategoryIcon = (name) => {
-          const icons = {
-            'Fast Food': '🍔', 'Restaurants': '🍽️', 'Groceries': '🛒', 'Gas': '⛽',
-            'Shopping': '🛍️', 'Entertainment': '🎬', 'Utilities': '💡', 'Transfer': '↔️',
-            'Hobbies': '🎮', 'Doctor': '🏥', 'Pharmacy': '💊', 'Auto & Transport': '🚗',
-            'Electronics & Software': '💻', 'Television': '📺', 'Financial': '🏦',
-            'Category Pending': '❓', 'Other': '📦'
-          };
-          return icons[name] || '📦';
-        };
-        
-        const getCatColor = (name, idx) => {
-          const colors = {
-            'Fast Food': '#8B5CF6', 'Restaurants': '#EC4899', 'Groceries': '#10B981',
-            'Gas': '#F59E0B', 'Shopping': '#3B82F6', 'Entertainment': '#06B6D4',
-            'Utilities': '#0891B2', 'Transfer': '#6366F1', 'Hobbies': '#F97316',
-            'Doctor': '#EF4444', 'Category Pending': '#64748B'
-          };
-          return colors[name] || ['#8B5CF6', '#EC4899', '#10B981', '#F59E0B', '#3B82F6', '#06B6D4'][idx % 6];
-        };
-        
-        const spendingData = sortedCategories.map(([name, spent], idx) => {
-          const budget = budgets.find(b => b.category === name)?.budget || spent * 1.3;
-          const pct = (spent / budget) * 100;
-          return { name, spent, budget, percent: pct, color: getCatColor(name, idx), icon: getCategoryIcon(name) };
-        });
-        
-        const totalSpending = spendingData.reduce((s, c) => s + c.spent, 0);
-        const totalBudgetSpend = spendingData.reduce((s, c) => s + c.budget, 0);
-        
-        return (
-          <div style={{ marginBottom: '24px' }}>
-            <div 
-              onClick={() => toggleSection('spendingCategory')}
-              style={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                gap: '12px', 
-                marginBottom: collapsedSections.spendingCategory ? '0px' : '16px',
-                cursor: 'pointer',
-                userSelect: 'none'
-              }}
-            >
-              <div style={{ 
-                width: '4px', 
-                height: '24px', 
-                background: 'linear-gradient(180deg, #EC4899, #8B5CF6)', 
-                borderRadius: '2px' 
-              }} />
-              <h2 style={{ fontSize: '18px', fontWeight: '700', color: theme.textPrimary, margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                Spending by Category
-                <InfoTooltip {...FINANCIAL_TOOLTIPS.spendingByCategory} isDarkMode={theme.mode === 'dark'} size="small" />
-              </h2>
-              <span style={{ 
-                background: theme.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
-                color: theme.textMuted,
-                padding: '4px 12px',
-                borderRadius: '20px',
-                fontSize: '12px',
-                fontWeight: '500'
-              }}>
-                {spendingData.length} categories
-              </span>
-              <span style={{ 
-                fontSize: '12px', 
-                color: theme.textMuted,
-                marginLeft: 'auto',
-                transition: 'transform 0.2s',
-                transform: collapsedSections.spendingCategory ? 'rotate(-90deg)' : 'rotate(0deg)'
-              }}>▼</span>
-            </div>
-            
-            {!collapsedSections.spendingCategory && (
-              <div style={{
-                background: theme.bgCard,
-                borderRadius: '20px',
-                padding: '28px',
-                boxShadow: theme.cardShadow,
-                border: `1px solid ${theme.borderLight}`,
-                position: 'relative',
-                overflow: 'hidden'
-              }}>
-                <div style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  height: '4px',
-                  background: 'linear-gradient(90deg, #EC4899, #8B5CF6, #3B82F6, #06B6D4)'
-                }} />
-                
-                {/* Header with totals */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '24px' }}>
-                  <div>
-                    <div style={{ fontSize: '13px', color: theme.textMuted, marginBottom: '6px' }}>Total Spending This Period</div>
-                    <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px' }}>
-                      <span style={{ fontSize: '32px', fontWeight: '700', color: theme.textPrimary }}>
-                        {formatCurrency(totalSpending)}
-                      </span>
-                      <span style={{ fontSize: '15px', color: theme.textMuted }}>
-                        / {formatCurrency(totalBudgetSpend)} budgeted
-                      </span>
-                    </div>
-                  </div>
-                  <div style={{
-                    padding: '8px 16px',
-                    background: totalSpending <= totalBudgetSpend ? '#10B98115' : '#EF444415',
-                    borderRadius: '10px',
-                    border: `1px solid ${totalSpending <= totalBudgetSpend ? '#10B98130' : '#EF444430'}`
-                  }}>
-                    <span style={{ 
-                      fontSize: '14px', 
-                      fontWeight: '600', 
-                      color: totalSpending <= totalBudgetSpend ? '#10B981' : '#EF4444' 
-                    }}>
-                      {totalSpending <= totalBudgetSpend ? '✓ Under Budget' : '⚠ Over Budget'}
-                    </span>
-                  </div>
-                </div>
-                
-                {/* Category Bars */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
-                  {spendingData.map((cat, i) => (
-                    <div key={cat.name}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                          <div style={{
-                            width: '40px',
-                            height: '40px',
-                            borderRadius: '12px',
-                            background: `${cat.color}15`,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            fontSize: '20px',
-                            border: `1px solid ${cat.color}25`
-                          }}>
-                            {cat.icon}
-                          </div>
-                          <div>
-                            <div style={{ fontSize: '15px', fontWeight: '600', color: theme.textPrimary }}>
-                              {cat.name}
-                            </div>
-                            <div style={{ fontSize: '12px', color: theme.textMuted }}>
-                              {Math.round(cat.spent / totalSpending * 100)}% of total • {formatCurrency(cat.budget)} budget
-                            </div>
-                          </div>
-                        </div>
-                        <div style={{ textAlign: 'right' }}>
-                          <div style={{ fontSize: '17px', fontWeight: '700', color: theme.textPrimary }}>
-                            {formatCurrency(cat.spent)}
-                          </div>
-                          <div style={{ 
-                            fontSize: '12px', 
-                            fontWeight: '600',
-                            color: cat.percent > 100 ? '#EF4444' : cat.percent > 80 ? '#F59E0B' : '#10B981'
-                          }}>
-                            {cat.percent.toFixed(0)}% used
-                          </div>
-                        </div>
-                      </div>
-                      
-                      {/* Progress Bar */}
-                      <div style={{ position: 'relative', height: '10px' }}>
-                        <div style={{
-                          height: '100%',
-                          background: theme.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)',
-                          borderRadius: '5px',
-                          overflow: 'hidden'
-                        }}>
-                          <div style={{
-                            width: `${Math.min(cat.percent, 100)}%`,
-                            height: '100%',
-                            background: cat.percent > 100 
-                              ? 'linear-gradient(90deg, #EF4444, #F87171)'
-                              : cat.percent > 80
-                              ? 'linear-gradient(90deg, #F59E0B, #FBBF24)'
-                              : `linear-gradient(90deg, ${cat.color}, ${cat.color}BB)`,
-                            borderRadius: '5px',
-                            transition: 'width 0.6s ease-out',
-                            boxShadow: cat.percent > 80 ? `0 0 10px ${cat.percent > 100 ? '#EF444450' : '#F59E0B50'}` : 'none'
-                          }} />
-                        </div>
-                        {/* Budget line marker */}
-                        <div style={{
-                          position: 'absolute',
-                          left: '100%',
-                          top: '-2px',
-                          bottom: '-2px',
-                          width: '2px',
-                          background: theme.textMuted,
-                          borderRadius: '1px',
-                          opacity: 0.5
-                        }} />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        );
-      })()}
-
-      
-{/* ═══════════════════════════════════════════════════════════════════ */}
-      {/* 🔄 RECURRING TRANSACTIONS - Subscriptions & Bills Tracker */}
-      {/* ═══════════════════════════════════════════════════════════════════ */}
-      {(() => {
-        const getRecIcon = (desc) => {
-          const d = desc.toLowerCase();
-          if (d.includes('netflix')) return '🎬';
-          if (d.includes('spotify') || d.includes('apple music')) return '🎵';
-          if (d.includes('amazon')) return '📦';
-          if (d.includes('disney')) return '🏰';
-          if (d.includes('hbo') || d.includes('max')) return '📺';
-          if (d.includes('apple')) return '🍎';
-          if (d.includes('google') || d.includes('youtube')) return '🔍';
-          if (d.includes('hulu')) return '📺';
-          if (d.includes('electric') || d.includes('power') || d.includes('energy')) return '⚡';
-          if (d.includes('water')) return '💧';
-          if (d.includes('gas') && !d.includes('gasoline')) return '🔥';
-          if (d.includes('internet') || d.includes('wifi') || d.includes('comcast') || d.includes('att')) return '📶';
-          if (d.includes('phone') || d.includes('mobile') || d.includes('verizon') || d.includes('t-mobile')) return '📱';
-          if (d.includes('insurance')) return '🛡️';
-          if (d.includes('rent') || d.includes('mortgage') || d.includes('lease')) return '🏠';
-          if (d.includes('gym') || d.includes('fitness')) return '💪';
-          if (d.includes('adobe') || d.includes('microsoft') || d.includes('office')) return '💻';
-          return '🔄';
-        };
-        
-        // Detect recurring by grouping similar descriptions
-        const descGroups = {};
-        activeTransactions.forEach(t => {
-          const normalizedDesc = (t.description || 'unknown').toLowerCase().replace(/[0-9#*]/g, '').trim();
-          if (!descGroups[normalizedDesc]) descGroups[normalizedDesc] = [];
-          descGroups[normalizedDesc].push(t);
-        });
-        
-        const recurringItems = Object.entries(descGroups)
-          .filter(([_, txns]) => txns.length >= 2)
-          .map(([desc, txns]) => {
-            const avgAmt = txns.reduce((s, t) => s + Math.abs(parseFloat(t.amount) || 0), 0) / txns.length;
-            const origDesc = txns[0]?.description || desc;
-            const isSub = desc.includes('netflix') || desc.includes('spotify') || desc.includes('hulu') ||
-                         desc.includes('disney') || desc.includes('hbo') || desc.includes('apple') ||
-                         desc.includes('amazon prime') || desc.includes('youtube') || desc.includes('adobe') ||
-                         desc.includes('microsoft') || desc.includes('gym') || desc.includes('fitness');
-            return { desc: origDesc, count: txns.length, avgAmount: avgAmt, category: txns[0]?.category || 'Other', isSub, icon: getRecIcon(desc) };
-          })
-          .sort((a, b) => b.avgAmount - a.avgAmount);
-        
-        const subscriptions = recurringItems.filter(r => r.isSub).slice(0, 6);
-        const fixedBills = recurringItems.filter(r => !r.isSub && r.avgAmount >= 30).slice(0, 6);
-        const subTotal = subscriptions.reduce((s, r) => s + r.avgAmount, 0);
-        const billsTotal = fixedBills.reduce((s, r) => s + r.avgAmount, 0);
-        
-        return (
-          <div style={{ marginBottom: '24px' }}>
-            <div 
-              onClick={() => toggleSection('recurring')}
-              style={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                gap: '12px', 
-                marginBottom: collapsedSections.recurring ? '0px' : '16px',
-                cursor: 'pointer',
-                userSelect: 'none'
-              }}
-            >
-              <div style={{ 
-                width: '4px', 
-                height: '24px', 
-                background: 'linear-gradient(180deg, #F59E0B, #EF4444)', 
-                borderRadius: '2px' 
-              }} />
-              <h2 style={{ fontSize: '18px', fontWeight: '700', color: theme.textPrimary, margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                Recurring Transactions
-                <InfoTooltip {...FINANCIAL_TOOLTIPS.recurringTransactions} isDarkMode={theme.mode === 'dark'} size="small" />
-              </h2>
-              <span style={{ 
-                background: '#F59E0B20',
-                color: '#F59E0B',
-                padding: '4px 12px',
-                borderRadius: '20px',
-                fontSize: '12px',
-                fontWeight: '600'
-              }}>
-                {formatCurrency(subTotal + billsTotal)}/mo estimated
-              </span>
-              <span style={{ 
-                fontSize: '12px', 
-                color: theme.textMuted,
-                marginLeft: 'auto',
-                transition: 'transform 0.2s',
-                transform: collapsedSections.recurring ? 'rotate(-90deg)' : 'rotate(0deg)'
-              }}>▼</span>
-            </div>
-            
-            {!collapsedSections.recurring && (
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
-                {/* Subscriptions */}
-                <div style={{
-                  background: theme.bgCard,
-                  borderRadius: '20px',
-                  padding: '24px',
-                  boxShadow: theme.cardShadow,
-                  border: `1px solid ${theme.borderLight}`,
-                  position: 'relative',
-                  overflow: 'hidden'
-                }}>
-                  <div style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    height: '4px',
-                    background: 'linear-gradient(90deg, #8B5CF6, #EC4899)'
-                  }} />
-                  
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                    <div>
-                      <div style={{ fontSize: '16px', fontWeight: '600', color: theme.textPrimary, display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        Subscriptions
-                        <InfoTooltip {...FINANCIAL_TOOLTIPS.subscriptions} isDarkMode={theme.mode === 'dark'} size="small" />
-                      </div>
-                      <div style={{ fontSize: '12px', color: theme.textMuted }}>{subscriptions.length} active services</div>
-                    </div>
-                    <div style={{ 
-                      fontSize: '22px', 
-                      fontWeight: '700', 
-                      color: '#8B5CF6',
-                      display: 'flex',
-                      alignItems: 'baseline',
-                      gap: '4px'
-                    }}>
-                      {formatCurrency(subTotal)}
-                      <span style={{ fontSize: '12px', fontWeight: '500', color: theme.textMuted }}>/mo</span>
-                    </div>
-                  </div>
-                  
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                    {subscriptions.length > 0 ? subscriptions.map((sub, i) => (
-                      <div key={i} style={{ 
-                        display: 'flex', 
-                        alignItems: 'center', 
-                        justifyContent: 'space-between',
-                        padding: '12px 14px',
-                        background: theme.mode === 'dark' ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)',
-                        borderRadius: '12px',
-                        border: `1px solid ${theme.borderLight}`
-                      }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                          <span style={{ fontSize: '24px' }}>{sub.icon}</span>
-                          <div>
-                            <div style={{ fontSize: '14px', fontWeight: '500', color: theme.textPrimary }}>
-                              {sub.desc.slice(0, 22)}{sub.desc.length > 22 ? '...' : ''}
-                            </div>
-                            <div style={{ fontSize: '11px', color: theme.textMuted }}>{sub.count}x detected</div>
-                          </div>
-                        </div>
-                        <div style={{ fontSize: '15px', fontWeight: '600', color: '#8B5CF6' }}>
-                          {formatCurrency(sub.avgAmount)}
-                        </div>
-                      </div>
-                    )) : (
-                      <div style={{ textAlign: 'center', padding: '30px', color: theme.textMuted }}>
-                        <span style={{ fontSize: '32px', display: 'block', marginBottom: '8px' }}>📭</span>
-                        <span style={{ fontSize: '13px' }}>No subscriptions detected yet</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-                
-                {/* Fixed Bills */}
-                <div style={{
-                  background: theme.bgCard,
-                  borderRadius: '20px',
-                  padding: '24px',
-                  boxShadow: theme.cardShadow,
-                  border: `1px solid ${theme.borderLight}`,
-                  position: 'relative',
-                  overflow: 'hidden'
-                }}>
-                  <div style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    height: '4px',
-                    background: 'linear-gradient(90deg, #F59E0B, #EF4444)'
-                  }} />
-                  
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                    <div>
-                      <div style={{ fontSize: '16px', fontWeight: '600', color: theme.textPrimary, display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        Fixed Bills
-                        <InfoTooltip {...FINANCIAL_TOOLTIPS.fixedBills} isDarkMode={theme.mode === 'dark'} size="small" />
-                      </div>
-                      <div style={{ fontSize: '12px', color: theme.textMuted }}>{fixedBills.length} recurring payments</div>
-                    </div>
-                    <div style={{ 
-                      fontSize: '22px', 
-                      fontWeight: '700', 
-                      color: '#F59E0B',
-                      display: 'flex',
-                      alignItems: 'baseline',
-                      gap: '4px'
-                    }}>
-                      {formatCurrency(billsTotal)}
-                      <span style={{ fontSize: '12px', fontWeight: '500', color: theme.textMuted }}>/mo</span>
-                    </div>
-                  </div>
-                  
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                    {fixedBills.length > 0 ? fixedBills.map((bill, i) => (
-                      <div key={i} style={{ 
-                        display: 'flex', 
-                        alignItems: 'center', 
-                        justifyContent: 'space-between',
-                        padding: '12px 14px',
-                        background: theme.mode === 'dark' ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)',
-                        borderRadius: '12px',
-                        border: `1px solid ${theme.borderLight}`
-                      }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                          <span style={{ fontSize: '24px' }}>{bill.icon}</span>
-                          <div>
-                            <div style={{ fontSize: '14px', fontWeight: '500', color: theme.textPrimary }}>
-                              {bill.desc.slice(0, 22)}{bill.desc.length > 22 ? '...' : ''}
-                            </div>
-                            <div style={{ fontSize: '11px', color: theme.textMuted }}>{bill.category}</div>
-                          </div>
-                        </div>
-                        <div style={{ fontSize: '15px', fontWeight: '600', color: '#F59E0B' }}>
-                          {formatCurrency(bill.avgAmount)}
-                        </div>
-                      </div>
-                    )) : (
-                      <div style={{ textAlign: 'center', padding: '30px', color: theme.textMuted }}>
-                        <span style={{ fontSize: '32px', display: 'block', marginBottom: '8px' }}>📭</span>
-                        <span style={{ fontSize: '13px' }}>No recurring bills detected yet</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        );
-      })()}
-
-      
-            {/* ═══════════════════════════════════════════════════════════════════ */}
       {/* QUICK ACTIONS - Bills & Goals (Collapsible) */}
       {/* ═══════════════════════════════════════════════════════════════════ */}
       <div 
@@ -8573,250 +6799,7 @@ function DashboardHome({ transactions, goals, bills = [], tasks = [], theme, las
       </div>
       )}
 
-{/* ═══════════════════════════════════════════════════════════════════ */}
-      {/* 🏆 FINANCIAL MILESTONES & ACHIEVEMENTS */}
       {/* ═══════════════════════════════════════════════════════════════════ */}
-      {(() => {
-        const savingsRateAch = activeTotals.income > 0 
-          ? ((activeTotals.income - activeTotals.expenses) / activeTotals.income) * 100 
-          : 0;
-        
-        const completedGoalsCount = goals.filter(g => (g.currentAmount / g.targetAmount) >= 1).length;
-        
-        const achievements = [
-          { 
-            icon: '💰', 
-            title: 'Super Saver', 
-            desc: 'Saving 20%+ of income', 
-            color: '#10B981', 
-            earned: savingsRateAch >= 20 
-          },
-          { 
-            icon: '💵', 
-            title: 'Steady Saver', 
-            desc: 'Saving 10%+ of income', 
-            color: '#06B6D4', 
-            earned: savingsRateAch >= 10 
-          },
-          { 
-            icon: '📊', 
-            title: 'Data Master', 
-            desc: '100+ transactions', 
-            color: '#8B5CF6', 
-            earned: activeTransactions.length >= 100 
-          },
-          { 
-            icon: '🎯', 
-            title: 'Goal Crusher', 
-            desc: 'Completed a goal', 
-            color: '#EC4899', 
-            earned: completedGoalsCount >= 1 
-          },
-          { 
-            icon: '✅', 
-            title: 'Under Budget', 
-            desc: 'Spend less than earn', 
-            color: '#10B981', 
-            earned: activeTotals.expenses < activeTotals.income 
-          },
-          { 
-            icon: '🔥', 
-            title: 'Consistency King', 
-            desc: 'Track for 30+ days', 
-            color: '#F59E0B', 
-            earned: activeTransactions.length >= 30 
-          },
-          { 
-            icon: '🛡️', 
-            title: 'Safety Net', 
-            desc: 'Emergency fund started', 
-            color: '#3B82F6', 
-            earned: goals.some(g => g.name?.toLowerCase().includes('emergency') && g.currentAmount > 0) 
-          },
-          { 
-            icon: '📈', 
-            title: 'Wealth Builder', 
-            desc: 'Positive net worth', 
-            color: '#10B981', 
-            earned: (activeTotals.income - activeTotals.expenses) > 0 
-          }
-        ];
-        
-        const earnedCount = achievements.filter(a => a.earned).length;
-        
-        // Simulated streaks
-        const budgetStreak = Math.floor(Math.random() * 20) + 5;
-        const savingsStreak = Math.floor(Math.random() * 12) + 2;
-        
-        return (
-          <div style={{ marginBottom: '24px' }}>
-            <div 
-              onClick={() => toggleSection('milestones')}
-              style={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                gap: '12px', 
-                marginBottom: collapsedSections.milestones ? '0px' : '16px',
-                cursor: 'pointer',
-                userSelect: 'none'
-              }}
-            >
-              <div style={{ 
-                width: '4px', 
-                height: '24px', 
-                background: 'linear-gradient(180deg, #F59E0B, #EC4899)', 
-                borderRadius: '2px' 
-              }} />
-              <h2 style={{ fontSize: '18px', fontWeight: '700', color: theme.textPrimary, margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                Achievements & Streaks
-                <InfoTooltip {...FINANCIAL_TOOLTIPS.achievements} isDarkMode={theme.mode === 'dark'} size="small" />
-              </h2>
-              <span style={{ 
-                background: '#F59E0B20',
-                color: '#F59E0B',
-                padding: '4px 12px',
-                borderRadius: '20px',
-                fontSize: '12px',
-                fontWeight: '600'
-              }}>
-                🔥 {budgetStreak} day streak
-              </span>
-              <span style={{ 
-                background: '#8B5CF620',
-                color: '#8B5CF6',
-                padding: '4px 12px',
-                borderRadius: '20px',
-                fontSize: '12px',
-                fontWeight: '600'
-              }}>
-                🏆 {earnedCount}/{achievements.length} earned
-              </span>
-              <span style={{ 
-                fontSize: '12px', 
-                color: theme.textMuted,
-                marginLeft: 'auto',
-                transition: 'transform 0.2s',
-                transform: collapsedSections.milestones ? 'rotate(-90deg)' : 'rotate(0deg)'
-              }}>▼</span>
-            </div>
-            
-            {!collapsedSections.milestones && (
-              <div style={{
-                background: theme.bgCard,
-                borderRadius: '20px',
-                padding: '28px',
-                boxShadow: theme.cardShadow,
-                border: `1px solid ${theme.borderLight}`,
-                position: 'relative',
-                overflow: 'hidden'
-              }}>
-                <div style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  height: '4px',
-                  background: 'linear-gradient(90deg, #F59E0B, #EC4899, #8B5CF6)'
-                }} />
-                
-                {/* Streaks Row */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '28px' }}>
-                  <div style={{
-                    background: `linear-gradient(135deg, ${theme.mode === 'dark' ? 'rgba(245, 158, 11, 0.15)' : 'rgba(245, 158, 11, 0.08)'}, ${theme.mode === 'dark' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(239, 68, 68, 0.05)'})`,
-                    borderRadius: '18px',
-                    padding: '24px',
-                    border: '1px solid rgba(245, 158, 11, 0.25)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '20px'
-                  }}>
-                    <div style={{ fontSize: '48px' }}>🔥</div>
-                    <div>
-                      <div style={{ fontSize: '36px', fontWeight: '800', color: '#F59E0B', lineHeight: 1 }}>{budgetStreak}</div>
-                      <div style={{ fontSize: '14px', color: theme.textSecondary, marginTop: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        Days under budget
-                        <InfoTooltip {...FINANCIAL_TOOLTIPS.streaks} isDarkMode={theme.mode === 'dark'} size="small" />
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div style={{
-                    background: `linear-gradient(135deg, ${theme.mode === 'dark' ? 'rgba(16, 185, 129, 0.15)' : 'rgba(16, 185, 129, 0.08)'}, ${theme.mode === 'dark' ? 'rgba(6, 182, 212, 0.1)' : 'rgba(6, 182, 212, 0.05)'})`,
-                    borderRadius: '18px',
-                    padding: '24px',
-                    border: '1px solid rgba(16, 185, 129, 0.25)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '20px'
-                  }}>
-                    <div style={{ fontSize: '48px' }}>💪</div>
-                    <div>
-                      <div style={{ fontSize: '36px', fontWeight: '800', color: '#10B981', lineHeight: 1 }}>{savingsStreak}</div>
-                      <div style={{ fontSize: '14px', color: theme.textSecondary, marginTop: '4px' }}>Months hitting savings goal</div>
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Achievements Grid */}
-                <div style={{ marginBottom: '8px' }}>
-                  <div style={{ fontSize: '15px', fontWeight: '600', color: theme.textPrimary, marginBottom: '16px' }}>
-                    Achievements ({earnedCount}/{achievements.length})
-                  </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '14px' }}>
-                    {achievements.map((ach, i) => (
-                      <div key={i} style={{
-                        background: ach.earned 
-                          ? `${ach.color}12`
-                          : theme.mode === 'dark' ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)',
-                        borderRadius: '16px',
-                        padding: '20px 16px',
-                        border: `1px solid ${ach.earned ? `${ach.color}30` : theme.borderLight}`,
-                        textAlign: 'center',
-                        opacity: ach.earned ? 1 : 0.5,
-                        transition: 'all 0.3s ease',
-                        position: 'relative',
-                        overflow: 'hidden'
-                      }}>
-                        {ach.earned && (
-                          <div style={{
-                            position: 'absolute',
-                            top: '8px',
-                            right: '8px',
-                            width: '18px',
-                            height: '18px',
-                            borderRadius: '50%',
-                            background: ach.color,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            fontSize: '10px',
-                            color: 'white'
-                          }}>✓</div>
-                        )}
-                        <div style={{ fontSize: '36px', marginBottom: '10px' }}>{ach.earned ? ach.icon : '🔒'}</div>
-                        <div style={{ 
-                          fontSize: '13px', 
-                          fontWeight: '600', 
-                          color: ach.earned ? ach.color : theme.textMuted,
-                          marginBottom: '4px'
-                        }}>
-                          {ach.title}
-                        </div>
-                        <div style={{ fontSize: '11px', color: theme.textMuted }}>
-                          {ach.desc}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        );
-      })()}
-
-
-            {/* ═══════════════════════════════════════════════════════════════════ */}
       {/* FINANCIAL OVERVIEW (Collapsible) */}
       {/* ═══════════════════════════════════════════════════════════════════ */}
       <div 
@@ -9502,7 +7485,7 @@ function DashboardHome({ transactions, goals, bills = [], tasks = [], theme, las
       </div>
       )}
 
-            {transactions.length === 0 && (
+      {transactions.length === 0 && (
         <div style={{ marginTop: '24px', background: theme.bgCard, borderRadius: '16px', padding: '60px', textAlign: 'center', boxShadow: theme.cardShadow, border: `1px solid ${theme.borderLight}` }}>
           <div style={{ width: '100px', height: '100px', borderRadius: '25px', background: `linear-gradient(135deg, ${theme.primary}15, ${theme.primary}25)`, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px', fontSize: '48px' }}>📊</div>
           <h3 style={{ fontSize: '24px', fontWeight: '600', color: theme.textPrimary, marginBottom: '12px' }}>Ready to Take Control?</h3>
