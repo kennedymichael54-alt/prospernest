@@ -668,6 +668,7 @@ const USER_ROLES = {
   ADMIN: 'admin',           // Admin users - Full access, can manage users
   TESTER: 'tester',         // Tester users - Read-only, watermarked, limited features
   HOMEVESTORS: 'homevestors', // HomeVestors franchise team - Perpetual license, BizBudget access
+  PROMOTER: 'promoter',     // Beta testers/Promoters - Full access, no admin rights, free forever
   FAMILY: 'family',         // Family plan users - Full access to all features
   PRO: 'pro',               // Pro plan users - Most features
   STARTER: 'starter',       // Starter/Free users - Basic features
@@ -682,6 +683,11 @@ const SPECIAL_ACCOUNTS = {
   'michael.kennedy@homevestors.com': USER_ROLES.HOMEVESTORS,
   'anthony.montgomery@homevestors.com': USER_ROLES.HOMEVESTORS,
   'tucker.pate@homevestors.com': USER_ROLES.HOMEVESTORS,
+  // Beta Testers / Promoters - Perpetual Licenses (helping launch and promote)
+  'alecias0415@gmail.com': USER_ROLES.PROMOTER,
+  'meadow23ben@gmail.com': USER_ROLES.PROMOTER,
+  'jwitczak1992@gmail.com': USER_ROLES.PROMOTER,
+  'mylbel5748@yahoo.com': USER_ROLES.PROMOTER,
 };
 
 // Users with perpetual licenses (never expire, never charged)
@@ -692,7 +698,10 @@ const PERPETUAL_LICENSE_USERS = [
   'michael.kennedy@homevestors.com',
   'anthony.montgomery@homevestors.com',
   'tucker.pate@homevestors.com',
-  'alecias0415@gmail.com', // Alecia Matheson - HomeBudget Hub tester
+  'alecias0415@gmail.com',
+  'meadow23ben@gmail.com',
+  'jwitczak1992@gmail.com',
+  'mylbel5748@yahoo.com',
 ];
 
 // Users with BizBudget Hub access
@@ -703,6 +712,10 @@ const BIZBUDGET_ACCESS_USERS = [
   'michael.kennedy@homevestors.com',
   'anthony.montgomery@homevestors.com',
   'tucker.pate@homevestors.com',
+  'alecias0415@gmail.com',
+  'meadow23ben@gmail.com',
+  'jwitczak1992@gmail.com',
+  'mylbel5748@yahoo.com',
 ];
 
 // Users with REBudget Hub access (Real Estate Investment Analysis)
@@ -714,6 +727,10 @@ const REBUDGET_ACCESS_USERS = [
   'michael.kennedy@homevestors.com',
   'anthony.montgomery@homevestors.com',
   'tucker.pate@homevestors.com',
+  'alecias0415@gmail.com',
+  'meadow23ben@gmail.com',
+  'jwitczak1992@gmail.com',
+  'mylbel5748@yahoo.com',
 ];
 
 // Feature permissions by role
@@ -802,6 +819,28 @@ const ROLE_PERMISSIONS = {
     showDemoData: false,
     watermark: false,
     perpetualLicense: true,    // Never expires, never charged
+    maxTransactions: Infinity,
+    maxGoals: Infinity,
+    maxBills: Infinity,
+  },
+  [USER_ROLES.PROMOTER]: {
+    canViewAllTabs: true,
+    canEditData: true,
+    canDeleteData: true,
+    canExport: true,
+    canImport: true,
+    canManageUsers: false,      // No admin rights
+    canViewAdminPanel: false,   // No admin panel access
+    canViewAnalytics: true,
+    canAccessRetirement: true,
+    canAccessSalesTracker: true,
+    canAccessReports: true,
+    canAccessBizBudget: true,   // Full BizBudget Hub access
+    canAccessREBudget: true,    // Full REBudget Hub access
+    canModifySettings: true,
+    showDemoData: false,
+    watermark: false,
+    perpetualLicense: true,     // Never expires, never charged - helping launch/promote
     maxTransactions: Infinity,
     maxGoals: Infinity,
     maxBills: Infinity,
