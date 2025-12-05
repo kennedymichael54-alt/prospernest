@@ -4721,9 +4721,7 @@ function Dashboard({
               alignItems: 'center', 
               gap: '12px',
               cursor: 'pointer',
-              overflow: 'hidden',
               flex: sidebarCollapsed ? 'none' : 1,
-              minWidth: 0,
               justifyContent: sidebarCollapsed ? 'center' : 'flex-start'
             }}
           >
@@ -4742,23 +4740,21 @@ function Dashboard({
               <PennyLogo size={28} />
             </div>
             {!sidebarCollapsed && (
-              <div style={{ minWidth: 0, overflow: 'hidden' }}>
+              <div>
                 <span style={{ 
                   fontWeight: '700', 
                   fontSize: '18px', 
                   color: '#FFFFFF', 
-                  letterSpacing: '-0.3px' 
+                  letterSpacing: '-0.3px',
+                  whiteSpace: 'nowrap'
                 }}>
-                  Prosper<span style={{ 
-                    color: '#F472B6'
-                  }}>Nest</span>
+                  Prosper<span style={{ color: '#F472B6' }}>Nest</span>
                 </span>
                 <div style={{
                   display: 'flex',
                   alignItems: 'center',
                   gap: '6px',
-                  marginTop: '2px',
-                  flexWrap: 'nowrap'
+                  marginTop: '2px'
                 }}>
                   <span style={{ 
                     background: 'linear-gradient(135deg, #F59E0B, #D97706)', 
@@ -4768,10 +4764,8 @@ function Dashboard({
                     fontWeight: '700', 
                     color: 'white',
                     textTransform: 'uppercase',
-                    letterSpacing: '0.5px',
-                    flexShrink: 0
+                    letterSpacing: '0.5px'
                   }}>Beta</span>
-                  {/* Role Badge for Admin/Tester */}
                   {userRole === USER_ROLES.ADMIN && (
                     <span style={{ 
                       background: 'linear-gradient(135deg, #8B5CF6, #7C3AED)', 
@@ -4781,8 +4775,7 @@ function Dashboard({
                       fontWeight: '700', 
                       color: 'white',
                       textTransform: 'uppercase',
-                      letterSpacing: '0.5px',
-                      flexShrink: 0
+                      letterSpacing: '0.5px'
                     }}>Admin</span>
                   )}
                   {userRole === USER_ROLES.TESTER && (
@@ -4794,8 +4787,7 @@ function Dashboard({
                       fontWeight: '700', 
                       color: 'white',
                       textTransform: 'uppercase',
-                      letterSpacing: '0.5px',
-                      flexShrink: 0
+                      letterSpacing: '0.5px'
                     }}>Tester</span>
                   )}
                   {userRole === USER_ROLES.OWNER && (
@@ -4807,53 +4799,44 @@ function Dashboard({
                       fontWeight: '700', 
                       color: 'white',
                       textTransform: 'uppercase',
-                      letterSpacing: '0.5px',
-                      flexShrink: 0
+                      letterSpacing: '0.5px'
                     }}>Owner</span>
                   )}
+                  {/* Green Status Dot - right of badges */}
+                  <SiteStatusIndicator showLabel={false} darkMode={true} />
                 </div>
               </div>
             )}
           </div>
           
-          {/* Right side: Status Indicator + Collapse Button */}
+          {/* Collapse Toggle Button */}
           {!sidebarCollapsed && (
-            <div style={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              gap: '10px',
-              flexShrink: 0
-            }}>
-              {/* Status Indicator */}
-              <SiteStatusIndicator showLabel={false} darkMode={true} />
-              
-              {/* Collapse Toggle Button */}
-              <button
-                onClick={(e) => { e.stopPropagation(); setSidebarCollapsed(true); }}
-                className="collapse-btn"
-                style={{
-                  width: '32px',
-                  height: '32px',
-                  minWidth: '32px',
-                  flexShrink: 0,
-                  borderRadius: '10px',
-                  background: 'rgba(255, 255, 255, 0.08)',
-                  border: '1px solid rgba(255, 255, 255, 0.12)',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: 'rgba(255, 255, 255, 0.7)',
-                  transition: 'all 0.2s ease'
-                }}
-                title="Collapse sidebar"
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="11 17 6 12 11 7"/>
-                  <polyline points="18 17 13 12 18 7"/>
-                </svg>
-              </button>
-            </div>
+            <button
+              onClick={(e) => { e.stopPropagation(); setSidebarCollapsed(true); }}
+              className="collapse-btn"
+              style={{
+                width: '32px',
+                height: '32px',
+                minWidth: '32px',
+                flexShrink: 0,
+                borderRadius: '10px',
+                background: 'rgba(255, 255, 255, 0.08)',
+                border: '1px solid rgba(255, 255, 255, 0.12)',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: 'rgba(255, 255, 255, 0.7)',
+                transition: 'all 0.2s ease',
+                marginLeft: '12px'
+              }}
+              title="Collapse sidebar"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="11 17 6 12 11 7"/>
+                <polyline points="18 17 13 12 18 7"/>
+              </svg>
+            </button>
           )}
         </div>
         
