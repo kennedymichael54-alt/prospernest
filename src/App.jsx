@@ -3101,6 +3101,265 @@ function LastImportIndicator({ lastImportDate }) {
 }
 
 // ============================================================================
+// BIRTHDAY CELEBRATION MODAL - Shows on user's birthday
+// ============================================================================
+function BirthdayModal({ firstName, avatar, theme, onClose }) {
+  const [confettiPieces, setConfettiPieces] = useState([]);
+  
+  // Generate confetti on mount
+  useEffect(() => {
+    const pieces = [];
+    const colors = ['#EC4899', '#8B5CF6', '#F59E0B', '#10B981', '#3B82F6', '#EF4444'];
+    for (let i = 0; i < 50; i++) {
+      pieces.push({
+        id: i,
+        left: Math.random() * 100,
+        delay: Math.random() * 3,
+        duration: 3 + Math.random() * 2,
+        color: colors[Math.floor(Math.random() * colors.length)],
+        size: 8 + Math.random() * 8,
+        rotation: Math.random() * 360
+      });
+    }
+    setConfettiPieces(pieces);
+  }, []);
+
+  return (
+    <div style={{ 
+      position: 'fixed', 
+      inset: 0, 
+      background: 'rgba(0,0,0,0.7)', 
+      display: 'flex', 
+      alignItems: 'center', 
+      justifyContent: 'center', 
+      zIndex: 10000,
+      backdropFilter: 'blur(8px)'
+    }}>
+      {/* Confetti Animation */}
+      <style>{`
+        @keyframes confettiFall {
+          0% { transform: translateY(-100vh) rotate(0deg); opacity: 1; }
+          100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+        }
+        @keyframes float {
+          0%, 100% { transform: translateY(0px) rotate(0deg); }
+          50% { transform: translateY(-20px) rotate(5deg); }
+        }
+        @keyframes pulse {
+          0%, 100% { transform: scale(1); }
+          50% { transform: scale(1.05); }
+        }
+        @keyframes sparkle {
+          0%, 100% { opacity: 0; transform: scale(0) rotate(0deg); }
+          50% { opacity: 1; transform: scale(1) rotate(180deg); }
+        }
+      `}</style>
+      
+      {/* Confetti pieces */}
+      {confettiPieces.map(piece => (
+        <div
+          key={piece.id}
+          style={{
+            position: 'fixed',
+            left: `${piece.left}%`,
+            top: '-20px',
+            width: `${piece.size}px`,
+            height: `${piece.size}px`,
+            background: piece.color,
+            borderRadius: piece.id % 2 === 0 ? '50%' : '2px',
+            animation: `confettiFall ${piece.duration}s ease-in-out ${piece.delay}s infinite`,
+            zIndex: 10001
+          }}
+        />
+      ))}
+      
+      {/* Main Card */}
+      <div style={{ 
+        background: 'linear-gradient(135deg, #FDF2F8 0%, #FCE7F3 30%, #F5D0FE 70%, #E9D5FF 100%)',
+        borderRadius: '32px', 
+        padding: '48px 40px',
+        width: '520px',
+        maxWidth: '90vw',
+        boxShadow: '0 25px 80px rgba(139, 92, 246, 0.4), 0 10px 40px rgba(236, 72, 153, 0.3)',
+        position: 'relative',
+        overflow: 'hidden',
+        animation: 'pulse 3s ease-in-out infinite'
+      }}>
+        {/* Decorative shapes */}
+        <div style={{
+          position: 'absolute',
+          top: '-50px',
+          right: '-50px',
+          width: '200px',
+          height: '200px',
+          background: 'linear-gradient(135deg, #EC4899 0%, #F472B6 100%)',
+          borderRadius: '50%',
+          opacity: 0.3
+        }} />
+        <div style={{
+          position: 'absolute',
+          bottom: '-30px',
+          left: '-30px',
+          width: '150px',
+          height: '150px',
+          background: 'linear-gradient(135deg, #8B5CF6 0%, #A78BFA 100%)',
+          borderRadius: '50%',
+          opacity: 0.3
+        }} />
+        
+        {/* Sparkles */}
+        {[
+          { top: '10%', left: '10%', delay: '0s' },
+          { top: '15%', right: '15%', delay: '0.5s' },
+          { bottom: '20%', left: '15%', delay: '1s' },
+          { bottom: '15%', right: '10%', delay: '1.5s' }
+        ].map((pos, i) => (
+          <div key={i} style={{
+            position: 'absolute',
+            ...pos,
+            fontSize: '24px',
+            animation: `sparkle 2s ease-in-out ${pos.delay} infinite`
+          }}>✨</div>
+        ))}
+        
+        {/* Content */}
+        <div style={{ position: 'relative', zIndex: 1, textAlign: 'center' }}>
+          {/* Avatar Circle */}
+          <div style={{
+            width: '140px',
+            height: '140px',
+            margin: '0 auto 24px',
+            position: 'relative'
+          }}>
+            {/* Outer ring */}
+            <div style={{
+              position: 'absolute',
+              inset: '-8px',
+              background: 'linear-gradient(135deg, #EC4899 0%, #8B5CF6 50%, #EC4899 100%)',
+              borderRadius: '50%',
+              animation: 'float 4s ease-in-out infinite'
+            }} />
+            {/* Inner white ring */}
+            <div style={{
+              position: 'absolute',
+              inset: '0',
+              background: 'white',
+              borderRadius: '50%'
+            }} />
+            {/* Avatar */}
+            <div style={{
+              position: 'absolute',
+              inset: '6px',
+              background: 'linear-gradient(135deg, #F3E8FF 0%, #FCE7F3 100%)',
+              borderRadius: '50%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '64px'
+            }}>
+              {avatar || '🎂'}
+            </div>
+          </div>
+          
+          {/* Birthday Text */}
+          <div style={{
+            background: 'linear-gradient(135deg, #EC4899 0%, #8B5CF6 100%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text',
+            fontSize: '18px',
+            fontWeight: '600',
+            letterSpacing: '3px',
+            textTransform: 'uppercase',
+            marginBottom: '8px'
+          }}>
+            🎉 Happy Birthday 🎉
+          </div>
+          
+          {/* Name */}
+          <h1 style={{
+            fontSize: '42px',
+            fontWeight: '800',
+            color: '#1F2937',
+            margin: '0 0 16px',
+            textShadow: '0 2px 10px rgba(0,0,0,0.1)'
+          }}>
+            {firstName || 'Friend'}!
+          </h1>
+          
+          {/* Message */}
+          <p style={{
+            fontSize: '16px',
+            color: '#6B7280',
+            lineHeight: 1.6,
+            margin: '0 0 32px',
+            maxWidth: '380px',
+            marginLeft: 'auto',
+            marginRight: 'auto'
+          }}>
+            Wishing you a day filled with joy, prosperity, and all the happiness your heart can hold! 🌟
+          </p>
+          
+          {/* Cake Emoji Row */}
+          <div style={{
+            display: 'flex',
+            justifyContent: 'center',
+            gap: '12px',
+            marginBottom: '32px',
+            fontSize: '32px'
+          }}>
+            <span style={{ animation: 'float 2s ease-in-out 0s infinite' }}>🎈</span>
+            <span style={{ animation: 'float 2s ease-in-out 0.2s infinite' }}>🎁</span>
+            <span style={{ animation: 'float 2s ease-in-out 0.4s infinite' }}>🎂</span>
+            <span style={{ animation: 'float 2s ease-in-out 0.6s infinite' }}>🎁</span>
+            <span style={{ animation: 'float 2s ease-in-out 0.8s infinite' }}>🎈</span>
+          </div>
+          
+          {/* Close Button */}
+          <button
+            onClick={onClose}
+            style={{
+              background: 'linear-gradient(135deg, #EC4899 0%, #8B5CF6 100%)',
+              border: 'none',
+              borderRadius: '16px',
+              padding: '16px 48px',
+              color: 'white',
+              fontSize: '16px',
+              fontWeight: '700',
+              cursor: 'pointer',
+              boxShadow: '0 8px 30px rgba(236, 72, 153, 0.4)',
+              transition: 'all 0.3s ease',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px'
+            }}
+            onMouseOver={e => {
+              e.currentTarget.style.transform = 'translateY(-3px) scale(1.02)';
+              e.currentTarget.style.boxShadow = '0 12px 40px rgba(236, 72, 153, 0.5)';
+            }}
+            onMouseOut={e => {
+              e.currentTarget.style.transform = 'translateY(0) scale(1)';
+              e.currentTarget.style.boxShadow = '0 8px 30px rgba(236, 72, 153, 0.4)';
+            }}
+          >
+            <span>🎉</span> Thank You!
+          </button>
+          
+          {/* From ProsperNest */}
+          <p style={{
+            marginTop: '24px',
+            fontSize: '13px',
+            color: '#9CA3AF'
+          }}>
+            With love from the <span style={{ color: '#8B5CF6', fontWeight: '600' }}>ProsperNest</span> team 💜
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================================
 // CHANGE PASSWORD MODAL
 // ============================================================================
 function ChangePasswordModal({ theme, onClose }) {
@@ -3488,6 +3747,7 @@ function Dashboard({
   const [showIdleModal, setShowIdleModal] = useState(false);
   const [showManageAccountModal, setShowManageAccountModal] = useState(false);
   const [showWelcomeModal, setShowWelcomeModal] = useState(false); // VIP welcome modal
+  const [showBirthdayModal, setShowBirthdayModal] = useState(false); // Birthday celebration modal
   
   // Subscription & Hub State
   const [subscription, setSubscription] = useState(null);
@@ -3659,6 +3919,33 @@ function Dashboard({
       }
     }
   }, [user?.email, user?.id, userRole]);
+  
+  // Check if today is the user's birthday and show celebration modal
+  useEffect(() => {
+    if (profile?.dateOfBirth && user?.id) {
+      const today = new Date();
+      const birthDate = new Date(profile.dateOfBirth);
+      
+      // Check if month and day match (birthday!)
+      const isBirthday = today.getMonth() === birthDate.getMonth() && 
+                         today.getDate() === birthDate.getDate();
+      
+      if (isBirthday) {
+        // Check if we've shown birthday modal today
+        const todayKey = `pn_birthday_shown_${user.id}_${today.getFullYear()}_${today.getMonth()}_${today.getDate()}`;
+        const hasShownToday = localStorage.getItem(todayKey);
+        
+        if (!hasShownToday) {
+          // Show birthday modal after a short delay (after welcome modal if any)
+          const timer = setTimeout(() => {
+            setShowBirthdayModal(true);
+            localStorage.setItem(todayKey, 'true');
+          }, 1500);
+          return () => clearTimeout(timer);
+        }
+      }
+    }
+  }, [profile?.dateOfBirth, user?.id]);
   
   // Toggle hub expansion
   const toggleHub = (hubId) => {
@@ -5959,6 +6246,16 @@ function Dashboard({
             </div>
           </div>
         </div>
+      )}
+
+      {/* Birthday Celebration Modal */}
+      {showBirthdayModal && (
+        <BirthdayModal 
+          firstName={profile?.firstName}
+          avatar={userPreferences?.avatar}
+          theme={theme}
+          onClose={() => setShowBirthdayModal(false)}
+        />
       )}
 
       {/* Upgrade Modal */}
