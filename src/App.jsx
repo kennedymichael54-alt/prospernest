@@ -661,23 +661,6 @@ const REBUDGET_ACCESS_USERS = [
   'tucker.pate@homevestors.com',
 ];
 
-// Helper function to check REBudget Hub access
-// Access granted to: Owner, Admin, Tester, Perpetual License holders, Paid users
-const checkREBudgetAccess = (userEmail, userRole, subscriptionStatus) => {
-  const email = userEmail?.toLowerCase();
-  
-  // 1. Check if user is in perpetual license list
-  if (REBUDGET_ACCESS_USERS.includes(email)) return true;
-  
-  // 2. Check if user has privileged role (Owner, Admin, Tester)
-  if ([USER_ROLES.OWNER, USER_ROLES.ADMIN, USER_ROLES.TESTER, USER_ROLES.HOMEVESTORS].includes(userRole)) return true;
-  
-  // 3. Check if user has paid subscription (Pro or Family plan)
-  if (subscriptionStatus?.isPaid || subscriptionStatus?.plan === 'pro' || subscriptionStatus?.plan === 'family') return true;
-  
-  return false;
-};
-
 // Feature permissions by role
 const ROLE_PERMISSIONS = {
   [USER_ROLES.OWNER]: {
@@ -3270,10 +3253,12 @@ function Dashboard({
       : { hasAccess: false, reason: 'loading' });
   
   // Check REBudget Hub access (Owner, Admin, Tester, Perpetual License, or Paid users)
-  const hasREBudgetAccess = checkREBudgetAccess(user?.email, userRole, {
-    isPaid: subscriptionAccess.reason === 'paid',
-    plan: subscription?.plan_type
-  });
+  const hasREBudgetAccess = REBUDGET_ACCESS_USERS.includes(user?.email?.toLowerCase()) || 
+    userRole === USER_ROLES.OWNER || 
+    userRole === USER_ROLES.ADMIN || 
+    userRole === USER_ROLES.TESTER || 
+    userRole === USER_ROLES.HOMEVESTORS ||
+    subscriptionAccess?.reason === 'paid';
   
   // Show welcome modal for VIP/perpetual users on first visit of session
   useEffect(() => {
