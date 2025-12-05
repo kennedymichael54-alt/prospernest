@@ -1,921 +1,148 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
+import { CollapsibleSection, StatCard, ContentCard, EmptyState } from './CollapsibleComponents';
 
-// ============================================================================
-// REAL ESTATE COMMAND CENTER
-// Specialized dashboard for Realtors / Real Estate Agents
-// Industry-specific KPIs, GCI tracking, deal pipeline, and more
-// ============================================================================
+const STORAGE_KEY_PREFIX = 'pn_command_';
 
-// Import CollapsibleSection for consistency
-// import { CollapsibleSection } from './CollapsibleComponents';
-
-// Inline CollapsibleSection for standalone use
-const CollapsibleSection = ({ 
-  title, 
-  icon = null,
-  badge = null,
-  badgeColor = '#6366f1',
-  defaultExpanded = true, 
-  children, 
-  isDarkMode = false,
-  headerRight = null,
-}) => {
-  const [isExpanded, setIsExpanded] = useState(defaultExpanded);
-  
-  return (
-    <div style={{
-      backgroundColor: isDarkMode ? '#16213e' : '#ffffff',
-      borderRadius: '16px',
-      marginBottom: '20px',
-      boxShadow: isDarkMode 
-        ? '0 4px 6px rgba(0, 0, 0, 0.3)' 
-        : '0 2px 8px rgba(0, 0, 0, 0.06)',
-      overflow: 'hidden',
-      border: `1px solid ${isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)'}`,
-    }}>
-      <div 
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '16px 20px',
-          cursor: 'pointer',
-          backgroundColor: isDarkMode ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.01)',
-          borderBottom: isExpanded 
-            ? `1px solid ${isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'}` 
-            : 'none',
-        }}
-        onClick={() => setIsExpanded(!isExpanded)}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          {icon && <span style={{ fontSize: '18px' }}>{icon}</span>}
-          <h3 style={{ 
-            fontSize: '16px', 
-            fontWeight: '600', 
-            color: isDarkMode ? '#ffffff' : '#1e293b', 
-            margin: 0 
-          }}>{title}</h3>
-          {badge && (
-            <span style={{
-              padding: '3px 10px',
-              backgroundColor: `${badgeColor}20`,
-              color: badgeColor,
-              borderRadius: '12px',
-              fontSize: '12px',
-              fontWeight: '500',
-            }}>{badge}</span>
-          )}
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          {headerRight}
-          <div style={{
-            width: '28px',
-            height: '28px',
-            borderRadius: '8px',
-            backgroundColor: isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            transform: isExpanded ? 'rotate(0deg)' : 'rotate(-90deg)',
-            transition: 'transform 0.3s ease',
-          }}>
-            <span style={{ fontSize: '14px', color: isDarkMode ? '#94a3b8' : '#64748b' }}>▼</span>
-          </div>
-        </div>
-      </div>
-      <div style={{
-        maxHeight: isExpanded ? '5000px' : '0',
-        opacity: isExpanded ? 1 : 0,
-        overflow: 'hidden',
-        transition: 'max-height 0.4s ease, opacity 0.3s ease',
-      }}>
-        <div style={{ padding: '20px' }}>
-          {children}
-        </div>
-      </div>
-    </div>
-  );
+const formatCurrency = (amount) => {
+  if (amount == null) return '-';
+  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount);
 };
 
-const RealEstateCommandCenter = ({ user, isDarkMode = false }) => {
+const PIPELINE_STAGES = [
+  { id: 'lead', label: 'Lead', color: '#6B7280', icon: '🎯' },
+  { id: 'consultation', label: 'Consultation', color: '#3B82F6', icon: '📞' },
+  { id: 'showing', label: 'Showing', color: '#8B5CF6', icon: '🏠' },
+  { id: 'offer', label: 'Offer', color: '#F59E0B', icon: '📝' },
+  { id: 'under-contract', label: 'Under Contract', color: '#EC4899', icon: '✍️' },
+  { id: 'closed', label: 'Closed', color: '#10B981', icon: '🎉' }
+];
+
+const TAX_DEDUCTIONS = [
+  { icon: '🚗', name: 'Vehicle/Mileage', description: '67¢ per mile for 2024', rate: '67¢/mile' },
+  { icon: '🏠', name: 'Home Office', description: 'Dedicated workspace deduction', rate: '$5/sq ft' },
+  { icon: '📢', name: 'Marketing & Advertising', description: 'Ads, signs, flyers, websites', rate: '100%' },
+  { icon: '💻', name: 'Software & Tools', description: 'CRM, MLS, transaction software', rate: '100%' },
+  { icon: '📱', name: 'Phone & Internet', description: 'Business use percentage', rate: 'Business %' },
+  { icon: '📚', name: 'Education & Licensing', description: 'CE courses, license renewals', rate: '100%' },
+  { icon: '🎁', name: 'Client Gifts', description: 'Closing gifts, appreciation', rate: '$25/person' },
+  { icon: '👔', name: 'Professional Dues', description: 'NAR, state/local associations', rate: '100%' }
+];
+
+const DEMO_LISTINGS = [
+  { id: 1, address: '2908 Urban Avenue', city: 'Columbus', state: 'GA', zip: '31907', price: 325000, status: 'active', dom: 12, beds: 4, baths: 2.5, sqft: 2400, type: 'buyer', gci: 9750, stage: 'showing' },
+  { id: 2, address: '1114 Brooks Road', city: 'Columbus', state: 'GA', zip: '31903', price: 189000, status: 'pending', dom: 28, beds: 3, baths: 2, sqft: 1650, type: 'seller', gci: 5670, stage: 'under-contract' },
+  { id: 3, address: '4742 Marino Drive', city: 'Columbus', state: 'GA', zip: '31907', price: 275000, status: 'active', dom: 5, beds: 3, baths: 2, sqft: 1890, type: 'buyer', gci: 8250, stage: 'offer' },
+  { id: 4, address: '2214 Somerset Avenue', city: 'Columbus', state: 'GA', zip: '31903', price: 425000, status: 'closed', dom: 45, beds: 5, baths: 3, sqft: 3200, type: 'seller', gci: 12750, stage: 'closed', closedDate: '2025-03-15' },
+  { id: 5, address: '936 Walker Road', city: 'Columbus', state: 'GA', zip: '31904', price: 210000, status: 'active', dom: 18, beds: 3, baths: 2, sqft: 1720, type: 'seller', gci: 6300, stage: 'showing' }
+];
+
+const DEMO_EXPENSES = [
+  { id: 1, date: '2025-03-01', category: 'Marketing', description: 'Facebook Ads - March', amount: 500, deductible: true },
+  { id: 2, date: '2025-03-05', category: 'Vehicle', description: 'Gas & Maintenance', amount: 320, deductible: true },
+  { id: 3, date: '2025-03-10', category: 'Software', description: 'CRM Subscription', amount: 99, deductible: true },
+  { id: 4, date: '2025-03-12', category: 'Client Gift', description: 'Closing Gift - Somerset Ave', amount: 150, deductible: true },
+  { id: 5, date: '2025-03-15', category: 'Education', description: 'CE Course - Ethics', amount: 75, deductible: true }
+];
+
+export default function RealEstateCommandCenter({ user, isDarkMode, theme: propTheme }) {
   const [activeTab, setActiveTab] = useState('dashboard');
-  
-  // Data state
-  const [transactions, setTransactions] = useState([]);
-  const [listings, setListings] = useState([]);
-  const [clients, setClients] = useState([]);
-  const [expenses, setExpenses] = useState([]);
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [modalType, setModalType] = useState('');
-  
-  // Storage key
-  const getStorageKey = (key) => `pn_realestate_${user?.id || user?.email || 'default'}_${key}`;
-  
-  // Load data
-  useEffect(() => {
-    const savedTransactions = localStorage.getItem(getStorageKey('transactions'));
-    const savedListings = localStorage.getItem(getStorageKey('listings'));
-    const savedClients = localStorage.getItem(getStorageKey('clients'));
-    const savedExpenses = localStorage.getItem(getStorageKey('expenses'));
-    
-    if (savedTransactions) setTransactions(JSON.parse(savedTransactions));
-    if (savedListings) setListings(JSON.parse(savedListings));
-    if (savedClients) setClients(JSON.parse(savedClients));
-    if (savedExpenses) setExpenses(JSON.parse(savedExpenses));
-  }, [user]);
-  
-  // Save data
-  useEffect(() => {
-    localStorage.setItem(getStorageKey('transactions'), JSON.stringify(transactions));
-  }, [transactions]);
-  
-  useEffect(() => {
-    localStorage.setItem(getStorageKey('listings'), JSON.stringify(listings));
-  }, [listings]);
-  
-  useEffect(() => {
-    localStorage.setItem(getStorageKey('clients'), JSON.stringify(clients));
-  }, [clients]);
-  
-  useEffect(() => {
-    localStorage.setItem(getStorageKey('expenses'), JSON.stringify(expenses));
-  }, [expenses]);
+  const [listings, setListings] = useState(DEMO_LISTINGS);
+  const [expenses, setExpenses] = useState(DEMO_EXPENSES);
+  const [showAddListing, setShowAddListing] = useState(false);
+  const [showAddExpense, setShowAddExpense] = useState(false);
 
-  // Calculate Real Estate KPIs
-  const kpis = useMemo(() => {
-    const closedTransactions = transactions.filter(t => t.status === 'Closed');
-    const totalGCI = closedTransactions.reduce((sum, t) => sum + (parseFloat(t.commission) || 0), 0);
-    const totalVolume = closedTransactions.reduce((sum, t) => sum + (parseFloat(t.salePrice) || 0), 0);
-    const avgCommission = closedTransactions.length > 0 ? totalGCI / closedTransactions.length : 0;
-    const avgSalePrice = closedTransactions.length > 0 ? totalVolume / closedTransactions.length : 0;
-    
-    const activeListings = listings.filter(l => l.status === 'Active').length;
-    const pendingTransactions = transactions.filter(t => t.status === 'Under Contract').length;
-    
-    const totalExpenses = expenses.reduce((sum, e) => sum + (parseFloat(e.amount) || 0), 0);
-    const netIncome = totalGCI - totalExpenses;
-    
-    // Calculate days on market
-    const avgDOM = closedTransactions.length > 0 
-      ? closedTransactions.reduce((sum, t) => sum + (parseInt(t.daysOnMarket) || 0), 0) / closedTransactions.length 
-      : 0;
-    
-    // List to Sale ratio
-    const listToSaleRatio = closedTransactions.length > 0 
-      ? (closedTransactions.reduce((sum, t) => sum + ((parseFloat(t.salePrice) / parseFloat(t.listPrice)) || 0), 0) / closedTransactions.length) * 100
-      : 0;
-    
-    return {
-      totalGCI,
-      totalVolume,
-      avgCommission,
-      avgSalePrice,
-      activeListings,
-      pendingTransactions,
-      closedDeals: closedTransactions.length,
-      totalExpenses,
-      netIncome,
-      avgDOM,
-      listToSaleRatio,
-      totalTransactions: transactions.length,
-    };
-  }, [transactions, listings, expenses]);
-
-  // Tax estimates
-  const taxEstimates = useMemo(() => {
-    const selfEmploymentTax = kpis.netIncome * 0.153;
-    const federalTax = kpis.netIncome * 0.22;
-    const stateTax = kpis.netIncome * 0.05;
-    const totalTax = selfEmploymentTax + federalTax + stateTax;
-    const quarterlyPayment = totalTax / 4;
-    
-    return { selfEmploymentTax, federalTax, stateTax, totalTax, quarterlyPayment };
-  }, [kpis]);
-
-  // Format currency
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(amount);
+  const theme = propTheme || {
+    textPrimary: isDarkMode ? '#F9FAFB' : '#111827',
+    textSecondary: isDarkMode ? '#D1D5DB' : '#4B5563',
+    textMuted: isDarkMode ? '#9CA3AF' : '#6B7280',
+    bgMain: isDarkMode ? '#111827' : '#F9FAFB',
+    bgCard: isDarkMode ? '#1F2937' : '#FFFFFF',
+    borderLight: isDarkMode ? 'rgba(255,255,255,0.1)' : '#E5E7EB',
+    primary: '#8B5CF6',
+    secondary: '#EC4899',
+    success: '#10B981',
+    warning: '#F59E0B',
+    danger: '#EF4444'
   };
 
-  // Colors
-  const bgColor = isDarkMode ? '#1a1a2e' : '#f8fafc';
-  const cardBg = isDarkMode ? '#16213e' : '#ffffff';
-  const textColor = isDarkMode ? '#ffffff' : '#1e293b';
-  const mutedColor = isDarkMode ? '#94a3b8' : '#64748b';
-  const borderColor = isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)';
+  const stats = useMemo(() => {
+    const active = listings.filter(l => l.status === 'active');
+    const pending = listings.filter(l => l.status === 'pending');
+    const closed = listings.filter(l => l.status === 'closed');
+    const totalGCI = closed.reduce((sum, l) => sum + (l.gci || 0), 0);
+    const pipelineGCI = [...active, ...pending].reduce((sum, l) => sum + (l.gci || 0), 0);
+    const avgDOM = active.length > 0 ? Math.round(active.reduce((sum, l) => sum + l.dom, 0) / active.length) : 0;
+    const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
+    const deductibleExpenses = expenses.filter(e => e.deductible).reduce((sum, e) => sum + e.amount, 0);
+    const buyerDeals = listings.filter(l => l.type === 'buyer').length;
+    const sellerDeals = listings.filter(l => l.type === 'seller').length;
+    
+    return {
+      activeCount: active.length,
+      pendingCount: pending.length,
+      closedCount: closed.length,
+      totalGCI,
+      pipelineGCI,
+      avgDOM,
+      totalExpenses,
+      deductibleExpenses,
+      buyerDeals,
+      sellerDeals,
+      avgPrice: listings.length > 0 ? listings.reduce((sum, l) => sum + l.price, 0) / listings.length : 0,
+      listToSaleRatio: closed.length > 0 ? 0.97 : 0 // Demo value
+    };
+  }, [listings, expenses]);
 
-  // Tabs
   const tabs = [
     { id: 'dashboard', label: 'Dashboard', icon: '📊' },
-    { id: 'listings', label: 'Listings', icon: '🏠' },
-    { id: 'transactions', label: 'Transactions', icon: '📋' },
-    { id: 'clients', label: 'Clients', icon: '👥' },
-    { id: 'expenses', label: 'Expenses', icon: '💳' },
-    { id: 'tax', label: 'Tax Center', icon: '🏛️' },
+    { id: 'pipeline', label: 'Pipeline', icon: '🎯' },
+    { id: 'commissions', label: 'Commissions', icon: '💰' },
+    { id: 'expenses', label: 'Expenses', icon: '📝' },
+    { id: 'crm', label: 'CRM', icon: '👥' },
+    { id: 'tax', label: 'Tax Center', icon: '🏦' }
   ];
 
-  // KPI Card Component
-  const KPICard = ({ title, value, subtitle, gradient, icon }) => (
-    <div style={{
-      background: gradient,
-      borderRadius: '16px',
-      padding: '20px',
-      color: '#ffffff',
-      position: 'relative',
-      overflow: 'hidden',
-    }}>
-      <span style={{
-        position: 'absolute',
-        right: '16px',
-        top: '50%',
-        transform: 'translateY(-50%)',
-        fontSize: '48px',
-        opacity: 0.2,
-      }}>{icon}</span>
-      <div style={{
-        fontSize: '12px',
-        fontWeight: '500',
-        opacity: 0.9,
-        marginBottom: '8px',
-        textTransform: 'uppercase',
-        letterSpacing: '0.5px',
-      }}>{title}</div>
-      <div style={{ fontSize: '28px', fontWeight: '700' }}>{value}</div>
-      {subtitle && (
-        <div style={{ fontSize: '13px', opacity: 0.8, marginTop: '4px' }}>{subtitle}</div>
-      )}
-    </div>
-  );
-
-  // Dashboard Tab
-  const renderDashboard = () => (
-    <>
-      {/* Main KPIs */}
-      <CollapsibleSection title="Key Performance Indicators" icon="📈" isDarkMode={isDarkMode}>
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-          gap: '16px',
-        }}>
-          <KPICard
-            title="Gross Commission Income"
-            value={formatCurrency(kpis.totalGCI)}
-            subtitle="YTD"
-            gradient="linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
-            icon="💰"
-          />
-          <KPICard
-            title="Sales Volume"
-            value={formatCurrency(kpis.totalVolume)}
-            subtitle={`${kpis.closedDeals} closed deals`}
-            gradient="linear-gradient(135deg, #f093fb 0%, #f5576c 100%)"
-            icon="📊"
-          />
-          <KPICard
-            title="Active Listings"
-            value={kpis.activeListings}
-            subtitle="Currently on market"
-            gradient="linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)"
-            icon="🏠"
-          />
-          <KPICard
-            title="Pending"
-            value={kpis.pendingTransactions}
-            subtitle="Under contract"
-            gradient="linear-gradient(135deg, #fa709a 0%, #fee140 100%)"
-            icon="📝"
-          />
-        </div>
-      </CollapsibleSection>
-
-      {/* Performance Metrics */}
-      <CollapsibleSection title="Performance Metrics" icon="🎯" isDarkMode={isDarkMode}>
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-          gap: '16px',
-        }}>
-          <div style={{
-            padding: '20px',
-            backgroundColor: isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)',
-            borderRadius: '12px',
-            textAlign: 'center',
-          }}>
-            <div style={{ fontSize: '28px', fontWeight: '700', color: '#22c55e' }}>
-              {formatCurrency(kpis.avgCommission)}
-            </div>
-            <div style={{ fontSize: '13px', color: mutedColor, marginTop: '4px' }}>Avg Commission</div>
-          </div>
-          <div style={{
-            padding: '20px',
-            backgroundColor: isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)',
-            borderRadius: '12px',
-            textAlign: 'center',
-          }}>
-            <div style={{ fontSize: '28px', fontWeight: '700', color: '#6366f1' }}>
-              {formatCurrency(kpis.avgSalePrice)}
-            </div>
-            <div style={{ fontSize: '13px', color: mutedColor, marginTop: '4px' }}>Avg Sale Price</div>
-          </div>
-          <div style={{
-            padding: '20px',
-            backgroundColor: isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)',
-            borderRadius: '12px',
-            textAlign: 'center',
-          }}>
-            <div style={{ fontSize: '28px', fontWeight: '700', color: '#f59e0b' }}>
-              {Math.round(kpis.avgDOM)} days
-            </div>
-            <div style={{ fontSize: '13px', color: mutedColor, marginTop: '4px' }}>Avg Days on Market</div>
-          </div>
-          <div style={{
-            padding: '20px',
-            backgroundColor: isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)',
-            borderRadius: '12px',
-            textAlign: 'center',
-          }}>
-            <div style={{ fontSize: '28px', fontWeight: '700', color: '#ec4899' }}>
-              {kpis.listToSaleRatio.toFixed(1)}%
-            </div>
-            <div style={{ fontSize: '13px', color: mutedColor, marginTop: '4px' }}>List-to-Sale Ratio</div>
-          </div>
-        </div>
-      </CollapsibleSection>
-
-      {/* Pipeline Overview */}
-      <CollapsibleSection 
-        title="Pipeline Overview" 
-        icon="🎯" 
-        badge={`${kpis.totalTransactions} total`}
-        isDarkMode={isDarkMode}
-      >
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px', marginBottom: '20px' }}>
-          {['Prospecting', 'Listed', 'Under Contract', 'Closed'].map((stage, idx) => {
-            const count = transactions.filter(t => t.status === stage).length;
-            const colors = ['#ef4444', '#f59e0b', '#3b82f6', '#22c55e'];
-            return (
-              <div key={stage} style={{
-                padding: '16px',
-                backgroundColor: isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)',
-                borderRadius: '12px',
-                textAlign: 'center',
-                borderTop: `3px solid ${colors[idx]}`,
-              }}>
-                <div style={{ fontSize: '24px', fontWeight: '700', color: colors[idx] }}>{count}</div>
-                <div style={{ fontSize: '12px', color: mutedColor }}>{stage}</div>
-              </div>
-            );
-          })}
-        </div>
-        
-        {transactions.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '40px', color: mutedColor }}>
-            <div style={{ fontSize: '48px', marginBottom: '16px' }}>🏡</div>
-            <p>No transactions yet</p>
-            <p style={{ fontSize: '13px' }}>Add your first transaction from the Transactions tab</p>
-          </div>
-        ) : (
-          <div>
-            {transactions.slice(0, 5).map((t, idx) => (
-              <div key={idx} style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                padding: '14px',
-                backgroundColor: isDarkMode ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.01)',
-                borderRadius: '10px',
-                marginBottom: '8px',
-              }}>
-                <div>
-                  <div style={{ fontWeight: '500', color: textColor }}>{t.address}</div>
-                  <div style={{ fontSize: '13px', color: mutedColor }}>{t.clientName} • {t.type}</div>
-                </div>
-                <div style={{ textAlign: 'right' }}>
-                  <div style={{ fontWeight: '600', color: '#22c55e' }}>{formatCurrency(t.salePrice)}</div>
-                  <span style={{
-                    padding: '3px 10px',
-                    borderRadius: '12px',
-                    fontSize: '11px',
-                    fontWeight: '500',
-                    backgroundColor: t.status === 'Closed' ? 'rgba(34,197,94,0.1)' : 'rgba(59,130,246,0.1)',
-                    color: t.status === 'Closed' ? '#22c55e' : '#3b82f6',
-                  }}>{t.status}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </CollapsibleSection>
-
-      {/* Financial Summary */}
-      <CollapsibleSection title="Financial Summary" icon="💵" isDarkMode={isDarkMode}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
-          <div style={{
-            padding: '20px',
-            backgroundColor: 'rgba(34, 197, 94, 0.1)',
-            borderRadius: '12px',
-            borderLeft: '4px solid #22c55e',
-          }}>
-            <div style={{ fontSize: '13px', color: mutedColor, marginBottom: '4px' }}>Total GCI</div>
-            <div style={{ fontSize: '24px', fontWeight: '700', color: '#22c55e' }}>{formatCurrency(kpis.totalGCI)}</div>
-          </div>
-          <div style={{
-            padding: '20px',
-            backgroundColor: 'rgba(239, 68, 68, 0.1)',
-            borderRadius: '12px',
-            borderLeft: '4px solid #ef4444',
-          }}>
-            <div style={{ fontSize: '13px', color: mutedColor, marginBottom: '4px' }}>Total Expenses</div>
-            <div style={{ fontSize: '24px', fontWeight: '700', color: '#ef4444' }}>{formatCurrency(kpis.totalExpenses)}</div>
-          </div>
-          <div style={{
-            padding: '20px',
-            backgroundColor: 'rgba(99, 102, 241, 0.1)',
-            borderRadius: '12px',
-            borderLeft: '4px solid #6366f1',
-          }}>
-            <div style={{ fontSize: '13px', color: mutedColor, marginBottom: '4px' }}>Net Income</div>
-            <div style={{ fontSize: '24px', fontWeight: '700', color: '#6366f1' }}>{formatCurrency(kpis.netIncome)}</div>
-          </div>
-        </div>
-      </CollapsibleSection>
-    </>
-  );
-
-  // Listings Tab
-  const renderListings = () => (
-    <>
-      <CollapsibleSection 
-        title="Active Listings" 
-        icon="🏠" 
-        badge={`${listings.filter(l => l.status === 'Active').length} active`}
-        isDarkMode={isDarkMode}
-        headerRight={
-          <button
-            onClick={(e) => { e.stopPropagation(); setModalType('listing'); setShowAddModal(true); }}
-            style={{
-              padding: '8px 16px',
-              backgroundColor: '#6366f1',
-              color: '#fff',
-              border: 'none',
-              borderRadius: '8px',
-              fontSize: '13px',
-              fontWeight: '500',
-              cursor: 'pointer',
-            }}
-          >
-            + Add Listing
-          </button>
-        }
-      >
-        {listings.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '40px', color: mutedColor }}>
-            <div style={{ fontSize: '48px', marginBottom: '16px' }}>🏘️</div>
-            <p>No listings yet</p>
-            <p style={{ fontSize: '13px' }}>Add your first listing to track your inventory</p>
-          </div>
-        ) : (
-          <div style={{ display: 'grid', gap: '12px' }}>
-            {listings.map((listing, idx) => (
-              <div key={idx} style={{
-                padding: '16px',
-                backgroundColor: isDarkMode ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.01)',
-                borderRadius: '12px',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-              }}>
-                <div>
-                  <div style={{ fontWeight: '600', color: textColor }}>{listing.address}</div>
-                  <div style={{ fontSize: '13px', color: mutedColor, marginTop: '4px' }}>
-                    {listing.beds} bed • {listing.baths} bath • {listing.sqft} sqft
-                  </div>
-                </div>
-                <div style={{ textAlign: 'right' }}>
-                  <div style={{ fontWeight: '700', color: '#22c55e' }}>{formatCurrency(listing.price)}</div>
-                  <span style={{
-                    padding: '3px 10px',
-                    borderRadius: '12px',
-                    fontSize: '11px',
-                    fontWeight: '500',
-                    backgroundColor: listing.status === 'Active' ? 'rgba(34,197,94,0.1)' : 'rgba(245,158,11,0.1)',
-                    color: listing.status === 'Active' ? '#22c55e' : '#f59e0b',
-                  }}>{listing.status}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </CollapsibleSection>
-
-      <CollapsibleSection title="Listing Statistics" icon="📊" defaultExpanded={false} isDarkMode={isDarkMode}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
-          <div style={{ textAlign: 'center', padding: '16px' }}>
-            <div style={{ fontSize: '32px', fontWeight: '700', color: '#22c55e' }}>
-              {listings.filter(l => l.status === 'Active').length}
-            </div>
-            <div style={{ fontSize: '13px', color: mutedColor }}>Active</div>
-          </div>
-          <div style={{ textAlign: 'center', padding: '16px' }}>
-            <div style={{ fontSize: '32px', fontWeight: '700', color: '#f59e0b' }}>
-              {listings.filter(l => l.status === 'Pending').length}
-            </div>
-            <div style={{ fontSize: '13px', color: mutedColor }}>Pending</div>
-          </div>
-          <div style={{ textAlign: 'center', padding: '16px' }}>
-            <div style={{ fontSize: '32px', fontWeight: '700', color: '#6366f1' }}>
-              {listings.filter(l => l.status === 'Sold').length}
-            </div>
-            <div style={{ fontSize: '13px', color: mutedColor }}>Sold</div>
-          </div>
-        </div>
-      </CollapsibleSection>
-    </>
-  );
-
-  // Transactions Tab
-  const renderTransactions = () => (
-    <CollapsibleSection 
-      title="All Transactions" 
-      icon="📋" 
-      badge={`${transactions.length} total`}
-      isDarkMode={isDarkMode}
-      headerRight={
-        <button
-          onClick={(e) => { e.stopPropagation(); setModalType('transaction'); setShowAddModal(true); }}
-          style={{
-            padding: '8px 16px',
-            backgroundColor: '#6366f1',
-            color: '#fff',
-            border: 'none',
-            borderRadius: '8px',
-            fontSize: '13px',
-            fontWeight: '500',
-            cursor: 'pointer',
-          }}
-        >
-          + Add Transaction
-        </button>
-      }
-    >
-      {transactions.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '40px', color: mutedColor }}>
-          <div style={{ fontSize: '48px', marginBottom: '16px' }}>📋</div>
-          <p>No transactions yet</p>
-          <p style={{ fontSize: '13px' }}>Start tracking your deals</p>
-        </div>
-      ) : (
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-          <thead>
-            <tr>
-              {['Address', 'Client', 'Type', 'Price', 'Commission', 'Status'].map(header => (
-                <th key={header} style={{
-                  textAlign: 'left',
-                  padding: '12px',
-                  fontSize: '12px',
-                  fontWeight: '600',
-                  color: mutedColor,
-                  textTransform: 'uppercase',
-                  borderBottom: `1px solid ${borderColor}`,
-                }}>{header}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {transactions.map((t, idx) => (
-              <tr key={idx}>
-                <td style={{ padding: '14px 12px', color: textColor, fontWeight: '500' }}>{t.address}</td>
-                <td style={{ padding: '14px 12px', color: mutedColor }}>{t.clientName}</td>
-                <td style={{ padding: '14px 12px', color: mutedColor }}>{t.type}</td>
-                <td style={{ padding: '14px 12px', color: '#22c55e', fontWeight: '600' }}>{formatCurrency(t.salePrice)}</td>
-                <td style={{ padding: '14px 12px', color: '#6366f1', fontWeight: '600' }}>{formatCurrency(t.commission)}</td>
-                <td style={{ padding: '14px 12px' }}>
-                  <span style={{
-                    padding: '4px 12px',
-                    borderRadius: '12px',
-                    fontSize: '12px',
-                    fontWeight: '500',
-                    backgroundColor: t.status === 'Closed' ? 'rgba(34,197,94,0.1)' : 
-                                    t.status === 'Under Contract' ? 'rgba(59,130,246,0.1)' : 'rgba(245,158,11,0.1)',
-                    color: t.status === 'Closed' ? '#22c55e' : 
-                          t.status === 'Under Contract' ? '#3b82f6' : '#f59e0b',
-                  }}>{t.status}</span>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
-    </CollapsibleSection>
-  );
-
-  // Clients Tab
-  const renderClients = () => (
-    <CollapsibleSection 
-      title="Client Database" 
-      icon="👥" 
-      badge={`${clients.length} clients`}
-      isDarkMode={isDarkMode}
-      headerRight={
-        <button
-          onClick={(e) => { e.stopPropagation(); setModalType('client'); setShowAddModal(true); }}
-          style={{
-            padding: '8px 16px',
-            backgroundColor: '#6366f1',
-            color: '#fff',
-            border: 'none',
-            borderRadius: '8px',
-            fontSize: '13px',
-            fontWeight: '500',
-            cursor: 'pointer',
-          }}
-        >
-          + Add Client
-        </button>
-      }
-    >
-      {clients.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '40px', color: mutedColor }}>
-          <div style={{ fontSize: '48px', marginBottom: '16px' }}>👥</div>
-          <p>No clients yet</p>
-          <p style={{ fontSize: '13px' }}>Start building your client database</p>
-        </div>
-      ) : (
-        <div style={{ display: 'grid', gap: '12px' }}>
-          {clients.map((client, idx) => (
-            <div key={idx} style={{
-              padding: '16px',
-              backgroundColor: isDarkMode ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.01)',
-              borderRadius: '12px',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                <div style={{
-                  width: '44px',
-                  height: '44px',
-                  borderRadius: '50%',
-                  backgroundColor: '#6366f1',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: '#fff',
-                  fontWeight: '600',
-                }}>
-                  {client.name?.charAt(0) || '?'}
-                </div>
-                <div>
-                  <div style={{ fontWeight: '600', color: textColor }}>{client.name}</div>
-                  <div style={{ fontSize: '13px', color: mutedColor }}>{client.email} • {client.phone}</div>
-                </div>
-              </div>
-              <span style={{
-                padding: '4px 12px',
-                borderRadius: '12px',
-                fontSize: '12px',
-                fontWeight: '500',
-                backgroundColor: 'rgba(99,102,241,0.1)',
-                color: '#6366f1',
-              }}>{client.type || 'Lead'}</span>
-            </div>
-          ))}
-        </div>
-      )}
-    </CollapsibleSection>
-  );
-
-  // Expenses Tab
-  const renderExpenses = () => (
-    <CollapsibleSection 
-      title="Business Expenses" 
-      icon="💳" 
-      isDarkMode={isDarkMode}
-      headerRight={
-        <button
-          onClick={(e) => { e.stopPropagation(); setModalType('expense'); setShowAddModal(true); }}
-          style={{
-            padding: '8px 16px',
-            backgroundColor: '#6366f1',
-            color: '#fff',
-            border: 'none',
-            borderRadius: '8px',
-            fontSize: '13px',
-            fontWeight: '500',
-            cursor: 'pointer',
-          }}
-        >
-          + Add Expense
-        </button>
-      }
-    >
-      <div style={{
-        padding: '20px',
-        backgroundColor: 'rgba(239, 68, 68, 0.1)',
-        borderRadius: '12px',
-        marginBottom: '20px',
-        borderLeft: '4px solid #ef4444',
-      }}>
-        <div style={{ fontSize: '13px', color: mutedColor, marginBottom: '4px' }}>Total Expenses YTD</div>
-        <div style={{ fontSize: '32px', fontWeight: '700', color: '#ef4444' }}>{formatCurrency(kpis.totalExpenses)}</div>
-      </div>
-      
-      {expenses.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '40px', color: mutedColor }}>
-          <div style={{ fontSize: '48px', marginBottom: '16px' }}>💳</div>
-          <p>No expenses recorded</p>
-          <p style={{ fontSize: '13px' }}>Track your business expenses for tax deductions</p>
-        </div>
-      ) : (
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-          <thead>
-            <tr>
-              {['Description', 'Category', 'Amount', 'Date'].map(header => (
-                <th key={header} style={{
-                  textAlign: 'left',
-                  padding: '12px',
-                  fontSize: '12px',
-                  fontWeight: '600',
-                  color: mutedColor,
-                  textTransform: 'uppercase',
-                  borderBottom: `1px solid ${borderColor}`,
-                }}>{header}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {expenses.map((e, idx) => (
-              <tr key={idx}>
-                <td style={{ padding: '14px 12px', color: textColor }}>{e.description}</td>
-                <td style={{ padding: '14px 12px', color: mutedColor }}>{e.category}</td>
-                <td style={{ padding: '14px 12px', color: '#ef4444', fontWeight: '600' }}>-{formatCurrency(e.amount)}</td>
-                <td style={{ padding: '14px 12px', color: mutedColor }}>{e.date}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
-    </CollapsibleSection>
-  );
-
-  // Tax Center Tab
-  const renderTaxCenter = () => (
-    <>
-      <CollapsibleSection title="Quarterly Tax Estimate" icon="📅" isDarkMode={isDarkMode}>
-        <div style={{
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-          borderRadius: '16px',
-          padding: '24px',
-          color: '#fff',
-        }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '20px' }}>
-            <div>
-              <div style={{ fontSize: '14px', opacity: 0.9, marginBottom: '4px' }}>Estimated Quarterly Payment</div>
-              <div style={{ fontSize: '36px', fontWeight: '700' }}>{formatCurrency(taxEstimates.quarterlyPayment)}</div>
-              <div style={{ fontSize: '13px', opacity: 0.8, marginTop: '8px' }}>
-                Based on {formatCurrency(kpis.netIncome)} net income
-              </div>
-            </div>
-            <div style={{ textAlign: 'right' }}>
-              <div style={{ fontSize: '14px', opacity: 0.9, marginBottom: '8px' }}>2025 Due Dates</div>
-              <div style={{ fontSize: '13px', opacity: 0.8 }}>Q1: April 15 • Q2: June 16</div>
-              <div style={{ fontSize: '13px', opacity: 0.8 }}>Q3: Sept 15 • Q4: Jan 15, 2026</div>
-            </div>
-          </div>
-        </div>
-      </CollapsibleSection>
-
-      <CollapsibleSection title="Tax Breakdown" icon="📊" isDarkMode={isDarkMode}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '16px' }}>
-          <div style={{ padding: '16px', backgroundColor: isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)', borderRadius: '12px' }}>
-            <div style={{ fontSize: '12px', color: mutedColor, marginBottom: '4px' }}>Self-Employment Tax</div>
-            <div style={{ fontSize: '24px', fontWeight: '600', color: textColor }}>{formatCurrency(taxEstimates.selfEmploymentTax)}</div>
-            <div style={{ fontSize: '11px', color: mutedColor }}>15.3% of net income</div>
-          </div>
-          <div style={{ padding: '16px', backgroundColor: isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)', borderRadius: '12px' }}>
-            <div style={{ fontSize: '12px', color: mutedColor, marginBottom: '4px' }}>Federal Tax (Est.)</div>
-            <div style={{ fontSize: '24px', fontWeight: '600', color: textColor }}>{formatCurrency(taxEstimates.federalTax)}</div>
-            <div style={{ fontSize: '11px', color: mutedColor }}>~22% bracket</div>
-          </div>
-          <div style={{ padding: '16px', backgroundColor: isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)', borderRadius: '12px' }}>
-            <div style={{ fontSize: '12px', color: mutedColor, marginBottom: '4px' }}>State Tax (Est.)</div>
-            <div style={{ fontSize: '24px', fontWeight: '600', color: textColor }}>{formatCurrency(taxEstimates.stateTax)}</div>
-            <div style={{ fontSize: '11px', color: mutedColor }}>~5% average</div>
-          </div>
-          <div style={{ padding: '16px', backgroundColor: 'rgba(99,102,241,0.1)', borderRadius: '12px', border: '2px solid #6366f1' }}>
-            <div style={{ fontSize: '12px', color: '#6366f1', marginBottom: '4px' }}>Total Annual Tax</div>
-            <div style={{ fontSize: '24px', fontWeight: '600', color: '#6366f1' }}>{formatCurrency(taxEstimates.totalTax)}</div>
-          </div>
-        </div>
-      </CollapsibleSection>
-
-      <CollapsibleSection title="Real Estate Tax Deductions" icon="💡" defaultExpanded={false} isDarkMode={isDarkMode}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '12px' }}>
-          {[
-            { name: 'Vehicle/Mileage', rate: '67¢/mile', desc: 'Showings, open houses, client meetings' },
-            { name: 'Home Office', rate: '$5/sq ft', desc: 'Dedicated workspace deduction' },
-            { name: 'Marketing & Ads', rate: '100%', desc: 'Signs, flyers, online advertising' },
-            { name: 'MLS & Board Dues', rate: '100%', desc: 'MLS access, NAR, local board fees' },
-            { name: 'Continuing Ed', rate: '100%', desc: 'License renewal, CE courses' },
-            { name: 'Technology', rate: '100%', desc: 'CRM, e-sign, virtual tour software' },
-            { name: 'Client Gifts', rate: '$25/person', desc: 'Closing gifts, holiday gifts' },
-            { name: 'Professional Services', rate: '100%', desc: 'Accountant, attorney, coach fees' },
-          ].map((item, idx) => (
-            <div key={idx} style={{
-              padding: '14px',
-              backgroundColor: isDarkMode ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.01)',
-              borderRadius: '10px',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-            }}>
-              <div>
-                <div style={{ fontWeight: '500', color: textColor }}>{item.name}</div>
-                <div style={{ fontSize: '12px', color: mutedColor }}>{item.desc}</div>
-              </div>
-              <span style={{
-                padding: '4px 10px',
-                backgroundColor: 'rgba(34,197,94,0.1)',
-                color: '#22c55e',
-                borderRadius: '6px',
-                fontSize: '12px',
-                fontWeight: '500',
-              }}>{item.rate}</span>
-            </div>
-          ))}
-        </div>
-      </CollapsibleSection>
-    </>
-  );
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'active': return { bg: '#DBEAFE', color: '#2563EB', text: 'Active' };
+      case 'pending': return { bg: '#FEF3C7', color: '#D97706', text: 'Pending' };
+      case 'closed': return { bg: '#D1FAE5', color: '#059669', text: 'Closed' };
+      default: return { bg: '#F3F4F6', color: '#6B7280', text: status };
+    }
+  };
 
   return (
-    <div style={{
-      padding: '24px',
-      backgroundColor: bgColor,
-      minHeight: '100vh',
-    }}>
+    <div style={{ width: '100%' }}>
       {/* Header */}
       <div style={{ marginBottom: '24px' }}>
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '12px',
-          marginBottom: '4px',
-        }}>
-          <span style={{ fontSize: '28px' }}>⚡</span>
-          <span style={{ fontSize: '28px', fontWeight: '700', color: textColor }}>Command Center</span>
-          <span style={{
-            padding: '4px 12px',
-            backgroundColor: 'rgba(34, 197, 94, 0.1)',
-            borderRadius: '20px',
-            fontSize: '13px',
-            fontWeight: '600',
-            color: '#22c55e',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-          }}>
-            🏠 Real Estate Pro
-          </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '8px' }}>
+          <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'linear-gradient(135deg, #10B981, #06B6D4)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <span style={{ fontSize: '24px' }}>🏡</span>
+          </div>
+          <div>
+            <h1 style={{ fontSize: '28px', fontWeight: '700', color: theme.textPrimary, margin: 0, letterSpacing: '-0.5px' }}>Real Estate Command Center</h1>
+            <p style={{ fontSize: '14px', color: theme.textMuted, margin: 0 }}>Track listings, commissions, and grow your business</p>
+          </div>
         </div>
-        <p style={{ fontSize: '14px', color: mutedColor }}>
-          Track your listings, transactions, GCI, and grow your real estate business
+        <p style={{ fontSize: '14px', color: theme.textMuted, margin: 0 }}>
+          {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
         </p>
       </div>
 
-      {/* Tabs */}
-      <div style={{
-        display: 'flex',
-        gap: '8px',
-        marginBottom: '24px',
-        flexWrap: 'wrap',
-        backgroundColor: cardBg,
-        padding: '8px',
-        borderRadius: '12px',
-        boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-      }}>
+      {/* Tab Navigation */}
+      <div style={{ display: 'flex', gap: '8px', marginBottom: '24px', flexWrap: 'wrap', borderBottom: `1px solid ${theme.borderLight}`, paddingBottom: '16px' }}>
         {tabs.map(tab => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
             style={{
-              padding: '10px 20px',
-              borderRadius: '8px',
-              border: 'none',
-              cursor: 'pointer',
-              fontWeight: '500',
-              fontSize: '14px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              backgroundColor: activeTab === tab.id ? '#6366f1' : 'transparent',
-              color: activeTab === tab.id ? '#fff' : mutedColor,
-              transition: 'all 0.2s ease',
+              display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 18px',
+              borderRadius: '10px', border: 'none', cursor: 'pointer',
+              background: activeTab === tab.id ? 'linear-gradient(135deg, #10B981, #06B6D4)' : theme.bgCard,
+              color: activeTab === tab.id ? 'white' : theme.textPrimary,
+              fontSize: '14px', fontWeight: '500',
+              boxShadow: activeTab === tab.id ? '0 4px 12px rgba(16, 185, 129, 0.3)' : 'none',
+              transition: 'all 0.2s ease'
             }}
           >
             <span>{tab.icon}</span>
@@ -924,15 +151,312 @@ const RealEstateCommandCenter = ({ user, isDarkMode = false }) => {
         ))}
       </div>
 
-      {/* Tab Content */}
-      {activeTab === 'dashboard' && renderDashboard()}
-      {activeTab === 'listings' && renderListings()}
-      {activeTab === 'transactions' && renderTransactions()}
-      {activeTab === 'clients' && renderClients()}
-      {activeTab === 'expenses' && renderExpenses()}
-      {activeTab === 'tax' && renderTaxCenter()}
+      {/* Stat Cards */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px', marginBottom: '32px' }}>
+        <StatCard title="Active Listings" value={stats.activeCount} subtitle={`${stats.pendingCount} pending`} icon="🏠" colorScheme="cyan" isDarkMode={isDarkMode} />
+        <StatCard title="YTD GCI" value={formatCurrency(stats.totalGCI)} subtitle={`Pipeline: ${formatCurrency(stats.pipelineGCI)}`} icon="💰" colorScheme="green" isDarkMode={isDarkMode} />
+        <StatCard title="Avg DOM" value={`${stats.avgDOM} days`} subtitle={`${stats.closedCount} closed YTD`} icon="📅" colorScheme="purple" isDarkMode={isDarkMode} />
+        <StatCard title="Expenses YTD" value={formatCurrency(stats.totalExpenses)} subtitle={`${formatCurrency(stats.deductibleExpenses)} deductible`} icon="📝" colorScheme="orange" isDarkMode={isDarkMode} />
+      </div>
+
+      {/* DASHBOARD TAB */}
+      {activeTab === 'dashboard' && (
+        <div>
+          <CollapsibleSection title="Performance Overview" icon="📈" gradient="linear-gradient(180deg, #10B981, #06B6D4)" isDarkMode={isDarkMode} defaultExpanded={true}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }}>
+              <ContentCard gradient="linear-gradient(90deg, #10B981, #34D399)" isDarkMode={isDarkMode}>
+                <div style={{ fontSize: '13px', color: theme.textMuted, marginBottom: '8px' }}>Buyer Deals</div>
+                <div style={{ fontSize: '28px', fontWeight: '700', color: theme.textPrimary }}>{stats.buyerDeals}</div>
+                <div style={{ fontSize: '12px', color: theme.textMuted }}>Active transactions</div>
+              </ContentCard>
+              <ContentCard gradient="linear-gradient(90deg, #8B5CF6, #A78BFA)" isDarkMode={isDarkMode}>
+                <div style={{ fontSize: '13px', color: theme.textMuted, marginBottom: '8px' }}>Seller Deals</div>
+                <div style={{ fontSize: '28px', fontWeight: '700', color: theme.textPrimary }}>{stats.sellerDeals}</div>
+                <div style={{ fontSize: '12px', color: theme.textMuted }}>Active listings</div>
+              </ContentCard>
+              <ContentCard gradient="linear-gradient(90deg, #F59E0B, #FBBF24)" isDarkMode={isDarkMode}>
+                <div style={{ fontSize: '13px', color: theme.textMuted, marginBottom: '8px' }}>Avg Sale Price</div>
+                <div style={{ fontSize: '28px', fontWeight: '700', color: theme.textPrimary }}>{formatCurrency(stats.avgPrice)}</div>
+                <div style={{ fontSize: '12px', color: theme.textMuted }}>Across all listings</div>
+              </ContentCard>
+              <ContentCard gradient="linear-gradient(90deg, #3B82F6, #60A5FA)" isDarkMode={isDarkMode}>
+                <div style={{ fontSize: '13px', color: theme.textMuted, marginBottom: '8px' }}>List-to-Sale Ratio</div>
+                <div style={{ fontSize: '28px', fontWeight: '700', color: theme.textPrimary }}>{(stats.listToSaleRatio * 100).toFixed(1)}%</div>
+                <div style={{ fontSize: '12px', color: theme.success }}>Above market avg</div>
+              </ContentCard>
+            </div>
+          </CollapsibleSection>
+
+          <CollapsibleSection title="Pipeline at a Glance" icon="🎯" badge={`${listings.filter(l => l.status !== 'closed').length} active`} gradient="linear-gradient(180deg, #8B5CF6, #EC4899)" isDarkMode={isDarkMode} defaultExpanded={true}>
+            <div style={{ display: 'flex', gap: '12px', overflowX: 'auto', paddingBottom: '8px' }}>
+              {PIPELINE_STAGES.map(stage => {
+                const count = listings.filter(l => l.stage === stage.id).length;
+                const value = listings.filter(l => l.stage === stage.id).reduce((sum, l) => sum + l.gci, 0);
+                return (
+                  <div key={stage.id} style={{ minWidth: '140px', padding: '16px', background: theme.bgCard, borderRadius: '12px', border: `1px solid ${theme.borderLight}`, borderTop: `3px solid ${stage.color}` }}>
+                    <div style={{ fontSize: '20px', marginBottom: '8px' }}>{stage.icon}</div>
+                    <div style={{ fontSize: '13px', fontWeight: '600', color: theme.textPrimary, marginBottom: '4px' }}>{stage.label}</div>
+                    <div style={{ fontSize: '24px', fontWeight: '700', color: stage.color }}>{count}</div>
+                    <div style={{ fontSize: '11px', color: theme.textMuted }}>{formatCurrency(value)} GCI</div>
+                  </div>
+                );
+              })}
+            </div>
+          </CollapsibleSection>
+
+          <CollapsibleSection title="Recent Activity" icon="🔔" gradient="linear-gradient(180deg, #F59E0B, #EF4444)" isDarkMode={isDarkMode} defaultExpanded={true}>
+            <ContentCard gradient="linear-gradient(90deg, #F59E0B, #EF4444)" isDarkMode={isDarkMode}>
+              {listings.slice(0, 4).map((listing, i) => {
+                const statusStyle = getStatusColor(listing.status);
+                return (
+                  <div key={listing.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 0', borderBottom: i < 3 ? `1px solid ${theme.borderLight}` : 'none' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: `linear-gradient(135deg, ${statusStyle.color}20, ${statusStyle.color}10)`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' }}>🏠</div>
+                      <div>
+                        <div style={{ fontSize: '14px', fontWeight: '600', color: theme.textPrimary }}>{listing.address}</div>
+                        <div style={{ fontSize: '12px', color: theme.textMuted }}>{listing.city}, {listing.state} · {listing.beds}bd/{listing.baths}ba</div>
+                      </div>
+                    </div>
+                    <div style={{ textAlign: 'right' }}>
+                      <div style={{ fontSize: '14px', fontWeight: '600', color: theme.textPrimary }}>{formatCurrency(listing.price)}</div>
+                      <span style={{ padding: '3px 10px', borderRadius: '12px', fontSize: '11px', fontWeight: '500', background: statusStyle.bg, color: statusStyle.color }}>{statusStyle.text}</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </ContentCard>
+          </CollapsibleSection>
+        </div>
+      )}
+
+      {/* PIPELINE TAB */}
+      {activeTab === 'pipeline' && (
+        <div>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '16px' }}>
+            <button onClick={() => setShowAddListing(true)} style={{ padding: '10px 20px', background: 'linear-gradient(135deg, #10B981, #06B6D4)', border: 'none', borderRadius: '10px', color: 'white', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>+ Add Listing</button>
+          </div>
+
+          <CollapsibleSection title="Active Listings" icon="🏠" badge={`${stats.activeCount} active`} gradient="linear-gradient(180deg, #3B82F6, #06B6D4)" isDarkMode={isDarkMode} defaultExpanded={true}>
+            <ContentCard gradient="linear-gradient(90deg, #3B82F6, #06B6D4)" isDarkMode={isDarkMode} noPadding={true}>
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr style={{ background: theme.bgMain }}>
+                    <th style={{ padding: '14px 16px', textAlign: 'left', fontSize: '12px', fontWeight: '600', color: theme.textMuted, textTransform: 'uppercase' }}>Property</th>
+                    <th style={{ padding: '14px 16px', textAlign: 'left', fontSize: '12px', fontWeight: '600', color: theme.textMuted }}>Status</th>
+                    <th style={{ padding: '14px 16px', textAlign: 'left', fontSize: '12px', fontWeight: '600', color: theme.textMuted }}>Type</th>
+                    <th style={{ padding: '14px 16px', textAlign: 'right', fontSize: '12px', fontWeight: '600', color: theme.textMuted }}>Price</th>
+                    <th style={{ padding: '14px 16px', textAlign: 'center', fontSize: '12px', fontWeight: '600', color: theme.textMuted }}>DOM</th>
+                    <th style={{ padding: '14px 16px', textAlign: 'right', fontSize: '12px', fontWeight: '600', color: theme.textMuted }}>Est. GCI</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {listings.filter(l => l.status !== 'closed').map(listing => {
+                    const statusStyle = getStatusColor(listing.status);
+                    return (
+                      <tr key={listing.id} style={{ borderBottom: `1px solid ${theme.borderLight}` }}>
+                        <td style={{ padding: '14px 16px' }}>
+                          <div style={{ fontSize: '14px', fontWeight: '500', color: theme.textPrimary }}>{listing.address}</div>
+                          <div style={{ fontSize: '12px', color: theme.textMuted }}>{listing.city}, {listing.state} {listing.zip}</div>
+                        </td>
+                        <td style={{ padding: '14px 16px' }}><span style={{ padding: '4px 10px', borderRadius: '12px', fontSize: '11px', fontWeight: '500', background: statusStyle.bg, color: statusStyle.color }}>{statusStyle.text}</span></td>
+                        <td style={{ padding: '14px 16px', fontSize: '13px', color: theme.textSecondary, textTransform: 'capitalize' }}>{listing.type}</td>
+                        <td style={{ padding: '14px 16px', textAlign: 'right', fontSize: '14px', fontWeight: '600', color: theme.textPrimary }}>{formatCurrency(listing.price)}</td>
+                        <td style={{ padding: '14px 16px', textAlign: 'center', fontSize: '13px', color: listing.dom > 30 ? theme.warning : theme.textSecondary }}>{listing.dom}</td>
+                        <td style={{ padding: '14px 16px', textAlign: 'right', fontSize: '14px', fontWeight: '600', color: theme.success }}>{formatCurrency(listing.gci)}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </ContentCard>
+          </CollapsibleSection>
+
+          <CollapsibleSection title="Closed Transactions" icon="✅" badge={`${stats.closedCount} YTD`} gradient="linear-gradient(180deg, #10B981, #34D399)" isDarkMode={isDarkMode} defaultExpanded={false}>
+            <ContentCard gradient="linear-gradient(90deg, #10B981, #34D399)" isDarkMode={isDarkMode}>
+              {listings.filter(l => l.status === 'closed').length > 0 ? (
+                listings.filter(l => l.status === 'closed').map(listing => (
+                  <div key={listing.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px', background: theme.bgMain, borderRadius: '10px', marginBottom: '8px' }}>
+                    <div>
+                      <div style={{ fontSize: '14px', fontWeight: '600', color: theme.textPrimary }}>{listing.address}</div>
+                      <div style={{ fontSize: '12px', color: theme.textMuted }}>Closed {listing.closedDate} · {listing.dom} DOM</div>
+                    </div>
+                    <div style={{ textAlign: 'right' }}>
+                      <div style={{ fontSize: '14px', fontWeight: '600', color: theme.success }}>{formatCurrency(listing.gci)}</div>
+                      <div style={{ fontSize: '11px', color: theme.textMuted }}>GCI Earned</div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <EmptyState icon="🎉" title="No closed deals yet" description="Your closed transactions will appear here" isDarkMode={isDarkMode} />
+              )}
+            </ContentCard>
+          </CollapsibleSection>
+        </div>
+      )}
+
+      {/* COMMISSIONS TAB */}
+      {activeTab === 'commissions' && (
+        <div>
+          <CollapsibleSection title="GCI Summary" icon="💰" gradient="linear-gradient(180deg, #10B981, #06B6D4)" isDarkMode={isDarkMode} defaultExpanded={true}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
+              <ContentCard gradient="linear-gradient(90deg, #10B981, #34D399)" isDarkMode={isDarkMode}>
+                <div style={{ fontSize: '13px', color: theme.textMuted, marginBottom: '8px' }}>YTD GCI Earned</div>
+                <div style={{ fontSize: '32px', fontWeight: '700', color: theme.textPrimary }}>{formatCurrency(stats.totalGCI)}</div>
+                <div style={{ fontSize: '12px', color: theme.success, marginTop: '4px' }}>↑ {stats.closedCount} transactions</div>
+              </ContentCard>
+              <ContentCard gradient="linear-gradient(90deg, #F59E0B, #FBBF24)" isDarkMode={isDarkMode}>
+                <div style={{ fontSize: '13px', color: theme.textMuted, marginBottom: '8px' }}>Pipeline GCI</div>
+                <div style={{ fontSize: '32px', fontWeight: '700', color: theme.textPrimary }}>{formatCurrency(stats.pipelineGCI)}</div>
+                <div style={{ fontSize: '12px', color: theme.textMuted, marginTop: '4px' }}>{stats.activeCount + stats.pendingCount} pending deals</div>
+              </ContentCard>
+              <ContentCard gradient="linear-gradient(90deg, #8B5CF6, #A78BFA)" isDarkMode={isDarkMode}>
+                <div style={{ fontSize: '13px', color: theme.textMuted, marginBottom: '8px' }}>Projected Annual</div>
+                <div style={{ fontSize: '32px', fontWeight: '700', color: theme.textPrimary }}>{formatCurrency((stats.totalGCI / Math.max(new Date().getMonth(), 1)) * 12)}</div>
+                <div style={{ fontSize: '12px', color: theme.textMuted, marginTop: '4px' }}>Based on current pace</div>
+              </ContentCard>
+            </div>
+          </CollapsibleSection>
+
+          <CollapsibleSection title="Commission Breakdown" icon="📊" gradient="linear-gradient(180deg, #8B5CF6, #EC4899)" isDarkMode={isDarkMode} defaultExpanded={true}>
+            <ContentCard gradient="linear-gradient(90deg, #8B5CF6, #EC4899)" isDarkMode={isDarkMode}>
+              {listings.filter(l => l.gci > 0).map((listing, i) => (
+                <div key={listing.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 0', borderBottom: i < listings.length - 1 ? `1px solid ${theme.borderLight}` : 'none' }}>
+                  <div>
+                    <div style={{ fontSize: '14px', fontWeight: '600', color: theme.textPrimary }}>{listing.address}</div>
+                    <div style={{ fontSize: '12px', color: theme.textMuted }}>{listing.type === 'buyer' ? 'Buyer Side' : 'Listing Side'} · {formatCurrency(listing.price)}</div>
+                  </div>
+                  <div style={{ textAlign: 'right' }}>
+                    <div style={{ fontSize: '16px', fontWeight: '700', color: listing.status === 'closed' ? theme.success : theme.primary }}>{formatCurrency(listing.gci)}</div>
+                    <div style={{ fontSize: '11px', color: theme.textMuted }}>{listing.status === 'closed' ? 'Earned' : 'Pending'}</div>
+                  </div>
+                </div>
+              ))}
+            </ContentCard>
+          </CollapsibleSection>
+        </div>
+      )}
+
+      {/* EXPENSES TAB */}
+      {activeTab === 'expenses' && (
+        <div>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '16px' }}>
+            <button onClick={() => setShowAddExpense(true)} style={{ padding: '10px 20px', background: 'linear-gradient(135deg, #8B5CF6, #EC4899)', border: 'none', borderRadius: '10px', color: 'white', fontWeight: '600', cursor: 'pointer' }}>+ Add Expense</button>
+          </div>
+
+          <CollapsibleSection title="Expense Summary" icon="📊" gradient="linear-gradient(180deg, #F59E0B, #EF4444)" isDarkMode={isDarkMode} defaultExpanded={true}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
+              <StatCard title="Total Expenses" value={formatCurrency(stats.totalExpenses)} icon="💸" colorScheme="orange" isDarkMode={isDarkMode} />
+              <StatCard title="Deductible" value={formatCurrency(stats.deductibleExpenses)} icon="✅" colorScheme="green" isDarkMode={isDarkMode} />
+              <StatCard title="Tax Savings" value={formatCurrency(stats.deductibleExpenses * 0.32)} subtitle="Est. at 32%" icon="💰" colorScheme="purple" isDarkMode={isDarkMode} />
+            </div>
+          </CollapsibleSection>
+
+          <CollapsibleSection title="Recent Expenses" icon="📝" badge={`${expenses.length} entries`} gradient="linear-gradient(180deg, #8B5CF6, #3B82F6)" isDarkMode={isDarkMode} defaultExpanded={true}>
+            <ContentCard gradient="linear-gradient(90deg, #8B5CF6, #3B82F6)" isDarkMode={isDarkMode} noPadding={true}>
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr style={{ background: theme.bgMain }}>
+                    <th style={{ padding: '14px 16px', textAlign: 'left', fontSize: '12px', fontWeight: '600', color: theme.textMuted }}>Date</th>
+                    <th style={{ padding: '14px 16px', textAlign: 'left', fontSize: '12px', fontWeight: '600', color: theme.textMuted }}>Category</th>
+                    <th style={{ padding: '14px 16px', textAlign: 'left', fontSize: '12px', fontWeight: '600', color: theme.textMuted }}>Description</th>
+                    <th style={{ padding: '14px 16px', textAlign: 'right', fontSize: '12px', fontWeight: '600', color: theme.textMuted }}>Amount</th>
+                    <th style={{ padding: '14px 16px', textAlign: 'center', fontSize: '12px', fontWeight: '600', color: theme.textMuted }}>Deductible</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {expenses.map(expense => (
+                    <tr key={expense.id} style={{ borderBottom: `1px solid ${theme.borderLight}` }}>
+                      <td style={{ padding: '14px 16px', fontSize: '13px', color: theme.textSecondary }}>{expense.date}</td>
+                      <td style={{ padding: '14px 16px', fontSize: '13px', fontWeight: '500', color: theme.textPrimary }}>{expense.category}</td>
+                      <td style={{ padding: '14px 16px', fontSize: '13px', color: theme.textSecondary }}>{expense.description}</td>
+                      <td style={{ padding: '14px 16px', textAlign: 'right', fontSize: '14px', fontWeight: '600', color: theme.danger }}>{formatCurrency(expense.amount)}</td>
+                      <td style={{ padding: '14px 16px', textAlign: 'center' }}>{expense.deductible ? <span style={{ color: theme.success }}>✓</span> : <span style={{ color: theme.textMuted }}>-</span>}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </ContentCard>
+          </CollapsibleSection>
+        </div>
+      )}
+
+      {/* CRM TAB */}
+      {activeTab === 'crm' && (
+        <div>
+          <CollapsibleSection title="Client Overview" icon="👥" gradient="linear-gradient(180deg, #06B6D4, #3B82F6)" isDarkMode={isDarkMode} defaultExpanded={true}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }}>
+              <StatCard title="Total Clients" value="24" icon="👥" colorScheme="cyan" isDarkMode={isDarkMode} />
+              <StatCard title="Active Buyers" value="8" icon="🏠" colorScheme="blue" isDarkMode={isDarkMode} />
+              <StatCard title="Active Sellers" value="5" icon="📋" colorScheme="purple" isDarkMode={isDarkMode} />
+              <StatCard title="Past Clients" value="11" icon="⭐" colorScheme="green" isDarkMode={isDarkMode} />
+            </div>
+          </CollapsibleSection>
+
+          <CollapsibleSection title="Recent Contacts" icon="📞" gradient="linear-gradient(180deg, #8B5CF6, #EC4899)" isDarkMode={isDarkMode} defaultExpanded={true}>
+            <ContentCard gradient="linear-gradient(90deg, #8B5CF6, #EC4899)" isDarkMode={isDarkMode}>
+              <EmptyState icon="👥" title="CRM Coming Soon" description="Track your clients, follow-ups, and referrals all in one place." isDarkMode={isDarkMode} />
+            </ContentCard>
+          </CollapsibleSection>
+        </div>
+      )}
+
+      {/* TAX CENTER TAB */}
+      {activeTab === 'tax' && (
+        <div>
+          <CollapsibleSection title="Tax Overview" icon="🏦" gradient="linear-gradient(180deg, #10B981, #06B6D4)" isDarkMode={isDarkMode} defaultExpanded={true}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
+              <ContentCard gradient="linear-gradient(90deg, #10B981, #34D399)" isDarkMode={isDarkMode}>
+                <div style={{ fontSize: '13px', color: theme.textMuted, marginBottom: '8px' }}>Gross Income YTD</div>
+                <div style={{ fontSize: '28px', fontWeight: '700', color: theme.textPrimary }}>{formatCurrency(stats.totalGCI)}</div>
+              </ContentCard>
+              <ContentCard gradient="linear-gradient(90deg, #EF4444, #F87171)" isDarkMode={isDarkMode}>
+                <div style={{ fontSize: '13px', color: theme.textMuted, marginBottom: '8px' }}>Est. Tax Liability</div>
+                <div style={{ fontSize: '28px', fontWeight: '700', color: theme.danger }}>{formatCurrency(stats.totalGCI * 0.32)}</div>
+                <div style={{ fontSize: '11px', color: theme.textMuted }}>Self-employment + income</div>
+              </ContentCard>
+              <ContentCard gradient="linear-gradient(90deg, #8B5CF6, #A78BFA)" isDarkMode={isDarkMode}>
+                <div style={{ fontSize: '13px', color: theme.textMuted, marginBottom: '8px' }}>Deductions</div>
+                <div style={{ fontSize: '28px', fontWeight: '700', color: theme.success }}>-{formatCurrency(stats.deductibleExpenses)}</div>
+                <div style={{ fontSize: '11px', color: theme.textMuted }}>Reduces taxable income</div>
+              </ContentCard>
+            </div>
+          </CollapsibleSection>
+
+          <CollapsibleSection title="Deductible Expenses" icon="📝" badge="Track your write-offs" gradient="linear-gradient(180deg, #F59E0B, #EF4444)" isDarkMode={isDarkMode} defaultExpanded={true}>
+            <ContentCard gradient="linear-gradient(90deg, #F59E0B, #EF4444)" isDarkMode={isDarkMode}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px' }}>
+                {TAX_DEDUCTIONS.map((d, i) => (
+                  <div key={i} style={{ padding: '16px', background: theme.bgMain, borderRadius: '12px', textAlign: 'center' }}>
+                    <div style={{ fontSize: '28px', marginBottom: '8px' }}>{d.icon}</div>
+                    <div style={{ fontSize: '13px', fontWeight: '600', color: theme.textPrimary, marginBottom: '4px' }}>{d.name}</div>
+                    <div style={{ fontSize: '11px', color: theme.success }}>{d.rate}</div>
+                  </div>
+                ))}
+              </div>
+            </ContentCard>
+          </CollapsibleSection>
+
+          <CollapsibleSection title="Quarterly Estimates" icon="📅" gradient="linear-gradient(180deg, #3B82F6, #8B5CF6)" isDarkMode={isDarkMode} defaultExpanded={false}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }}>
+              {[
+                { q: 'Q1', due: 'Apr 15', status: 'paid' },
+                { q: 'Q2', due: 'Jun 16', status: 'paid' },
+                { q: 'Q3', due: 'Sep 15', status: 'due' },
+                { q: 'Q4', due: 'Jan 15', status: 'upcoming' }
+              ].map((qt, i) => (
+                <ContentCard key={i} gradient={qt.status === 'paid' ? 'linear-gradient(90deg, #10B981, #34D399)' : qt.status === 'due' ? 'linear-gradient(90deg, #F59E0B, #FBBF24)' : 'linear-gradient(90deg, #6B7280, #9CA3AF)'} isDarkMode={isDarkMode}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                    <span style={{ fontSize: '14px', fontWeight: '600', color: theme.textPrimary }}>{qt.q} 2025</span>
+                    <span style={{ padding: '3px 8px', borderRadius: '10px', fontSize: '10px', fontWeight: '600', background: qt.status === 'paid' ? '#D1FAE5' : qt.status === 'due' ? '#FEF3C7' : '#F3F4F6', color: qt.status === 'paid' ? '#059669' : qt.status === 'due' ? '#D97706' : '#6B7280' }}>{qt.status === 'paid' ? '✓ Paid' : qt.status === 'due' ? '⚠ Due' : 'Upcoming'}</span>
+                  </div>
+                  <div style={{ fontSize: '20px', fontWeight: '700', color: theme.textPrimary }}>{formatCurrency(stats.totalGCI * 0.08)}</div>
+                  <div style={{ fontSize: '11px', color: theme.textMuted }}>Due: {qt.due}</div>
+                </ContentCard>
+              ))}
+            </div>
+          </CollapsibleSection>
+        </div>
+      )}
     </div>
   );
-};
-
-export default RealEstateCommandCenter;
+}
