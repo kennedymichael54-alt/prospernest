@@ -3872,7 +3872,7 @@ function Dashboard({
   const [subscription, setSubscription] = useState(null);
   const [subscriptionLoading, setSubscriptionLoading] = useState(true);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
-  const [expandedHubs, setExpandedHubs] = useState({ homebudget: true }); // HomeBudget expanded by default
+  const [expandedHubs, setExpandedHubs] = useState({}); // All hubs collapsed by default
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false); // Sidebar collapse state
   const [trialBannerCollapsed, setTrialBannerCollapsed] = useState(false); // Trial banner collapse
   
@@ -7349,7 +7349,19 @@ function NewsfeedHome({ theme, user, profile, subscription, subscriptionAccess, 
   const [collapsedSections, setCollapsedSections] = useState({
     quickStats: false,
     features: false,
-    news: false
+    news: false,
+    realEstateNews: false,
+    socialMedia: false
+  });
+  
+  // Connected social media accounts
+  const [connectedSocials, setConnectedSocials] = useState({
+    facebook: false,
+    instagram: false,
+    twitter: false,
+    linkedin: false,
+    reddit: false,
+    tiktok: false
   });
   
   // Update time every minute
@@ -8436,6 +8448,473 @@ function NewsfeedHome({ theme, user, profile, subscription, subscriptionAccess, 
                 </svg>
               </button>
             </div>
+          </div>
+        )}
+      </div>
+      
+      {/* Real Estate & Interest Rate News - Collapsible */}
+      <div style={{ marginBottom: '24px' }}>
+        <button
+          onClick={() => toggleSection('realEstateNews')}
+          style={{
+            width: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '12px 16px',
+            background: theme.bgCard,
+            border: `1px solid ${theme.borderLight}`,
+            borderRadius: collapsedSections.realEstateNews ? '12px' : '12px 12px 0 0',
+            cursor: 'pointer',
+            marginBottom: collapsedSections.realEstateNews ? '0' : '-1px'
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <span style={{ fontSize: '18px' }}>🏠</span>
+            <span style={{ fontSize: '16px', fontWeight: '600', color: theme.textPrimary }}>Today's Real Estate & Interest Rate News</span>
+            <span style={{
+              fontSize: '10px',
+              padding: '2px 8px',
+              borderRadius: '10px',
+              background: 'linear-gradient(135deg, #F59E0B, #FBBF24)',
+              color: 'white',
+              fontWeight: '600',
+              textTransform: 'uppercase'
+            }}>Live</span>
+          </div>
+          <svg 
+            width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={theme.textSecondary} strokeWidth="2"
+            style={{ transform: collapsedSections.realEstateNews ? 'rotate(-90deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}
+          >
+            <polyline points="6 9 12 15 18 9"/>
+          </svg>
+        </button>
+        
+        {!collapsedSections.realEstateNews && (
+          <div style={{
+            padding: '20px',
+            background: theme.bgCard,
+            border: `1px solid ${theme.borderLight}`,
+            borderTop: 'none',
+            borderRadius: '0 0 12px 12px'
+          }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px' }}>
+              {[
+                {
+                  id: 'rate1',
+                  category: 'Interest Rates',
+                  title: 'Fed Signals Potential Rate Cut in 2025',
+                  summary: 'Federal Reserve officials hint at possible rate reductions as inflation continues to cool, potentially lowering mortgage rates.',
+                  source: 'Reuters',
+                  time: '2 hours ago',
+                  icon: '📉',
+                  color: '#10B981'
+                },
+                {
+                  id: 'rate2',
+                  category: 'Mortgage Rates',
+                  title: '30-Year Fixed Mortgage Dips to 6.5%',
+                  summary: 'Average 30-year fixed mortgage rate falls to lowest level in three months, sparking renewed buyer interest.',
+                  source: 'Mortgage News Daily',
+                  time: '4 hours ago',
+                  icon: '🏦',
+                  color: '#3B82F6'
+                },
+                {
+                  id: 'rate3',
+                  category: 'Housing Market',
+                  title: 'Home Sales Rise 3.2% in November',
+                  summary: 'Existing home sales show unexpected gain as buyers take advantage of rate dip and increased inventory.',
+                  source: 'NAR',
+                  time: '5 hours ago',
+                  icon: '📈',
+                  color: '#8B5CF6'
+                },
+                {
+                  id: 'rate4',
+                  category: 'Market Analysis',
+                  title: 'Housing Inventory Hits 2-Year High',
+                  summary: 'More homes hitting the market gives buyers better negotiating power and more choices in many metros.',
+                  source: 'Realtor.com',
+                  time: '6 hours ago',
+                  icon: '🏘️',
+                  color: '#EC4899'
+                },
+                {
+                  id: 'rate5',
+                  category: 'Investment',
+                  title: 'Multifamily Cap Rates Stabilizing',
+                  summary: 'Apartment building cap rates showing signs of stability after year-long adjustment period.',
+                  source: 'CoStar',
+                  time: '8 hours ago',
+                  icon: '🏢',
+                  color: '#06B6D4'
+                },
+                {
+                  id: 'rate6',
+                  category: 'Economic',
+                  title: 'Inflation Report: What It Means for Rates',
+                  summary: 'Latest CPI data suggests continued cooling, potentially good news for future mortgage rate trajectory.',
+                  source: 'Bloomberg',
+                  time: '10 hours ago',
+                  icon: '💹',
+                  color: '#F59E0B'
+                }
+              ].map((article) => (
+                <div 
+                  key={article.id}
+                  style={{
+                    background: theme.bgMain,
+                    borderRadius: '16px',
+                    padding: '20px',
+                    cursor: 'pointer',
+                    transition: 'transform 0.2s, box-shadow 0.2s',
+                    position: 'relative',
+                    overflow: 'hidden',
+                    border: `1px solid ${theme.borderLight}`
+                  }}
+                  onClick={() => console.log('Opening real estate article:', article.title)}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'translateY(-4px)';
+                    e.currentTarget.style.boxShadow = '0 12px 40px rgba(0,0,0,0.12)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = 'none';
+                  }}
+                >
+                  <div style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    height: '3px',
+                    background: article.color
+                  }} />
+                  
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    marginBottom: '12px'
+                  }}>
+                    <div style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      padding: '4px 10px',
+                      borderRadius: '20px',
+                      background: `${article.color}15`
+                    }}>
+                      <span style={{ fontSize: '12px' }}>{article.icon}</span>
+                      <span style={{ fontSize: '10px', fontWeight: '600', color: article.color, textTransform: 'uppercase' }}>
+                        {article.category}
+                      </span>
+                    </div>
+                    <span style={{ fontSize: '10px', color: theme.textMuted }}>{article.time}</span>
+                  </div>
+                  
+                  <h4 style={{ 
+                    fontSize: '14px', 
+                    fontWeight: '700', 
+                    color: theme.textPrimary,
+                    marginBottom: '8px',
+                    lineHeight: '1.4'
+                  }}>
+                    {article.title}
+                  </h4>
+                  
+                  <p style={{ 
+                    fontSize: '12px', 
+                    color: theme.textSecondary,
+                    lineHeight: '1.5',
+                    marginBottom: '12px'
+                  }}>
+                    {article.summary}
+                  </p>
+                  
+                  <div style={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'space-between',
+                    paddingTop: '10px',
+                    borderTop: `1px solid ${theme.borderLight}`
+                  }}>
+                    <span style={{ fontSize: '10px', color: theme.textMuted }}>{article.source}</span>
+                    <span style={{ fontSize: '10px', color: article.color, fontWeight: '600' }}>Read →</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+      
+      {/* Social Media Integration - Collapsible */}
+      <div style={{ marginBottom: '24px' }}>
+        <button
+          onClick={() => toggleSection('socialMedia')}
+          style={{
+            width: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '12px 16px',
+            background: theme.bgCard,
+            border: `1px solid ${theme.borderLight}`,
+            borderRadius: collapsedSections.socialMedia ? '12px' : '12px 12px 0 0',
+            cursor: 'pointer',
+            marginBottom: collapsedSections.socialMedia ? '0' : '-1px'
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <span style={{ fontSize: '18px' }}>📱</span>
+            <span style={{ fontSize: '16px', fontWeight: '600', color: theme.textPrimary }}>Social Media Hub</span>
+            <span style={{
+              fontSize: '10px',
+              padding: '2px 8px',
+              borderRadius: '10px',
+              background: 'linear-gradient(135deg, #8B5CF6, #A78BFA)',
+              color: 'white',
+              fontWeight: '600',
+              textTransform: 'uppercase'
+            }}>Beta</span>
+          </div>
+          <svg 
+            width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={theme.textSecondary} strokeWidth="2"
+            style={{ transform: collapsedSections.socialMedia ? 'rotate(-90deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}
+          >
+            <polyline points="6 9 12 15 18 9"/>
+          </svg>
+        </button>
+        
+        {!collapsedSections.socialMedia && (
+          <div style={{
+            padding: '24px',
+            background: theme.bgCard,
+            border: `1px solid ${theme.borderLight}`,
+            borderTop: 'none',
+            borderRadius: '0 0 12px 12px'
+          }}>
+            {/* Header */}
+            <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+              <h3 style={{ fontSize: '18px', fontWeight: '700', color: theme.textPrimary, marginBottom: '8px' }}>
+                Connect Your Social Accounts
+              </h3>
+              <p style={{ fontSize: '14px', color: theme.textSecondary, maxWidth: '500px', margin: '0 auto' }}>
+                Stay updated with your favorite feeds without leaving ProsperNest. Connect your accounts to see everything in one place.
+              </p>
+            </div>
+            
+            {/* Social Platform Cards */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '24px' }}>
+              {[
+                { id: 'facebook', name: 'Facebook', icon: 'f', color: '#1877F2', bgColor: '#1877F210' },
+                { id: 'instagram', name: 'Instagram', icon: '📷', color: '#E4405F', bgColor: '#E4405F10', gradient: 'linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888)' },
+                { id: 'twitter', name: 'X (Twitter)', icon: '𝕏', color: '#000000', bgColor: '#00000010' },
+                { id: 'linkedin', name: 'LinkedIn', icon: 'in', color: '#0A66C2', bgColor: '#0A66C210' },
+                { id: 'reddit', name: 'Reddit', icon: '🤖', color: '#FF4500', bgColor: '#FF450010' },
+                { id: 'tiktok', name: 'TikTok', icon: '♪', color: '#000000', bgColor: '#00000010' }
+              ].map((platform) => (
+                <div 
+                  key={platform.id}
+                  style={{
+                    background: theme.bgMain,
+                    borderRadius: '16px',
+                    padding: '20px',
+                    border: `1px solid ${connectedSocials[platform.id] ? platform.color : theme.borderLight}`,
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                    position: 'relative'
+                  }}
+                  onClick={() => {
+                    setConnectedSocials(prev => ({ ...prev, [platform.id]: !prev[platform.id] }));
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                    e.currentTarget.style.borderColor = platform.color;
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.borderColor = connectedSocials[platform.id] ? platform.color : theme.borderLight;
+                  }}
+                >
+                  {/* Connected Badge */}
+                  {connectedSocials[platform.id] && (
+                    <div style={{
+                      position: 'absolute',
+                      top: '10px',
+                      right: '10px',
+                      width: '20px',
+                      height: '20px',
+                      borderRadius: '50%',
+                      background: '#10B981',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}>
+                      <span style={{ color: 'white', fontSize: '12px' }}>✓</span>
+                    </div>
+                  )}
+                  
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <div style={{
+                      width: '48px',
+                      height: '48px',
+                      borderRadius: '12px',
+                      background: platform.gradient || platform.bgColor,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: platform.icon.length > 2 ? '24px' : '20px',
+                      fontWeight: '700',
+                      color: platform.gradient ? 'white' : platform.color
+                    }}>
+                      {platform.icon}
+                    </div>
+                    <div>
+                      <div style={{ fontSize: '15px', fontWeight: '600', color: theme.textPrimary }}>
+                        {platform.name}
+                      </div>
+                      <div style={{ fontSize: '12px', color: connectedSocials[platform.id] ? '#10B981' : theme.textMuted }}>
+                        {connectedSocials[platform.id] ? 'Connected' : 'Click to connect'}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            
+            {/* Feed Preview Area */}
+            {Object.values(connectedSocials).some(v => v) ? (
+              <div style={{
+                background: theme.bgMain,
+                borderRadius: '16px',
+                border: `1px solid ${theme.borderLight}`,
+                padding: '20px'
+              }}>
+                <div style={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'space-between',
+                  marginBottom: '16px'
+                }}>
+                  <h4 style={{ fontSize: '16px', fontWeight: '600', color: theme.textPrimary }}>
+                    Your Feed
+                  </h4>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    {Object.entries(connectedSocials).filter(([_, connected]) => connected).map(([id]) => (
+                      <button
+                        key={id}
+                        style={{
+                          padding: '4px 12px',
+                          borderRadius: '20px',
+                          border: 'none',
+                          background: theme.bgCard,
+                          color: theme.textSecondary,
+                          fontSize: '11px',
+                          fontWeight: '600',
+                          cursor: 'pointer',
+                          textTransform: 'capitalize'
+                        }}
+                      >
+                        {id}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                
+                {/* Sample Feed Items */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  {[
+                    { platform: 'linkedin', author: 'Real Estate Trends', time: '2h', content: '📊 The latest housing market data shows promising signs for Q1 2025. Inventory levels are finally recovering in key markets...', likes: 234, comments: 45 },
+                    { platform: 'twitter', author: 'MortgageNews', time: '3h', content: '🏦 Breaking: 30-year fixed rates dip below 6.5% for the first time since September. What this means for buyers...', likes: 892, comments: 127 },
+                    { platform: 'reddit', author: 'r/RealEstate', time: '4h', content: '🔥 [Discussion] Anyone else noticing price drops in their market? Share your observations from the past month...', likes: 1.2, comments: 384 }
+                  ].filter(item => connectedSocials[item.platform]).slice(0, 3).map((post, i) => (
+                    <div 
+                      key={i}
+                      style={{
+                        padding: '16px',
+                        background: theme.bgCard,
+                        borderRadius: '12px',
+                        border: `1px solid ${theme.borderLight}`
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
+                        <div style={{
+                          width: '36px',
+                          height: '36px',
+                          borderRadius: '50%',
+                          background: 'linear-gradient(135deg, #3B82F6, #8B5CF6)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          color: 'white',
+                          fontSize: '14px',
+                          fontWeight: '600'
+                        }}>
+                          {post.author[0]}
+                        </div>
+                        <div>
+                          <div style={{ fontSize: '14px', fontWeight: '600', color: theme.textPrimary }}>{post.author}</div>
+                          <div style={{ fontSize: '11px', color: theme.textMuted }}>{post.time} ago • {post.platform}</div>
+                        </div>
+                      </div>
+                      <p style={{ fontSize: '14px', color: theme.textSecondary, lineHeight: '1.5', marginBottom: '12px' }}>
+                        {post.content}
+                      </p>
+                      <div style={{ display: 'flex', gap: '16px' }}>
+                        <span style={{ fontSize: '12px', color: theme.textMuted }}>❤️ {typeof post.likes === 'number' ? post.likes : post.likes + 'k'}</span>
+                        <span style={{ fontSize: '12px', color: theme.textMuted }}>💬 {post.comments}</span>
+                      </div>
+                    </div>
+                  ))}
+                  
+                  {Object.values(connectedSocials).filter(v => v).length > 0 && (
+                    <div style={{ textAlign: 'center', padding: '20px' }}>
+                      <p style={{ fontSize: '13px', color: theme.textMuted, marginBottom: '12px' }}>
+                        🔒 Full feed integration coming soon! Connect your accounts now to be first in line.
+                      </p>
+                      <button
+                        style={{
+                          padding: '10px 24px',
+                          borderRadius: '10px',
+                          background: 'linear-gradient(135deg, #8B5CF6, #A78BFA)',
+                          border: 'none',
+                          color: 'white',
+                          fontSize: '13px',
+                          fontWeight: '600',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        Join Waitlist for Full Access
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div style={{
+                background: theme.bgMain,
+                borderRadius: '16px',
+                border: `2px dashed ${theme.borderLight}`,
+                padding: '40px',
+                textAlign: 'center'
+              }}>
+                <div style={{ fontSize: '48px', marginBottom: '16px' }}>🔗</div>
+                <h4 style={{ fontSize: '16px', fontWeight: '600', color: theme.textPrimary, marginBottom: '8px' }}>
+                  No Accounts Connected
+                </h4>
+                <p style={{ fontSize: '14px', color: theme.textSecondary, marginBottom: '16px' }}>
+                  Click on any platform above to connect and see your feeds here.
+                </p>
+                <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                  <span style={{ fontSize: '12px', color: theme.textMuted, padding: '4px 12px', background: theme.bgCard, borderRadius: '20px' }}>🔒 Secure OAuth</span>
+                  <span style={{ fontSize: '12px', color: theme.textMuted, padding: '4px 12px', background: theme.bgCard, borderRadius: '20px' }}>🚫 No password stored</span>
+                  <span style={{ fontSize: '12px', color: theme.textMuted, padding: '4px 12px', background: theme.bgCard, borderRadius: '20px' }}>📵 Disconnect anytime</span>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
