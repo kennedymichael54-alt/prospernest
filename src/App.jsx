@@ -3843,7 +3843,7 @@ function Dashboard({
   userRole = USER_ROLES.STARTER,
   permissions = ROLE_PERMISSIONS[USER_ROLES.STARTER]
 }) {
-  const [activeTab, setActiveTab] = useState('home');
+  const [activeTab, setActiveTab] = useState('newsfeed');
   const [previousTab, setPreviousTab] = useState('home');
   const [tabRestored, setTabRestored] = useState(false); // Track if we've restored the tab
   const [showProfileMenu, setShowProfileMenu] = useState(false);
@@ -3953,13 +3953,20 @@ function Dashboard({
   }, [activeTab, user?.id]);
   
   // Restore tab after subscription loads - for ALL users
+  // First login always goes to newsfeed, subsequent visits restore last tab
   useEffect(() => {
     if (!subscriptionLoading && user?.id && !tabRestored) {
       const savedTab = localStorage.getItem(`pn_activeTab_${user.id}`);
+      const hasLoggedInBefore = localStorage.getItem(`pn_hasLoggedIn_${user.id}`);
       
-      // Restore tab for ALL users who have a saved tab
-      // This ensures consistent UX - everyone stays where they were
-      if (savedTab) {
+      // First time login - always start at newsfeed
+      if (!hasLoggedInBefore) {
+        console.log('👋 [Tab] First login detected - starting at Home & Newsfeed');
+        setActiveTab('newsfeed');
+        localStorage.setItem(`pn_hasLoggedIn_${user.id}`, 'true');
+      } 
+      // Returning user with saved tab - restore exactly where they were
+      else if (savedTab) {
         console.log('🔄 [Tab] Restoring saved tab:', savedTab);
         setActiveTab(savedTab);
         
@@ -3972,11 +3979,12 @@ function Dashboard({
           setExpandedHubs(prev => ({ ...prev, dataimport: true }));
         } else if (savedTab === 'newsfeed') {
           // Newsfeed doesn't need hub expansion
-        } else {
+        } else if (savedTab.startsWith('home') || ['transactions', 'budget', 'bills', 'goals', 'reports', 'settings'].includes(savedTab)) {
           setExpandedHubs(prev => ({ ...prev, homebudget: true }));
         }
       } else {
-        console.log('🏠 [Tab] No saved tab - starting at Newsfeed');
+        // Returning user but no saved tab - go to newsfeed
+        console.log('🏠 [Tab] No saved tab - starting at Home & Newsfeed');
         setActiveTab('newsfeed');
       }
       
@@ -7335,6 +7343,49 @@ function NewsfeedHome({ theme, user, profile, subscription, subscriptionAccess, 
   const [activeSection, setActiveSection] = useState('welcome');
   const [newsLoading, setNewsLoading] = useState(false);
   const [selectedArticle, setSelectedArticle] = useState(null); // For in-app article viewer
+  const [currentTime, setCurrentTime] = useState(new Date());
+  
+  // Collapsible sections state
+  const [collapsedSections, setCollapsedSections] = useState({
+    quickStats: false,
+    features: false,
+    news: false
+  });
+  
+  // Update time every minute
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 60000); // Update every minute
+    return () => clearInterval(timer);
+  }, []);
+  
+  // Toggle section collapse
+  const toggleSection = (section) => {
+    setCollapsedSections(prev => ({
+      ...prev,
+      [section]: !prev[section]
+    }));
+  };
+  
+  // Format date and time
+  const formatDateTime = () => {
+    const options = { 
+      weekday: 'long', 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric'
+    };
+    const dateStr = currentTime.toLocaleDateString('en-US', options);
+    const timeStr = currentTime.toLocaleTimeString('en-US', { 
+      hour: 'numeric', 
+      minute: '2-digit',
+      hour12: true 
+    });
+    return { date: dateStr, time: timeStr };
+  };
+  
+  const { date: currentDate, time: currentTimeStr } = formatDateTime();
   
   // Determine user's access levels
   const hasBizBudgetAccess = permissions.canAccessBizBudget || subscriptionAccess?.perpetualLicense;
@@ -7870,49 +7921,132 @@ function NewsfeedHome({ theme, user, profile, subscription, subscriptionAccess, 
               </button>
             )}
           </div>
+          
+          {/* Date and Time Display */}
+          <div style={{
+            marginTop: '20px',
+            padding: '12px 16px',
+            background: 'rgba(255,255,255,0.05)',
+            borderRadius: '10px',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '16px'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '16px' }}>📅</span>
+              <span style={{ fontSize: '14px', color: 'rgba(255,255,255,0.9)', fontWeight: '500' }}>{currentDate}</span>
+            </div>
+            <div style={{ width: '1px', height: '20px', background: 'rgba(255,255,255,0.2)' }} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '16px' }}>🕐</span>
+              <span style={{ fontSize: '14px', color: 'rgba(255,255,255,0.9)', fontWeight: '500' }}>{currentTimeStr}</span>
+            </div>
+          </div>
         </div>
       </div>
       
-      {/* Quick Stats Row */}
-      <div style={{ 
-        display: 'grid', 
-        gridTemplateColumns: 'repeat(4, 1fr)', 
-        gap: '16px',
-        marginBottom: '24px'
-      }}>
-        {[
-          { label: 'Your Plan', value: subscription?.plan_type?.replace('_', ' ')?.toUpperCase() || 'FREE', icon: '⭐', color: '#F59E0B' },
-          { label: 'Status', value: subscriptionAccess?.hasAccess ? 'Active' : 'Inactive', icon: '✅', color: '#10B981' },
-          { label: 'Available Hubs', value: hasREBudgetAccess ? '3' : hasBizBudgetAccess ? '2' : '1', icon: '🎯', color: '#3B82F6' },
-          { label: 'AI Features', value: 'Enabled', icon: '🤖', color: '#8B5CF6' }
-        ].map((stat, i) => (
-          <div key={i} style={{
-            ...cardStyle,
-            padding: '20px',
-            textAlign: 'center'
-          }}>
-            <div style={{ fontSize: '28px', marginBottom: '8px' }}>{stat.icon}</div>
-            <div style={{ fontSize: '20px', fontWeight: '700', color: stat.color, marginBottom: '4px' }}>{stat.value}</div>
-            <div style={{ fontSize: '12px', color: theme.textMuted, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{stat.label}</div>
+      {/* Quick Stats Row - Collapsible */}
+      <div style={{ marginBottom: '24px' }}>
+        <button
+          onClick={() => toggleSection('quickStats')}
+          style={{
+            width: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '12px 16px',
+            background: theme.bgCard,
+            border: `1px solid ${theme.borderLight}`,
+            borderRadius: collapsedSections.quickStats ? '12px' : '12px 12px 0 0',
+            cursor: 'pointer',
+            marginBottom: collapsedSections.quickStats ? '0' : '-1px'
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <span style={{ fontSize: '18px' }}>📊</span>
+            <span style={{ fontSize: '16px', fontWeight: '600', color: theme.textPrimary }}>Quick Stats</span>
           </div>
-        ))}
+          <svg 
+            width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={theme.textSecondary} strokeWidth="2"
+            style={{ transform: collapsedSections.quickStats ? 'rotate(-90deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}
+          >
+            <polyline points="6 9 12 15 18 9"/>
+          </svg>
+        </button>
+        
+        {!collapsedSections.quickStats && (
+          <div style={{ 
+            display: 'grid', 
+            gridTemplateColumns: 'repeat(4, 1fr)', 
+            gap: '16px',
+            padding: '16px',
+            background: theme.bgCard,
+            border: `1px solid ${theme.borderLight}`,
+            borderTop: 'none',
+            borderRadius: '0 0 12px 12px'
+          }}>
+            {[
+              { label: 'Your Plan', value: subscription?.plan_type?.replace('_', ' ')?.toUpperCase() || 'FREE', icon: '⭐', color: '#F59E0B' },
+              { label: 'Status', value: subscriptionAccess?.hasAccess ? 'Active' : 'Inactive', icon: '✅', color: '#10B981' },
+              { label: 'Available Hubs', value: hasREBudgetAccess ? '3' : hasBizBudgetAccess ? '2' : '1', icon: '🎯', color: '#3B82F6' },
+              { label: 'AI Features', value: 'Enabled', icon: '🤖', color: '#8B5CF6' }
+            ].map((stat, i) => (
+              <div key={i} style={{
+                padding: '20px',
+                textAlign: 'center',
+                background: theme.bgMain,
+                borderRadius: '12px',
+                border: `1px solid ${theme.borderLight}`
+              }}>
+                <div style={{ fontSize: '28px', marginBottom: '8px' }}>{stat.icon}</div>
+                <div style={{ fontSize: '20px', fontWeight: '700', color: stat.color, marginBottom: '4px' }}>{stat.value}</div>
+                <div style={{ fontSize: '12px', color: theme.textMuted, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{stat.label}</div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
       
-      {/* Product Walkthrough Section */}
-      <div style={{ marginBottom: '32px' }}>
-        <h2 style={{ 
-          fontSize: '22px', 
-          fontWeight: '700', 
-          color: theme.textPrimary,
-          marginBottom: '20px',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '10px'
-        }}>
-          <span>🎯</span> Explore <span style={{ color: '#EC4899' }}>Prosper</span><span style={{ color: '#10B981' }}>Nest</span> Features
-        </h2>
+      {/* Product Walkthrough Section - Collapsible */}
+      <div style={{ marginBottom: '24px' }}>
+        <button
+          onClick={() => toggleSection('features')}
+          style={{
+            width: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '12px 16px',
+            background: theme.bgCard,
+            border: `1px solid ${theme.borderLight}`,
+            borderRadius: collapsedSections.features ? '12px' : '12px 12px 0 0',
+            cursor: 'pointer',
+            marginBottom: collapsedSections.features ? '0' : '-1px'
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <span style={{ fontSize: '18px' }}>🎯</span>
+            <span style={{ fontSize: '16px', fontWeight: '600', color: theme.textPrimary }}>
+              Explore <span style={{ color: '#EC4899' }}>Prosper</span><span style={{ color: '#10B981' }}>Nest</span> Features
+            </span>
+          </div>
+          <svg 
+            width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={theme.textSecondary} strokeWidth="2"
+            style={{ transform: collapsedSections.features ? 'rotate(-90deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}
+          >
+            <polyline points="6 9 12 15 18 9"/>
+          </svg>
+        </button>
         
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '20px' }}>
+        {!collapsedSections.features && (
+          <div style={{
+            padding: '20px',
+            background: theme.bgCard,
+            border: `1px solid ${theme.borderLight}`,
+            borderTop: 'none',
+            borderRadius: '0 0 12px 12px'
+          }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '20px' }}>
           {productFeatures.map((feature, i) => (
             <div 
               key={feature.id}
@@ -8079,7 +8213,9 @@ function NewsfeedHome({ theme, user, profile, subscription, subscriptionAccess, 
               </div>
             </div>
           ))}
-        </div>
+            </div>
+          </div>
+        )}
       </div>
       
       {/* Upgrade Banner (for non-premium users) */}
@@ -8128,153 +8264,180 @@ function NewsfeedHome({ theme, user, profile, subscription, subscriptionAccess, 
         </div>
       )}
       
-      {/* Financial News & Tips Section */}
-      <div>
-        <h2 style={{ 
-          fontSize: '22px', 
-          fontWeight: '700', 
-          color: theme.textPrimary,
-          marginBottom: '20px',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '10px'
-        }}>
-          <span>📰</span> Financial News & Tips
-        </h2>
-        
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px' }}>
-          {newsArticles.map((article) => (
-            <div 
-              key={article.id}
-              style={{
-                ...cardStyle,
-                padding: '24px',
-                cursor: 'pointer',
-                transition: 'transform 0.2s, box-shadow 0.2s',
-                position: 'relative',
-                overflow: 'hidden'
-              }}
-              onClick={() => setSelectedArticle(article)}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-4px)';
-                e.currentTarget.style.boxShadow = '0 12px 40px rgba(0,0,0,0.12)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = theme.cardShadow;
-              }}
-            >
-              {/* Top accent */}
-              <div style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                right: 0,
-                height: '3px',
-                background: article.color
-              }} />
-              
-              {/* Category badge */}
-              <div style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '6px 12px',
-                borderRadius: '20px',
-                background: `${article.color}15`,
-                marginBottom: '14px'
-              }}>
-                <span style={{ fontSize: '14px' }}>{article.icon}</span>
-                <span style={{ 
-                  fontSize: '11px', 
-                  fontWeight: '600', 
-                  color: article.color,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.5px'
-                }}>
-                  {article.category}
-                </span>
-              </div>
-              
-              <h4 style={{ 
-                fontSize: '16px', 
-                fontWeight: '700', 
-                color: theme.textPrimary,
-                marginBottom: '10px',
-                lineHeight: '1.4'
-              }}>
-                {article.title}
-              </h4>
-              
-              <p style={{ 
-                fontSize: '13px', 
-                color: theme.textSecondary,
-                lineHeight: '1.5',
-                marginBottom: '16px'
-              }}>
-                {article.summary}
-              </p>
-              
-              <div style={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'space-between',
-                paddingTop: '14px',
-                borderTop: `1px solid ${theme.borderLight}`
-              }}>
-                <span style={{ fontSize: '11px', color: theme.textMuted }}>
-                  {article.source}
-                </span>
-                <span style={{ 
-                  fontSize: '11px', 
-                  color: article.color,
-                  fontWeight: '600',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '4px'
-                }}>
-                  Read More →
-                </span>
-              </div>
-            </div>
-          ))}
-        </div>
-        
-        <div style={{ 
-          textAlign: 'center', 
-          marginTop: '24px' 
-        }}>
-          <button
-            onClick={() => console.log('View all articles')}
-            style={{
-              padding: '12px 28px',
-              borderRadius: '10px',
-              background: 'transparent',
-              border: `2px solid ${theme.borderLight}`,
-              color: theme.textSecondary,
-              fontSize: '14px',
-              fontWeight: '600',
-              cursor: 'pointer',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '8px',
-              transition: 'all 0.2s'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = theme.primary;
-              e.currentTarget.style.color = theme.primary;
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.borderColor = theme.borderLight;
-              e.currentTarget.style.color = theme.textSecondary;
-            }}
+      {/* Financial News & Tips Section - Collapsible */}
+      <div style={{ marginBottom: '24px' }}>
+        <button
+          onClick={() => toggleSection('news')}
+          style={{
+            width: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '12px 16px',
+            background: theme.bgCard,
+            border: `1px solid ${theme.borderLight}`,
+            borderRadius: collapsedSections.news ? '12px' : '12px 12px 0 0',
+            cursor: 'pointer',
+            marginBottom: collapsedSections.news ? '0' : '-1px'
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <span style={{ fontSize: '18px' }}>📰</span>
+            <span style={{ fontSize: '16px', fontWeight: '600', color: theme.textPrimary }}>Financial News & Tips</span>
+          </div>
+          <svg 
+            width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={theme.textSecondary} strokeWidth="2"
+            style={{ transform: collapsedSections.news ? 'rotate(-90deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}
           >
-            View All Articles
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="9 18 15 12 9 6"/>
-            </svg>
-          </button>
-        </div>
+            <polyline points="6 9 12 15 18 9"/>
+          </svg>
+        </button>
+        
+        {!collapsedSections.news && (
+          <div style={{
+            padding: '20px',
+            background: theme.bgCard,
+            border: `1px solid ${theme.borderLight}`,
+            borderTop: 'none',
+            borderRadius: '0 0 12px 12px'
+          }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px' }}>
+              {newsArticles.map((article) => (
+                <div 
+                  key={article.id}
+                  style={{
+                    background: theme.bgMain,
+                    borderRadius: '16px',
+                    padding: '24px',
+                    cursor: 'pointer',
+                    transition: 'transform 0.2s, box-shadow 0.2s',
+                    position: 'relative',
+                    overflow: 'hidden',
+                    border: `1px solid ${theme.borderLight}`
+                  }}
+                  onClick={() => setSelectedArticle(article)}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'translateY(-4px)';
+                    e.currentTarget.style.boxShadow = '0 12px 40px rgba(0,0,0,0.12)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = 'none';
+                  }}
+                >
+                  {/* Top accent */}
+                  <div style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    height: '3px',
+                    background: article.color
+                  }} />
+                  
+                  {/* Category badge */}
+                  <div style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '6px 12px',
+                    borderRadius: '20px',
+                    background: `${article.color}15`,
+                    marginBottom: '14px'
+                  }}>
+                    <span style={{ fontSize: '14px' }}>{article.icon}</span>
+                    <span style={{ 
+                      fontSize: '11px', 
+                      fontWeight: '600', 
+                      color: article.color,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.5px'
+                    }}>
+                      {article.category}
+                    </span>
+                  </div>
+                  
+                  <h4 style={{ 
+                    fontSize: '16px', 
+                    fontWeight: '700', 
+                    color: theme.textPrimary,
+                    marginBottom: '10px',
+                    lineHeight: '1.4'
+                  }}>
+                    {article.title}
+                  </h4>
+                  
+                  <p style={{ 
+                    fontSize: '13px', 
+                    color: theme.textSecondary,
+                    lineHeight: '1.5',
+                    marginBottom: '16px'
+                  }}>
+                    {article.summary}
+                  </p>
+                  
+                  <div style={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'space-between',
+                    paddingTop: '14px',
+                    borderTop: `1px solid ${theme.borderLight}`
+                  }}>
+                    <span style={{ fontSize: '11px', color: theme.textMuted }}>
+                      {article.source}
+                    </span>
+                    <span style={{ 
+                      fontSize: '11px', 
+                      color: article.color,
+                      fontWeight: '600',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px'
+                    }}>
+                      Read More →
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+            
+            <div style={{ 
+              textAlign: 'center', 
+              marginTop: '24px' 
+            }}>
+              <button
+                onClick={() => console.log('View all articles')}
+                style={{
+                  padding: '12px 28px',
+                  borderRadius: '10px',
+                  background: 'transparent',
+                  border: `2px solid ${theme.borderLight}`,
+                  color: theme.textSecondary,
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  transition: 'all 0.2s'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = theme.primary;
+                  e.currentTarget.style.color = theme.primary;
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = theme.borderLight;
+                  e.currentTarget.style.color = theme.textSecondary;
+                }}
+              >
+                View All Articles
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="9 18 15 12 9 6"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
