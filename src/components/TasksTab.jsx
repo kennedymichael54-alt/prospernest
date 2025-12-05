@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { CollapsibleSection } from './CollapsibleComponents';
 
 function TasksTab({ tasks = [], onUpdateTasks, theme, lastImportDate }) {
   const isDark = theme?.mode === 'dark';
@@ -8,6 +9,8 @@ function TasksTab({ tasks = [], onUpdateTasks, theme, lastImportDate }) {
   
   // Collapsible sections state
   const [collapsedSections, setCollapsedSections] = useState({
+    statsOverview: false,
+    progressBar: false,
     taskList: false
   });
   
@@ -94,122 +97,225 @@ function TasksTab({ tasks = [], onUpdateTasks, theme, lastImportDate }) {
         </button>
       </div>
 
-      {/* Stats Overview - Gradient Cards matching Dashboard */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px', marginBottom: '32px' }}>
-        {/* Total Tasks Card - Cyan */}
-        <div style={{
-          background: isDark ? 'linear-gradient(135deg, #164E63 0%, #0E4A5C 100%)' : 'linear-gradient(135deg, #E0F7FA 0%, #B2EBF2 100%)',
-          borderRadius: '20px',
-          padding: '20px',
-          boxShadow: '0 4px 20px rgba(0, 188, 212, 0.15)',
-          border: `1px solid ${isDark ? 'rgba(0, 188, 212, 0.3)' : 'rgba(0, 188, 212, 0.2)'}`
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
-            <div style={{ 
-              width: '40px', height: '40px', borderRadius: '12px', 
-              background: isDark ? 'rgba(0, 188, 212, 0.3)' : 'rgba(0, 188, 212, 0.2)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' 
-            }}>📋</div>
-            <span style={{ fontSize: '14px', color: isDark ? '#67E8F9' : '#00838F', fontWeight: '600' }}>Total Tasks</span>
+      {/* Stats Overview - Collapsible */}
+      <CollapsibleSection
+        title="Performance Overview"
+        icon="📊"
+        badge={`${tasks.length} total tasks`}
+        isDarkMode={isDark}
+        defaultExpanded={true}
+        gradientColors={['#06B6D4', '#8B5CF6']}
+      >
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px' }}>
+          {/* Total Tasks Card - Cyan */}
+          <div style={{
+            background: isDark ? 'linear-gradient(135deg, #164E63 0%, #0E4A5C 100%)' : 'linear-gradient(135deg, #E0F7FA 0%, #B2EBF2 100%)',
+            borderRadius: '20px',
+            padding: '20px',
+            boxShadow: '0 4px 20px rgba(0, 188, 212, 0.15)',
+            border: `1px solid ${isDark ? 'rgba(0, 188, 212, 0.3)' : 'rgba(0, 188, 212, 0.2)'}`
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
+              <div style={{ 
+                width: '40px', height: '40px', borderRadius: '12px', 
+                background: isDark ? 'rgba(0, 188, 212, 0.3)' : 'rgba(0, 188, 212, 0.2)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' 
+              }}>📋</div>
+              <span style={{ fontSize: '14px', color: isDark ? '#67E8F9' : '#00838F', fontWeight: '600' }}>Total Tasks</span>
+            </div>
+            <div style={{ fontSize: '28px', fontWeight: '700', color: isDark ? '#E0F7FA' : '#006064' }}>{tasks.length}</div>
           </div>
-          <div style={{ fontSize: '28px', fontWeight: '700', color: isDark ? '#E0F7FA' : '#006064' }}>{tasks.length}</div>
-        </div>
 
-        {/* To Do Card - Orange */}
-        <div style={{
-          background: isDark ? 'linear-gradient(135deg, #7C2D12 0%, #6B2A0F 100%)' : 'linear-gradient(135deg, #FFF3E0 0%, #FFE0B2 100%)',
-          borderRadius: '20px',
-          padding: '20px',
-          boxShadow: '0 4px 20px rgba(255, 152, 0, 0.15)',
-          border: `1px solid ${isDark ? 'rgba(255, 152, 0, 0.3)' : 'rgba(255, 152, 0, 0.2)'}`
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
-            <div style={{ 
-              width: '40px', height: '40px', borderRadius: '12px', 
-              background: isDark ? 'rgba(255, 152, 0, 0.3)' : 'rgba(255, 152, 0, 0.2)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' 
-            }}>📝</div>
-            <span style={{ fontSize: '14px', color: isDark ? '#FDBA74' : '#E65100', fontWeight: '600' }}>To Do</span>
+          {/* To Do Card - Orange */}
+          <div style={{
+            background: isDark ? 'linear-gradient(135deg, #7C2D12 0%, #6B2A0F 100%)' : 'linear-gradient(135deg, #FFF3E0 0%, #FFE0B2 100%)',
+            borderRadius: '20px',
+            padding: '20px',
+            boxShadow: '0 4px 20px rgba(255, 152, 0, 0.15)',
+            border: `1px solid ${isDark ? 'rgba(255, 152, 0, 0.3)' : 'rgba(255, 152, 0, 0.2)'}`
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
+              <div style={{ 
+                width: '40px', height: '40px', borderRadius: '12px', 
+                background: isDark ? 'rgba(255, 152, 0, 0.3)' : 'rgba(255, 152, 0, 0.2)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' 
+              }}>📝</div>
+              <span style={{ fontSize: '14px', color: isDark ? '#FDBA74' : '#E65100', fontWeight: '600' }}>To Do</span>
+            </div>
+            <div style={{ fontSize: '28px', fontWeight: '700', color: isDark ? '#FFF3E0' : '#BF360C' }}>{todoTasks.length}</div>
           </div>
-          <div style={{ fontSize: '28px', fontWeight: '700', color: isDark ? '#FFF3E0' : '#BF360C' }}>{todoTasks.length}</div>
-        </div>
 
-        {/* In Progress Card - Purple */}
-        <div style={{
-          background: isDark ? 'linear-gradient(135deg, #4A1D6B 0%, #3D1A5A 100%)' : 'linear-gradient(135deg, #F3E5F5 0%, #E1BEE7 100%)',
-          borderRadius: '20px',
-          padding: '20px',
-          boxShadow: '0 4px 20px rgba(156, 39, 176, 0.15)',
-          border: `1px solid ${isDark ? 'rgba(156, 39, 176, 0.3)' : 'rgba(156, 39, 176, 0.2)'}`
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
-            <div style={{ 
-              width: '40px', height: '40px', borderRadius: '12px', 
-              background: isDark ? 'rgba(156, 39, 176, 0.3)' : 'rgba(156, 39, 176, 0.2)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' 
-            }}>🔄</div>
-            <span style={{ fontSize: '14px', color: isDark ? '#D8B4FE' : '#7B1FA2', fontWeight: '600' }}>In Progress</span>
+          {/* In Progress Card - Purple */}
+          <div style={{
+            background: isDark ? 'linear-gradient(135deg, #4A1D6B 0%, #3D1A5A 100%)' : 'linear-gradient(135deg, #F3E5F5 0%, #E1BEE7 100%)',
+            borderRadius: '20px',
+            padding: '20px',
+            boxShadow: '0 4px 20px rgba(156, 39, 176, 0.15)',
+            border: `1px solid ${isDark ? 'rgba(156, 39, 176, 0.3)' : 'rgba(156, 39, 176, 0.2)'}`
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
+              <div style={{ 
+                width: '40px', height: '40px', borderRadius: '12px', 
+                background: isDark ? 'rgba(156, 39, 176, 0.3)' : 'rgba(156, 39, 176, 0.2)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' 
+              }}>🔄</div>
+              <span style={{ fontSize: '14px', color: isDark ? '#D8B4FE' : '#7B1FA2', fontWeight: '600' }}>In Progress</span>
+            </div>
+            <div style={{ fontSize: '28px', fontWeight: '700', color: isDark ? '#F3E5F5' : '#4A148C' }}>{inProgressTasks.length}</div>
           </div>
-          <div style={{ fontSize: '28px', fontWeight: '700', color: isDark ? '#F3E5F5' : '#4A148C' }}>{inProgressTasks.length}</div>
-        </div>
 
-        {/* Completed Card - Green */}
-        <div style={{
-          background: isDark ? 'linear-gradient(135deg, #14532D 0%, #115E2B 100%)' : 'linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%)',
-          borderRadius: '20px',
-          padding: '20px',
-          boxShadow: '0 4px 20px rgba(76, 175, 80, 0.15)',
-          border: `1px solid ${isDark ? 'rgba(76, 175, 80, 0.3)' : 'rgba(76, 175, 80, 0.2)'}`
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
-            <div style={{ 
-              width: '40px', height: '40px', borderRadius: '12px', 
-              background: isDark ? 'rgba(76, 175, 80, 0.3)' : 'rgba(76, 175, 80, 0.2)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' 
-            }}>✅</div>
-            <span style={{ fontSize: '14px', color: isDark ? '#86EFAC' : '#2E7D32', fontWeight: '600' }}>Completed</span>
+          {/* Completed Card - Green */}
+          <div style={{
+            background: isDark ? 'linear-gradient(135deg, #14532D 0%, #115E2B 100%)' : 'linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%)',
+            borderRadius: '20px',
+            padding: '20px',
+            boxShadow: '0 4px 20px rgba(76, 175, 80, 0.15)',
+            border: `1px solid ${isDark ? 'rgba(76, 175, 80, 0.3)' : 'rgba(76, 175, 80, 0.2)'}`
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
+              <div style={{ 
+                width: '40px', height: '40px', borderRadius: '12px', 
+                background: isDark ? 'rgba(76, 175, 80, 0.3)' : 'rgba(76, 175, 80, 0.2)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' 
+              }}>✅</div>
+              <span style={{ fontSize: '14px', color: isDark ? '#86EFAC' : '#2E7D32', fontWeight: '600' }}>Completed</span>
+            </div>
+            <div style={{ fontSize: '28px', fontWeight: '700', color: isDark ? '#E8F5E9' : '#1B5E20' }}>{completedTasks.length}</div>
           </div>
-          <div style={{ fontSize: '28px', fontWeight: '700', color: isDark ? '#E8F5E9' : '#1B5E20' }}>{completedTasks.length}</div>
         </div>
-      </div>
+      </CollapsibleSection>
 
-      {/* Progress Bar Card */}
-      <div style={{ 
-        background: theme.bgCard, 
-        borderRadius: '16px', 
-        padding: '20px', 
-        marginBottom: '32px', 
-        boxShadow: theme.cardShadow, 
-        border: `1px solid ${theme.borderLight}`,
-        position: 'relative',
-        overflow: 'hidden'
-      }}>
-        {/* Gradient top accent */}
+      {/* Progress Bar Card - Collapsible */}
+      <CollapsibleSection
+        title="Completion Progress"
+        icon="📈"
+        badge={`${completionRate}% complete`}
+        isDarkMode={isDark}
+        defaultExpanded={true}
+        gradientColors={['#10B981', '#06B6D4']}
+      >
         <div style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          height: '3px',
-          background: 'linear-gradient(90deg, #6366F1 0%, #8B5CF6 100%)'
-        }} />
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-          <span style={{ fontSize: '14px', fontWeight: '600', color: theme.textPrimary }}>Overall Progress</span>
-          <span style={{ fontSize: '14px', fontWeight: '700', color: theme.primary }}>{completionRate}%</span>
-        </div>
-        <div style={{ height: '10px', background: theme.borderLight, borderRadius: '5px', overflow: 'hidden' }}>
-          <div style={{ 
-            height: '100%', 
-            width: `${completionRate}%`,
-            background: 'linear-gradient(90deg, #6366F1, #8B5CF6)',
-            borderRadius: '5px',
-            transition: 'width 0.5s ease'
+          background: theme.bgCard,
+          borderRadius: '20px',
+          padding: '24px',
+          position: 'relative',
+          overflow: 'hidden',
+          border: `1px solid ${theme.borderLight}`
+        }}>
+          <div style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            height: '3px',
+            background: 'linear-gradient(90deg, #10B981, #06B6D4)'
           }} />
+          
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+            <div>
+              <div style={{ fontSize: '16px', fontWeight: '600', color: theme.textPrimary }}>Overall Progress</div>
+              <div style={{ fontSize: '13px', color: theme.textMuted, marginTop: '4px' }}>
+                {completedTasks.length} of {tasks.length} tasks completed
+              </div>
+            </div>
+            <div style={{ 
+              fontSize: '32px', 
+              fontWeight: '700', 
+              color: completionRate >= 75 ? '#10B981' : completionRate >= 50 ? '#F59E0B' : theme.textPrimary 
+            }}>
+              {completionRate}%
+            </div>
+          </div>
+          
+          {/* Progress Bar */}
+          <div style={{
+            width: '100%',
+            height: '12px',
+            background: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)',
+            borderRadius: '6px',
+            overflow: 'hidden'
+          }}>
+            <div style={{
+              width: `${completionRate}%`,
+              height: '100%',
+              background: completionRate >= 75 
+                ? 'linear-gradient(90deg, #10B981, #34D399)' 
+                : completionRate >= 50 
+                  ? 'linear-gradient(90deg, #F59E0B, #FBBF24)' 
+                  : 'linear-gradient(90deg, #8B5CF6, #A78BFA)',
+              borderRadius: '6px',
+              transition: 'width 0.5s ease'
+            }} />
+          </div>
+          
+          {/* Progress Breakdown */}
+          <div style={{ 
+            display: 'grid', 
+            gridTemplateColumns: 'repeat(3, 1fr)', 
+            gap: '16px', 
+            marginTop: '20px',
+            paddingTop: '20px',
+            borderTop: `1px solid ${theme.borderLight}`
+          }}>
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ 
+                width: '8px', 
+                height: '8px', 
+                borderRadius: '50%', 
+                background: '#F59E0B', 
+                display: 'inline-block', 
+                marginRight: '6px',
+                verticalAlign: 'middle'
+              }} />
+              <span style={{ fontSize: '13px', color: theme.textMuted }}>To Do</span>
+              <div style={{ fontSize: '18px', fontWeight: '700', color: theme.textPrimary, marginTop: '4px' }}>
+                {todoTasks.length}
+              </div>
+            </div>
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ 
+                width: '8px', 
+                height: '8px', 
+                borderRadius: '50%', 
+                background: '#8B5CF6', 
+                display: 'inline-block', 
+                marginRight: '6px',
+                verticalAlign: 'middle'
+              }} />
+              <span style={{ fontSize: '13px', color: theme.textMuted }}>In Progress</span>
+              <div style={{ fontSize: '18px', fontWeight: '700', color: theme.textPrimary, marginTop: '4px' }}>
+                {inProgressTasks.length}
+              </div>
+            </div>
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ 
+                width: '8px', 
+                height: '8px', 
+                borderRadius: '50%', 
+                background: '#10B981', 
+                display: 'inline-block', 
+                marginRight: '6px',
+                verticalAlign: 'middle'
+              }} />
+              <span style={{ fontSize: '13px', color: theme.textMuted }}>Completed</span>
+              <div style={{ fontSize: '18px', fontWeight: '700', color: theme.textPrimary, marginTop: '4px' }}>
+                {completedTasks.length}
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
+      </CollapsibleSection>
 
       {/* Filter Tabs */}
-      <div style={{ display: 'flex', gap: '8px', marginBottom: '24px', flexWrap: 'wrap' }}>
+      <div style={{ 
+        display: 'flex', 
+        gap: '8px', 
+        marginBottom: '20px',
+        padding: '6px',
+        background: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)',
+        borderRadius: '14px',
+        width: 'fit-content'
+      }}>
         {[
           { id: 'all', label: 'All', count: tasks.length },
           { id: 'todo', label: 'To Do', count: todoTasks.length },
@@ -220,26 +326,32 @@ function TasksTab({ tasks = [], onUpdateTasks, theme, lastImportDate }) {
             key={tab.id}
             onClick={() => setFilter(tab.id)}
             style={{
-              padding: '10px 20px',
+              padding: '10px 18px',
               borderRadius: '10px',
               border: 'none',
-              background: filter === tab.id ? theme.primary : theme.bgCard,
-              color: filter === tab.id ? 'white' : theme.textPrimary,
+              background: filter === tab.id 
+                ? (isDark ? 'rgba(139, 92, 246, 0.3)' : 'white')
+                : 'transparent',
+              color: filter === tab.id ? theme.primary : theme.textMuted,
               fontSize: '14px',
-              fontWeight: '500',
+              fontWeight: filter === tab.id ? '600' : '500',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
               gap: '8px',
-              boxShadow: filter === tab.id ? `0 4px 12px ${theme.primary}40` : theme.cardShadow
+              boxShadow: filter === tab.id ? '0 2px 8px rgba(0,0,0,0.08)' : 'none',
+              transition: 'all 0.2s ease'
             }}
           >
             {tab.label}
-            <span style={{ 
-              padding: '2px 8px', 
-              borderRadius: '10px', 
-              background: filter === tab.id ? 'rgba(255,255,255,0.2)' : theme.bgMain,
-              fontSize: '12px'
+            <span style={{
+              padding: '2px 8px',
+              borderRadius: '10px',
+              background: filter === tab.id 
+                ? (isDark ? 'rgba(139, 92, 246, 0.3)' : 'rgba(79, 70, 229, 0.1)')
+                : (isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.06)'),
+              fontSize: '12px',
+              fontWeight: '600'
             }}>
               {tab.count}
             </span>
@@ -247,123 +359,100 @@ function TasksTab({ tasks = [], onUpdateTasks, theme, lastImportDate }) {
         ))}
       </div>
 
-      {/* ═══════════════════════════════════════════════════════════════════ */}
-      {/* TASK LIST (Collapsible Section) */}
-      {/* ═══════════════════════════════════════════════════════════════════ */}
-      <div 
-        onClick={() => toggleSection('taskList')}
-        style={{ 
-          display: 'flex', 
-          alignItems: 'center', 
-          gap: '12px', 
-          marginBottom: collapsedSections.taskList ? '0' : '16px',
-          cursor: 'pointer',
-          userSelect: 'none'
-        }}
+      {/* Task List - Collapsible */}
+      <CollapsibleSection
+        title="Task List"
+        icon="📋"
+        badge={`${filteredTasks.length} ${filter === 'all' ? '' : filter.replace('-', ' ')} tasks`}
+        isDarkMode={isDark}
+        defaultExpanded={true}
+        gradientColors={['#8B5CF6', '#EC4899']}
       >
-        <div style={{ 
-          width: '4px', 
-          height: '24px', 
-          background: 'linear-gradient(180deg, #8B5CF6 0%, #EC4899 100%)', 
-          borderRadius: '2px' 
-        }} />
-        <h2 style={{ 
-          fontSize: '18px', 
-          fontWeight: '700', 
-          color: theme.textPrimary, 
-          margin: 0,
-          letterSpacing: '-0.3px'
-        }}>Task List</h2>
-        <span style={{ 
-          fontSize: '12px', 
-          color: theme.textMuted,
-          background: theme.bgMain,
-          padding: '4px 10px',
-          borderRadius: '6px'
-        }}>{filteredTasks.length} tasks</span>
-        <span style={{ 
-          marginLeft: 'auto', 
-          fontSize: '12px', 
-          color: theme.textMuted,
-          transition: 'transform 0.2s',
-          transform: collapsedSections.taskList ? 'rotate(-90deg)' : 'rotate(0deg)'
-        }}>▼</span>
-      </div>
-
-      {/* Tasks List */}
-      {!collapsedSections.taskList && (
-      <div style={{ 
-        background: theme.bgCard, 
-        borderRadius: '16px', 
-        padding: '24px', 
-        boxShadow: theme.cardShadow, 
-        border: `1px solid ${theme.borderLight}`,
-        position: 'relative',
-        overflow: 'hidden'
-      }}>
-        {/* Gradient top accent */}
-        <div style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          height: '3px',
-          background: 'linear-gradient(90deg, #8B5CF6 0%, #EC4899 100%)'
-        }} />
         {filteredTasks.length > 0 ? (
-          <div style={{ display: 'grid', gap: '12px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             {filteredTasks.map(task => (
               <div 
-                key={task.id} 
-                style={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'space-between',
-                  padding: '16px',
-                  background: theme.bgMain,
-                  borderRadius: '12px',
+                key={task.id}
+                style={{
+                  background: theme.bgCard,
+                  borderRadius: '16px',
+                  padding: '20px',
                   border: `1px solid ${theme.borderLight}`,
-                  transition: 'transform 0.2s ease'
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'flex-start',
+                  transition: 'all 0.2s ease',
+                  position: 'relative',
+                  overflow: 'hidden'
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flex: 1 }}>
-                  <input 
-                    type="checkbox"
-                    checked={task.status === 'completed'}
-                    onChange={() => updateTaskStatus(task.id, task.status === 'completed' ? 'todo' : 'completed')}
-                    style={{ width: '20px', height: '20px', cursor: 'pointer', accentColor: theme.primary }}
-                  />
-                  <div style={{ flex: 1 }}>
-                    <div style={{ 
-                      fontSize: '15px', 
-                      fontWeight: '500', 
-                      color: task.status === 'completed' ? theme.textMuted : theme.textPrimary,
+                {/* Priority indicator bar */}
+                <div style={{
+                  position: 'absolute',
+                  left: 0,
+                  top: 0,
+                  bottom: 0,
+                  width: '4px',
+                  background: task.priority === 'high' ? '#EF4444' : task.priority === 'medium' ? '#F59E0B' : '#10B981'
+                }} />
+                
+                <div style={{ flex: 1, paddingLeft: '12px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+                    <h3 style={{ 
+                      fontSize: '16px', 
+                      fontWeight: '600', 
+                      color: theme.textPrimary, 
+                      margin: 0,
                       textDecoration: task.status === 'completed' ? 'line-through' : 'none',
-                      marginBottom: '4px'
+                      opacity: task.status === 'completed' ? 0.7 : 1
                     }}>
                       {task.title}
-                    </div>
-                    {task.description && (
-                      <div style={{ fontSize: '13px', color: theme.textMuted, marginBottom: '6px' }}>{task.description}</div>
+                    </h3>
+                    <span style={{
+                      padding: '4px 10px',
+                      borderRadius: '8px',
+                      background: priorityColors[task.priority].bg,
+                      color: priorityColors[task.priority].color,
+                      fontSize: '11px',
+                      fontWeight: '600',
+                      textTransform: 'uppercase'
+                    }}>
+                      {priorityColors[task.priority].label}
+                    </span>
+                  </div>
+                  
+                  {task.description && (
+                    <p style={{ 
+                      fontSize: '14px', 
+                      color: theme.textMuted, 
+                      margin: '0 0 12px 0',
+                      lineHeight: '1.5'
+                    }}>
+                      {task.description}
+                    </p>
+                  )}
+                  
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
+                    {task.dueDate && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span style={{ fontSize: '14px' }}>📅</span>
+                        <span style={{ 
+                          fontSize: '13px', 
+                          color: new Date(task.dueDate) < new Date() && task.status !== 'completed' 
+                            ? '#EF4444' 
+                            : theme.textSecondary 
+                        }}>
+                          {new Date(task.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                        </span>
+                      </div>
                     )}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      <span style={{ fontSize: '12px', color: theme.textMuted }}>
-                        📅 {task.dueDate ? new Date(task.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'No date'}
-                      </span>
-                      <span style={{ fontSize: '12px', color: theme.textMuted }}>📁 {task.category}</span>
-                      <span style={{ 
-                        fontSize: '10px', 
-                        padding: '2px 8px', 
-                        borderRadius: '6px',
-                        background: priorityColors[task.priority]?.bg,
-                        color: priorityColors[task.priority]?.color,
-                        fontWeight: '600'
-                      }}>
-                        {priorityColors[task.priority]?.label}
-                      </span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span style={{ fontSize: '14px' }}>🏷️</span>
+                      <span style={{ fontSize: '13px', color: theme.textSecondary }}>{task.category}</span>
                     </div>
                   </div>
                 </div>
+                
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <select
                     value={task.status}
@@ -432,8 +521,7 @@ function TasksTab({ tasks = [], onUpdateTasks, theme, lastImportDate }) {
             )}
           </div>
         )}
-      </div>
-      )}
+      </CollapsibleSection>
 
       {/* Add Task Modal */}
       {showAddModal && (
