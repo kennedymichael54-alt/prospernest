@@ -28,12 +28,20 @@ const TAX_DEDUCTIONS = [
   { icon: '👔', name: 'Professional Dues', description: 'NAR, state/local associations', rate: '100%' }
 ];
 
+// Brokerage fee structure
+const BROKERAGE_FEES = {
+  royaltyPercent: 0.04,      // 4% royalty
+  brokeragePercent: 0.18,    // 18% brokerage fee
+  techMarketingFee: 155      // $155 per transaction
+};
+
+// Demo listings with expected close dates, agent type, and referral info
 const DEMO_LISTINGS = [
-  { id: 1, address: '2908 Urban Avenue', city: 'Columbus', state: 'GA', zip: '31907', price: 325000, status: 'active', dom: 12, beds: 4, baths: 2.5, sqft: 2400, type: 'buyer', gci: 9750, stage: 'showing' },
-  { id: 2, address: '1114 Brooks Road', city: 'Columbus', state: 'GA', zip: '31903', price: 189000, status: 'pending', dom: 28, beds: 3, baths: 2, sqft: 1650, type: 'seller', gci: 5670, stage: 'under-contract' },
-  { id: 3, address: '4742 Marino Drive', city: 'Columbus', state: 'GA', zip: '31907', price: 275000, status: 'active', dom: 5, beds: 3, baths: 2, sqft: 1890, type: 'buyer', gci: 8250, stage: 'offer' },
-  { id: 4, address: '2214 Somerset Avenue', city: 'Columbus', state: 'GA', zip: '31903', price: 425000, status: 'closed', dom: 45, beds: 5, baths: 3, sqft: 3200, type: 'seller', gci: 12750, stage: 'closed', closedDate: '2025-03-15' },
-  { id: 5, address: '936 Walker Road', city: 'Columbus', state: 'GA', zip: '31904', price: 210000, status: 'active', dom: 18, beds: 3, baths: 2, sqft: 1720, type: 'seller', gci: 6300, stage: 'showing' }
+  { id: 1, address: '2908 Urban Avenue', city: 'Columbus', state: 'GA', zip: '31907', price: 325000, status: 'active', dom: 12, beds: 4, baths: 2.5, sqft: 2400, type: 'buyer', gci: 9750, stage: 'showing', expectedCloseDate: '2025-12-20', agentType: 'personal', referralPercent: 0 },
+  { id: 2, address: '1114 Brooks Road', city: 'Columbus', state: 'GA', zip: '31903', price: 189000, status: 'pending', dom: 28, beds: 3, baths: 2, sqft: 1650, type: 'seller', gci: 5670, stage: 'under-contract', expectedCloseDate: '2025-12-15', agentType: 'referral', referralPercent: 25 },
+  { id: 3, address: '4742 Marino Drive', city: 'Columbus', state: 'GA', zip: '31907', price: 275000, status: 'active', dom: 5, beds: 3, baths: 2, sqft: 1890, type: 'buyer', gci: 8250, stage: 'offer', expectedCloseDate: '2026-01-15', agentType: 'personal', referralPercent: 0 },
+  { id: 4, address: '2214 Somerset Avenue', city: 'Columbus', state: 'GA', zip: '31903', price: 425000, status: 'closed', dom: 45, beds: 5, baths: 3, sqft: 3200, type: 'seller', gci: 12750, stage: 'closed', closedDate: '2025-03-15', agentType: 'personal', referralPercent: 0 },
+  { id: 5, address: '936 Walker Road', city: 'Columbus', state: 'GA', zip: '31904', price: 210000, status: 'active', dom: 18, beds: 3, baths: 2, sqft: 1720, type: 'seller', gci: 6300, stage: 'showing', expectedCloseDate: '2025-12-28', agentType: 'referral', referralPercent: 30 }
 ];
 
 const DEMO_EXPENSES = [
@@ -44,12 +52,38 @@ const DEMO_EXPENSES = [
   { id: 5, date: '2025-03-15', category: 'Education', description: 'CE Course - Ethics', amount: 75, deductible: true }
 ];
 
+// Get available months/years from listings
+const getAvailableFilters = (listings) => {
+  const months = new Set();
+  const years = new Set();
+  
+  listings.forEach(l => {
+    const date = l.closedDate || l.expectedCloseDate;
+    if (date) {
+      const d = new Date(date);
+      months.add(d.getMonth());
+      years.add(d.getFullYear());
+    }
+  });
+  
+  return {
+    months: Array.from(months).sort((a, b) => a - b),
+    years: Array.from(years).sort((a, b) => a - b)
+  };
+};
+
+const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
 export default function RealEstateCommandCenter({ user, isDarkMode: isDarkModeProp, theme: propTheme, lastImportDate, userId, userEmail, profile, onUpdateProfile }) {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [listings, setListings] = useState(DEMO_LISTINGS);
   const [expenses, setExpenses] = useState(DEMO_EXPENSES);
   const [showAddListing, setShowAddListing] = useState(false);
   const [showAddExpense, setShowAddExpense] = useState(false);
+  
+  // Filter state for dashboard
+  const [filterMonth, setFilterMonth] = useState('all');
+  const [filterYear, setFilterYear] = useState('all');
 
   // Derive isDarkMode from theme.mode or prop
   const isDarkMode = isDarkModeProp ?? (propTheme?.mode === 'dark');
@@ -68,17 +102,68 @@ export default function RealEstateCommandCenter({ user, isDarkMode: isDarkModePr
     danger: '#EF4444'
   };
 
+  // Filter options
+  const filterOptions = useMemo(() => getAvailableFilters(listings), [listings]);
+  
+  // Filtered listings based on selected month/year
+  const filteredListings = useMemo(() => {
+    if (filterMonth === 'all' && filterYear === 'all') return listings;
+    
+    return listings.filter(l => {
+      const date = l.closedDate || l.expectedCloseDate;
+      if (!date) return true;
+      const d = new Date(date);
+      const monthMatch = filterMonth === 'all' || d.getMonth() === parseInt(filterMonth);
+      const yearMatch = filterYear === 'all' || d.getFullYear() === parseInt(filterYear);
+      return monthMatch && yearMatch;
+    });
+  }, [listings, filterMonth, filterYear]);
+
+  // Calculate projected commissions based on expected close dates
+  const projectedCommissions = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const getProjectedGCI = (daysAhead) => {
+      const targetDate = new Date(today);
+      targetDate.setDate(targetDate.getDate() + daysAhead);
+      
+      return listings
+        .filter(l => l.status !== 'closed' && l.expectedCloseDate)
+        .filter(l => {
+          const closeDate = new Date(l.expectedCloseDate);
+          closeDate.setHours(0, 0, 0, 0);
+          return closeDate >= today && closeDate <= targetDate;
+        })
+        .reduce((sum, l) => sum + (l.gci || 0), 0);
+    };
+    
+    return {
+      days15: getProjectedGCI(15),
+      days30: getProjectedGCI(30),
+      days60: getProjectedGCI(60),
+      days90: getProjectedGCI(90)
+    };
+  }, [listings]);
+
   const stats = useMemo(() => {
-    const active = listings.filter(l => l.status === 'active');
-    const pending = listings.filter(l => l.status === 'pending');
-    const closed = listings.filter(l => l.status === 'closed');
+    const active = filteredListings.filter(l => l.status === 'active');
+    const pending = filteredListings.filter(l => l.status === 'pending');
+    const closed = filteredListings.filter(l => l.status === 'closed');
     const totalGCI = closed.reduce((sum, l) => sum + (l.gci || 0), 0);
     const pipelineGCI = [...active, ...pending].reduce((sum, l) => sum + (l.gci || 0), 0);
     const avgDOM = active.length > 0 ? Math.round(active.reduce((sum, l) => sum + l.dom, 0) / active.length) : 0;
     const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
     const deductibleExpenses = expenses.filter(e => e.deductible).reduce((sum, e) => sum + e.amount, 0);
-    const buyerDeals = listings.filter(l => l.type === 'buyer').length;
-    const sellerDeals = listings.filter(l => l.type === 'seller').length;
+    const buyerDeals = filteredListings.filter(l => l.type === 'buyer').length;
+    const sellerDeals = filteredListings.filter(l => l.type === 'seller').length;
+    
+    // Brokerage calculations
+    const transactionCount = closed.length;
+    const royaltyFee = totalGCI * BROKERAGE_FEES.royaltyPercent;
+    const brokerageFee = totalGCI * BROKERAGE_FEES.brokeragePercent;
+    const techFees = transactionCount * BROKERAGE_FEES.techMarketingFee;
+    const takeHomeCommission = totalGCI - royaltyFee - brokerageFee - techFees;
     
     return {
       activeCount: active.length,
@@ -91,10 +176,16 @@ export default function RealEstateCommandCenter({ user, isDarkMode: isDarkModePr
       deductibleExpenses,
       buyerDeals,
       sellerDeals,
-      avgPrice: listings.length > 0 ? listings.reduce((sum, l) => sum + l.price, 0) / listings.length : 0,
-      listToSaleRatio: closed.length > 0 ? 0.97 : 0 // Demo value
+      avgPrice: filteredListings.length > 0 ? filteredListings.reduce((sum, l) => sum + l.price, 0) / filteredListings.length : 0,
+      listToSaleRatio: closed.length > 0 ? 0.97 : 0,
+      // Brokerage stats
+      royaltyFee,
+      brokerageFee,
+      techFees,
+      takeHomeCommission,
+      transactionCount
     };
-  }, [listings, expenses]);
+  }, [filteredListings, expenses]);
 
   const tabs = [
     { id: 'dashboard', label: 'Dashboard', icon: '📊' },
@@ -154,7 +245,7 @@ export default function RealEstateCommandCenter({ user, isDarkMode: isDarkModePr
         ))}
       </div>
 
-      {/* Stat Cards */}
+      {/* Top Stat Cards - Always visible */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px', marginBottom: '32px' }}>
         <StatCard title="Active Listings" value={stats.activeCount} subtitle={`${stats.pendingCount} pending`} icon="🏠" colorScheme="cyan" isDarkMode={isDarkMode} />
         <StatCard title="YTD GCI" value={formatCurrency(stats.totalGCI)} subtitle={`Pipeline: ${formatCurrency(stats.pipelineGCI)}`} icon="💰" colorScheme="green" isDarkMode={isDarkMode} />
@@ -165,6 +256,90 @@ export default function RealEstateCommandCenter({ user, isDarkMode: isDarkModePr
       {/* DASHBOARD TAB */}
       {activeTab === 'dashboard' && (
         <div>
+          {/* Month/Year Filter */}
+          <div style={{ display: 'flex', gap: '12px', marginBottom: '24px', alignItems: 'center' }}>
+            <span style={{ fontSize: '14px', fontWeight: '500', color: theme.textSecondary }}>Filter by:</span>
+            <select
+              value={filterMonth}
+              onChange={(e) => setFilterMonth(e.target.value)}
+              style={{
+                padding: '8px 16px',
+                borderRadius: '8px',
+                border: `1px solid ${theme.borderLight}`,
+                background: theme.bgCard,
+                color: theme.textPrimary,
+                fontSize: '14px',
+                cursor: 'pointer'
+              }}
+            >
+              <option value="all">All Months</option>
+              {filterOptions.months.map(m => (
+                <option key={m} value={m}>{MONTH_NAMES[m]}</option>
+              ))}
+            </select>
+            <select
+              value={filterYear}
+              onChange={(e) => setFilterYear(e.target.value)}
+              style={{
+                padding: '8px 16px',
+                borderRadius: '8px',
+                border: `1px solid ${theme.borderLight}`,
+                background: theme.bgCard,
+                color: theme.textPrimary,
+                fontSize: '14px',
+                cursor: 'pointer'
+              }}
+            >
+              <option value="all">All Years</option>
+              {filterOptions.years.map(y => (
+                <option key={y} value={y}>{y}</option>
+              ))}
+            </select>
+            {(filterMonth !== 'all' || filterYear !== 'all') && (
+              <button
+                onClick={() => { setFilterMonth('all'); setFilterYear('all'); }}
+                style={{
+                  padding: '8px 12px',
+                  borderRadius: '8px',
+                  border: 'none',
+                  background: theme.danger + '20',
+                  color: theme.danger,
+                  fontSize: '13px',
+                  cursor: 'pointer',
+                  fontWeight: '500'
+                }}
+              >
+                Clear Filters
+              </button>
+            )}
+          </div>
+
+          {/* Projected Commission - 15/30/60/90 days */}
+          <CollapsibleSection title="Projected Commission" icon="📈" gradient="linear-gradient(180deg, #F59E0B, #EF4444)" isDarkMode={isDarkMode} defaultExpanded={true}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }}>
+              <ContentCard gradient="linear-gradient(90deg, #10B981, #34D399)" isDarkMode={isDarkMode}>
+                <div style={{ fontSize: '13px', color: theme.textMuted, marginBottom: '8px' }}>Next 15 Days</div>
+                <div style={{ fontSize: '28px', fontWeight: '700', color: theme.textPrimary }}>{formatCurrency(projectedCommissions.days15)}</div>
+                <div style={{ fontSize: '12px', color: theme.success }}>Expected closings</div>
+              </ContentCard>
+              <ContentCard gradient="linear-gradient(90deg, #3B82F6, #60A5FA)" isDarkMode={isDarkMode}>
+                <div style={{ fontSize: '13px', color: theme.textMuted, marginBottom: '8px' }}>Next 30 Days</div>
+                <div style={{ fontSize: '28px', fontWeight: '700', color: theme.textPrimary }}>{formatCurrency(projectedCommissions.days30)}</div>
+                <div style={{ fontSize: '12px', color: theme.textMuted }}>Expected closings</div>
+              </ContentCard>
+              <ContentCard gradient="linear-gradient(90deg, #8B5CF6, #A78BFA)" isDarkMode={isDarkMode}>
+                <div style={{ fontSize: '13px', color: theme.textMuted, marginBottom: '8px' }}>Next 60 Days</div>
+                <div style={{ fontSize: '28px', fontWeight: '700', color: theme.textPrimary }}>{formatCurrency(projectedCommissions.days60)}</div>
+                <div style={{ fontSize: '12px', color: theme.textMuted }}>Expected closings</div>
+              </ContentCard>
+              <ContentCard gradient="linear-gradient(90deg, #EC4899, #F472B6)" isDarkMode={isDarkMode}>
+                <div style={{ fontSize: '13px', color: theme.textMuted, marginBottom: '8px' }}>Next 90 Days</div>
+                <div style={{ fontSize: '28px', fontWeight: '700', color: theme.textPrimary }}>{formatCurrency(projectedCommissions.days90)}</div>
+                <div style={{ fontSize: '12px', color: theme.textMuted }}>Expected closings</div>
+              </ContentCard>
+            </div>
+          </CollapsibleSection>
+
           <CollapsibleSection title="Performance Overview" icon="📈" gradient="linear-gradient(180deg, #10B981, #06B6D4)" isDarkMode={isDarkMode} defaultExpanded={true}>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }}>
               <ContentCard gradient="linear-gradient(90deg, #10B981, #34D399)" isDarkMode={isDarkMode}>
@@ -190,11 +365,11 @@ export default function RealEstateCommandCenter({ user, isDarkMode: isDarkModePr
             </div>
           </CollapsibleSection>
 
-          <CollapsibleSection title="Pipeline at a Glance" icon="🎯" badge={`${listings.filter(l => l.status !== 'closed').length} active`} gradient="linear-gradient(180deg, #8B5CF6, #EC4899)" isDarkMode={isDarkMode} defaultExpanded={true}>
+          <CollapsibleSection title="Pipeline at a Glance" icon="🎯" badge={`${filteredListings.filter(l => l.status !== 'closed').length} active`} gradient="linear-gradient(180deg, #8B5CF6, #EC4899)" isDarkMode={isDarkMode} defaultExpanded={true}>
             <div style={{ display: 'flex', gap: '12px', overflowX: 'auto', paddingBottom: '8px' }}>
               {PIPELINE_STAGES.map(stage => {
-                const count = listings.filter(l => l.stage === stage.id).length;
-                const value = listings.filter(l => l.stage === stage.id).reduce((sum, l) => sum + l.gci, 0);
+                const count = filteredListings.filter(l => l.stage === stage.id).length;
+                const value = filteredListings.filter(l => l.stage === stage.id).reduce((sum, l) => sum + l.gci, 0);
                 return (
                   <div key={stage.id} style={{ minWidth: '140px', padding: '16px', background: theme.bgCard, borderRadius: '12px', border: `1px solid ${theme.borderLight}`, borderTop: `3px solid ${stage.color}` }}>
                     <div style={{ fontSize: '20px', marginBottom: '8px' }}>{stage.icon}</div>
@@ -207,26 +382,44 @@ export default function RealEstateCommandCenter({ user, isDarkMode: isDarkModePr
             </div>
           </CollapsibleSection>
 
+          {/* Recent Activity - Table format like Active Listings */}
           <CollapsibleSection title="Recent Activity" icon="🔔" gradient="linear-gradient(180deg, #F59E0B, #EF4444)" isDarkMode={isDarkMode} defaultExpanded={true}>
-            <ContentCard gradient="linear-gradient(90deg, #F59E0B, #EF4444)" isDarkMode={isDarkMode}>
-              {listings.slice(0, 4).map((listing, i) => {
-                const statusStyle = getStatusColor(listing.status);
-                return (
-                  <div key={listing.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 0', borderBottom: i < 3 ? `1px solid ${theme.borderLight}` : 'none' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: `linear-gradient(135deg, ${statusStyle.color}20, ${statusStyle.color}10)`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' }}>🏠</div>
-                      <div>
-                        <div style={{ fontSize: '14px', fontWeight: '600', color: theme.textPrimary }}>{listing.address}</div>
-                        <div style={{ fontSize: '12px', color: theme.textMuted }}>{listing.city}, {listing.state} · {listing.beds}bd/{listing.baths}ba</div>
-                      </div>
-                    </div>
-                    <div style={{ textAlign: 'right' }}>
-                      <div style={{ fontSize: '14px', fontWeight: '600', color: theme.textPrimary }}>{formatCurrency(listing.price)}</div>
-                      <span style={{ padding: '3px 10px', borderRadius: '12px', fontSize: '11px', fontWeight: '500', background: statusStyle.bg, color: statusStyle.color }}>{statusStyle.text}</span>
-                    </div>
-                  </div>
-                );
-              })}
+            <ContentCard gradient="linear-gradient(90deg, #F59E0B, #EF4444)" isDarkMode={isDarkMode} noPadding={true}>
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr style={{ background: theme.bgMain }}>
+                    <th style={{ padding: '14px 16px', textAlign: 'left', fontSize: '12px', fontWeight: '600', color: theme.textMuted, textTransform: 'uppercase' }}>Property</th>
+                    <th style={{ padding: '14px 16px', textAlign: 'left', fontSize: '12px', fontWeight: '600', color: theme.textMuted }}>Status</th>
+                    <th style={{ padding: '14px 16px', textAlign: 'left', fontSize: '12px', fontWeight: '600', color: theme.textMuted }}>Type</th>
+                    <th style={{ padding: '14px 16px', textAlign: 'right', fontSize: '12px', fontWeight: '600', color: theme.textMuted }}>Price</th>
+                    <th style={{ padding: '14px 16px', textAlign: 'center', fontSize: '12px', fontWeight: '600', color: theme.textMuted }}>DOM</th>
+                    <th style={{ padding: '14px 16px', textAlign: 'right', fontSize: '12px', fontWeight: '600', color: theme.textMuted }}>Est. GCI</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredListings.slice(0, 5).map(listing => {
+                    const statusStyle = getStatusColor(listing.status);
+                    return (
+                      <tr key={listing.id} style={{ borderBottom: `1px solid ${theme.borderLight}` }}>
+                        <td style={{ padding: '14px 16px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                            <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: `linear-gradient(135deg, ${statusStyle.color}20, ${statusStyle.color}10)`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px' }}>🏠</div>
+                            <div>
+                              <div style={{ fontSize: '14px', fontWeight: '500', color: theme.textPrimary }}>{listing.address}</div>
+                              <div style={{ fontSize: '12px', color: theme.textMuted }}>{listing.city}, {listing.state} {listing.zip}</div>
+                            </div>
+                          </div>
+                        </td>
+                        <td style={{ padding: '14px 16px' }}><span style={{ padding: '4px 10px', borderRadius: '12px', fontSize: '11px', fontWeight: '500', background: statusStyle.bg, color: statusStyle.color }}>{statusStyle.text}</span></td>
+                        <td style={{ padding: '14px 16px', fontSize: '13px', color: theme.textSecondary, textTransform: 'capitalize' }}>{listing.type}</td>
+                        <td style={{ padding: '14px 16px', textAlign: 'right', fontSize: '14px', fontWeight: '600', color: theme.textPrimary }}>{formatCurrency(listing.price)}</td>
+                        <td style={{ padding: '14px 16px', textAlign: 'center', fontSize: '13px', color: listing.dom > 30 ? theme.warning : theme.textSecondary }}>{listing.dom}</td>
+                        <td style={{ padding: '14px 16px', textAlign: 'right', fontSize: '14px', fontWeight: '600', color: theme.success }}>{formatCurrency(listing.gci)}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             </ContentCard>
           </CollapsibleSection>
         </div>
@@ -320,20 +513,119 @@ export default function RealEstateCommandCenter({ user, isDarkMode: isDarkModePr
             </div>
           </CollapsibleSection>
 
+          {/* Brokerage Summary - NEW */}
+          <CollapsibleSection title="Brokerage Summary" icon="🏢" gradient="linear-gradient(180deg, #3B82F6, #8B5CF6)" isDarkMode={isDarkMode} defaultExpanded={true}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }}>
+              <ContentCard gradient="linear-gradient(90deg, #EF4444, #F87171)" isDarkMode={isDarkMode}>
+                <div style={{ fontSize: '13px', color: theme.textMuted, marginBottom: '8px' }}>Royalty Fee (4%)</div>
+                <div style={{ fontSize: '28px', fontWeight: '700', color: theme.danger }}>{formatCurrency(stats.royaltyFee)}</div>
+                <div style={{ fontSize: '12px', color: theme.textMuted, marginTop: '4px' }}>After: {formatCurrency(stats.totalGCI - stats.royaltyFee)}</div>
+              </ContentCard>
+              <ContentCard gradient="linear-gradient(90deg, #F59E0B, #FBBF24)" isDarkMode={isDarkMode}>
+                <div style={{ fontSize: '13px', color: theme.textMuted, marginBottom: '8px' }}>Brokerage Fee (18%)</div>
+                <div style={{ fontSize: '28px', fontWeight: '700', color: theme.warning }}>{formatCurrency(stats.brokerageFee)}</div>
+                <div style={{ fontSize: '12px', color: theme.textMuted, marginTop: '4px' }}>After: {formatCurrency(stats.totalGCI - stats.brokerageFee)}</div>
+              </ContentCard>
+              <ContentCard gradient="linear-gradient(90deg, #8B5CF6, #A78BFA)" isDarkMode={isDarkMode}>
+                <div style={{ fontSize: '13px', color: theme.textMuted, marginBottom: '8px' }}>Tech/Marketing Fee</div>
+                <div style={{ fontSize: '28px', fontWeight: '700', color: theme.primary }}>{formatCurrency(stats.techFees)}</div>
+                <div style={{ fontSize: '12px', color: theme.textMuted, marginTop: '4px' }}>${BROKERAGE_FEES.techMarketingFee} × {stats.transactionCount} txns</div>
+              </ContentCard>
+              <ContentCard gradient="linear-gradient(90deg, #10B981, #34D399)" isDarkMode={isDarkMode}>
+                <div style={{ fontSize: '13px', color: theme.textMuted, marginBottom: '8px' }}>Take Home Commission</div>
+                <div style={{ fontSize: '28px', fontWeight: '700', color: theme.success }}>{formatCurrency(stats.takeHomeCommission)}</div>
+                <div style={{ fontSize: '12px', color: theme.success, marginTop: '4px' }}>After all fees</div>
+              </ContentCard>
+            </div>
+          </CollapsibleSection>
+
+          {/* Projected GCI Summary - NEW */}
+          <CollapsibleSection title="Projected GCI Summary" icon="📊" gradient="linear-gradient(180deg, #EC4899, #F472B6)" isDarkMode={isDarkMode} defaultExpanded={true}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
+              <ContentCard gradient="linear-gradient(90deg, #10B981, #34D399)" isDarkMode={isDarkMode}>
+                <div style={{ fontSize: '13px', color: theme.textMuted, marginBottom: '8px' }}>15 Days Projected</div>
+                <div style={{ fontSize: '28px', fontWeight: '700', color: theme.textPrimary }}>{formatCurrency(projectedCommissions.days15)}</div>
+                <div style={{ fontSize: '12px', color: theme.success, marginTop: '4px' }}>Expected closings</div>
+              </ContentCard>
+              <ContentCard gradient="linear-gradient(90deg, #3B82F6, #60A5FA)" isDarkMode={isDarkMode}>
+                <div style={{ fontSize: '13px', color: theme.textMuted, marginBottom: '8px' }}>30 Days Projected</div>
+                <div style={{ fontSize: '28px', fontWeight: '700', color: theme.textPrimary }}>{formatCurrency(projectedCommissions.days30)}</div>
+                <div style={{ fontSize: '12px', color: theme.textMuted, marginTop: '4px' }}>Expected closings</div>
+              </ContentCard>
+              <ContentCard gradient="linear-gradient(90deg, #8B5CF6, #A78BFA)" isDarkMode={isDarkMode}>
+                <div style={{ fontSize: '13px', color: theme.textMuted, marginBottom: '8px' }}>60 Days Projected</div>
+                <div style={{ fontSize: '28px', fontWeight: '700', color: theme.textPrimary }}>{formatCurrency(projectedCommissions.days60)}</div>
+                <div style={{ fontSize: '12px', color: theme.textMuted, marginTop: '4px' }}>Expected closings</div>
+              </ContentCard>
+            </div>
+          </CollapsibleSection>
+
+          {/* Commission Breakdown with Agent Column and Referral % */}
           <CollapsibleSection title="Commission Breakdown" icon="📊" gradient="linear-gradient(180deg, #8B5CF6, #EC4899)" isDarkMode={isDarkMode} defaultExpanded={true}>
-            <ContentCard gradient="linear-gradient(90deg, #8B5CF6, #EC4899)" isDarkMode={isDarkMode}>
-              {listings.filter(l => l.gci > 0).map((listing, i) => (
-                <div key={listing.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 0', borderBottom: i < listings.length - 1 ? `1px solid ${theme.borderLight}` : 'none' }}>
-                  <div>
-                    <div style={{ fontSize: '14px', fontWeight: '600', color: theme.textPrimary }}>{listing.address}</div>
-                    <div style={{ fontSize: '12px', color: theme.textMuted }}>{listing.type === 'buyer' ? 'Buyer Side' : 'Listing Side'} · {formatCurrency(listing.price)}</div>
-                  </div>
-                  <div style={{ textAlign: 'right' }}>
-                    <div style={{ fontSize: '16px', fontWeight: '700', color: listing.status === 'closed' ? theme.success : theme.primary }}>{formatCurrency(listing.gci)}</div>
-                    <div style={{ fontSize: '11px', color: theme.textMuted }}>{listing.status === 'closed' ? 'Earned' : 'Pending'}</div>
-                  </div>
-                </div>
-              ))}
+            <ContentCard gradient="linear-gradient(90deg, #8B5CF6, #EC4899)" isDarkMode={isDarkMode} noPadding={true}>
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr style={{ background: theme.bgMain }}>
+                    <th style={{ padding: '14px 16px', textAlign: 'left', fontSize: '12px', fontWeight: '600', color: theme.textMuted, textTransform: 'uppercase' }}>Property</th>
+                    <th style={{ padding: '14px 16px', textAlign: 'left', fontSize: '12px', fontWeight: '600', color: theme.textMuted }}>Side</th>
+                    <th style={{ padding: '14px 16px', textAlign: 'left', fontSize: '12px', fontWeight: '600', color: theme.textMuted }}>Agent</th>
+                    <th style={{ padding: '14px 16px', textAlign: 'center', fontSize: '12px', fontWeight: '600', color: theme.textMuted }}>Referral %</th>
+                    <th style={{ padding: '14px 16px', textAlign: 'right', fontSize: '12px', fontWeight: '600', color: theme.textMuted }}>Gross GCI</th>
+                    <th style={{ padding: '14px 16px', textAlign: 'right', fontSize: '12px', fontWeight: '600', color: theme.textMuted }}>Net GCI</th>
+                    <th style={{ padding: '14px 16px', textAlign: 'right', fontSize: '12px', fontWeight: '600', color: theme.textMuted }}>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {listings.filter(l => l.gci > 0).map(listing => {
+                    const referralAmount = listing.gci * (listing.referralPercent / 100);
+                    const netGCI = listing.gci - referralAmount;
+                    return (
+                      <tr key={listing.id} style={{ borderBottom: `1px solid ${theme.borderLight}` }}>
+                        <td style={{ padding: '14px 16px' }}>
+                          <div style={{ fontSize: '14px', fontWeight: '600', color: theme.textPrimary }}>{listing.address}</div>
+                          <div style={{ fontSize: '12px', color: theme.textMuted }}>{formatCurrency(listing.price)}</div>
+                        </td>
+                        <td style={{ padding: '14px 16px', fontSize: '13px', color: theme.textSecondary }}>
+                          {listing.type === 'buyer' ? 'Buyer Side' : 'Listing Side'}
+                        </td>
+                        <td style={{ padding: '14px 16px' }}>
+                          <span style={{ 
+                            padding: '4px 10px', 
+                            borderRadius: '12px', 
+                            fontSize: '11px', 
+                            fontWeight: '500', 
+                            background: listing.agentType === 'personal' ? '#D1FAE5' : '#FEF3C7', 
+                            color: listing.agentType === 'personal' ? '#059669' : '#D97706'
+                          }}>
+                            {listing.agentType === 'personal' ? 'Personal' : 'Referral'}
+                          </span>
+                        </td>
+                        <td style={{ padding: '14px 16px', textAlign: 'center', fontSize: '13px', color: listing.referralPercent > 0 ? theme.warning : theme.textMuted }}>
+                          {listing.referralPercent > 0 ? `${listing.referralPercent}%` : '-'}
+                        </td>
+                        <td style={{ padding: '14px 16px', textAlign: 'right', fontSize: '14px', fontWeight: '600', color: theme.textPrimary }}>
+                          {formatCurrency(listing.gci)}
+                        </td>
+                        <td style={{ padding: '14px 16px', textAlign: 'right', fontSize: '14px', fontWeight: '700', color: theme.success }}>
+                          {formatCurrency(netGCI)}
+                        </td>
+                        <td style={{ padding: '14px 16px', textAlign: 'right' }}>
+                          <span style={{ 
+                            padding: '4px 10px', 
+                            borderRadius: '12px', 
+                            fontSize: '11px', 
+                            fontWeight: '500', 
+                            background: listing.status === 'closed' ? '#D1FAE5' : '#E0E7FF', 
+                            color: listing.status === 'closed' ? '#059669' : '#4F46E5'
+                          }}>
+                            {listing.status === 'closed' ? 'Earned' : 'Pending'}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             </ContentCard>
           </CollapsibleSection>
         </div>
