@@ -30,10 +30,13 @@ const TAX_DEDUCTIONS = [
 
 // Brokerage fee structure
 const BROKERAGE_FEES = {
-  royaltyPercent: 0.04,      // 4% royalty
-  brokeragePercent: 0.18,    // 18% brokerage fee
-  techMarketingFee: 155      // $155 per transaction
+  royaltyPercent: 0.04,
+  brokeragePercent: 0.18,
+  techMarketingFee: 155
 };
+
+// Market average DOM for comparison
+const MARKET_AVG_DOM = 45;
 
 // Demo listings with expected close dates, agent type, and referral info
 const DEMO_LISTINGS = [
@@ -50,6 +53,34 @@ const DEMO_EXPENSES = [
   { id: 3, date: '2025-03-10', category: 'Software', description: 'CRM Subscription', amount: 99, deductible: true },
   { id: 4, date: '2025-03-12', category: 'Client Gift', description: 'Closing Gift - Somerset Ave', amount: 150, deductible: true },
   { id: 5, date: '2025-03-15', category: 'Education', description: 'CE Course - Ethics', amount: 75, deductible: true }
+];
+
+// Demo CRM clients
+const DEMO_CLIENTS = [
+  { id: 1, name: 'John & Sarah Mitchell', email: 'mitchell@email.com', phone: '(706) 555-0101', type: 'buyer', status: 'active', lastContact: '2025-12-01' },
+  { id: 2, name: 'Robert Williams', email: 'rwilliams@email.com', phone: '(706) 555-0102', type: 'seller', status: 'active', lastContact: '2025-12-03' },
+  { id: 3, name: 'Maria Garcia', email: 'mgarcia@email.com', phone: '(706) 555-0103', type: 'buyer', status: 'active', lastContact: '2025-11-28' },
+  { id: 4, name: 'David Thompson', email: 'dthompson@email.com', phone: '(706) 555-0104', type: 'seller', status: 'active', lastContact: '2025-12-02' },
+  { id: 5, name: 'Jennifer Brown', email: 'jbrown@email.com', phone: '(706) 555-0105', type: 'buyer', status: 'active', lastContact: '2025-11-25' },
+  { id: 6, name: 'Michael Davis', email: 'mdavis@email.com', phone: '(706) 555-0106', type: 'seller', status: 'active', lastContact: '2025-12-04' },
+  { id: 7, name: 'Lisa Anderson', email: 'landerson@email.com', phone: '(706) 555-0107', type: 'buyer', status: 'active', lastContact: '2025-11-30' },
+  { id: 8, name: 'James Wilson', email: 'jwilson@email.com', phone: '(706) 555-0108', type: 'buyer', status: 'active', lastContact: '2025-11-22' },
+  { id: 9, name: 'Susan Martinez', email: 'smartinez@email.com', phone: '(706) 555-0109', type: 'seller', status: 'active', lastContact: '2025-12-01' },
+  { id: 10, name: 'Christopher Lee', email: 'clee@email.com', phone: '(706) 555-0110', type: 'buyer', status: 'past', lastContact: '2025-09-15', closedDate: '2025-09-20' },
+  { id: 11, name: 'Amanda Taylor', email: 'ataylor@email.com', phone: '(706) 555-0111', type: 'seller', status: 'past', lastContact: '2025-08-10', closedDate: '2025-08-25' },
+  { id: 12, name: 'Daniel Harris', email: 'dharris@email.com', phone: '(706) 555-0112', type: 'buyer', status: 'past', lastContact: '2025-07-20', closedDate: '2025-08-01' },
+  { id: 13, name: 'Michelle Clark', email: 'mclark@email.com', phone: '(706) 555-0113', type: 'seller', status: 'past', lastContact: '2025-06-15', closedDate: '2025-07-10' },
+  { id: 14, name: 'Kevin Robinson', email: 'krobinson@email.com', phone: '(706) 555-0114', type: 'buyer', status: 'past', lastContact: '2025-05-20', closedDate: '2025-06-05' },
+  { id: 15, name: 'Elizabeth White', email: 'ewhite@email.com', phone: '(706) 555-0115', type: 'seller', status: 'past', lastContact: '2025-04-10', closedDate: '2025-05-01' },
+  { id: 16, name: 'Steven Hall', email: 'shall@email.com', phone: '(706) 555-0116', type: 'buyer', status: 'past', lastContact: '2025-03-15', closedDate: '2025-04-01' },
+  { id: 17, name: 'Nancy Allen', email: 'nallen@email.com', phone: '(706) 555-0117', type: 'seller', status: 'past', lastContact: '2025-02-20', closedDate: '2025-03-10' },
+  { id: 18, name: 'Mark Young', email: 'myoung@email.com', phone: '(706) 555-0118', type: 'buyer', status: 'past', lastContact: '2025-01-10', closedDate: '2025-02-01' },
+  { id: 19, name: 'Patricia King', email: 'pking@email.com', phone: '(706) 555-0119', type: 'seller', status: 'past', lastContact: '2024-12-15', closedDate: '2025-01-05' },
+  { id: 20, name: 'George Scott', email: 'gscott@email.com', phone: '(706) 555-0120', type: 'buyer', status: 'active', lastContact: '2025-12-04' },
+  { id: 21, name: 'Barbara Green', email: 'bgreen@email.com', phone: '(706) 555-0121', type: 'seller', status: 'active', lastContact: '2025-12-03' },
+  { id: 22, name: 'Richard Baker', email: 'rbaker@email.com', phone: '(706) 555-0122', type: 'buyer', status: 'past', lastContact: '2024-11-10', closedDate: '2024-12-01' },
+  { id: 23, name: 'Sandra Adams', email: 'sadams@email.com', phone: '(706) 555-0123', type: 'seller', status: 'past', lastContact: '2024-10-15', closedDate: '2024-11-05' },
+  { id: 24, name: 'Paul Nelson', email: 'pnelson@email.com', phone: '(706) 555-0124', type: 'buyer', status: 'active', lastContact: '2025-12-02' }
 ];
 
 // Get available months/years from listings
@@ -74,18 +105,74 @@ const getAvailableFilters = (listings) => {
 
 const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
+// Client List Component
+const ClientList = ({ clients, theme, emptyMessage }) => {
+  if (clients.length === 0) {
+    return (
+      <div style={{ padding: '20px', textAlign: 'center', color: theme.textMuted }}>
+        {emptyMessage || 'No clients found'}
+      </div>
+    );
+  }
+  
+  return (
+    <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
+      {clients.map((client, i) => (
+        <div 
+          key={client.id} 
+          style={{ 
+            display: 'flex', 
+            justifyContent: 'space-between', 
+            alignItems: 'center', 
+            padding: '12px 16px', 
+            borderBottom: i < clients.length - 1 ? `1px solid ${theme.borderLight}` : 'none',
+            background: i % 2 === 0 ? 'transparent' : theme.bgMain + '40'
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{ 
+              width: '36px', 
+              height: '36px', 
+              borderRadius: '50%', 
+              background: client.type === 'buyer' ? 'linear-gradient(135deg, #3B82F6, #60A5FA)' : 'linear-gradient(135deg, #8B5CF6, #A78BFA)',
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center',
+              color: 'white',
+              fontSize: '14px',
+              fontWeight: '600'
+            }}>
+              {client.name.split(' ').map(n => n[0]).slice(0, 2).join('')}
+            </div>
+            <div>
+              <div style={{ fontSize: '14px', fontWeight: '500', color: theme.textPrimary }}>{client.name}</div>
+              <div style={{ fontSize: '12px', color: theme.textMuted }}>{client.email}</div>
+            </div>
+          </div>
+          <div style={{ textAlign: 'right' }}>
+            <div style={{ fontSize: '12px', color: theme.textSecondary }}>{client.phone}</div>
+            <div style={{ fontSize: '11px', color: theme.textMuted }}>
+              {client.closedDate ? `Closed ${client.closedDate}` : `Last contact: ${client.lastContact}`}
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+};
+
 export default function RealEstateCommandCenter({ user, isDarkMode: isDarkModeProp, theme: propTheme, lastImportDate, userId, userEmail, profile, onUpdateProfile }) {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [listings, setListings] = useState(DEMO_LISTINGS);
   const [expenses, setExpenses] = useState(DEMO_EXPENSES);
+  const [clients] = useState(DEMO_CLIENTS);
   const [showAddListing, setShowAddListing] = useState(false);
   const [showAddExpense, setShowAddExpense] = useState(false);
   
-  // Filter state for dashboard
+  // Filter state for dashboard and commissions
   const [filterMonth, setFilterMonth] = useState('all');
   const [filterYear, setFilterYear] = useState('all');
 
-  // Derive isDarkMode from theme.mode or prop
   const isDarkMode = isDarkModeProp ?? (propTheme?.mode === 'dark');
 
   const theme = propTheme || {
@@ -102,10 +189,8 @@ export default function RealEstateCommandCenter({ user, isDarkMode: isDarkModePr
     danger: '#EF4444'
   };
 
-  // Filter options
   const filterOptions = useMemo(() => getAvailableFilters(listings), [listings]);
   
-  // Filtered listings based on selected month/year
   const filteredListings = useMemo(() => {
     if (filterMonth === 'all' && filterYear === 'all') return listings;
     
@@ -119,7 +204,6 @@ export default function RealEstateCommandCenter({ user, isDarkMode: isDarkModePr
     });
   }, [listings, filterMonth, filterYear]);
 
-  // Calculate projected commissions based on expected close dates
   const projectedCommissions = useMemo(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -146,6 +230,20 @@ export default function RealEstateCommandCenter({ user, isDarkMode: isDarkModePr
     };
   }, [listings]);
 
+  // CRM stats
+  const crmStats = useMemo(() => {
+    const activeBuyers = clients.filter(c => c.type === 'buyer' && c.status === 'active');
+    const activeSellers = clients.filter(c => c.type === 'seller' && c.status === 'active');
+    const pastClients = clients.filter(c => c.status === 'past');
+    
+    return {
+      total: clients.length,
+      activeBuyers,
+      activeSellers,
+      pastClients
+    };
+  }, [clients]);
+
   const stats = useMemo(() => {
     const active = filteredListings.filter(l => l.status === 'active');
     const pending = filteredListings.filter(l => l.status === 'pending');
@@ -158,7 +256,6 @@ export default function RealEstateCommandCenter({ user, isDarkMode: isDarkModePr
     const buyerDeals = filteredListings.filter(l => l.type === 'buyer').length;
     const sellerDeals = filteredListings.filter(l => l.type === 'seller').length;
     
-    // Brokerage calculations
     const transactionCount = closed.length;
     const royaltyFee = totalGCI * BROKERAGE_FEES.royaltyPercent;
     const brokerageFee = totalGCI * BROKERAGE_FEES.brokeragePercent;
@@ -178,7 +275,6 @@ export default function RealEstateCommandCenter({ user, isDarkMode: isDarkModePr
       sellerDeals,
       avgPrice: filteredListings.length > 0 ? filteredListings.reduce((sum, l) => sum + l.price, 0) / filteredListings.length : 0,
       listToSaleRatio: closed.length > 0 ? 0.97 : 0,
-      // Brokerage stats
       royaltyFee,
       brokerageFee,
       techFees,
@@ -204,6 +300,90 @@ export default function RealEstateCommandCenter({ user, isDarkMode: isDarkModePr
       default: return { bg: '#F3F4F6', color: '#6B7280', text: status };
     }
   };
+
+  // Filter component for reuse
+  const FilterBar = () => (
+    <div style={{ display: 'flex', gap: '12px', marginBottom: '24px', alignItems: 'center' }}>
+      <span style={{ fontSize: '14px', fontWeight: '500', color: theme.textSecondary }}>Filter by:</span>
+      <select
+        value={filterMonth}
+        onChange={(e) => setFilterMonth(e.target.value)}
+        style={{
+          padding: '8px 16px',
+          borderRadius: '8px',
+          border: `1px solid ${theme.borderLight}`,
+          background: theme.bgCard,
+          color: theme.textPrimary,
+          fontSize: '14px',
+          cursor: 'pointer'
+        }}
+      >
+        <option value="all">All Months</option>
+        {filterOptions.months.map(m => (
+          <option key={m} value={m}>{MONTH_NAMES[m]}</option>
+        ))}
+      </select>
+      <select
+        value={filterYear}
+        onChange={(e) => setFilterYear(e.target.value)}
+        style={{
+          padding: '8px 16px',
+          borderRadius: '8px',
+          border: `1px solid ${theme.borderLight}`,
+          background: theme.bgCard,
+          color: theme.textPrimary,
+          fontSize: '14px',
+          cursor: 'pointer'
+        }}
+      >
+        <option value="all">All Years</option>
+        {filterOptions.years.map(y => (
+          <option key={y} value={y}>{y}</option>
+        ))}
+      </select>
+      {(filterMonth !== 'all' || filterYear !== 'all') && (
+        <button
+          onClick={() => { setFilterMonth('all'); setFilterYear('all'); }}
+          style={{
+            padding: '8px 12px',
+            borderRadius: '8px',
+            border: 'none',
+            background: theme.danger + '20',
+            color: theme.danger,
+            fontSize: '13px',
+            cursor: 'pointer',
+            fontWeight: '500'
+          }}
+        >
+          Clear Filters
+        </button>
+      )}
+    </div>
+  );
+
+  // YTD Overview Stat Cards - reusable component
+  const YTDOverviewCards = () => (
+    <>
+      <div style={{ marginBottom: '12px' }}>
+        <h3 style={{ fontSize: '16px', fontWeight: '600', color: theme.textPrimary, margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span style={{ fontSize: '18px' }}>📈</span> YTD Overview
+        </h3>
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px', marginBottom: '32px' }}>
+        <StatCard title="Active Listings" value={stats.activeCount} subtitle={`${stats.pendingCount} pending`} icon="🏠" colorScheme="cyan" isDarkMode={isDarkMode} />
+        <StatCard title="YTD GCI" value={formatCurrency(stats.totalGCI)} subtitle={`Pipeline: ${formatCurrency(stats.pipelineGCI)}`} icon="💰" colorScheme="green" isDarkMode={isDarkMode} />
+        <StatCard 
+          title="Avg DOM" 
+          value={`${stats.avgDOM} days`} 
+          subtitle={`Market avg: ${MARKET_AVG_DOM} days`} 
+          icon="📅" 
+          colorScheme="purple" 
+          isDarkMode={isDarkMode} 
+        />
+        <StatCard title="Expenses YTD" value={formatCurrency(stats.totalExpenses)} subtitle={`${formatCurrency(stats.deductibleExpenses)} deductible`} icon="📝" colorScheme="orange" isDarkMode={isDarkMode} />
+      </div>
+    </>
+  );
 
   return (
     <div style={{ width: '100%' }}>
@@ -245,76 +425,14 @@ export default function RealEstateCommandCenter({ user, isDarkMode: isDarkModePr
         ))}
       </div>
 
-      {/* Top Stat Cards - Always visible */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px', marginBottom: '32px' }}>
-        <StatCard title="Active Listings" value={stats.activeCount} subtitle={`${stats.pendingCount} pending`} icon="🏠" colorScheme="cyan" isDarkMode={isDarkMode} />
-        <StatCard title="YTD GCI" value={formatCurrency(stats.totalGCI)} subtitle={`Pipeline: ${formatCurrency(stats.pipelineGCI)}`} icon="💰" colorScheme="green" isDarkMode={isDarkMode} />
-        <StatCard title="Avg DOM" value={`${stats.avgDOM} days`} subtitle={`${stats.closedCount} closed YTD`} icon="📅" colorScheme="purple" isDarkMode={isDarkMode} />
-        <StatCard title="Expenses YTD" value={formatCurrency(stats.totalExpenses)} subtitle={`${formatCurrency(stats.deductibleExpenses)} deductible`} icon="📝" colorScheme="orange" isDarkMode={isDarkMode} />
-      </div>
+      {/* YTD Overview Stat Cards - All tabs */}
+      <YTDOverviewCards />
 
       {/* DASHBOARD TAB */}
       {activeTab === 'dashboard' && (
         <div>
-          {/* Month/Year Filter */}
-          <div style={{ display: 'flex', gap: '12px', marginBottom: '24px', alignItems: 'center' }}>
-            <span style={{ fontSize: '14px', fontWeight: '500', color: theme.textSecondary }}>Filter by:</span>
-            <select
-              value={filterMonth}
-              onChange={(e) => setFilterMonth(e.target.value)}
-              style={{
-                padding: '8px 16px',
-                borderRadius: '8px',
-                border: `1px solid ${theme.borderLight}`,
-                background: theme.bgCard,
-                color: theme.textPrimary,
-                fontSize: '14px',
-                cursor: 'pointer'
-              }}
-            >
-              <option value="all">All Months</option>
-              {filterOptions.months.map(m => (
-                <option key={m} value={m}>{MONTH_NAMES[m]}</option>
-              ))}
-            </select>
-            <select
-              value={filterYear}
-              onChange={(e) => setFilterYear(e.target.value)}
-              style={{
-                padding: '8px 16px',
-                borderRadius: '8px',
-                border: `1px solid ${theme.borderLight}`,
-                background: theme.bgCard,
-                color: theme.textPrimary,
-                fontSize: '14px',
-                cursor: 'pointer'
-              }}
-            >
-              <option value="all">All Years</option>
-              {filterOptions.years.map(y => (
-                <option key={y} value={y}>{y}</option>
-              ))}
-            </select>
-            {(filterMonth !== 'all' || filterYear !== 'all') && (
-              <button
-                onClick={() => { setFilterMonth('all'); setFilterYear('all'); }}
-                style={{
-                  padding: '8px 12px',
-                  borderRadius: '8px',
-                  border: 'none',
-                  background: theme.danger + '20',
-                  color: theme.danger,
-                  fontSize: '13px',
-                  cursor: 'pointer',
-                  fontWeight: '500'
-                }}
-              >
-                Clear Filters
-              </button>
-            )}
-          </div>
+          <FilterBar />
 
-          {/* Projected Commission - 15/30/60/90 days */}
           <CollapsibleSection title="Projected Commission" icon="📈" gradient="linear-gradient(180deg, #F59E0B, #EF4444)" isDarkMode={isDarkMode} defaultExpanded={true}>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }}>
               <ContentCard gradient="linear-gradient(90deg, #10B981, #34D399)" isDarkMode={isDarkMode}>
@@ -382,7 +500,6 @@ export default function RealEstateCommandCenter({ user, isDarkMode: isDarkModePr
             </div>
           </CollapsibleSection>
 
-          {/* Recent Activity - Table format like Active Listings */}
           <CollapsibleSection title="Recent Activity" icon="🔔" gradient="linear-gradient(180deg, #F59E0B, #EF4444)" isDarkMode={isDarkMode} defaultExpanded={true}>
             <ContentCard gradient="linear-gradient(90deg, #F59E0B, #EF4444)" isDarkMode={isDarkMode} noPadding={true}>
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
@@ -428,6 +545,8 @@ export default function RealEstateCommandCenter({ user, isDarkMode: isDarkModePr
       {/* PIPELINE TAB */}
       {activeTab === 'pipeline' && (
         <div>
+          <FilterBar />
+          
           <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '16px' }}>
             <button onClick={() => setShowAddListing(true)} style={{ padding: '10px 20px', background: 'linear-gradient(135deg, #10B981, #06B6D4)', border: 'none', borderRadius: '10px', color: 'white', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>+ Add Listing</button>
           </div>
@@ -493,6 +612,8 @@ export default function RealEstateCommandCenter({ user, isDarkMode: isDarkModePr
       {/* COMMISSIONS TAB */}
       {activeTab === 'commissions' && (
         <div>
+          <FilterBar />
+
           <CollapsibleSection title="GCI Summary" icon="💰" gradient="linear-gradient(180deg, #10B981, #06B6D4)" isDarkMode={isDarkMode} defaultExpanded={true}>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
               <ContentCard gradient="linear-gradient(90deg, #10B981, #34D399)" isDarkMode={isDarkMode}>
@@ -513,7 +634,6 @@ export default function RealEstateCommandCenter({ user, isDarkMode: isDarkModePr
             </div>
           </CollapsibleSection>
 
-          {/* Brokerage Summary - NEW */}
           <CollapsibleSection title="Brokerage Summary" icon="🏢" gradient="linear-gradient(180deg, #3B82F6, #8B5CF6)" isDarkMode={isDarkMode} defaultExpanded={true}>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }}>
               <ContentCard gradient="linear-gradient(90deg, #EF4444, #F87171)" isDarkMode={isDarkMode}>
@@ -539,7 +659,6 @@ export default function RealEstateCommandCenter({ user, isDarkMode: isDarkModePr
             </div>
           </CollapsibleSection>
 
-          {/* Projected GCI Summary - NEW */}
           <CollapsibleSection title="Projected GCI Summary" icon="📊" gradient="linear-gradient(180deg, #EC4899, #F472B6)" isDarkMode={isDarkMode} defaultExpanded={true}>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
               <ContentCard gradient="linear-gradient(90deg, #10B981, #34D399)" isDarkMode={isDarkMode}>
@@ -560,7 +679,6 @@ export default function RealEstateCommandCenter({ user, isDarkMode: isDarkModePr
             </div>
           </CollapsibleSection>
 
-          {/* Commission Breakdown with Agent Column and Referral % */}
           <CollapsibleSection title="Commission Breakdown" icon="📊" gradient="linear-gradient(180deg, #8B5CF6, #EC4899)" isDarkMode={isDarkMode} defaultExpanded={true}>
             <ContentCard gradient="linear-gradient(90deg, #8B5CF6, #EC4899)" isDarkMode={isDarkMode} noPadding={true}>
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
@@ -589,14 +707,7 @@ export default function RealEstateCommandCenter({ user, isDarkMode: isDarkModePr
                           {listing.type === 'buyer' ? 'Buyer Side' : 'Listing Side'}
                         </td>
                         <td style={{ padding: '14px 16px' }}>
-                          <span style={{ 
-                            padding: '4px 10px', 
-                            borderRadius: '12px', 
-                            fontSize: '11px', 
-                            fontWeight: '500', 
-                            background: listing.agentType === 'personal' ? '#D1FAE5' : '#FEF3C7', 
-                            color: listing.agentType === 'personal' ? '#059669' : '#D97706'
-                          }}>
+                          <span style={{ padding: '4px 10px', borderRadius: '12px', fontSize: '11px', fontWeight: '500', background: listing.agentType === 'personal' ? '#D1FAE5' : '#FEF3C7', color: listing.agentType === 'personal' ? '#059669' : '#D97706' }}>
                             {listing.agentType === 'personal' ? 'Personal' : 'Referral'}
                           </span>
                         </td>
@@ -610,14 +721,7 @@ export default function RealEstateCommandCenter({ user, isDarkMode: isDarkModePr
                           {formatCurrency(netGCI)}
                         </td>
                         <td style={{ padding: '14px 16px', textAlign: 'right' }}>
-                          <span style={{ 
-                            padding: '4px 10px', 
-                            borderRadius: '12px', 
-                            fontSize: '11px', 
-                            fontWeight: '500', 
-                            background: listing.status === 'closed' ? '#D1FAE5' : '#E0E7FF', 
-                            color: listing.status === 'closed' ? '#059669' : '#4F46E5'
-                          }}>
+                          <span style={{ padding: '4px 10px', borderRadius: '12px', fontSize: '11px', fontWeight: '500', background: listing.status === 'closed' ? '#D1FAE5' : '#E0E7FF', color: listing.status === 'closed' ? '#059669' : '#4F46E5' }}>
                             {listing.status === 'closed' ? 'Earned' : 'Pending'}
                           </span>
                         </td>
@@ -634,6 +738,8 @@ export default function RealEstateCommandCenter({ user, isDarkMode: isDarkModePr
       {/* EXPENSES TAB */}
       {activeTab === 'expenses' && (
         <div>
+          <FilterBar />
+          
           <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '16px' }}>
             <button onClick={() => setShowAddExpense(true)} style={{ padding: '10px 20px', background: 'linear-gradient(135deg, #8B5CF6, #EC4899)', border: 'none', borderRadius: '10px', color: 'white', fontWeight: '600', cursor: 'pointer' }}>+ Add Expense</button>
           </div>
@@ -678,26 +784,51 @@ export default function RealEstateCommandCenter({ user, isDarkMode: isDarkModePr
       {/* CRM TAB */}
       {activeTab === 'crm' && (
         <div>
+          <FilterBar />
+          
           <CollapsibleSection title="Client Overview" icon="👥" gradient="linear-gradient(180deg, #06B6D4, #3B82F6)" isDarkMode={isDarkMode} defaultExpanded={true}>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }}>
-              <StatCard title="Total Clients" value="24" icon="👥" colorScheme="cyan" isDarkMode={isDarkMode} />
-              <StatCard title="Active Buyers" value="8" icon="🏠" colorScheme="blue" isDarkMode={isDarkMode} />
-              <StatCard title="Active Sellers" value="5" icon="📋" colorScheme="purple" isDarkMode={isDarkMode} />
-              <StatCard title="Past Clients" value="11" icon="⭐" colorScheme="green" isDarkMode={isDarkMode} />
+              <StatCard title="Total Clients" value={crmStats.total} icon="👥" colorScheme="cyan" isDarkMode={isDarkMode} />
+              <StatCard title="Active Buyers" value={crmStats.activeBuyers.length} icon="🏠" colorScheme="blue" isDarkMode={isDarkMode} />
+              <StatCard title="Active Sellers" value={crmStats.activeSellers.length} icon="📋" colorScheme="purple" isDarkMode={isDarkMode} />
+              <StatCard title="Past Clients" value={crmStats.pastClients.length} icon="⭐" colorScheme="green" isDarkMode={isDarkMode} />
             </div>
           </CollapsibleSection>
 
-          <CollapsibleSection title="Recent Contacts" icon="📞" gradient="linear-gradient(180deg, #8B5CF6, #EC4899)" isDarkMode={isDarkMode} defaultExpanded={true}>
-            <ContentCard gradient="linear-gradient(90deg, #8B5CF6, #EC4899)" isDarkMode={isDarkMode}>
-              <EmptyState icon="👥" title="CRM Coming Soon" description="Track your clients, follow-ups, and referrals all in one place." isDarkMode={isDarkMode} />
-            </ContentCard>
-          </CollapsibleSection>
+          {/* Client Lists */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '20px' }}>
+            <CollapsibleSection title="All Clients" icon="👥" badge={`${crmStats.total} total`} gradient="linear-gradient(180deg, #06B6D4, #3B82F6)" isDarkMode={isDarkMode} defaultExpanded={true}>
+              <ContentCard gradient="linear-gradient(90deg, #06B6D4, #3B82F6)" isDarkMode={isDarkMode} noPadding={true}>
+                <ClientList clients={clients} theme={theme} emptyMessage="No clients yet" />
+              </ContentCard>
+            </CollapsibleSection>
+
+            <CollapsibleSection title="Active Buyers" icon="🏠" badge={`${crmStats.activeBuyers.length} buyers`} gradient="linear-gradient(180deg, #3B82F6, #60A5FA)" isDarkMode={isDarkMode} defaultExpanded={true}>
+              <ContentCard gradient="linear-gradient(90deg, #3B82F6, #60A5FA)" isDarkMode={isDarkMode} noPadding={true}>
+                <ClientList clients={crmStats.activeBuyers} theme={theme} emptyMessage="No active buyers" />
+              </ContentCard>
+            </CollapsibleSection>
+
+            <CollapsibleSection title="Active Sellers" icon="📋" badge={`${crmStats.activeSellers.length} sellers`} gradient="linear-gradient(180deg, #8B5CF6, #A78BFA)" isDarkMode={isDarkMode} defaultExpanded={true}>
+              <ContentCard gradient="linear-gradient(90deg, #8B5CF6, #A78BFA)" isDarkMode={isDarkMode} noPadding={true}>
+                <ClientList clients={crmStats.activeSellers} theme={theme} emptyMessage="No active sellers" />
+              </ContentCard>
+            </CollapsibleSection>
+
+            <CollapsibleSection title="Past Clients" icon="⭐" badge={`${crmStats.pastClients.length} past`} gradient="linear-gradient(180deg, #10B981, #34D399)" isDarkMode={isDarkMode} defaultExpanded={true}>
+              <ContentCard gradient="linear-gradient(90deg, #10B981, #34D399)" isDarkMode={isDarkMode} noPadding={true}>
+                <ClientList clients={crmStats.pastClients} theme={theme} emptyMessage="No past clients" />
+              </ContentCard>
+            </CollapsibleSection>
+          </div>
         </div>
       )}
 
       {/* TAX CENTER TAB */}
       {activeTab === 'tax' && (
         <div>
+          <FilterBar />
+          
           <CollapsibleSection title="Tax Overview" icon="🏦" gradient="linear-gradient(180deg, #10B981, #06B6D4)" isDarkMode={isDarkMode} defaultExpanded={true}>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
               <ContentCard gradient="linear-gradient(90deg, #10B981, #34D399)" isDarkMode={isDarkMode}>
@@ -731,7 +862,7 @@ export default function RealEstateCommandCenter({ user, isDarkMode: isDarkModePr
             </ContentCard>
           </CollapsibleSection>
 
-          <CollapsibleSection title="Quarterly Estimates" icon="📅" gradient="linear-gradient(180deg, #3B82F6, #8B5CF6)" isDarkMode={isDarkMode} defaultExpanded={false}>
+          <CollapsibleSection title="Quarterly Estimates" icon="📅" gradient="linear-gradient(180deg, #3B82F6, #8B5CF6)" isDarkMode={isDarkMode} defaultExpanded={true}>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }}>
               {[
                 { q: 'Q1', due: 'Apr 15', status: 'paid' },
