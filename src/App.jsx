@@ -6038,12 +6038,15 @@ function DashboardHome({ transactions, goals, bills = [], tasks = [], theme, las
     netWorth: false,
     cashFlow: false,
     spending: false,
+    spendingCategory: false,
     recurring: false,
     quickActions: false,
     milestones: false,
     financialOverview: false,
     spendingAnalysis: false,
-    transactions: false
+    transactions: false,
+    transactionList: false,
+    goalsProgress: false
   });
   
   const toggleSection = (section) => {
@@ -6225,14 +6228,22 @@ function DashboardHome({ transactions, goals, bills = [], tasks = [], theme, las
   
   const recurringTransactions = Object.entries(merchantCounts)
     .filter(([_, data]) => data.count >= 2)
-    .map(([merchant, data]) => ({
-      merchant,
-      count: data.count,
-      avgAmount: data.amounts.reduce((a, b) => a + b, 0) / data.amounts.length,
-      category: data.category
-    }))
+    .map(([merchant, data]) => {
+      const desc = merchant.toLowerCase();
+      const isSubscription = desc.includes('netflix') || desc.includes('spotify') || desc.includes('amazon') || 
+        desc.includes('disney') || desc.includes('hbo') || desc.includes('hulu') || desc.includes('apple') ||
+        desc.includes('google') || desc.includes('microsoft') || desc.includes('gym') || desc.includes('fitness');
+      return {
+        merchant,
+        description: merchant,
+        count: data.count,
+        avgAmount: data.amounts.reduce((a, b) => a + b, 0) / data.amounts.length,
+        category: data.category,
+        isSubscription
+      };
+    })
     .sort((a, b) => b.avgAmount - a.avgAmount)
-    .slice(0, 6);
+    .slice(0, 12);
 
   const recentTransactions = [...activeTransactions].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 5);
 
@@ -7590,7 +7601,7 @@ function DashboardHome({ transactions, goals, bills = [], tasks = [], theme, las
       {/* ═══════════════════════════════════════════════════════════════════ */}
       {(() => {
         const getRecIcon = (desc) => {
-          const d = desc.toLowerCase();
+          const d = (desc || '').toLowerCase();
           if (d.includes('netflix')) return '🎬';
           if (d.includes('spotify') || d.includes('apple music')) return '🎵';
           if (d.includes('amazon')) return '📦';
@@ -7635,9 +7646,9 @@ function DashboardHome({ transactions, goals, bills = [], tasks = [], theme, las
                     {subscriptions.length > 0 ? subscriptions.map((sub, i) => (
                       <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 14px', background: theme.mode === 'dark' ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)', borderRadius: '12px', border: `1px solid ${theme.borderLight}` }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                          <span style={{ fontSize: '24px' }}>{getRecIcon(sub.description)}</span>
+                          <span style={{ fontSize: '24px' }}>{getRecIcon(sub.description || sub.merchant)}</span>
                           <div>
-                            <div style={{ fontSize: '14px', fontWeight: '500', color: theme.textPrimary }}>{sub.description.slice(0, 22)}{sub.description.length > 22 ? '...' : ''}</div>
+                            <div style={{ fontSize: '14px', fontWeight: '500', color: theme.textPrimary }}>{(sub.description || sub.merchant || 'Unknown').slice(0, 22)}{(sub.description || sub.merchant || '').length > 22 ? '...' : ''}</div>
                             <div style={{ fontSize: '11px', color: theme.textMuted }}>{sub.count}x detected</div>
                           </div>
                         </div>
@@ -7660,10 +7671,10 @@ function DashboardHome({ transactions, goals, bills = [], tasks = [], theme, las
                     {fixedBills.length > 0 ? fixedBills.map((bill, i) => (
                       <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 14px', background: theme.mode === 'dark' ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)', borderRadius: '12px', border: `1px solid ${theme.borderLight}` }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                          <span style={{ fontSize: '24px' }}>{getRecIcon(bill.description)}</span>
+                          <span style={{ fontSize: '24px' }}>{getRecIcon(bill.description || bill.merchant)}</span>
                           <div>
-                            <div style={{ fontSize: '14px', fontWeight: '500', color: theme.textPrimary }}>{bill.description.slice(0, 22)}{bill.description.length > 22 ? '...' : ''}</div>
-                            <div style={{ fontSize: '11px', color: theme.textMuted }}>{bill.category}</div>
+                            <div style={{ fontSize: '14px', fontWeight: '500', color: theme.textPrimary }}>{(bill.description || bill.merchant || 'Unknown').slice(0, 22)}{(bill.description || bill.merchant || '').length > 22 ? '...' : ''}</div>
+                            <div style={{ fontSize: '11px', color: theme.textMuted }}>{bill.category || 'Recurring'}</div>
                           </div>
                         </div>
                         <div style={{ fontSize: '15px', fontWeight: '600', color: '#F59E0B' }}>{formatCurrency(bill.avgAmount)}</div>
@@ -7862,14 +7873,15 @@ function DashboardHome({ transactions, goals, bills = [], tasks = [], theme, las
           <div style={{ display: 'grid', gap: '10px' }}>
             {displayGoals.slice(0, 3).map((goal, i) => {
               const progress = ((goal.currentAmount || goal.saved || 0) / (goal.targetAmount || goal.target || 1)) * 100;
+              const goalColor = goal.color || '#6366F1';
               return (
                 <div key={i} style={{ padding: '10px 12px', background: theme.bgMain, borderRadius: '10px', border: `1px solid ${theme.borderLight}` }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
-                    <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: `${goal.color}20`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px' }}>{goal.icon}</div>
+                    <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: `${goalColor}20`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px' }}>{goal.icon || '🎯'}</div>
                     <div style={{ flex: 1 }}><div style={{ fontSize: '13px', fontWeight: '600', color: theme.textPrimary }}>{goal.name}</div><div style={{ fontSize: '11px', color: theme.textMuted }}>{formatCurrency(goal.currentAmount || goal.saved || 0)} of {formatCurrency(goal.targetAmount || goal.target || 0)}</div></div>
-                    <span style={{ fontSize: '13px', fontWeight: '700', color: goal.color }}>{progress.toFixed(0)}%</span>
+                    <span style={{ fontSize: '13px', fontWeight: '700', color: goalColor }}>{progress.toFixed(0)}%</span>
                   </div>
-                  <div style={{ height: '6px', background: theme.borderLight, borderRadius: '3px', overflow: 'hidden' }}><div style={{ height: '100%', width: `${progress}%`, background: `linear-gradient(90deg, ${goal.color} 0%, ${goal.color}CC 100%)`, borderRadius: '3px', transition: 'width 0.5s ease' }} /></div>
+                  <div style={{ height: '6px', background: theme.borderLight, borderRadius: '3px', overflow: 'hidden' }}><div style={{ height: '100%', width: `${Math.min(100, progress)}%`, background: `linear-gradient(90deg, ${goalColor} 0%, ${goalColor}CC 100%)`, borderRadius: '3px', transition: 'width 0.5s ease' }} /></div>
                 </div>
               );
             })}
