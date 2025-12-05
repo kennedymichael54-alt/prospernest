@@ -5930,6 +5930,80 @@ function Dashboard({
               </div>
             </div>
             
+            {/* Side Hustle / Profession Selector */}
+            <div style={{ marginBottom: '24px' }}>
+              <label style={{ display: 'block', fontSize: '14px', color: theme.textSecondary, marginBottom: '6px' }}>
+                Side Hustle / Profession
+              </label>
+              <select 
+                value={editProfile.sideHustle || ''}
+                onChange={(e) => setEditProfile({...editProfile, sideHustle: e.target.value})}
+                style={{ 
+                  width: '100%', 
+                  padding: '12px', 
+                  background: theme.inputBg, 
+                  border: editProfile.sideHustle === 'real-estate' ? '2px solid #10B981' : `1px solid ${theme.border}`, 
+                  borderRadius: '8px', 
+                  color: theme.textPrimary, 
+                  fontSize: '14px', 
+                  boxSizing: 'border-box',
+                  cursor: 'pointer'
+                }}
+              >
+                <option value="">Select your profession...</option>
+                <option value="real-estate">🏠 Real Estate Agent ⭐</option>
+                <option value="photographer">📸 Photographer</option>
+                <option value="hair-stylist">💇 Hair Stylist</option>
+                <option value="makeup-artist">💄 Makeup Artist</option>
+                <option value="fitness-trainer">💪 Fitness Trainer</option>
+                <option value="freelance-creative">🎨 Freelance Creative</option>
+                <option value="content-creator">📱 Content Creator</option>
+                <option value="music-dj">🎵 Musician / DJ</option>
+                <option value="consultant">💼 Consultant</option>
+                <option value="event-planner">🎉 Event Planner</option>
+                <option value="ecommerce">🛒 E-commerce Seller</option>
+                <option value="handyman">🔧 Handyman / Contractor</option>
+                <option value="pet-services">🐕 Pet Services</option>
+                <option value="notary">📋 Notary / Mobile Services</option>
+                <option value="general-sales">💰 General Sales</option>
+                <option value="other">✨ Other</option>
+              </select>
+              {editProfile.sideHustle === 'real-estate' && (
+                <div style={{ 
+                  marginTop: '8px', 
+                  padding: '10px 14px', 
+                  background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(6, 182, 212, 0.1))', 
+                  borderRadius: '8px',
+                  border: '1px solid rgba(16, 185, 129, 0.3)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px'
+                }}>
+                  <span style={{ fontSize: '16px' }}>🏠</span>
+                  <span style={{ fontSize: '13px', color: '#10B981', fontWeight: '600' }}>
+                    Real Estate Command Center unlocked!
+                  </span>
+                </div>
+              )}
+              {editProfile.sideHustle && editProfile.sideHustle !== 'real-estate' && (
+                <div style={{ 
+                  marginTop: '8px', 
+                  padding: '10px 14px', 
+                  background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(236, 72, 153, 0.1))', 
+                  borderRadius: '8px',
+                  border: '1px solid rgba(139, 92, 246, 0.3)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px'
+                }}>
+                  <span style={{ fontSize: '16px' }}>📊</span>
+                  <span style={{ fontSize: '13px', color: theme.primary, fontWeight: '600' }}>
+                    Sales Professional dashboard ready!
+                  </span>
+                </div>
+              )}
+            </div>
+            
             {/* Save Button */}
             <button 
               onClick={() => { saveProfile(editProfile); setShowManageAccountModal(false); setShowAvatarPicker(false); }}
