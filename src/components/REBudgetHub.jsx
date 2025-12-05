@@ -5,11 +5,13 @@ import React, { useState, useMemo } from 'react';
 // A comprehensive real estate deal analyzer with beautiful visualizations
 // ═══════════════════════════════════════════════════════════════════════════════
 
-const REBudgetHub = ({ theme, profile }) => {
+const REBudgetHub = ({ theme, profile, initialTab = 'analyzer' }) => {
   // ═══════════════════════════════════════════════════════════════════════════
   // STATE MANAGEMENT
   // ═══════════════════════════════════════════════════════════════════════════
-  const [activeTab, setActiveTab] = useState('analyzer');
+  // Map 'ai' to 'aianalysis' for tab matching
+  const mappedInitialTab = initialTab === 'ai' ? 'aianalysis' : initialTab;
+  const [activeTab, setActiveTab] = useState(mappedInitialTab);
   const [collapsedSections, setCollapsedSections] = useState({});
   
   // Property Input State
