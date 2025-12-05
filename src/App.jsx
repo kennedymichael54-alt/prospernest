@@ -1,23 +1,69 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
-// Component Imports
+import React, { useState, useEffect, useRef, useMemo, useCallback, lazy, Suspense } from 'react';
+// Component Imports - Static (always needed)
 import MonthYearSelector from './components/MonthYearSelector';
 import EmptyState from './components/EmptyState';
-import HomeTab from './components/HomeTab';
-import BudgetTab from './components/BudgetTab';
-import BillsCalendarView from './components/BillsCalendarView';
-import GoalsTimelineWithCelebration from './components/GoalsTimelineWithCelebration';
-import ProductShowcase from './components/FamilyFinance-ProductGraphics';
-import TransactionsTab from './components/TransactionsTab';
-import ReportsTab from './components/ReportsTab';
-import RetirementTab from './components/RetirementTab';
-import SalesTrackerTab from './components/SalesTrackerTab';
-import RealEstateCommandCenter from './components/RealEstateCommandCenter';
-import BizBudgetHub from './components/BizBudgetHub';
-import REBudgetHub from './components/REBudgetHub';
-import ProsperNestLandingV4 from './components/ProsperNestLandingV4';
 import { InfoTooltip, MetricLabel, ProjectionBadge, ActualDataBadge, FINANCIAL_TOOLTIPS } from './components/InfoTooltip';
 // Default data - baked in from real bank/retirement imports
 import { DEFAULT_TRANSACTIONS, DEFAULT_RETIREMENT_DATA } from './data/defaultData';
+
+// ============================================================================
+// LAZY LOADED COMPONENTS - Code splitting for better initial load
+// ============================================================================
+const HomeTab = lazy(() => import('./components/HomeTab'));
+const BudgetTab = lazy(() => import('./components/BudgetTab'));
+const BillsCalendarView = lazy(() => import('./components/BillsCalendarView'));
+const GoalsTimelineWithCelebration = lazy(() => import('./components/GoalsTimelineWithCelebration'));
+const ProductShowcase = lazy(() => import('./components/FamilyFinance-ProductGraphics'));
+const TransactionsTab = lazy(() => import('./components/TransactionsTab'));
+const ReportsTab = lazy(() => import('./components/ReportsTab'));
+const RetirementTab = lazy(() => import('./components/RetirementTab'));
+const SalesTrackerTab = lazy(() => import('./components/SalesTrackerTab'));
+const RealEstateCommandCenter = lazy(() => import('./components/RealEstateCommandCenter'));
+const BizBudgetHub = lazy(() => import('./components/BizBudgetHub'));
+const REBudgetHub = lazy(() => import('./components/REBudgetHub'));
+const ProsperNestLandingV4 = lazy(() => import('./components/ProsperNestLandingV4'));
+
+// ============================================================================
+// LOADING FALLBACK COMPONENT - Shows while lazy components load
+// ============================================================================
+const LoadingFallback = () => (
+  <div style={{ 
+    display: 'flex', 
+    alignItems: 'center', 
+    justifyContent: 'center', 
+    minHeight: '400px',
+    color: '#6B7280'
+  }}>
+    <div style={{ textAlign: 'center' }}>
+      <div style={{ 
+        width: '40px', 
+        height: '40px', 
+        border: '3px solid #E5E7EB', 
+        borderTopColor: '#8B5CF6', 
+        borderRadius: '50%', 
+        animation: 'spin 1s linear infinite',
+        margin: '0 auto 12px'
+      }} />
+      <span>Loading...</span>
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+    </div>
+  </div>
+);
+
+// ============================================================================
+// COMMON STYLES - Extracted to avoid recreating objects on each render
+// ============================================================================
+const COMMON_STYLES = {
+  flexCenter: { display: 'flex', alignItems: 'center', justifyContent: 'center' },
+  flexColumn: { display: 'flex', flexDirection: 'column' },
+  flexBetween: { display: 'flex', alignItems: 'center', justifyContent: 'space-between' },
+  card: { background: '#FFFFFF', borderRadius: '16px', padding: '24px', boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05)' },
+  input: { width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #E5E7EB', fontSize: '14px' },
+  button: { padding: '12px 24px', borderRadius: '10px', border: 'none', cursor: 'pointer', fontWeight: '600', fontSize: '14px' },
+  buttonPrimary: { background: 'linear-gradient(135deg, #8B5CF6, #7C3AED)', color: 'white' },
+  modalOverlay: { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000 },
+  modalCard: { background: 'white', borderRadius: '20px', padding: '32px', maxWidth: '480px', width: '90%', boxShadow: '0 25px 50px rgba(0,0,0,0.15)' }
+};
 
 // ============================================================================
 // SITE STATUS INDICATOR COMPONENT - Shows online/offline status
@@ -559,9 +605,9 @@ const Icons = {
   ),
 };
 // ============================================================================
-// PENNY LOGO COMPONENT
+// PENNY LOGO COMPONENT - Memoized to prevent unnecessary re-renders
 // ============================================================================
-const PennyLogo = ({ size = 48 }) => (
+const PennyLogo = React.memo(({ size = 48 }) => (
   <svg width={size} height={size} viewBox="0 0 64 64" fill="none">
     <defs>
       <linearGradient id="coinGrad" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -591,9 +637,10 @@ const PennyLogo = ({ size = 48 }) => (
     <ellipse cx="17" cy="34" rx="3.5" ry="2.5" fill="#FFCCCB" opacity="0.5"/>
     <ellipse cx="47" cy="34" rx="3.5" ry="2.5" fill="#FFCCCB" opacity="0.5"/>
   </svg>
-);
+));
+PennyLogo.displayName = 'PennyLogo';
 
-// Language options
+// Language options - defined outside component to prevent recreation
 const languages = [
   { code: 'en', name: 'English', flag: '🇺🇸' },
   { code: 'es', name: 'Español', flag: '🇪🇸' },
@@ -603,6 +650,14 @@ const languages = [
   { code: 'ja', name: '日本語', flag: '🇯🇵' },
   { code: 'pt', name: 'Português', flag: '🇧🇷' },
   { code: 'ko', name: '한국어', flag: '🇰🇷' },
+];
+
+// Memoji avatars - defined outside component to prevent recreation
+const memojiAvatars = [
+  '👨‍💼', '👩‍💼', '👨‍💻', '👩‍💻', '🧑‍💼', '👨', '👩', '🧑',
+  '👴', '👵', '🧓', '👨‍🦳', '👩‍🦳', '👨‍🦰', '👩‍🦰', '👱‍♂️',
+  '👱‍♀️', '👨‍🦱', '👩‍🦱', '🧔', '🧔‍♀️', '👲', '🧕', '👳‍♂️',
+  '👳‍♀️', '🤵', '🤵‍♀️', '👸', '🤴', '🦸‍♂️', '🦸‍♀️', '🧙‍♂️'
 ];
 
 // ============================================================================
@@ -3947,13 +4002,13 @@ function Dashboard({
     }
   }, [profile?.dateOfBirth, user?.id]);
   
-  // Toggle hub expansion
-  const toggleHub = (hubId) => {
+  // Toggle hub expansion - memoized to prevent child re-renders
+  const toggleHub = useCallback((hubId) => {
     setExpandedHubs(prev => ({
       ...prev,
       [hubId]: !prev[hubId]
     }));
-  };
+  }, []);
   
   // Local state for editing profile (initialized from props when modal opens)
   const [editProfile, setEditProfile] = useState({
@@ -3985,19 +4040,11 @@ function Dashboard({
     }
   }, [showManageAccountModal, profile, user?.email]);
   
-  // Memoji avatar selection
-  const memojiAvatars = [
-    '👨‍💼', '👩‍💼', '👨‍💻', '👩‍💻', '🧑‍💼', '👨', '👩', '🧑',
-    '👴', '👵', '🧓', '👨‍🦳', '👩‍🦳', '👨‍🦰', '👩‍🦰', '👱‍♂️',
-    '👱‍♀️', '👨‍🦱', '👩‍🦱', '🧔', '🧔‍♀️', '👲', '🧕', '👳‍♂️',
-    '👳‍♀️', '🤵', '🤵‍♀️', '👸', '🤴', '🦸‍♂️', '🦸‍♀️', '🧙‍♂️'
-  ];
-  
-  // Avatar from props (synced across devices)
+  // Avatar from props (synced across devices) - memojiAvatars defined globally
   const userAvatar = userPreferences?.avatar || '👨‍💼';
-  const setUserAvatar = (newAvatar) => {
+  const setUserAvatar = useCallback((newAvatar) => {
     onUpdatePreferences({ avatar: newAvatar });
-  };
+  }, [onUpdatePreferences]);
   const [showAvatarPicker, setShowAvatarPicker] = useState(false);
   
   const [chatMessages, setChatMessages] = useState([
@@ -4054,14 +4101,16 @@ function Dashboard({
   // Get current theme based on mode
   const theme = isDarkMode ? darkTheme : lightTheme;
 
-  // Save theme preference - syncs to database
-  const toggleTheme = () => {
-    const newMode = !isDarkMode;
-    setIsDarkMode(newMode);
-    localStorage.setItem('pn_darkMode', newMode.toString());
-    // Sync to database
-    onUpdatePreferences({ theme: newMode ? 'dark' : 'light' });
-  };
+  // Save theme preference - syncs to database (memoized)
+  const toggleTheme = useCallback(() => {
+    setIsDarkMode(prev => {
+      const newMode = !prev;
+      localStorage.setItem('pn_darkMode', newMode.toString());
+      // Sync to database
+      onUpdatePreferences({ theme: newMode ? 'dark' : 'light' });
+      return newMode;
+    });
+  }, [onUpdatePreferences]);
 
   // Profile comes from props (synced across devices)
   // Use default values if profile is undefined
@@ -4076,12 +4125,13 @@ function Dashboard({
     sidehustleName: ''
   };
 
-  // Save profile - syncs to database
-  const saveProfile = (newProfile) => {
+  // Save profile - syncs to database (memoized)
+  const saveProfile = useCallback((newProfile) => {
     onUpdateProfile(newProfile);
-  };
+  }, [onUpdateProfile]);
 
-  const handleSignOut = async () => {
+  // Sign out handler - memoized
+  const handleSignOut = useCallback(async () => {
     console.log('🚪 [Auth] Signing out...');
     
     // Close any open menus first
@@ -4136,20 +4186,24 @@ function Dashboard({
       setUser(null);
       setView('landing');
     }
-  };
+  }, [setView, setUser, setTransactions, setBills, setGoals, setTasks, setProfile]);
 
-  const displayName = currentProfile.firstName || user?.user_metadata?.full_name?.split(' ')[0] || user?.email?.split('@')[0] || 'User';
+  // Memoized display name calculation
+  const displayName = useMemo(() => {
+    return currentProfile.firstName || user?.user_metadata?.full_name?.split(' ')[0] || user?.email?.split('@')[0] || 'User';
+  }, [currentProfile.firstName, user?.user_metadata?.full_name, user?.email]);
 
-  const getInitials = () => {
+  // Memoized initials calculation
+  const getInitials = useMemo(() => {
     if (currentProfile.firstName && currentProfile.lastName) {
       return `${currentProfile.firstName[0]}${currentProfile.lastName[0]}`.toUpperCase();
     }
     return user?.email?.[0]?.toUpperCase() || 'U';
-  };
+  }, [currentProfile.firstName, currentProfile.lastName, user?.email]);
 
-  // Navigation items
+  // Navigation items - memoized to prevent recreation on every render
   // Hub-based navigation structure
-  const hubs = [
+  const hubs = useMemo(() => [
     {
       id: 'homebudget',
       label: 'HomeBudget Hub',
@@ -4205,15 +4259,15 @@ function Dashboard({
         { id: 'rebudget-ai', label: 'AI Analysis', icon: Icons.Dashboard }
       ] : []
     }
-  ];
+  ], [user?.email, hasREBudgetAccess]);
 
-  const bottomNavItems = [
+  const bottomNavItems = useMemo(() => [
     { id: 'settings', label: 'Settings', icon: Icons.Settings },
     { id: 'import', label: 'Import', icon: Icons.Import },
-  ];
+  ], []);
 
-  // Get gradient for current tab
-  const getGradientForTab = (tab) => {
+  // Get gradient for current tab - memoized
+  const getGradientForTab = useCallback((tab) => {
     const gradientMap = {
       'home': theme.gradients?.dashboard,
       'sales': theme.gradients?.sales,
@@ -4230,7 +4284,7 @@ function Dashboard({
       'import': theme.gradients?.import
     };
     return gradientMap[tab] || theme.gradients?.dashboard || theme.bgMain;
-  };
+  }, [theme]);
 
   // Gradient wrapper component for content sections
   const GradientSection = ({ children, tab }) => (
@@ -4326,7 +4380,9 @@ function Dashboard({
   );
 
   const renderContent = () => {
-    switch (activeTab) {
+    // Wrap all content in Suspense for lazy-loaded components
+    const content = (() => {
+      switch (activeTab) {
       case 'home':
         return <GradientSection tab="home"><DashboardHome transactions={transactions} goals={goals} bills={bills} tasks={tasks || []} theme={theme} lastImportDate={lastImportDate} accountLabels={accountLabels} editingAccountLabel={editingAccountLabel} setEditingAccountLabel={setEditingAccountLabel} updateAccountLabel={updateAccountLabel} /></GradientSection>;
       case 'sales':
@@ -4417,7 +4473,14 @@ function Dashboard({
         /></GradientSection>;
       default:
         return <GradientSection tab="home"><DashboardHome transactions={transactions} goals={goals} bills={bills} tasks={tasks || []} theme={theme} lastImportDate={lastImportDate} accountLabels={accountLabels} editingAccountLabel={editingAccountLabel} setEditingAccountLabel={setEditingAccountLabel} updateAccountLabel={updateAccountLabel} /></GradientSection>;
-    }
+      }
+    })();
+    
+    return (
+      <Suspense fallback={<LoadingFallback />}>
+        {content}
+      </Suspense>
+    );
   };
 
   // Mobile menu state
