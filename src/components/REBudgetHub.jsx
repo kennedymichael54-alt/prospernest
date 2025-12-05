@@ -1970,7 +1970,7 @@ const REBudgetHub = ({ theme: themeProp = {}, profile, initialTab = 'analyzer' }
           padding: '32px'
         }}>
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: '24px' }}>
-            {/* Penny Avatar */}
+            {/* Penny Avatar - Penny's Face */}
             <div style={{
               width: '80px',
               height: '80px',
@@ -1979,11 +1979,30 @@ const REBudgetHub = ({ theme: themeProp = {}, profile, initialTab = 'analyzer' }
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              fontSize: '40px',
               boxShadow: '0 8px 32px rgba(236, 72, 153, 0.4)',
-              flexShrink: 0
+              flexShrink: 0,
+              padding: '8px'
             }}>
-              🪙
+              {/* Penny Logo SVG */}
+              <svg width="56" height="56" viewBox="0 0 64 64" fill="none">
+                <defs>
+                  <linearGradient id="pennyGradAI" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="#FFE135" />
+                    <stop offset="50%" stopColor="#FFEC8B" />
+                    <stop offset="100%" stopColor="#FFD700" />
+                  </linearGradient>
+                </defs>
+                <circle cx="32" cy="32" r="28" fill="url(#pennyGradAI)" />
+                <circle cx="32" cy="32" r="24" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="1.5"/>
+                <text x="32" y="18" textAnchor="middle" fill="#1a1a1a" fontSize="12" fontWeight="bold" fontFamily="Arial">$</text>
+                <ellipse cx="24" cy="28" rx="3" ry="3.5" fill="#1a1a1a"/>
+                <ellipse cx="40" cy="28" rx="3" ry="3.5" fill="#1a1a1a"/>
+                <ellipse cx="25" cy="27" rx="1.2" ry="1.2" fill="#FFFFFF"/>
+                <ellipse cx="41" cy="27" rx="1.2" ry="1.2" fill="#FFFFFF"/>
+                <path d="M24 40 Q32 46 40 40" stroke="#1a1a1a" strokeWidth="2.5" fill="none" strokeLinecap="round"/>
+                <ellipse cx="17" cy="34" rx="3.5" ry="2.5" fill="#FFCCCB" opacity="0.5"/>
+                <ellipse cx="47" cy="34" rx="3.5" ry="2.5" fill="#FFCCCB" opacity="0.5"/>
+              </svg>
             </div>
             
             <div style={{ flex: 1 }}>
@@ -2285,47 +2304,6 @@ const REBudgetHub = ({ theme: themeProp = {}, profile, initialTab = 'analyzer' }
             </p>
           </div>
         </div>
-      </div>
-      
-      {/* Sub-tabs */}
-      <div style={{ 
-        display: 'flex', 
-        gap: '8px', 
-        marginBottom: '24px',
-        padding: '6px',
-        background: theme.bgCard,
-        borderRadius: '16px',
-        boxShadow: theme.cardShadow,
-        border: `1px solid ${theme.borderLight}`
-      }}>
-        {tabs.map(tab => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            style={{
-              flex: 1,
-              padding: '14px 20px',
-              borderRadius: '12px',
-              border: 'none',
-              background: activeTab === tab.id 
-                ? `linear-gradient(135deg, ${tab.color}15, ${tab.color}08)`
-                : 'transparent',
-              color: activeTab === tab.id ? tab.color : theme.textSecondary,
-              fontSize: '14px',
-              fontWeight: '600',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '8px',
-              transition: 'all 0.2s ease',
-              boxShadow: activeTab === tab.id ? `0 4px 12px ${tab.color}20` : 'none'
-            }}
-          >
-            <span style={{ fontSize: '18px' }}>{tab.icon}</span>
-            {tab.label}
-          </button>
-        ))}
       </div>
       
       {/* Tab Content */}
