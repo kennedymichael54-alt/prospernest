@@ -1583,10 +1583,19 @@ function App() {
     sidehustleName: '',
     sideHustle: ''
   });
-  const [userPreferences, setUserPreferences] = useState({
-    theme: 'light',
-    language: 'en',
-    avatar: '👨‍💼'
+  const [userPreferences, setUserPreferences] = useState(() => {
+    // Initialize from localStorage for immediate access
+    try {
+      const savedAvatar = localStorage.getItem('pn_userAvatar');
+      const savedTheme = localStorage.getItem('pn_darkMode');
+      return {
+        theme: savedTheme === 'true' ? 'dark' : 'light',
+        language: 'en',
+        avatar: savedAvatar || '👨‍💼'
+      };
+    } catch {
+      return { theme: 'light', language: 'en', avatar: '👨‍💼' };
+    }
   });
   const [lastImportDate, setLastImportDate] = useState(() => {
     try {
@@ -3064,7 +3073,14 @@ function Dashboard({
   const [tabRestored, setTabRestored] = useState(false); // Track if we've restored the tab
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
-  const [notificationsDismissed, setNotificationsDismissed] = useState(false);
+  const [notificationsDismissed, setNotificationsDismissed] = useState(() => {
+    // Initialize from localStorage
+    try {
+      return localStorage.getItem('pn_notificationsDismissed') === 'true';
+    } catch {
+      return false;
+    }
+  });
   const [showSearchResults, setShowSearchResults] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
@@ -3662,6 +3678,7 @@ function Dashboard({
           userAvatar={userAvatar}
           onAvatarChange={(avatar) => {
             setUserAvatar(avatar);
+            localStorage.setItem('pn_userAvatar', avatar); // Immediate persistence
           }}
           memojiAvatars={memojiAvatars}
           languages={languages}
@@ -5043,7 +5060,10 @@ function Dashboard({
                       </span>
                     </div>
                     <button
-                      onClick={() => setNotificationsDismissed(true)}
+                      onClick={() => {
+                        setNotificationsDismissed(true);
+                        localStorage.setItem('pn_notificationsDismissed', 'true');
+                      }}
                       style={{
                         background: notificationsDismissed ? '#E5E7EB' : '#6366F115',
                         border: 'none',
@@ -5790,7 +5810,8 @@ function Dashboard({
                       <button
                         key={i}
                         onClick={() => { 
-                          setUserAvatar(emoji); // This now syncs to database
+                          setUserAvatar(emoji);
+                          localStorage.setItem('pn_userAvatar', emoji); // Immediate persistence
                         }}
                         style={{
                           width: '44px',
@@ -5833,7 +5854,8 @@ function Dashboard({
                           if (file) {
                             const reader = new FileReader();
                             reader.onloadend = () => {
-                              setUserAvatar(reader.result); // This now syncs to database
+                              setUserAvatar(reader.result);
+                              localStorage.setItem('pn_userAvatar', reader.result); // Immediate persistence
                             };
                             reader.readAsDataURL(file);
                           }
