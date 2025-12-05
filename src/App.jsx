@@ -904,17 +904,27 @@ const formatCurrency = (amount) => {
 class ErrorBoundary extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { hasError: false };
+    this.state = { hasError: false, error: null, errorInfo: null };
   }
   static getDerivedStateFromError(error) {
-    return { hasError: true };
+    return { hasError: true, error };
+  }
+  componentDidCatch(error, errorInfo) {
+    console.error('ErrorBoundary caught:', error, errorInfo);
+    this.setState({ errorInfo });
   }
   render() {
     if (this.state.hasError) {
       return (
         <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#F9FAFB' }}>
-          <div style={{ textAlign: 'center', padding: '40px', background: 'white', borderRadius: '16px', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }}>
+          <div style={{ textAlign: 'center', padding: '40px', background: 'white', borderRadius: '16px', boxShadow: '0 4px 20px rgba(0,0,0,0.1)', maxWidth: '600px' }}>
             <h1 style={{ color: '#111827' }}>Something went wrong</h1>
+            <p style={{ color: '#6B7280', fontSize: '14px', marginTop: '12px' }}>
+              {this.state.error?.message || 'An unexpected error occurred'}
+            </p>
+            <pre style={{ textAlign: 'left', background: '#F3F4F6', padding: '12px', borderRadius: '8px', fontSize: '11px', overflow: 'auto', maxHeight: '200px', marginTop: '16px' }}>
+              {this.state.error?.stack?.split('\n').slice(0, 5).join('\n')}
+            </pre>
             <button onClick={() => window.location.reload()} style={{ padding: '12px 24px', background: '#6366F1', border: 'none', borderRadius: '8px', color: 'white', cursor: 'pointer', marginTop: '16px' }}>
               Reload App
             </button>
