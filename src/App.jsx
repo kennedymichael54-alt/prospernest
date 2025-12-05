@@ -4463,7 +4463,7 @@ function Dashboard({
       case 'sales':
         // Show specialized command center for real estate professionals
         if (profile?.sideHustle === 'realtor') {
-          return <GradientSection tab="sales"><RealEstateCommandCenter theme={theme} lastImportDate={lastImportDate} userId={user?.id} userEmail={user?.email} isDarkMode={theme.mode === 'dark'} /></GradientSection>;
+          return <GradientSection tab="sales"><RealEstateCommandCenter theme={theme} lastImportDate={lastImportDate} userId={user?.id} userEmail={user?.email} isDarkMode={theme.mode === 'dark'} showDemoData={permissions.showDemoData} /></GradientSection>;
         }
         return <GradientSection tab="sales"><SalesTrackerTab theme={theme} lastImportDate={lastImportDate} userId={user?.id} userEmail={user?.email} /></GradientSection>;
       case 'budget':
