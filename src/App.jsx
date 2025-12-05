@@ -3507,7 +3507,7 @@ function Dashboard({
       status: 'active', // 'active', 'coming_soon', 'locked'
       items: [
         { id: 'home', label: 'Dashboard', icon: Icons.Dashboard },
-        { id: 'sales', label: 'Sales Tracker', icon: Icons.Sales },
+        { id: 'sales', label: 'Side Hustle Hub', icon: Icons.Sales },
         { id: 'budget', label: 'Budget', icon: Icons.Budget },
         { id: 'transactions', label: 'Transactions', icon: Icons.Transactions },
         { id: 'bills', label: 'Bills', icon: Icons.Calendar },
@@ -3670,7 +3670,7 @@ function Dashboard({
       case 'sales':
         // Conditional rendering: Real Estate users get specialized Command Center
         if (profile.sideHustle === 'real-estate') {
-          return <GradientSection tab="sales"><RealEstateCommandCenter theme={theme} lastImportDate={lastImportDate} userId={user?.id} userEmail={user?.email} profile={profile} onUpdateProfile={saveProfileToDB} /></GradientSection>;
+          return <GradientSection tab="sales"><RealEstateCommandCenter theme={theme} isDarkMode={theme.mode === 'dark'} lastImportDate={lastImportDate} userId={user?.id} userEmail={user?.email} profile={profile} onUpdateProfile={saveProfileToDB} /></GradientSection>;
         }
         return <GradientSection tab="sales"><SalesTrackerTab theme={theme} lastImportDate={lastImportDate} userId={user?.id} userEmail={user?.email} sideHustle={profile.sideHustle} profile={profile} /></GradientSection>;
       case 'budget':
@@ -4751,7 +4751,7 @@ function Dashboard({
                     // Navigation items
                     const navMatches = [
                       { id: 'home', label: 'Dashboard', icon: '📊', keywords: ['dashboard', 'home', 'overview'] },
-                      { id: 'sales', label: 'Sales Tracker', icon: '📈', keywords: ['sales', 'revenue', 'income tracking'] },
+                      { id: 'sales', label: 'Side Hustle Hub', icon: '📈', keywords: ['sales', 'revenue', 'income tracking', 'side hustle', 'business'] },
                       { id: 'budget', label: 'Budget', icon: '💰', keywords: ['budget', 'spending', 'allocation'] },
                       { id: 'transactions', label: 'Transactions', icon: '💳', keywords: ['transactions', 'payments', 'history'] },
                       { id: 'bills', label: 'Bills', icon: '📄', keywords: ['bills', 'utilities', 'payments due'] },
@@ -6584,6 +6584,130 @@ function DashboardHome({ transactions, goals, bills = [], tasks = [], theme, las
         </div>
       )}
 
+      
+            {/* Top Stats Row - Soft Gradient Cards */}
+      <div className="stat-grid-4" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px', marginBottom: '24px' }}>
+        {/* Income Card - Cyan Gradient */}
+        <div style={{ 
+          background: theme.mode === 'dark' ? 'linear-gradient(135deg, #164E63 0%, #0E4A5C 100%)' : 'linear-gradient(135deg, #E0F7FA 0%, #B2EBF2 100%)', 
+          borderRadius: '20px', 
+          padding: '20px', 
+          boxShadow: '0 4px 20px rgba(0, 188, 212, 0.15)',
+          border: `1px solid ${theme.mode === 'dark' ? 'rgba(0, 188, 212, 0.3)' : 'rgba(0, 188, 212, 0.2)'}`
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
+            <div style={{ 
+              width: '40px', height: '40px', borderRadius: '12px', 
+              background: theme.mode === 'dark' ? 'rgba(0, 188, 212, 0.3)' : 'rgba(0, 188, 212, 0.2)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' 
+            }}>💰</div>
+            <span style={{ fontSize: '14px', color: theme.mode === 'dark' ? '#67E8F9' : '#00838F', fontWeight: '600' }}>Income</span>
+          </div>
+          <div style={{ fontSize: '28px', fontWeight: '700', color: theme.mode === 'dark' ? '#E0F7FA' : '#006064', marginBottom: '8px' }}>
+            {formatCurrency(activeTotals.income)}
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '12px', color: theme.mode === 'dark' ? '#67E8F9' : '#00695C' }}>vs last month</span>
+              <span style={{ fontSize: '12px', fontWeight: '600', color: '#10B981', display: 'flex', alignItems: 'center', gap: '2px' }}>
+                ↗ 25%
+              </span>
+            </div>
+            <Sparkline data={monthlyData.map(m => m.income)} color="#00BCD4" width={70} height={40} />
+          </div>
+        </div>
+
+        {/* Expenses Card - Orange/Coral Gradient */}
+        <div style={{ 
+          background: theme.mode === 'dark' ? 'linear-gradient(135deg, #7C2D12 0%, #6B2A0F 100%)' : 'linear-gradient(135deg, #FFF3E0 0%, #FFE0B2 100%)', 
+          borderRadius: '20px', 
+          padding: '20px', 
+          boxShadow: '0 4px 20px rgba(255, 152, 0, 0.15)',
+          border: `1px solid ${theme.mode === 'dark' ? 'rgba(255, 152, 0, 0.3)' : 'rgba(255, 152, 0, 0.2)'}`
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
+            <div style={{ 
+              width: '40px', height: '40px', borderRadius: '12px', 
+              background: theme.mode === 'dark' ? 'rgba(255, 152, 0, 0.3)' : 'rgba(255, 152, 0, 0.2)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' 
+            }}>🔥</div>
+            <span style={{ fontSize: '14px', color: theme.mode === 'dark' ? '#FDBA74' : '#E65100', fontWeight: '600' }}>Expenses</span>
+          </div>
+          <div style={{ fontSize: '28px', fontWeight: '700', color: theme.mode === 'dark' ? '#FFF3E0' : '#BF360C', marginBottom: '8px' }}>
+            {formatCurrency(activeTotals.expenses)}
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '12px', color: theme.mode === 'dark' ? '#FDBA74' : '#E65100' }}>vs last month</span>
+              <span style={{ fontSize: '12px', fontWeight: '600', color: '#EF4444', display: 'flex', alignItems: 'center', gap: '2px' }}>
+                ↗ 5%
+              </span>
+            </div>
+            <Sparkline data={monthlyData.map(m => m.expenses)} color="#FF9800" width={70} height={40} />
+          </div>
+        </div>
+
+        {/* Savings Card - Green Gradient */}
+        <div style={{ 
+          background: theme.mode === 'dark' ? 'linear-gradient(135deg, #14532D 0%, #115E2B 100%)' : 'linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%)', 
+          borderRadius: '20px', 
+          padding: '20px', 
+          boxShadow: '0 4px 20px rgba(76, 175, 80, 0.15)',
+          border: `1px solid ${theme.mode === 'dark' ? 'rgba(76, 175, 80, 0.3)' : 'rgba(76, 175, 80, 0.2)'}`
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
+            <div style={{ 
+              width: '40px', height: '40px', borderRadius: '12px', 
+              background: theme.mode === 'dark' ? 'rgba(76, 175, 80, 0.3)' : 'rgba(76, 175, 80, 0.2)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' 
+            }}>🏦</div>
+            <span style={{ fontSize: '14px', color: theme.mode === 'dark' ? '#86EFAC' : '#2E7D32', fontWeight: '600' }}>Savings</span>
+          </div>
+          <div style={{ fontSize: '28px', fontWeight: '700', color: theme.mode === 'dark' ? '#E8F5E9' : '#1B5E20', marginBottom: '8px' }}>
+            {formatCurrency(Math.max(0, activeTotals.net))}
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '12px', color: theme.mode === 'dark' ? '#86EFAC' : '#2E7D32' }}>vs last month</span>
+              <span style={{ fontSize: '12px', fontWeight: '600', color: activeTotals.net >= 0 ? '#10B981' : '#EF4444', display: 'flex', alignItems: 'center', gap: '2px' }}>
+                {activeTotals.net >= 0 ? '↗' : '↘'} 15%
+              </span>
+            </div>
+            <Sparkline data={monthlyData.map(m => m.income - m.expenses)} color="#4CAF50" width={70} height={40} />
+          </div>
+        </div>
+
+        {/* Transactions Card - Purple Gradient */}
+        <div style={{ 
+          background: theme.mode === 'dark' ? 'linear-gradient(135deg, #4A1D6B 0%, #3D1A5A 100%)' : 'linear-gradient(135deg, #F3E5F5 0%, #E1BEE7 100%)', 
+          borderRadius: '20px', 
+          padding: '20px', 
+          boxShadow: '0 4px 20px rgba(156, 39, 176, 0.15)',
+          border: `1px solid ${theme.mode === 'dark' ? 'rgba(156, 39, 176, 0.3)' : 'rgba(156, 39, 176, 0.2)'}`
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
+            <div style={{ 
+              width: '40px', height: '40px', borderRadius: '12px', 
+              background: theme.mode === 'dark' ? 'rgba(156, 39, 176, 0.3)' : 'rgba(156, 39, 176, 0.2)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' 
+            }}>📊</div>
+            <span style={{ fontSize: '14px', color: theme.mode === 'dark' ? '#D8B4FE' : '#7B1FA2', fontWeight: '600' }}>Transactions</span>
+          </div>
+          <div style={{ fontSize: '28px', fontWeight: '700', color: theme.mode === 'dark' ? '#F3E5F5' : '#4A148C', marginBottom: '8px' }}>
+            {activeTransactions.length.toLocaleString()}
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '12px', color: theme.mode === 'dark' ? '#D8B4FE' : '#7B1FA2' }}>vs last month</span>
+              <span style={{ fontSize: '12px', fontWeight: '600', color: '#10B981', display: 'flex', alignItems: 'center', gap: '2px' }}>
+                ↗ 10%
+              </span>
+            </div>
+            <Sparkline data={[30, 45, 35, 50, 40, 55, 60]} color="#9C27B0" width={70} height={40} />
+          </div>
+        </div>
+      </div>
+
 
 {/* ═══════════════════════════════════════════════════════════════════ */}
       {/* 🌟 FINANCIAL HEALTH SCORE - Premium Section */}
@@ -7466,129 +7590,6 @@ function DashboardHome({ transactions, goals, bills = [], tasks = [], theme, las
         );
       })()}
 
-      
-            {/* Top Stats Row - Soft Gradient Cards */}
-      <div className="stat-grid-4" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px', marginBottom: '24px' }}>
-        {/* Income Card - Cyan Gradient */}
-        <div style={{ 
-          background: theme.mode === 'dark' ? 'linear-gradient(135deg, #164E63 0%, #0E4A5C 100%)' : 'linear-gradient(135deg, #E0F7FA 0%, #B2EBF2 100%)', 
-          borderRadius: '20px', 
-          padding: '20px', 
-          boxShadow: '0 4px 20px rgba(0, 188, 212, 0.15)',
-          border: `1px solid ${theme.mode === 'dark' ? 'rgba(0, 188, 212, 0.3)' : 'rgba(0, 188, 212, 0.2)'}`
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
-            <div style={{ 
-              width: '40px', height: '40px', borderRadius: '12px', 
-              background: theme.mode === 'dark' ? 'rgba(0, 188, 212, 0.3)' : 'rgba(0, 188, 212, 0.2)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' 
-            }}>💰</div>
-            <span style={{ fontSize: '14px', color: theme.mode === 'dark' ? '#67E8F9' : '#00838F', fontWeight: '600' }}>Income</span>
-          </div>
-          <div style={{ fontSize: '28px', fontWeight: '700', color: theme.mode === 'dark' ? '#E0F7FA' : '#006064', marginBottom: '8px' }}>
-            {formatCurrency(activeTotals.income)}
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ fontSize: '12px', color: theme.mode === 'dark' ? '#67E8F9' : '#00695C' }}>vs last month</span>
-              <span style={{ fontSize: '12px', fontWeight: '600', color: '#10B981', display: 'flex', alignItems: 'center', gap: '2px' }}>
-                ↗ 25%
-              </span>
-            </div>
-            <Sparkline data={monthlyData.map(m => m.income)} color="#00BCD4" width={70} height={40} />
-          </div>
-        </div>
-
-        {/* Expenses Card - Orange/Coral Gradient */}
-        <div style={{ 
-          background: theme.mode === 'dark' ? 'linear-gradient(135deg, #7C2D12 0%, #6B2A0F 100%)' : 'linear-gradient(135deg, #FFF3E0 0%, #FFE0B2 100%)', 
-          borderRadius: '20px', 
-          padding: '20px', 
-          boxShadow: '0 4px 20px rgba(255, 152, 0, 0.15)',
-          border: `1px solid ${theme.mode === 'dark' ? 'rgba(255, 152, 0, 0.3)' : 'rgba(255, 152, 0, 0.2)'}`
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
-            <div style={{ 
-              width: '40px', height: '40px', borderRadius: '12px', 
-              background: theme.mode === 'dark' ? 'rgba(255, 152, 0, 0.3)' : 'rgba(255, 152, 0, 0.2)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' 
-            }}>🔥</div>
-            <span style={{ fontSize: '14px', color: theme.mode === 'dark' ? '#FDBA74' : '#E65100', fontWeight: '600' }}>Expenses</span>
-          </div>
-          <div style={{ fontSize: '28px', fontWeight: '700', color: theme.mode === 'dark' ? '#FFF3E0' : '#BF360C', marginBottom: '8px' }}>
-            {formatCurrency(activeTotals.expenses)}
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ fontSize: '12px', color: theme.mode === 'dark' ? '#FDBA74' : '#E65100' }}>vs last month</span>
-              <span style={{ fontSize: '12px', fontWeight: '600', color: '#EF4444', display: 'flex', alignItems: 'center', gap: '2px' }}>
-                ↗ 5%
-              </span>
-            </div>
-            <Sparkline data={monthlyData.map(m => m.expenses)} color="#FF9800" width={70} height={40} />
-          </div>
-        </div>
-
-        {/* Savings Card - Green Gradient */}
-        <div style={{ 
-          background: theme.mode === 'dark' ? 'linear-gradient(135deg, #14532D 0%, #115E2B 100%)' : 'linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%)', 
-          borderRadius: '20px', 
-          padding: '20px', 
-          boxShadow: '0 4px 20px rgba(76, 175, 80, 0.15)',
-          border: `1px solid ${theme.mode === 'dark' ? 'rgba(76, 175, 80, 0.3)' : 'rgba(76, 175, 80, 0.2)'}`
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
-            <div style={{ 
-              width: '40px', height: '40px', borderRadius: '12px', 
-              background: theme.mode === 'dark' ? 'rgba(76, 175, 80, 0.3)' : 'rgba(76, 175, 80, 0.2)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' 
-            }}>🏦</div>
-            <span style={{ fontSize: '14px', color: theme.mode === 'dark' ? '#86EFAC' : '#2E7D32', fontWeight: '600' }}>Savings</span>
-          </div>
-          <div style={{ fontSize: '28px', fontWeight: '700', color: theme.mode === 'dark' ? '#E8F5E9' : '#1B5E20', marginBottom: '8px' }}>
-            {formatCurrency(Math.max(0, activeTotals.net))}
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ fontSize: '12px', color: theme.mode === 'dark' ? '#86EFAC' : '#2E7D32' }}>vs last month</span>
-              <span style={{ fontSize: '12px', fontWeight: '600', color: activeTotals.net >= 0 ? '#10B981' : '#EF4444', display: 'flex', alignItems: 'center', gap: '2px' }}>
-                {activeTotals.net >= 0 ? '↗' : '↘'} 15%
-              </span>
-            </div>
-            <Sparkline data={monthlyData.map(m => m.income - m.expenses)} color="#4CAF50" width={70} height={40} />
-          </div>
-        </div>
-
-        {/* Transactions Card - Purple Gradient */}
-        <div style={{ 
-          background: theme.mode === 'dark' ? 'linear-gradient(135deg, #4A1D6B 0%, #3D1A5A 100%)' : 'linear-gradient(135deg, #F3E5F5 0%, #E1BEE7 100%)', 
-          borderRadius: '20px', 
-          padding: '20px', 
-          boxShadow: '0 4px 20px rgba(156, 39, 176, 0.15)',
-          border: `1px solid ${theme.mode === 'dark' ? 'rgba(156, 39, 176, 0.3)' : 'rgba(156, 39, 176, 0.2)'}`
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
-            <div style={{ 
-              width: '40px', height: '40px', borderRadius: '12px', 
-              background: theme.mode === 'dark' ? 'rgba(156, 39, 176, 0.3)' : 'rgba(156, 39, 176, 0.2)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' 
-            }}>📊</div>
-            <span style={{ fontSize: '14px', color: theme.mode === 'dark' ? '#D8B4FE' : '#7B1FA2', fontWeight: '600' }}>Transactions</span>
-          </div>
-          <div style={{ fontSize: '28px', fontWeight: '700', color: theme.mode === 'dark' ? '#F3E5F5' : '#4A148C', marginBottom: '8px' }}>
-            {activeTransactions.length.toLocaleString()}
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ fontSize: '12px', color: theme.mode === 'dark' ? '#D8B4FE' : '#7B1FA2' }}>vs last month</span>
-              <span style={{ fontSize: '12px', fontWeight: '600', color: '#10B981', display: 'flex', alignItems: 'center', gap: '2px' }}>
-                ↗ 10%
-              </span>
-            </div>
-            <Sparkline data={[30, 45, 35, 50, 40, 55, 60]} color="#9C27B0" width={70} height={40} />
-          </div>
-        </div>
-      </div>
 
 {/* ═══════════════════════════════════════════════════════════════════ */}
       {/* 📊 SPENDING BY CATEGORY - Premium Horizontal Bar Chart */}
