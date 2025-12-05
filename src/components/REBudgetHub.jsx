@@ -56,6 +56,8 @@ const REBudgetHub = ({ theme: themeProp = {}, profile, initialTab = 'analyzer' }
   const [propertyData, setPropertyData] = useState({
     // Property Details
     propertyAddress: '1234 Main St, City, State 12345',
+    propertyType: 'sfh', // sfh, duplex, triplex, quadplex, small-multi, large-multi
+    unitCount: 1, // Number of doors/units
     arv: 440000,
     purchasePrice: 440000,
     sellerConcessions: 3000,
@@ -88,7 +90,7 @@ const REBudgetHub = ({ theme: themeProp = {}, profile, initialTab = 'analyzer' }
     
     // Depreciation
     landValuePercent: 15,
-    propertyType: 'R', // R = Residential (27.5 years)
+    depreciationType: 'R', // R = Residential (27.5 years)
     effectiveTaxRate: 20,
     
     // Appreciation & Growth
@@ -101,6 +103,47 @@ const REBudgetHub = ({ theme: themeProp = {}, profile, initialTab = 'analyzer' }
     capitalGainsTaxRate: 15,
     depreciationRecaptureRate: 25
   });
+  
+  // Property Type Options
+  const propertyTypes = [
+    { value: 'sfh', label: 'Single Family Home', units: 1 },
+    { value: 'duplex', label: 'Duplex', units: 2 },
+    { value: 'triplex', label: 'Triplex', units: 3 },
+    { value: 'quadplex', label: 'Quadplex', units: 4 },
+    { value: 'small-multi', label: 'Small Multi-Family (5-10)', units: 0 },
+    { value: 'large-multi', label: 'Large Multi-Family (10+)', units: 0 }
+  ];
+  
+  // Deal Comparison State (up to 4 deals)
+  const [savedDeals, setSavedDeals] = useState([]);
+  const [showComparisonModal, setShowComparisonModal] = useState(false);
+  
+  // Chart Filter State
+  const [chartFilter, setChartFilter] = useState({
+    viewType: 'all', // all, yearly, monthly
+    yearRange: 20,
+    showMetric: 'all' // all, cashflow, roi, equity, breakeven
+  });
+  
+  // Save current deal for comparison
+  const saveCurrentDeal = () => {
+    if (savedDeals.length >= 4) {
+      alert('Maximum 4 deals can be compared. Remove a deal first.');
+      return;
+    }
+    const dealCopy = {
+      id: Date.now(),
+      name: propertyData.propertyAddress,
+      data: { ...propertyData },
+      calculations: { ...calculations }
+    };
+    setSavedDeals(prev => [...prev, dealCopy]);
+  };
+  
+  // Remove deal from comparison
+  const removeDeal = (id) => {
+    setSavedDeals(prev => prev.filter(d => d.id !== id));
+  };
 
   // Toggle section collapse
   const toggleSection = (section) => {
@@ -160,7 +203,7 @@ const REBudgetHub = ({ theme: themeProp = {}, profile, initialTab = 'analyzer' }
     
     // Depreciation
     const buildingValue = p.purchasePrice * (1 - p.landValuePercent / 100);
-    const depreciationYears = p.propertyType === 'R' ? 27.5 : 39;
+    const depreciationYears = p.depreciationType === 'R' ? 27.5 : 39;
     const annualDepreciation = buildingValue / depreciationYears;
     const cashFlowFromDepreciation = annualDepreciation * (p.effectiveTaxRate / 100);
     
@@ -413,6 +456,7 @@ const REBudgetHub = ({ theme: themeProp = {}, profile, initialTab = 'analyzer' }
   // ═══════════════════════════════════════════════════════════════════════════
   const tabs = [
     { id: 'analyzer', label: 'Deal Analyzer', icon: '🏠', color: '#10B981' },
+    { id: 'compare', label: 'Compare Deals', icon: '⚖️', color: '#06B6D4' },
     { id: 'cashflow', label: 'Cash Flow', icon: '💵', color: '#3B82F6' },
     { id: 'roi', label: 'ROI Analysis', icon: '📈', color: '#8B5CF6' },
     { id: 'equity', label: 'Equity Tracker', icon: '💰', color: '#F59E0B' },
@@ -437,6 +481,103 @@ const REBudgetHub = ({ theme: themeProp = {}, profile, initialTab = 'analyzer' }
             onChange={(e) => updateProperty('propertyAddress', e.target.value)}
             style={{ ...inputStyle, fontSize: '16px', fontWeight: '600', textAlign: 'center', marginBottom: '16px' }}
           />
+          
+          {/* Property Type Selector */}
+          <div style={{ marginBottom: '20px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
+              <span style={{ fontSize: '16px' }}>🏘️</span>
+              <span style={{ fontSize: '14px', fontWeight: '600', color: theme.textPrimary }}>Property Classification</span>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 80px', gap: '8px', fontSize: '13px' }}>
+              <span style={{ color: theme.textSecondary, display: 'flex', alignItems: 'center' }}>Property Type</span>
+              <select 
+                value={propertyData.propertyType} 
+                onChange={(e) => {
+                  const selected = propertyTypes.find(t => t.value === e.target.value);
+                  updateProperty('propertyType', e.target.value);
+                  if (selected && selected.units > 0) {
+                    updateProperty('unitCount', selected.units);
+                  }
+                }}
+                style={{ ...inputStyle, padding: '8px 10px', fontSize: '13px', gridColumn: 'span 1' }}
+              >
+                {propertyTypes.map(type => (
+                  <option key={type.value} value={type.value}>{type.label}</option>
+                ))}
+              </select>
+              
+              <span style={{ color: theme.textSecondary, display: 'flex', alignItems: 'center' }}>Units/Doors</span>
+              <input
+                type="number"
+                min="1"
+                value={propertyData.unitCount}
+                onChange={(e) => updateProperty('unitCount', parseInt(e.target.value) || 1)}
+                disabled={!['small-multi', 'large-multi'].includes(propertyData.propertyType)}
+                style={{ 
+                  ...inputStyle, 
+                  padding: '8px 10px', 
+                  textAlign: 'right', 
+                  fontSize: '13px',
+                  opacity: ['small-multi', 'large-multi'].includes(propertyData.propertyType) ? 1 : 0.5,
+                  cursor: ['small-multi', 'large-multi'].includes(propertyData.propertyType) ? 'text' : 'not-allowed'
+                }}
+              />
+            </div>
+            
+            {/* Property Type Visual Indicator */}
+            <div style={{ 
+              marginTop: '12px', 
+              padding: '10px 14px', 
+              background: theme.mode === 'dark' ? 'rgba(99, 102, 241, 0.1)' : 'rgba(99, 102, 241, 0.05)', 
+              borderRadius: '10px', 
+              border: '1px solid rgba(99, 102, 241, 0.2)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '10px'
+            }}>
+              <span style={{ fontSize: '20px' }}>
+                {propertyData.propertyType === 'sfh' ? '🏠' : 
+                 propertyData.propertyType === 'duplex' ? '🏘️' : 
+                 propertyData.propertyType === 'triplex' ? '🏢' : 
+                 propertyData.propertyType === 'quadplex' ? '🏬' : '🏗️'}
+              </span>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: '13px', fontWeight: '600', color: theme.textPrimary }}>
+                  {propertyTypes.find(t => t.value === propertyData.propertyType)?.label || 'SFH'}
+                </div>
+                <div style={{ fontSize: '11px', color: theme.textMuted }}>
+                  {propertyData.unitCount} {propertyData.unitCount === 1 ? 'Door' : 'Doors'} • ${(propertyData.monthlyRent / propertyData.unitCount).toFixed(0)}/door/mo
+                </div>
+              </div>
+            </div>
+            
+            {/* Save for Comparison Button */}
+            <button
+              onClick={saveCurrentDeal}
+              style={{
+                width: '100%',
+                marginTop: '12px',
+                padding: '10px 16px',
+                background: savedDeals.length >= 4 
+                  ? 'rgba(107, 114, 128, 0.2)' 
+                  : 'linear-gradient(135deg, #06B6D4, #0891B2)',
+                border: 'none',
+                borderRadius: '10px',
+                color: savedDeals.length >= 4 ? theme.textMuted : 'white',
+                fontSize: '13px',
+                fontWeight: '600',
+                cursor: savedDeals.length >= 4 ? 'not-allowed' : 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                transition: 'all 0.2s ease'
+              }}
+            >
+              <span>⚖️</span>
+              Save for Comparison ({savedDeals.length}/4)
+            </button>
+          </div>
           
           {/* Purchase Inputs */}
           <div style={{ marginBottom: '20px' }}>
@@ -598,8 +739,8 @@ const REBudgetHub = ({ theme: themeProp = {}, profile, initialTab = 'analyzer' }
             <span style={{ color: theme.textSecondary }}>Land Value %</span>
             <input type="number" step="1" value={propertyData.landValuePercent} onChange={(e) => updateProperty('landValuePercent', parseFloat(e.target.value) || 0)} style={{ ...inputStyle, padding: '8px 10px', textAlign: 'right', fontSize: '13px' }} />
             
-            <span style={{ color: theme.textSecondary }}>Property Type</span>
-            <select value={propertyData.propertyType} onChange={(e) => updateProperty('propertyType', e.target.value)} style={{ ...inputStyle, padding: '8px 10px', fontSize: '13px' }}>
+            <span style={{ color: theme.textSecondary }}>Depreciation Type</span>
+            <select value={propertyData.depreciationType} onChange={(e) => updateProperty('depreciationType', e.target.value)} style={{ ...inputStyle, padding: '8px 10px', fontSize: '13px' }}>
               <option value="R">Residential (27.5)</option>
               <option value="C">Commercial (39)</option>
             </select>
@@ -619,7 +760,93 @@ const REBudgetHub = ({ theme: themeProp = {}, profile, initialTab = 'analyzer' }
       
       {/* Right Column - Dashboard */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        {/* Chart Filter Bar */}
+        <div style={{ 
+          ...cardStyle, 
+          padding: '16px 20px',
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: '12px'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontSize: '14px' }}>📊</span>
+            <span style={{ fontSize: '14px', fontWeight: '600', color: theme.textPrimary }}>Chart View</span>
+          </div>
+          
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+            {/* View Type Filter */}
+            <div style={{ display: 'flex', gap: '4px', background: theme.bgMain, borderRadius: '10px', padding: '4px' }}>
+              {[
+                { value: 'all', label: 'All Charts' },
+                { value: 'yearly', label: 'Yearly' },
+                { value: 'monthly', label: 'Monthly' }
+              ].map(option => (
+                <button
+                  key={option.value}
+                  onClick={() => setChartFilter(prev => ({ ...prev, viewType: option.value }))}
+                  style={{
+                    padding: '6px 12px',
+                    borderRadius: '8px',
+                    border: 'none',
+                    background: chartFilter.viewType === option.value ? 'linear-gradient(135deg, #6366F1, #8B5CF6)' : 'transparent',
+                    color: chartFilter.viewType === option.value ? 'white' : theme.textSecondary,
+                    fontSize: '12px',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+            
+            {/* Metric Filter */}
+            <select
+              value={chartFilter.showMetric}
+              onChange={(e) => setChartFilter(prev => ({ ...prev, showMetric: e.target.value }))}
+              style={{
+                ...inputStyle,
+                padding: '8px 12px',
+                fontSize: '12px',
+                minWidth: '150px'
+              }}
+            >
+              <option value="all">All Metrics</option>
+              <option value="cashflow">Cash Flow</option>
+              <option value="roi">Return on Investment</option>
+              <option value="equity">Equity & Access</option>
+              <option value="breakeven">Break-Even Analysis</option>
+              <option value="returns">Returns if Sold</option>
+              <option value="expenses">Expenses Breakdown</option>
+            </select>
+            
+            {/* Year Range */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{ fontSize: '12px', color: theme.textMuted }}>Years:</span>
+              <select
+                value={chartFilter.yearRange}
+                onChange={(e) => setChartFilter(prev => ({ ...prev, yearRange: parseInt(e.target.value) }))}
+                style={{
+                  ...inputStyle,
+                  padding: '8px 12px',
+                  fontSize: '12px',
+                  width: '70px'
+                }}
+              >
+                <option value={5}>5</option>
+                <option value={10}>10</option>
+                <option value={15}>15</option>
+                <option value={20}>20</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        
         {/* Monthly Cash Flow Chart */}
+        {(chartFilter.showMetric === 'all' || chartFilter.showMetric === 'cashflow') && (
         <div style={cardStyle}>
           <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '4px', background: 'linear-gradient(90deg, #10B981, #3B82F6, #8B5CF6)' }} />
           <h3 style={{ fontSize: '16px', fontWeight: '700', color: theme.textPrimary, marginBottom: '20px' }}>Monthly Cash Flow - Year 1</h3>
@@ -708,6 +935,7 @@ const REBudgetHub = ({ theme: themeProp = {}, profile, initialTab = 'analyzer' }
             </div>
           </div>
         </div>
+        )}
         
         {/* Key Metrics Row */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }}>
@@ -726,6 +954,7 @@ const REBudgetHub = ({ theme: themeProp = {}, profile, initialTab = 'analyzer' }
         </div>
         
         {/* Return on Investment - Year 1 */}
+        {(chartFilter.showMetric === 'all' || chartFilter.showMetric === 'roi') && (
         <div style={cardStyle}>
           <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '4px', background: 'linear-gradient(90deg, #10B981, #3B82F6, #F59E0B, #EC4899)' }} />
           <h3 style={{ fontSize: '16px', fontWeight: '700', color: theme.textPrimary, marginBottom: '20px' }}>Return on Investment - Year 1</h3>
@@ -792,6 +1021,387 @@ const REBudgetHub = ({ theme: themeProp = {}, profile, initialTab = 'analyzer' }
             </div>
           </div>
         </div>
+        )}
+        
+        {/* Return in Dollars - Year 1 */}
+        {(chartFilter.showMetric === 'all' || chartFilter.showMetric === 'roi') && (
+        <div style={cardStyle}>
+          <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '4px', background: 'linear-gradient(90deg, #10B981, #3B82F6, #F59E0B)' }} />
+          <h3 style={{ fontSize: '16px', fontWeight: '700', color: theme.textPrimary, marginBottom: '20px' }}>Return in Dollars - Year 1</h3>
+          
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px' }}>
+            {[
+              { 
+                label: 'RIDQ™', 
+                value: calculations.appreciationReturn + calculations.annualCashFlow + calculations.totalPrincipalYear1 + calculations.cashFlowFromDepreciation,
+                subtitle: 'Return in Dollars Quadrant™',
+                color: '#3B82F6'
+              },
+              { 
+                label: 'RIDQ+R6™', 
+                value: (calculations.appreciationReturn + calculations.annualCashFlow + calculations.totalPrincipalYear1 + calculations.cashFlowFromDepreciation) * 1.05,
+                subtitle: 'With 6mo Reserves',
+                color: '#10B981'
+              },
+              { 
+                label: 'RIDQ+R12™', 
+                value: (calculations.appreciationReturn + calculations.annualCashFlow + calculations.totalPrincipalYear1 + calculations.cashFlowFromDepreciation) * 1.12,
+                subtitle: 'With 12mo Reserves',
+                color: '#8B5CF6'
+              }
+            ].map((item, i) => (
+              <div key={i} style={{ background: theme.bgMain, borderRadius: '16px', padding: '20px', textAlign: 'center' }}>
+                <div style={{ fontSize: '11px', color: theme.textMuted, marginBottom: '4px', textTransform: 'uppercase' }}>{item.subtitle}</div>
+                <div style={{ fontSize: '20px', fontWeight: '800', color: item.color, marginBottom: '4px' }}>{formatCurrency(item.value)}</div>
+                <div style={{ fontSize: '12px', color: theme.textMuted }}>{item.label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+        )}
+        
+        {/* Cash on Cash ROI & Cap Rate - Years 1-5 */}
+        {(chartFilter.showMetric === 'all' || chartFilter.showMetric === 'roi') && (
+        <div style={cardStyle}>
+          <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '4px', background: 'linear-gradient(90deg, #10B981, #06B6D4)' }} />
+          <h3 style={{ fontSize: '16px', fontWeight: '700', color: theme.textPrimary, marginBottom: '20px' }}>Cash on Cash ROI & Cap Rate - Years 1-5</h3>
+          
+          <div style={{ display: 'flex', gap: '20px', height: '200px', alignItems: 'flex-end', padding: '0 20px' }}>
+            {calculations.projections.slice(0, 5).map((proj, i) => (
+              <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+                <div style={{ display: 'flex', gap: '4px', alignItems: 'flex-end', height: '150px' }}>
+                  {/* Cash on Cash Bar */}
+                  <div style={{
+                    width: '30px',
+                    height: `${Math.min(150, Math.max(10, proj.cashOnCash * 15))}px`,
+                    background: 'linear-gradient(180deg, #10B981, #059669)',
+                    borderRadius: '4px 4px 0 0',
+                    position: 'relative'
+                  }}>
+                    <span style={{ 
+                      position: 'absolute', 
+                      top: '-20px', 
+                      left: '50%', 
+                      transform: 'translateX(-50%)',
+                      fontSize: '10px',
+                      fontWeight: '700',
+                      color: '#10B981',
+                      whiteSpace: 'nowrap'
+                    }}>
+                      {proj.cashOnCash.toFixed(1)}%
+                    </span>
+                  </div>
+                  {/* Cap Rate Bar */}
+                  <div style={{
+                    width: '30px',
+                    height: `${Math.min(150, Math.max(10, proj.capRate * 15))}px`,
+                    background: 'linear-gradient(180deg, #06B6D4, #0891B2)',
+                    borderRadius: '4px 4px 0 0',
+                    position: 'relative'
+                  }}>
+                    <span style={{ 
+                      position: 'absolute', 
+                      top: '-20px', 
+                      left: '50%', 
+                      transform: 'translateX(-50%)',
+                      fontSize: '10px',
+                      fontWeight: '700',
+                      color: '#06B6D4',
+                      whiteSpace: 'nowrap'
+                    }}>
+                      {proj.capRate.toFixed(1)}%
+                    </span>
+                  </div>
+                </div>
+                <div style={{ fontSize: '12px', fontWeight: '600', color: theme.textSecondary }}>Year {proj.year}</div>
+              </div>
+            ))}
+          </div>
+          
+          <div style={{ display: 'flex', gap: '20px', justifyContent: 'center', marginTop: '16px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <div style={{ width: '12px', height: '12px', borderRadius: '3px', background: '#10B981' }} />
+              <span style={{ fontSize: '12px', color: theme.textSecondary }}>Cash on Cash ROI</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <div style={{ width: '12px', height: '12px', borderRadius: '3px', background: '#06B6D4' }} />
+              <span style={{ fontSize: '12px', color: theme.textSecondary }}>Cap Rate</span>
+            </div>
+          </div>
+        </div>
+        )}
+        
+        {/* Returns if Sold (ROI and IRR) */}
+        {(chartFilter.showMetric === 'all' || chartFilter.showMetric === 'returns') && (
+        <div style={cardStyle}>
+          <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '4px', background: 'linear-gradient(90deg, #8B5CF6, #EC4899)' }} />
+          <h3 style={{ fontSize: '16px', fontWeight: '700', color: theme.textPrimary, marginBottom: '20px' }}>Returns if Sold (ROI and IRR)</h3>
+          
+          <div style={{ position: 'relative', height: '200px', marginBottom: '16px' }}>
+            {/* Y-axis labels */}
+            <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: '50px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+              {[30, 20, 10, 0, -10].map((val, i) => (
+                <div key={i} style={{ fontSize: '10px', color: theme.textMuted }}>{val}%</div>
+              ))}
+            </div>
+            
+            {/* Chart area */}
+            <div style={{ marginLeft: '55px', height: '100%', position: 'relative', borderBottom: `1px solid ${theme.borderLight}`, borderLeft: `1px solid ${theme.borderLight}` }}>
+              {/* Grid lines */}
+              {[0.25, 0.5, 0.75].map((pos, i) => (
+                <div key={i} style={{ position: 'absolute', left: 0, right: 0, top: `${pos * 100}%`, borderTop: `1px dashed ${theme.borderLight}`, opacity: 0.5 }} />
+              ))}
+              
+              {/* Data lines - Annualized ROI */}
+              <svg style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', overflow: 'visible' }}>
+                <polyline
+                  fill="none"
+                  stroke="#8B5CF6"
+                  strokeWidth="2"
+                  points={calculations.projections.slice(0, chartFilter.yearRange).map((proj, i) => {
+                    const x = (i / (chartFilter.yearRange - 1)) * 100;
+                    const y = 100 - ((proj.annualizedROI * 100 + 10) / 40 * 100);
+                    return `${x}%,${Math.max(0, Math.min(100, y))}%`;
+                  }).join(' ')}
+                />
+                {/* Compound ROI line */}
+                <polyline
+                  fill="none"
+                  stroke="#10B981"
+                  strokeWidth="2"
+                  points={calculations.projections.slice(0, chartFilter.yearRange).map((proj, i) => {
+                    const x = (i / (chartFilter.yearRange - 1)) * 100;
+                    const compoundROI = proj.roi;
+                    const y = 100 - ((compoundROI + 10) / 40 * 100);
+                    return `${x}%,${Math.max(0, Math.min(100, y))}%`;
+                  }).join(' ')}
+                />
+              </svg>
+              
+              {/* X-axis labels */}
+              <div style={{ position: 'absolute', bottom: '-25px', left: 0, right: 0, display: 'flex', justifyContent: 'space-between' }}>
+                {[1, 5, 10, 15, 20].filter(y => y <= chartFilter.yearRange).map(year => (
+                  <span key={year} style={{ fontSize: '10px', color: theme.textMuted }}>{year}</span>
+                ))}
+              </div>
+            </div>
+          </div>
+          
+          <div style={{ display: 'flex', gap: '20px', justifyContent: 'center', marginTop: '20px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <div style={{ width: '20px', height: '3px', background: '#8B5CF6' }} />
+              <span style={{ fontSize: '12px', color: theme.textSecondary }}>Annualized ROI</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <div style={{ width: '20px', height: '3px', background: '#10B981' }} />
+              <span style={{ fontSize: '12px', color: theme.textSecondary }}>Compound ROI</span>
+            </div>
+          </div>
+        </div>
+        )}
+        
+        {/* Equities and Cost-To-Access */}
+        {(chartFilter.showMetric === 'all' || chartFilter.showMetric === 'equity') && (
+        <div style={cardStyle}>
+          <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '4px', background: 'linear-gradient(90deg, #F59E0B, #EC4899)' }} />
+          <h3 style={{ fontSize: '16px', fontWeight: '700', color: theme.textPrimary, marginBottom: '20px' }}>Equities and Cost-To-Access</h3>
+          
+          <div style={{ position: 'relative', height: '200px', marginBottom: '16px' }}>
+            {/* Chart area */}
+            <div style={{ height: '100%', position: 'relative', borderBottom: `1px solid ${theme.borderLight}`, borderLeft: `1px solid ${theme.borderLight}`, marginLeft: '60px' }}>
+              {/* Grid lines */}
+              {[0.25, 0.5, 0.75].map((pos, i) => (
+                <div key={i} style={{ position: 'absolute', left: 0, right: 0, top: `${pos * 100}%`, borderTop: `1px dashed ${theme.borderLight}`, opacity: 0.5 }} />
+              ))}
+              
+              {/* Area chart for equity */}
+              <svg style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', overflow: 'visible' }}>
+                {/* True Net Equity area */}
+                <polygon
+                  fill="rgba(16, 185, 129, 0.2)"
+                  stroke="#10B981"
+                  strokeWidth="2"
+                  points={`0,100% ${calculations.projections.slice(0, chartFilter.yearRange).map((proj, i) => {
+                    const x = (i / (chartFilter.yearRange - 1)) * 100;
+                    const maxEquity = calculations.projections[chartFilter.yearRange - 1]?.equity || 1;
+                    const y = 100 - (proj.equity / maxEquity * 100);
+                    return `${x}%,${Math.max(0, y)}%`;
+                  }).join(' ')} 100%,100%`}
+                />
+                
+                {/* Cash-out Refi Equity line */}
+                <polyline
+                  fill="none"
+                  stroke="#F59E0B"
+                  strokeWidth="2"
+                  strokeDasharray="5,5"
+                  points={calculations.projections.slice(0, chartFilter.yearRange).map((proj, i) => {
+                    const x = (i / (chartFilter.yearRange - 1)) * 100;
+                    const maxEquity = calculations.projections[chartFilter.yearRange - 1]?.equity || 1;
+                    const y = 100 - (proj.cashOutRefiEquity / maxEquity * 100);
+                    return `${x}%,${Math.max(0, y)}%`;
+                  }).join(' ')}
+                />
+              </svg>
+              
+              {/* X-axis labels */}
+              <div style={{ position: 'absolute', bottom: '-25px', left: 0, right: 0, display: 'flex', justifyContent: 'space-between' }}>
+                {[1, 5, 10, 15, 20].filter(y => y <= chartFilter.yearRange).map(year => (
+                  <span key={year} style={{ fontSize: '10px', color: theme.textMuted }}>{year}</span>
+                ))}
+              </div>
+            </div>
+            
+            {/* Y-axis labels */}
+            <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: '55px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', paddingRight: '5px' }}>
+              {[
+                formatCurrency(calculations.projections[chartFilter.yearRange - 1]?.equity || 0),
+                formatCurrency((calculations.projections[chartFilter.yearRange - 1]?.equity || 0) * 0.5),
+                '$0'
+              ].map((val, i) => (
+                <div key={i} style={{ fontSize: '9px', color: theme.textMuted, textAlign: 'right' }}>{val}</div>
+              ))}
+            </div>
+          </div>
+          
+          <div style={{ display: 'flex', gap: '20px', justifyContent: 'center', marginTop: '20px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <div style={{ width: '12px', height: '12px', borderRadius: '3px', background: '#10B981' }} />
+              <span style={{ fontSize: '12px', color: theme.textSecondary }}>True Net Equity™</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <div style={{ width: '20px', height: '3px', background: '#F59E0B', borderStyle: 'dashed' }} />
+              <span style={{ fontSize: '12px', color: theme.textSecondary }}>Cash-Out Refi Equity</span>
+            </div>
+          </div>
+        </div>
+        )}
+        
+        {/* Annual Non-Loan Expenses - Year 1 */}
+        {(chartFilter.showMetric === 'all' || chartFilter.showMetric === 'expenses') && (
+        <div style={cardStyle}>
+          <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '4px', background: 'linear-gradient(90deg, #EF4444, #F59E0B)' }} />
+          <h3 style={{ fontSize: '16px', fontWeight: '700', color: theme.textPrimary, marginBottom: '20px' }}>Annual Non-Loan Expenses - Year 1</h3>
+          
+          <div style={{ display: 'flex', gap: '12px', height: '180px', alignItems: 'flex-end', padding: '0 10px' }}>
+            {[
+              { label: 'Vacancy', value: calculations.vacancyLoss, color: '#EF4444' },
+              { label: 'Property Taxes', value: calculations.propertyTaxes || propertyData.purchasePrice * (propertyData.propertyTaxRate / 100), color: '#F59E0B' },
+              { label: 'Insurance', value: propertyData.propertyInsurance, color: '#3B82F6' },
+              { label: 'HOA', value: propertyData.hoaDues, color: '#8B5CF6' },
+              { label: 'Utilities', value: propertyData.utilities, color: '#06B6D4' },
+              { label: 'Other Exp 1', value: propertyData.otherExpenses1, color: '#10B981' },
+              { label: 'Other Exp 2', value: propertyData.otherExpenses2, color: '#EC4899' },
+              { label: 'Maintenance', value: calculations.effectiveGrossIncome * (propertyData.maintenancePercent / 100), color: '#84CC16' },
+              { label: 'CapEx', value: propertyData.capEx, color: '#A855F7' },
+              { label: 'Management', value: calculations.effectiveGrossIncome * (propertyData.managementPercent / 100), color: '#F97316' }
+            ].map((item, i) => {
+              const maxValue = Math.max(...[
+                calculations.vacancyLoss,
+                propertyData.purchasePrice * (propertyData.propertyTaxRate / 100),
+                propertyData.propertyInsurance,
+                propertyData.hoaDues,
+                propertyData.utilities,
+                propertyData.otherExpenses1,
+                propertyData.otherExpenses2,
+                calculations.effectiveGrossIncome * (propertyData.maintenancePercent / 100),
+                propertyData.capEx,
+                calculations.effectiveGrossIncome * (propertyData.managementPercent / 100)
+              ], 1);
+              
+              return (
+                <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                  <div style={{
+                    width: '100%',
+                    height: `${Math.max(5, (item.value / maxValue) * 140)}px`,
+                    background: `linear-gradient(180deg, ${item.color}, ${item.color}99)`,
+                    borderRadius: '4px 4px 0 0',
+                    position: 'relative',
+                    minHeight: '5px'
+                  }}>
+                    {item.value > 0 && (
+                      <span style={{ 
+                        position: 'absolute', 
+                        top: '-22px', 
+                        left: '50%', 
+                        transform: 'translateX(-50%)',
+                        fontSize: '9px',
+                        fontWeight: '700',
+                        color: item.color,
+                        whiteSpace: 'nowrap'
+                      }}>
+                        {formatCurrency(item.value)}
+                      </span>
+                    )}
+                  </div>
+                  <div style={{ fontSize: '8px', color: theme.textMuted, textAlign: 'center', maxWidth: '50px', lineHeight: '1.2' }}>{item.label}</div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+        )}
+        
+        {/* Break-Even Analysis */}
+        {(chartFilter.showMetric === 'all' || chartFilter.showMetric === 'breakeven') && (
+        <div style={cardStyle}>
+          <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '4px', background: 'linear-gradient(90deg, #06B6D4, #10B981)' }} />
+          <h3 style={{ fontSize: '16px', fontWeight: '700', color: theme.textPrimary, marginBottom: '20px' }}>Break-Even Analysis</h3>
+          
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
+            {(() => {
+              // Calculate break-even year (when cumulative cash flow equals initial investment)
+              let breakEvenYear = 'N/A';
+              for (let i = 0; i < calculations.projections.length; i++) {
+                if (calculations.projections[i].cumulativeCashFlow >= calculations.totalInvested) {
+                  breakEvenYear = `Year ${i + 1}`;
+                  break;
+                }
+              }
+              
+              // Calculate break-even with all returns
+              let fullBreakEvenYear = 'N/A';
+              for (let i = 0; i < calculations.projections.length; i++) {
+                if (calculations.projections[i].totalReturn >= calculations.totalInvested) {
+                  fullBreakEvenYear = `Year ${i + 1}`;
+                  break;
+                }
+              }
+              
+              return [
+                { 
+                  label: 'Cash Flow Break-Even', 
+                  value: breakEvenYear, 
+                  subtitle: 'When cash flow recovers investment',
+                  color: '#10B981',
+                  icon: '💵'
+                },
+                { 
+                  label: 'Total ROI Break-Even', 
+                  value: fullBreakEvenYear, 
+                  subtitle: 'Including appreciation & equity',
+                  color: '#3B82F6',
+                  icon: '📈'
+                },
+                { 
+                  label: 'Minimum Rent for Break-Even', 
+                  value: formatCurrency(calculations.monthlyPI + (calculations.totalOperatingExpenses / 12)), 
+                  subtitle: 'Monthly rent to cover all expenses',
+                  color: '#F59E0B',
+                  icon: '🏠'
+                }
+              ];
+            })().map((item, i) => (
+              <div key={i} style={{ background: theme.bgMain, borderRadius: '16px', padding: '20px', textAlign: 'center' }}>
+                <div style={{ fontSize: '24px', marginBottom: '8px' }}>{item.icon}</div>
+                <div style={{ fontSize: '20px', fontWeight: '800', color: item.color, marginBottom: '4px' }}>{item.value}</div>
+                <div style={{ fontSize: '12px', fontWeight: '600', color: theme.textPrimary, marginBottom: '4px' }}>{item.label}</div>
+                <div style={{ fontSize: '10px', color: theme.textMuted }}>{item.subtitle}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+        )}
         
         {/* Annual Key Metrics */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }}>
@@ -810,6 +1420,326 @@ const REBudgetHub = ({ theme: themeProp = {}, profile, initialTab = 'analyzer' }
       </div>
     </div>
   );
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // RENDER: COMPARE DEALS TAB
+  // ═══════════════════════════════════════════════════════════════════════════
+  const renderCompareTab = () => {
+    const compareMetrics = [
+      { key: 'purchasePrice', label: 'Purchase Price', format: formatCurrency },
+      { key: 'totalInvested', label: 'Total Invested', format: formatCurrency, isCalc: true },
+      { key: 'monthlyRent', label: 'Monthly Rent', format: formatCurrency },
+      { key: 'monthlyCashFlow', label: 'Monthly Cash Flow', format: formatCurrency, isCalc: true },
+      { key: 'annualCashFlow', label: 'Annual Cash Flow', format: formatCurrency, isCalc: true },
+      { key: 'capRate', label: 'Cap Rate', format: formatPercent, isCalc: true },
+      { key: 'cashOnCashReturn', label: 'Cash on Cash ROI', format: formatPercent, isCalc: true },
+      { key: 'totalROI', label: 'Total ROI (Year 1)', format: formatPercent, isCalc: true },
+      { key: 'noi', label: 'Net Operating Income', format: formatCurrency, isCalc: true },
+      { key: 'monthlyPI', label: 'Monthly P&I', format: formatCurrency, isCalc: true }
+    ];
+
+    const getBestValue = (metric, deals) => {
+      if (deals.length === 0) return null;
+      const values = deals.map(d => metric.isCalc ? d.calculations[metric.key] : d.data[metric.key]);
+      if (metric.key.includes('Expense') || metric.key === 'monthlyPI') {
+        return Math.min(...values); // Lower is better for expenses
+      }
+      return Math.max(...values); // Higher is better for income/returns
+    };
+
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+        {/* Header */}
+        <div style={cardStyle}>
+          <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '4px', background: 'linear-gradient(90deg, #06B6D4, #0891B2)' }} />
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div>
+              <h2 style={{ fontSize: '20px', fontWeight: '700', color: theme.textPrimary, marginBottom: '4px' }}>
+                ⚖️ Deal Comparison
+              </h2>
+              <p style={{ fontSize: '13px', color: theme.textMuted }}>
+                Compare up to 4 deals side-by-side to find the best investment
+              </p>
+            </div>
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <button
+                onClick={() => setSavedDeals([])}
+                disabled={savedDeals.length === 0}
+                style={{
+                  padding: '10px 20px',
+                  background: savedDeals.length === 0 ? 'rgba(107, 114, 128, 0.2)' : 'rgba(239, 68, 68, 0.1)',
+                  border: `1px solid ${savedDeals.length === 0 ? theme.borderLight : 'rgba(239, 68, 68, 0.3)'}`,
+                  borderRadius: '10px',
+                  color: savedDeals.length === 0 ? theme.textMuted : '#EF4444',
+                  fontSize: '13px',
+                  fontWeight: '600',
+                  cursor: savedDeals.length === 0 ? 'not-allowed' : 'pointer'
+                }}
+              >
+                Clear All
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {savedDeals.length === 0 ? (
+          <div style={{ ...cardStyle, textAlign: 'center', padding: '60px 40px' }}>
+            <div style={{ fontSize: '64px', marginBottom: '20px' }}>📊</div>
+            <h3 style={{ fontSize: '20px', fontWeight: '700', color: theme.textPrimary, marginBottom: '12px' }}>
+              No Deals to Compare
+            </h3>
+            <p style={{ fontSize: '14px', color: theme.textMuted, maxWidth: '400px', margin: '0 auto 24px' }}>
+              Go to the Deal Analyzer tab and save deals you want to compare. You can save up to 4 deals for side-by-side comparison.
+            </p>
+            <button
+              onClick={() => setActiveTab('analyzer')}
+              style={{
+                padding: '12px 24px',
+                background: 'linear-gradient(135deg, #10B981, #059669)',
+                border: 'none',
+                borderRadius: '10px',
+                color: 'white',
+                fontSize: '14px',
+                fontWeight: '600',
+                cursor: 'pointer'
+              }}
+            >
+              🏠 Go to Deal Analyzer
+            </button>
+          </div>
+        ) : (
+          <>
+            {/* Deal Cards */}
+            <div style={{ display: 'grid', gridTemplateColumns: `repeat(${savedDeals.length}, 1fr)`, gap: '16px' }}>
+              {savedDeals.map((deal, index) => (
+                <div key={deal.id} style={{ ...cardStyle, padding: '20px' }}>
+                  <div style={{ 
+                    position: 'absolute', top: 0, left: 0, right: 0, height: '4px', 
+                    background: ['#10B981', '#3B82F6', '#8B5CF6', '#F59E0B'][index] 
+                  }} />
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+                    <div>
+                      <div style={{ 
+                        fontSize: '11px', 
+                        fontWeight: '700', 
+                        color: ['#10B981', '#3B82F6', '#8B5CF6', '#F59E0B'][index],
+                        marginBottom: '4px',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.5px'
+                      }}>
+                        Deal {index + 1}
+                      </div>
+                      <div style={{ fontSize: '14px', fontWeight: '600', color: theme.textPrimary }}>
+                        {deal.name.length > 25 ? deal.name.substring(0, 25) + '...' : deal.name}
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => removeDeal(deal.id)}
+                      style={{
+                        width: '24px',
+                        height: '24px',
+                        borderRadius: '6px',
+                        background: 'rgba(239, 68, 68, 0.1)',
+                        border: 'none',
+                        color: '#EF4444',
+                        fontSize: '14px',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}
+                    >
+                      ×
+                    </button>
+                  </div>
+                  <div style={{ fontSize: '12px', color: theme.textMuted }}>
+                    {propertyTypes.find(t => t.value === deal.data.propertyType)?.label || 'SFH'} • {deal.data.unitCount} unit(s)
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Comparison Table */}
+            <div style={cardStyle}>
+              <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '4px', background: 'linear-gradient(90deg, #06B6D4, #8B5CF6)' }} />
+              <h3 style={{ fontSize: '16px', fontWeight: '700', color: theme.textPrimary, marginBottom: '20px' }}>
+                📈 Metrics Comparison
+              </h3>
+              
+              <div style={{ overflowX: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                  <thead>
+                    <tr>
+                      <th style={{ 
+                        textAlign: 'left', 
+                        padding: '12px 16px', 
+                        fontSize: '12px', 
+                        fontWeight: '600', 
+                        color: theme.textMuted,
+                        borderBottom: `1px solid ${theme.borderLight}`,
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.5px'
+                      }}>
+                        Metric
+                      </th>
+                      {savedDeals.map((deal, index) => (
+                        <th key={deal.id} style={{ 
+                          textAlign: 'right', 
+                          padding: '12px 16px', 
+                          fontSize: '12px', 
+                          fontWeight: '600', 
+                          color: ['#10B981', '#3B82F6', '#8B5CF6', '#F59E0B'][index],
+                          borderBottom: `1px solid ${theme.borderLight}`,
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.5px'
+                        }}>
+                          Deal {index + 1}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {compareMetrics.map((metric, i) => {
+                      const bestValue = getBestValue(metric, savedDeals);
+                      return (
+                        <tr key={metric.key} style={{ background: i % 2 === 0 ? 'transparent' : theme.bgMain }}>
+                          <td style={{ 
+                            padding: '14px 16px', 
+                            fontSize: '13px', 
+                            color: theme.textSecondary,
+                            borderBottom: `1px solid ${theme.borderLight}`
+                          }}>
+                            {metric.label}
+                          </td>
+                          {savedDeals.map((deal, index) => {
+                            const value = metric.isCalc ? deal.calculations[metric.key] : deal.data[metric.key];
+                            const isBest = value === bestValue && savedDeals.length > 1;
+                            return (
+                              <td key={deal.id} style={{ 
+                                textAlign: 'right', 
+                                padding: '14px 16px', 
+                                fontSize: '14px', 
+                                fontWeight: isBest ? '700' : '500',
+                                color: isBest ? '#10B981' : theme.textPrimary,
+                                borderBottom: `1px solid ${theme.borderLight}`,
+                                background: isBest ? 'rgba(16, 185, 129, 0.05)' : 'transparent'
+                              }}>
+                                {metric.format(value)}
+                                {isBest && <span style={{ marginLeft: '6px', fontSize: '12px' }}>✓</span>}
+                              </td>
+                            );
+                          })}
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Visual Comparison Charts */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px' }}>
+              {/* Cash Flow Comparison */}
+              <div style={cardStyle}>
+                <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '4px', background: 'linear-gradient(90deg, #10B981, #3B82F6)' }} />
+                <h4 style={{ fontSize: '14px', fontWeight: '600', color: theme.textPrimary, marginBottom: '16px' }}>
+                  💵 Monthly Cash Flow
+                </h4>
+                <div style={{ display: 'flex', alignItems: 'flex-end', gap: '12px', height: '150px' }}>
+                  {savedDeals.map((deal, index) => {
+                    const maxCF = Math.max(...savedDeals.map(d => Math.abs(d.calculations.monthlyCashFlow)));
+                    const height = maxCF > 0 ? (Math.abs(deal.calculations.monthlyCashFlow) / maxCF) * 120 : 0;
+                    return (
+                      <div key={deal.id} style={{ flex: 1, textAlign: 'center' }}>
+                        <div style={{ 
+                          fontSize: '12px', 
+                          fontWeight: '600', 
+                          color: deal.calculations.monthlyCashFlow >= 0 ? '#10B981' : '#EF4444',
+                          marginBottom: '8px'
+                        }}>
+                          {formatCurrency(deal.calculations.monthlyCashFlow)}
+                        </div>
+                        <div style={{
+                          height: `${height}px`,
+                          background: `linear-gradient(180deg, ${['#10B981', '#3B82F6', '#8B5CF6', '#F59E0B'][index]}, ${['#059669', '#2563EB', '#7C3AED', '#D97706'][index]})`,
+                          borderRadius: '8px 8px 0 0',
+                          margin: '0 auto',
+                          width: '100%',
+                          maxWidth: '60px'
+                        }} />
+                        <div style={{ fontSize: '11px', color: theme.textMuted, marginTop: '8px' }}>Deal {index + 1}</div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Total ROI Comparison */}
+              <div style={cardStyle}>
+                <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '4px', background: 'linear-gradient(90deg, #8B5CF6, #EC4899)' }} />
+                <h4 style={{ fontSize: '14px', fontWeight: '600', color: theme.textPrimary, marginBottom: '16px' }}>
+                  📈 Total ROI (Year 1)
+                </h4>
+                <div style={{ display: 'flex', alignItems: 'flex-end', gap: '12px', height: '150px' }}>
+                  {savedDeals.map((deal, index) => {
+                    const maxROI = Math.max(...savedDeals.map(d => Math.abs(d.calculations.totalROI)));
+                    const height = maxROI > 0 ? (Math.abs(deal.calculations.totalROI) / maxROI) * 120 : 0;
+                    return (
+                      <div key={deal.id} style={{ flex: 1, textAlign: 'center' }}>
+                        <div style={{ 
+                          fontSize: '12px', 
+                          fontWeight: '600', 
+                          color: deal.calculations.totalROI >= 0 ? '#8B5CF6' : '#EF4444',
+                          marginBottom: '8px'
+                        }}>
+                          {formatPercent(deal.calculations.totalROI)}
+                        </div>
+                        <div style={{
+                          height: `${height}px`,
+                          background: `linear-gradient(180deg, ${['#10B981', '#3B82F6', '#8B5CF6', '#F59E0B'][index]}, ${['#059669', '#2563EB', '#7C3AED', '#D97706'][index]})`,
+                          borderRadius: '8px 8px 0 0',
+                          margin: '0 auto',
+                          width: '100%',
+                          maxWidth: '60px'
+                        }} />
+                        <div style={{ fontSize: '11px', color: theme.textMuted, marginTop: '8px' }}>Deal {index + 1}</div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+
+            {/* Recommendation */}
+            {savedDeals.length >= 2 && (
+              <div style={{ 
+                ...cardStyle, 
+                background: theme.mode === 'dark' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(16, 185, 129, 0.05)',
+                border: '1px solid rgba(16, 185, 129, 0.2)'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                  <div style={{ fontSize: '40px' }}>🏆</div>
+                  <div>
+                    <div style={{ fontSize: '14px', fontWeight: '700', color: '#10B981', marginBottom: '4px' }}>
+                      Best Overall Deal
+                    </div>
+                    <div style={{ fontSize: '16px', fontWeight: '600', color: theme.textPrimary }}>
+                      {savedDeals.reduce((best, current) => 
+                        current.calculations.totalROI > best.calculations.totalROI ? current : best
+                      ).name}
+                    </div>
+                    <div style={{ fontSize: '13px', color: theme.textMuted, marginTop: '4px' }}>
+                      Based on highest Total ROI of {formatPercent(Math.max(...savedDeals.map(d => d.calculations.totalROI)))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    );
+  };
 
   // ═══════════════════════════════════════════════════════════════════════════
   // RENDER: CASH FLOW TAB
@@ -2308,6 +3238,7 @@ const REBudgetHub = ({ theme: themeProp = {}, profile, initialTab = 'analyzer' }
       
       {/* Tab Content */}
       {activeTab === 'analyzer' && renderAnalyzerTab()}
+      {activeTab === 'compare' && renderCompareTab()}
       {activeTab === 'cashflow' && renderCashFlowTab()}
       {activeTab === 'roi' && renderROITab()}
       {activeTab === 'equity' && renderEquityTab()}
