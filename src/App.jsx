@@ -6584,331 +6584,8 @@ function DashboardHome({ transactions, goals, bills = [], tasks = [], theme, las
         </div>
       )}
 
-      {/* Top Stats Row - Soft Gradient Cards */}
-      <div className="stat-grid-4" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px', marginBottom: '24px' }}>
-        {/* Income Card - Cyan Gradient */}
-        <div style={{ 
-          background: theme.mode === 'dark' ? 'linear-gradient(135deg, #164E63 0%, #0E4A5C 100%)' : 'linear-gradient(135deg, #E0F7FA 0%, #B2EBF2 100%)', 
-          borderRadius: '20px', 
-          padding: '20px', 
-          boxShadow: '0 4px 20px rgba(0, 188, 212, 0.15)',
-          border: `1px solid ${theme.mode === 'dark' ? 'rgba(0, 188, 212, 0.3)' : 'rgba(0, 188, 212, 0.2)'}`
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
-            <div style={{ 
-              width: '40px', height: '40px', borderRadius: '12px', 
-              background: theme.mode === 'dark' ? 'rgba(0, 188, 212, 0.3)' : 'rgba(0, 188, 212, 0.2)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' 
-            }}>💰</div>
-            <span style={{ fontSize: '14px', color: theme.mode === 'dark' ? '#67E8F9' : '#00838F', fontWeight: '600' }}>Income</span>
-          </div>
-          <div style={{ fontSize: '28px', fontWeight: '700', color: theme.mode === 'dark' ? '#E0F7FA' : '#006064', marginBottom: '8px' }}>
-            {formatCurrency(activeTotals.income)}
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ fontSize: '12px', color: theme.mode === 'dark' ? '#67E8F9' : '#00695C' }}>vs last month</span>
-              <span style={{ fontSize: '12px', fontWeight: '600', color: '#10B981', display: 'flex', alignItems: 'center', gap: '2px' }}>
-                ↗ 25%
-              </span>
-            </div>
-            <Sparkline data={monthlyData.map(m => m.income)} color="#00BCD4" width={70} height={40} />
-          </div>
-        </div>
 
-        {/* Expenses Card - Orange/Coral Gradient */}
-        <div style={{ 
-          background: theme.mode === 'dark' ? 'linear-gradient(135deg, #7C2D12 0%, #6B2A0F 100%)' : 'linear-gradient(135deg, #FFF3E0 0%, #FFE0B2 100%)', 
-          borderRadius: '20px', 
-          padding: '20px', 
-          boxShadow: '0 4px 20px rgba(255, 152, 0, 0.15)',
-          border: `1px solid ${theme.mode === 'dark' ? 'rgba(255, 152, 0, 0.3)' : 'rgba(255, 152, 0, 0.2)'}`
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
-            <div style={{ 
-              width: '40px', height: '40px', borderRadius: '12px', 
-              background: theme.mode === 'dark' ? 'rgba(255, 152, 0, 0.3)' : 'rgba(255, 152, 0, 0.2)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' 
-            }}>🔥</div>
-            <span style={{ fontSize: '14px', color: theme.mode === 'dark' ? '#FDBA74' : '#E65100', fontWeight: '600' }}>Expenses</span>
-          </div>
-          <div style={{ fontSize: '28px', fontWeight: '700', color: theme.mode === 'dark' ? '#FFF3E0' : '#BF360C', marginBottom: '8px' }}>
-            {formatCurrency(activeTotals.expenses)}
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ fontSize: '12px', color: theme.mode === 'dark' ? '#FDBA74' : '#E65100' }}>vs last month</span>
-              <span style={{ fontSize: '12px', fontWeight: '600', color: '#EF4444', display: 'flex', alignItems: 'center', gap: '2px' }}>
-                ↗ 5%
-              </span>
-            </div>
-            <Sparkline data={monthlyData.map(m => m.expenses)} color="#FF9800" width={70} height={40} />
-          </div>
-        </div>
-
-        {/* Savings Card - Green Gradient */}
-        <div style={{ 
-          background: theme.mode === 'dark' ? 'linear-gradient(135deg, #14532D 0%, #115E2B 100%)' : 'linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%)', 
-          borderRadius: '20px', 
-          padding: '20px', 
-          boxShadow: '0 4px 20px rgba(76, 175, 80, 0.15)',
-          border: `1px solid ${theme.mode === 'dark' ? 'rgba(76, 175, 80, 0.3)' : 'rgba(76, 175, 80, 0.2)'}`
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
-            <div style={{ 
-              width: '40px', height: '40px', borderRadius: '12px', 
-              background: theme.mode === 'dark' ? 'rgba(76, 175, 80, 0.3)' : 'rgba(76, 175, 80, 0.2)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' 
-            }}>🏦</div>
-            <span style={{ fontSize: '14px', color: theme.mode === 'dark' ? '#86EFAC' : '#2E7D32', fontWeight: '600' }}>Savings</span>
-          </div>
-          <div style={{ fontSize: '28px', fontWeight: '700', color: theme.mode === 'dark' ? '#E8F5E9' : '#1B5E20', marginBottom: '8px' }}>
-            {formatCurrency(Math.max(0, activeTotals.net))}
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ fontSize: '12px', color: theme.mode === 'dark' ? '#86EFAC' : '#2E7D32' }}>vs last month</span>
-              <span style={{ fontSize: '12px', fontWeight: '600', color: activeTotals.net >= 0 ? '#10B981' : '#EF4444', display: 'flex', alignItems: 'center', gap: '2px' }}>
-                {activeTotals.net >= 0 ? '↗' : '↘'} 15%
-              </span>
-            </div>
-            <Sparkline data={monthlyData.map(m => m.income - m.expenses)} color="#4CAF50" width={70} height={40} />
-          </div>
-        </div>
-
-        {/* Transactions Card - Purple Gradient */}
-        <div style={{ 
-          background: theme.mode === 'dark' ? 'linear-gradient(135deg, #4A1D6B 0%, #3D1A5A 100%)' : 'linear-gradient(135deg, #F3E5F5 0%, #E1BEE7 100%)', 
-          borderRadius: '20px', 
-          padding: '20px', 
-          boxShadow: '0 4px 20px rgba(156, 39, 176, 0.15)',
-          border: `1px solid ${theme.mode === 'dark' ? 'rgba(156, 39, 176, 0.3)' : 'rgba(156, 39, 176, 0.2)'}`
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
-            <div style={{ 
-              width: '40px', height: '40px', borderRadius: '12px', 
-              background: theme.mode === 'dark' ? 'rgba(156, 39, 176, 0.3)' : 'rgba(156, 39, 176, 0.2)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' 
-            }}>📊</div>
-            <span style={{ fontSize: '14px', color: theme.mode === 'dark' ? '#D8B4FE' : '#7B1FA2', fontWeight: '600' }}>Transactions</span>
-          </div>
-          <div style={{ fontSize: '28px', fontWeight: '700', color: theme.mode === 'dark' ? '#F3E5F5' : '#4A148C', marginBottom: '8px' }}>
-            {activeTransactions.length.toLocaleString()}
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ fontSize: '12px', color: theme.mode === 'dark' ? '#D8B4FE' : '#7B1FA2' }}>vs last month</span>
-              <span style={{ fontSize: '12px', fontWeight: '600', color: '#10B981', display: 'flex', alignItems: 'center', gap: '2px' }}>
-                ↗ 10%
-              </span>
-            </div>
-            <Sparkline data={[30, 45, 35, 50, 40, 55, 60]} color="#9C27B0" width={70} height={40} />
-          </div>
-        </div>
-      </div>
-
-      {/* ═══════════════════════════════════════════════════════════════════ */}
-      {/* QUICK ACTIONS - Bills & Goals (Collapsible) */}
-      {/* ═══════════════════════════════════════════════════════════════════ */}
-      <div 
-        onClick={() => toggleSection('quickActions')}
-        style={{ 
-          display: 'flex', 
-          alignItems: 'center', 
-          gap: '12px', 
-          marginBottom: collapsedSections.quickActions ? '24px' : '16px',
-          paddingTop: '8px',
-          cursor: 'pointer',
-          userSelect: 'none'
-        }}
-      >
-        <div style={{ 
-          width: '4px', 
-          height: '24px', 
-          background: 'linear-gradient(180deg, #EC4899 0%, #8B5CF6 100%)', 
-          borderRadius: '2px' 
-        }} />
-        <h2 style={{ 
-          fontSize: '18px', 
-          fontWeight: '700', 
-          color: theme.textPrimary, 
-          margin: 0,
-          letterSpacing: '-0.3px'
-        }}>Quick Actions</h2>
-        <span style={{ 
-          fontSize: '12px', 
-          color: theme.textMuted,
-          background: theme.bgMain,
-          padding: '4px 10px',
-          borderRadius: '6px'
-        }}>Items needing attention</span>
-        <span style={{ 
-          marginLeft: 'auto', 
-          fontSize: '12px', 
-          color: theme.textMuted,
-          transition: 'transform 0.2s',
-          transform: collapsedSections.quickActions ? 'rotate(-90deg)' : 'rotate(0deg)'
-        }}>▼</span>
-      </div>
-
-      {/* Bills, Tasks & Goals Row - Priority Section (3 columns) */}
-      {!collapsedSections.quickActions && (
-      <div className="quick-actions-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px', marginBottom: '32px' }}>
-        {/* Upcoming Bills */}
-        <div style={{ 
-          background: theme.bgCard, 
-          borderRadius: '16px', 
-          padding: '20px', 
-          boxShadow: theme.cardShadow, 
-          border: `1px solid ${theme.borderLight}`,
-          position: 'relative',
-          overflow: 'hidden'
-        }}>
-          {/* Subtle gradient accent */}
-          <div style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            height: '3px',
-            background: 'linear-gradient(90deg, #EF4444 0%, #F97316 100%)'
-          }} />
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-            <h3 style={{ fontSize: '15px', fontWeight: '600', color: theme.textPrimary, margin: 0 }}>Upcoming Bills</h3>
-            <span style={{ padding: '3px 8px', background: '#FEE2E2', color: '#DC2626', borderRadius: '10px', fontSize: '11px', fontWeight: '600' }}>{upcomingBills.length} due</span>
-          </div>
-          <div style={{ display: 'grid', gap: '10px' }}>
-            {upcomingBills.slice(0, 3).map((bill, i) => {
-              const dueDate = new Date(bill.dueDate);
-              const daysUntil = Math.ceil((dueDate - new Date()) / (1000 * 60 * 60 * 24));
-              return (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 12px', borderRadius: '10px', background: theme.bgMain, border: daysUntil <= 3 ? '1px solid #FCA5A5' : `1px solid ${theme.borderLight}` }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px' }}>{bill.icon || '📄'}</div>
-                    <div><div style={{ fontSize: '13px', fontWeight: '500', color: theme.textPrimary }}>{bill.name}</div><div style={{ fontSize: '11px', color: daysUntil <= 3 ? '#DC2626' : theme.textMuted }}>{daysUntil <= 0 ? 'Due today!' : daysUntil === 1 ? 'Tomorrow' : `${daysUntil} days`}</div></div>
-                  </div>
-                  <span style={{ fontSize: '13px', fontWeight: '700', color: theme.textPrimary }}>${bill.amount.toFixed(2)}</span>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-        
-        {/* Upcoming Tasks */}
-        <div style={{ 
-          background: theme.bgCard, 
-          borderRadius: '16px', 
-          padding: '20px', 
-          boxShadow: theme.cardShadow, 
-          border: `1px solid ${theme.borderLight}`,
-          position: 'relative',
-          overflow: 'hidden'
-        }}>
-          {/* Subtle gradient accent */}
-          <div style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            height: '3px',
-            background: 'linear-gradient(90deg, #F59E0B 0%, #EF4444 100%)'
-          }} />
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-            <h3 style={{ fontSize: '15px', fontWeight: '600', color: theme.textPrimary, margin: 0 }}>Upcoming Tasks</h3>
-            <span style={{ padding: '3px 8px', background: '#FEF3C7', color: '#D97706', borderRadius: '10px', fontSize: '11px', fontWeight: '600' }}>{tasks.filter(t => t.status !== 'completed').length} pending</span>
-          </div>
-          <div style={{ display: 'grid', gap: '10px' }}>
-            {tasks.filter(t => t.status !== 'completed').slice(0, 3).length > 0 ? (
-              tasks.filter(t => t.status !== 'completed').slice(0, 3).map((task, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 12px', borderRadius: '10px', background: theme.bgMain, border: `1px solid ${theme.borderLight}` }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <div style={{ 
-                      width: '32px', 
-                      height: '32px', 
-                      borderRadius: '8px', 
-                      background: task.status === 'in-progress' ? 'linear-gradient(135deg, #F59E0B 0%, #EF4444 100%)' : 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)', 
-                      display: 'flex', 
-                      alignItems: 'center', 
-                      justifyContent: 'center', 
-                      fontSize: '14px' 
-                    }}>{task.status === 'in-progress' ? '🔄' : '📋'}</div>
-                    <div>
-                      <div style={{ fontSize: '13px', fontWeight: '500', color: theme.textPrimary }}>{task.title.slice(0, 20)}{task.title.length > 20 ? '...' : ''}</div>
-                      <div style={{ fontSize: '11px', color: theme.textMuted }}>
-                        {task.dueDate ? new Date(task.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'No due date'}
-                      </div>
-                    </div>
-                  </div>
-                  <span style={{ 
-                    fontSize: '10px', 
-                    padding: '3px 8px', 
-                    borderRadius: '6px',
-                    background: task.status === 'in-progress' ? '#FEF3C7' : '#E0E7FF',
-                    color: task.status === 'in-progress' ? '#D97706' : '#6366F1',
-                    fontWeight: '600'
-                  }}>
-                    {task.status === 'in-progress' ? 'Active' : 'To Do'}
-                  </span>
-                </div>
-              ))
-            ) : (
-              <div style={{ 
-                padding: '20px', 
-                textAlign: 'center', 
-                background: theme.bgMain, 
-                borderRadius: '10px',
-                border: `1px dashed ${theme.borderLight}`
-              }}>
-                <span style={{ fontSize: '20px', display: 'block', marginBottom: '6px' }}>✨</span>
-                <span style={{ fontSize: '12px', color: theme.textMuted }}>No pending tasks</span>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Savings Goals */}
-        <div style={{ 
-          background: theme.bgCard, 
-          borderRadius: '16px', 
-          padding: '20px', 
-          boxShadow: theme.cardShadow, 
-          border: `1px solid ${theme.borderLight}`,
-          position: 'relative',
-          overflow: 'hidden'
-        }}>
-          {/* Subtle gradient accent */}
-          <div style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            height: '3px',
-            background: 'linear-gradient(90deg, #10B981 0%, #06B6D4 100%)'
-          }} />
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-            <h3 style={{ fontSize: '15px', fontWeight: '600', color: theme.textPrimary, margin: 0 }}>Savings Goals</h3>
-            <button style={{ background: 'none', border: 'none', color: theme.primary, fontSize: '12px', cursor: 'pointer', fontWeight: '500' }}>View All →</button>
-          </div>
-          <div style={{ display: 'grid', gap: '10px' }}>
-            {displayGoals.slice(0, 3).map((goal, i) => {
-              const progress = (goal.currentAmount / goal.targetAmount) * 100;
-              return (
-                <div key={i} style={{ padding: '10px 12px', background: theme.bgMain, borderRadius: '10px', border: `1px solid ${theme.borderLight}` }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
-                    <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: `${goal.color}20`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px' }}>{goal.icon}</div>
-                    <div style={{ flex: 1 }}><div style={{ fontSize: '13px', fontWeight: '600', color: theme.textPrimary }}>{goal.name}</div><div style={{ fontSize: '11px', color: theme.textMuted }}>{formatCurrency(goal.currentAmount)} of {formatCurrency(goal.targetAmount)}</div></div>
-                    <span style={{ fontSize: '13px', fontWeight: '700', color: goal.color }}>{progress.toFixed(0)}%</span>
-                  </div>
-                  <div style={{ height: '6px', background: theme.borderLight, borderRadius: '3px', overflow: 'hidden' }}><div style={{ height: '100%', width: `${progress}%`, background: `linear-gradient(90deg, ${goal.color} 0%, ${goal.color}CC 100%)`, borderRadius: '3px', transition: 'width 0.5s ease' }} /></div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </div>
-      )}
-
-      {/* ═══════════════════════════════════════════════════════════════════ */}
+{/* ═══════════════════════════════════════════════════════════════════ */}
       {/* 🌟 FINANCIAL HEALTH SCORE - Premium Section */}
       {/* ═══════════════════════════════════════════════════════════════════ */}
       {(() => {
@@ -7340,49 +7017,40 @@ function DashboardHome({ transactions, goals, bills = [], tasks = [], theme, las
         );
       })()}
 
-      {/* ═══════════════════════════════════════════════════════════════════ */}
-      {/* 📊 SPENDING BY CATEGORY - Premium Horizontal Bar Chart */}
+      
+{/* ═══════════════════════════════════════════════════════════════════ */}
+      {/* 💰 NET WORTH TRACKER - Wealth Building */}
       {/* ═══════════════════════════════════════════════════════════════════ */}
       {(() => {
-        const getCategoryIcon = (name) => {
-          const icons = {
-            'Fast Food': '🍔', 'Restaurants': '🍽️', 'Groceries': '🛒', 'Gas': '⛽',
-            'Shopping': '🛍️', 'Entertainment': '🎬', 'Utilities': '💡', 'Transfer': '↔️',
-            'Hobbies': '🎮', 'Doctor': '🏥', 'Pharmacy': '💊', 'Auto & Transport': '🚗',
-            'Electronics & Software': '💻', 'Television': '📺', 'Financial': '🏦',
-            'Category Pending': '❓', 'Other': '📦'
-          };
-          return icons[name] || '📦';
-        };
+        // Calculate net worth metrics
+        const savingsFromGoals = goals.reduce((sum, g) => sum + (parseFloat(g.currentAmount) || 0), 0);
+        const estimatedAssets = (activeTotals.income * 2.5) + savingsFromGoals;
+        const estimatedLiabilities = activeTotals.expenses * 0.25;
+        const netWorthValue = estimatedAssets - estimatedLiabilities;
+        const monthlyChange = activeTotals.income - activeTotals.expenses;
         
-        const getCatColor = (name, idx) => {
-          const colors = {
-            'Fast Food': '#8B5CF6', 'Restaurants': '#EC4899', 'Groceries': '#10B981',
-            'Gas': '#F59E0B', 'Shopping': '#3B82F6', 'Entertainment': '#06B6D4',
-            'Utilities': '#0891B2', 'Transfer': '#6366F1', 'Hobbies': '#F97316',
-            'Doctor': '#EF4444', 'Category Pending': '#64748B'
-          };
-          return colors[name] || ['#8B5CF6', '#EC4899', '#10B981', '#F59E0B', '#3B82F6', '#06B6D4'][idx % 6];
-        };
+        // Trend data (simulated - 6 months)
+        const trendData = [
+          { month: 'Jul', value: netWorthValue * 0.82 },
+          { month: 'Aug', value: netWorthValue * 0.86 },
+          { month: 'Sep', value: netWorthValue * 0.90 },
+          { month: 'Oct', value: netWorthValue * 0.94 },
+          { month: 'Nov', value: netWorthValue * 0.97 },
+          { month: 'Dec', value: netWorthValue }
+        ];
         
-        const spendingData = sortedCategories.map(([name, spent], idx) => {
-          const budget = budgets.find(b => b.category === name)?.budget || spent * 1.3;
-          const pct = (spent / budget) * 100;
-          return { name, spent, budget, percent: pct, color: getCatColor(name, idx), icon: getCategoryIcon(name) };
-        });
-        
-        const totalSpending = spendingData.reduce((s, c) => s + c.spent, 0);
-        const totalBudgetSpend = spendingData.reduce((s, c) => s + c.budget, 0);
+        const minVal = Math.min(...trendData.map(d => d.value)) * 0.95;
+        const maxVal = Math.max(...trendData.map(d => d.value)) * 1.05;
         
         return (
           <div style={{ marginBottom: '24px' }}>
             <div 
-              onClick={() => toggleSection('spendingCategory')}
+              onClick={() => toggleSection('netWorth')}
               style={{ 
                 display: 'flex', 
                 alignItems: 'center', 
                 gap: '12px', 
-                marginBottom: collapsedSections.spendingCategory ? '0px' : '16px',
+                marginBottom: collapsedSections.netWorth ? '0px' : '16px',
                 cursor: 'pointer',
                 userSelect: 'none'
               }}
@@ -7390,32 +7058,32 @@ function DashboardHome({ transactions, goals, bills = [], tasks = [], theme, las
               <div style={{ 
                 width: '4px', 
                 height: '24px', 
-                background: 'linear-gradient(180deg, #EC4899, #8B5CF6)', 
+                background: 'linear-gradient(180deg, #10B981, #3B82F6)', 
                 borderRadius: '2px' 
               }} />
               <h2 style={{ fontSize: '18px', fontWeight: '700', color: theme.textPrimary, margin: 0 }}>
-                Spending by Category
+                Net Worth
               </h2>
               <span style={{ 
-                background: theme.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
-                color: theme.textMuted,
+                background: monthlyChange >= 0 ? '#10B98120' : '#EF444420',
+                color: monthlyChange >= 0 ? '#10B981' : '#EF4444',
                 padding: '4px 12px',
                 borderRadius: '20px',
                 fontSize: '12px',
-                fontWeight: '500'
+                fontWeight: '600'
               }}>
-                {spendingData.length} categories
+                {monthlyChange >= 0 ? '+' : ''}{formatCurrency(monthlyChange)} this month
               </span>
               <span style={{ 
                 fontSize: '12px', 
                 color: theme.textMuted,
                 marginLeft: 'auto',
                 transition: 'transform 0.2s',
-                transform: collapsedSections.spendingCategory ? 'rotate(-90deg)' : 'rotate(0deg)'
+                transform: collapsedSections.netWorth ? 'rotate(-90deg)' : 'rotate(0deg)'
               }}>▼</span>
             </div>
             
-            {!collapsedSections.spendingCategory && (
+            {!collapsedSections.netWorth && (
               <div style={{
                 background: theme.bgCard,
                 borderRadius: '20px',
@@ -7431,115 +7099,133 @@ function DashboardHome({ transactions, goals, bills = [], tasks = [], theme, las
                   left: 0,
                   right: 0,
                   height: '4px',
-                  background: 'linear-gradient(90deg, #EC4899, #8B5CF6, #3B82F6, #06B6D4)'
+                  background: 'linear-gradient(90deg, #10B981, #3B82F6, #8B5CF6)'
                 }} />
                 
-                {/* Header with totals */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '24px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr', gap: '40px' }}>
+                  {/* Left: Net Worth Display */}
                   <div>
-                    <div style={{ fontSize: '13px', color: theme.textMuted, marginBottom: '6px' }}>Total Spending This Period</div>
-                    <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px' }}>
-                      <span style={{ fontSize: '32px', fontWeight: '700', color: theme.textPrimary }}>
-                        {formatCurrency(totalSpending)}
-                      </span>
-                      <span style={{ fontSize: '15px', color: theme.textMuted }}>
-                        / {formatCurrency(totalBudgetSpend)} budgeted
-                      </span>
-                    </div>
-                  </div>
-                  <div style={{
-                    padding: '8px 16px',
-                    background: totalSpending <= totalBudgetSpend ? '#10B98115' : '#EF444415',
-                    borderRadius: '10px',
-                    border: `1px solid ${totalSpending <= totalBudgetSpend ? '#10B98130' : '#EF444430'}`
-                  }}>
-                    <span style={{ 
-                      fontSize: '14px', 
-                      fontWeight: '600', 
-                      color: totalSpending <= totalBudgetSpend ? '#10B981' : '#EF4444' 
+                    <div style={{ fontSize: '13px', color: theme.textMuted, marginBottom: '8px' }}>Total Net Worth</div>
+                    <div style={{ 
+                      fontSize: '40px', 
+                      fontWeight: '800', 
+                      color: netWorthValue >= 0 ? '#10B981' : '#EF4444',
+                      marginBottom: '28px',
+                      letterSpacing: '-1px'
                     }}>
-                      {totalSpending <= totalBudgetSpend ? '✓ Under Budget' : '⚠ Over Budget'}
-                    </span>
-                  </div>
-                </div>
-                
-                {/* Category Bars */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
-                  {spendingData.map((cat, i) => (
-                    <div key={cat.name}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                          <div style={{
-                            width: '40px',
-                            height: '40px',
-                            borderRadius: '12px',
-                            background: `${cat.color}15`,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            fontSize: '20px',
-                            border: `1px solid ${cat.color}25`
-                          }}>
-                            {cat.icon}
+                      {formatCurrency(netWorthValue)}
+                    </div>
+                    
+                    {/* Assets & Liabilities */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                      <div style={{
+                        background: theme.mode === 'dark' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(16, 185, 129, 0.05)',
+                        borderRadius: '14px',
+                        padding: '18px 20px',
+                        border: '1px solid rgba(16, 185, 129, 0.2)'
+                      }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            <span style={{ fontSize: '22px' }}>📈</span>
+                            <span style={{ fontSize: '14px', color: theme.textSecondary, fontWeight: '500' }}>Total Assets</span>
                           </div>
-                          <div>
-                            <div style={{ fontSize: '15px', fontWeight: '600', color: theme.textPrimary }}>
-                              {cat.name}
-                            </div>
-                            <div style={{ fontSize: '12px', color: theme.textMuted }}>
-                              {Math.round(cat.spent / totalSpending * 100)}% of total • {formatCurrency(cat.budget)} budget
-                            </div>
-                          </div>
-                        </div>
-                        <div style={{ textAlign: 'right' }}>
-                          <div style={{ fontSize: '17px', fontWeight: '700', color: theme.textPrimary }}>
-                            {formatCurrency(cat.spent)}
-                          </div>
-                          <div style={{ 
-                            fontSize: '12px', 
-                            fontWeight: '600',
-                            color: cat.percent > 100 ? '#EF4444' : cat.percent > 80 ? '#F59E0B' : '#10B981'
-                          }}>
-                            {cat.percent.toFixed(0)}% used
-                          </div>
+                          <span style={{ fontSize: '20px', fontWeight: '700', color: '#10B981' }}>
+                            {formatCurrency(estimatedAssets)}
+                          </span>
                         </div>
                       </div>
                       
-                      {/* Progress Bar */}
-                      <div style={{ position: 'relative', height: '10px' }}>
-                        <div style={{
-                          height: '100%',
-                          background: theme.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)',
-                          borderRadius: '5px',
-                          overflow: 'hidden'
-                        }}>
-                          <div style={{
-                            width: `${Math.min(cat.percent, 100)}%`,
-                            height: '100%',
-                            background: cat.percent > 100 
-                              ? 'linear-gradient(90deg, #EF4444, #F87171)'
-                              : cat.percent > 80
-                              ? 'linear-gradient(90deg, #F59E0B, #FBBF24)'
-                              : `linear-gradient(90deg, ${cat.color}, ${cat.color}BB)`,
-                            borderRadius: '5px',
-                            transition: 'width 0.6s ease-out',
-                            boxShadow: cat.percent > 80 ? `0 0 10px ${cat.percent > 100 ? '#EF444450' : '#F59E0B50'}` : 'none'
-                          }} />
+                      <div style={{
+                        background: theme.mode === 'dark' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(239, 68, 68, 0.05)',
+                        borderRadius: '14px',
+                        padding: '18px 20px',
+                        border: '1px solid rgba(239, 68, 68, 0.2)'
+                      }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            <span style={{ fontSize: '22px' }}>📉</span>
+                            <span style={{ fontSize: '14px', color: theme.textSecondary, fontWeight: '500' }}>Total Liabilities</span>
+                          </div>
+                          <span style={{ fontSize: '20px', fontWeight: '700', color: '#EF4444' }}>
+                            {formatCurrency(estimatedLiabilities)}
+                          </span>
                         </div>
-                        {/* Budget line marker */}
-                        <div style={{
-                          position: 'absolute',
-                          left: '100%',
-                          top: '-2px',
-                          bottom: '-2px',
-                          width: '2px',
-                          background: theme.textMuted,
-                          borderRadius: '1px',
-                          opacity: 0.5
-                        }} />
                       </div>
                     </div>
-                  ))}
+                  </div>
+                  
+                  {/* Right: Trend Chart */}
+                  <div>
+                    <div style={{ fontSize: '13px', color: theme.textMuted, marginBottom: '16px' }}>6 Month Trend</div>
+                    <svg width="100%" height="180" viewBox="0 0 350 180" preserveAspectRatio="xMidYMid meet">
+                      <defs>
+                        <linearGradient id="netWorthAreaGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                          <stop offset="0%" stopColor="#10B981" stopOpacity="0.3" />
+                          <stop offset="100%" stopColor="#10B981" stopOpacity="0" />
+                        </linearGradient>
+                      </defs>
+                      
+                      {/* Grid */}
+                      {[0, 1, 2, 3].map(i => (
+                        <line key={i} x1="30" y1={30 + i * 35} x2="340" y2={30 + i * 35} stroke={theme.borderLight} strokeWidth="1" opacity="0.4" />
+                      ))}
+                      
+                      {/* Area */}
+                      <path
+                        d={`M 30 ${150 - ((trendData[0].value - minVal) / (maxVal - minVal)) * 120} 
+                            ${trendData.map((d, i) => `L ${30 + i * 62} ${150 - ((d.value - minVal) / (maxVal - minVal)) * 120}`).join(' ')} 
+                            L 340 150 L 30 150 Z`}
+                        fill="url(#netWorthAreaGrad)"
+                      />
+                      
+                      {/* Line */}
+                      <path
+                        d={`M 30 ${150 - ((trendData[0].value - minVal) / (maxVal - minVal)) * 120} 
+                            ${trendData.map((d, i) => `L ${30 + i * 62} ${150 - ((d.value - minVal) / (maxVal - minVal)) * 120}`).join(' ')}`}
+                        fill="none"
+                        stroke="#10B981"
+                        strokeWidth="3"
+                        strokeLinecap="round"
+                      />
+                      
+                      {/* Points and labels */}
+                      {trendData.map((d, i) => (
+                        <g key={i}>
+                          <circle
+                            cx={30 + i * 62}
+                            cy={150 - ((d.value - minVal) / (maxVal - minVal)) * 120}
+                            r="5"
+                            fill="#10B981"
+                            stroke="white"
+                            strokeWidth="2"
+                          />
+                          <text x={30 + i * 62} y="170" fill={theme.textMuted} fontSize="11" textAnchor="middle">
+                            {d.month}
+                          </text>
+                        </g>
+                      ))}
+                    </svg>
+                    
+                    {/* Growth indicator */}
+                    <div style={{
+                      marginTop: '16px',
+                      padding: '14px 18px',
+                      background: theme.mode === 'dark' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(16, 185, 129, 0.05)',
+                      borderRadius: '12px',
+                      border: '1px solid rgba(16, 185, 129, 0.2)',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center'
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ fontSize: '18px' }}>🚀</span>
+                        <span style={{ fontSize: '13px', color: theme.textSecondary }}>6-Month Growth</span>
+                      </div>
+                      <span style={{ fontSize: '18px', fontWeight: '700', color: '#10B981' }}>
+                        +{((trendData[5].value - trendData[0].value) / trendData[0].value * 100).toFixed(1)}%
+                      </span>
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
@@ -7547,7 +7233,8 @@ function DashboardHome({ transactions, goals, bills = [], tasks = [], theme, las
         );
       })()}
 
-      {/* ═══════════════════════════════════════════════════════════════════ */}
+      
+{/* ═══════════════════════════════════════════════════════════════════ */}
       {/* 📈 CASH FLOW FORECAST - 30-Day Projection */}
       {/* ═══════════════════════════════════════════════════════════════════ */}
       {(() => {
@@ -7779,7 +7466,339 @@ function DashboardHome({ transactions, goals, bills = [], tasks = [], theme, las
         );
       })()}
 
+      
+            {/* Top Stats Row - Soft Gradient Cards */}
+      <div className="stat-grid-4" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px', marginBottom: '24px' }}>
+        {/* Income Card - Cyan Gradient */}
+        <div style={{ 
+          background: theme.mode === 'dark' ? 'linear-gradient(135deg, #164E63 0%, #0E4A5C 100%)' : 'linear-gradient(135deg, #E0F7FA 0%, #B2EBF2 100%)', 
+          borderRadius: '20px', 
+          padding: '20px', 
+          boxShadow: '0 4px 20px rgba(0, 188, 212, 0.15)',
+          border: `1px solid ${theme.mode === 'dark' ? 'rgba(0, 188, 212, 0.3)' : 'rgba(0, 188, 212, 0.2)'}`
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
+            <div style={{ 
+              width: '40px', height: '40px', borderRadius: '12px', 
+              background: theme.mode === 'dark' ? 'rgba(0, 188, 212, 0.3)' : 'rgba(0, 188, 212, 0.2)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' 
+            }}>💰</div>
+            <span style={{ fontSize: '14px', color: theme.mode === 'dark' ? '#67E8F9' : '#00838F', fontWeight: '600' }}>Income</span>
+          </div>
+          <div style={{ fontSize: '28px', fontWeight: '700', color: theme.mode === 'dark' ? '#E0F7FA' : '#006064', marginBottom: '8px' }}>
+            {formatCurrency(activeTotals.income)}
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '12px', color: theme.mode === 'dark' ? '#67E8F9' : '#00695C' }}>vs last month</span>
+              <span style={{ fontSize: '12px', fontWeight: '600', color: '#10B981', display: 'flex', alignItems: 'center', gap: '2px' }}>
+                ↗ 25%
+              </span>
+            </div>
+            <Sparkline data={monthlyData.map(m => m.income)} color="#00BCD4" width={70} height={40} />
+          </div>
+        </div>
+
+        {/* Expenses Card - Orange/Coral Gradient */}
+        <div style={{ 
+          background: theme.mode === 'dark' ? 'linear-gradient(135deg, #7C2D12 0%, #6B2A0F 100%)' : 'linear-gradient(135deg, #FFF3E0 0%, #FFE0B2 100%)', 
+          borderRadius: '20px', 
+          padding: '20px', 
+          boxShadow: '0 4px 20px rgba(255, 152, 0, 0.15)',
+          border: `1px solid ${theme.mode === 'dark' ? 'rgba(255, 152, 0, 0.3)' : 'rgba(255, 152, 0, 0.2)'}`
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
+            <div style={{ 
+              width: '40px', height: '40px', borderRadius: '12px', 
+              background: theme.mode === 'dark' ? 'rgba(255, 152, 0, 0.3)' : 'rgba(255, 152, 0, 0.2)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' 
+            }}>🔥</div>
+            <span style={{ fontSize: '14px', color: theme.mode === 'dark' ? '#FDBA74' : '#E65100', fontWeight: '600' }}>Expenses</span>
+          </div>
+          <div style={{ fontSize: '28px', fontWeight: '700', color: theme.mode === 'dark' ? '#FFF3E0' : '#BF360C', marginBottom: '8px' }}>
+            {formatCurrency(activeTotals.expenses)}
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '12px', color: theme.mode === 'dark' ? '#FDBA74' : '#E65100' }}>vs last month</span>
+              <span style={{ fontSize: '12px', fontWeight: '600', color: '#EF4444', display: 'flex', alignItems: 'center', gap: '2px' }}>
+                ↗ 5%
+              </span>
+            </div>
+            <Sparkline data={monthlyData.map(m => m.expenses)} color="#FF9800" width={70} height={40} />
+          </div>
+        </div>
+
+        {/* Savings Card - Green Gradient */}
+        <div style={{ 
+          background: theme.mode === 'dark' ? 'linear-gradient(135deg, #14532D 0%, #115E2B 100%)' : 'linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%)', 
+          borderRadius: '20px', 
+          padding: '20px', 
+          boxShadow: '0 4px 20px rgba(76, 175, 80, 0.15)',
+          border: `1px solid ${theme.mode === 'dark' ? 'rgba(76, 175, 80, 0.3)' : 'rgba(76, 175, 80, 0.2)'}`
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
+            <div style={{ 
+              width: '40px', height: '40px', borderRadius: '12px', 
+              background: theme.mode === 'dark' ? 'rgba(76, 175, 80, 0.3)' : 'rgba(76, 175, 80, 0.2)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' 
+            }}>🏦</div>
+            <span style={{ fontSize: '14px', color: theme.mode === 'dark' ? '#86EFAC' : '#2E7D32', fontWeight: '600' }}>Savings</span>
+          </div>
+          <div style={{ fontSize: '28px', fontWeight: '700', color: theme.mode === 'dark' ? '#E8F5E9' : '#1B5E20', marginBottom: '8px' }}>
+            {formatCurrency(Math.max(0, activeTotals.net))}
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '12px', color: theme.mode === 'dark' ? '#86EFAC' : '#2E7D32' }}>vs last month</span>
+              <span style={{ fontSize: '12px', fontWeight: '600', color: activeTotals.net >= 0 ? '#10B981' : '#EF4444', display: 'flex', alignItems: 'center', gap: '2px' }}>
+                {activeTotals.net >= 0 ? '↗' : '↘'} 15%
+              </span>
+            </div>
+            <Sparkline data={monthlyData.map(m => m.income - m.expenses)} color="#4CAF50" width={70} height={40} />
+          </div>
+        </div>
+
+        {/* Transactions Card - Purple Gradient */}
+        <div style={{ 
+          background: theme.mode === 'dark' ? 'linear-gradient(135deg, #4A1D6B 0%, #3D1A5A 100%)' : 'linear-gradient(135deg, #F3E5F5 0%, #E1BEE7 100%)', 
+          borderRadius: '20px', 
+          padding: '20px', 
+          boxShadow: '0 4px 20px rgba(156, 39, 176, 0.15)',
+          border: `1px solid ${theme.mode === 'dark' ? 'rgba(156, 39, 176, 0.3)' : 'rgba(156, 39, 176, 0.2)'}`
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
+            <div style={{ 
+              width: '40px', height: '40px', borderRadius: '12px', 
+              background: theme.mode === 'dark' ? 'rgba(156, 39, 176, 0.3)' : 'rgba(156, 39, 176, 0.2)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' 
+            }}>📊</div>
+            <span style={{ fontSize: '14px', color: theme.mode === 'dark' ? '#D8B4FE' : '#7B1FA2', fontWeight: '600' }}>Transactions</span>
+          </div>
+          <div style={{ fontSize: '28px', fontWeight: '700', color: theme.mode === 'dark' ? '#F3E5F5' : '#4A148C', marginBottom: '8px' }}>
+            {activeTransactions.length.toLocaleString()}
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '12px', color: theme.mode === 'dark' ? '#D8B4FE' : '#7B1FA2' }}>vs last month</span>
+              <span style={{ fontSize: '12px', fontWeight: '600', color: '#10B981', display: 'flex', alignItems: 'center', gap: '2px' }}>
+                ↗ 10%
+              </span>
+            </div>
+            <Sparkline data={[30, 45, 35, 50, 40, 55, 60]} color="#9C27B0" width={70} height={40} />
+          </div>
+        </div>
+      </div>
+
+{/* ═══════════════════════════════════════════════════════════════════ */}
+      {/* 📊 SPENDING BY CATEGORY - Premium Horizontal Bar Chart */}
       {/* ═══════════════════════════════════════════════════════════════════ */}
+      {(() => {
+        const getCategoryIcon = (name) => {
+          const icons = {
+            'Fast Food': '🍔', 'Restaurants': '🍽️', 'Groceries': '🛒', 'Gas': '⛽',
+            'Shopping': '🛍️', 'Entertainment': '🎬', 'Utilities': '💡', 'Transfer': '↔️',
+            'Hobbies': '🎮', 'Doctor': '🏥', 'Pharmacy': '💊', 'Auto & Transport': '🚗',
+            'Electronics & Software': '💻', 'Television': '📺', 'Financial': '🏦',
+            'Category Pending': '❓', 'Other': '📦'
+          };
+          return icons[name] || '📦';
+        };
+        
+        const getCatColor = (name, idx) => {
+          const colors = {
+            'Fast Food': '#8B5CF6', 'Restaurants': '#EC4899', 'Groceries': '#10B981',
+            'Gas': '#F59E0B', 'Shopping': '#3B82F6', 'Entertainment': '#06B6D4',
+            'Utilities': '#0891B2', 'Transfer': '#6366F1', 'Hobbies': '#F97316',
+            'Doctor': '#EF4444', 'Category Pending': '#64748B'
+          };
+          return colors[name] || ['#8B5CF6', '#EC4899', '#10B981', '#F59E0B', '#3B82F6', '#06B6D4'][idx % 6];
+        };
+        
+        const spendingData = sortedCategories.map(([name, spent], idx) => {
+          const budget = budgets.find(b => b.category === name)?.budget || spent * 1.3;
+          const pct = (spent / budget) * 100;
+          return { name, spent, budget, percent: pct, color: getCatColor(name, idx), icon: getCategoryIcon(name) };
+        });
+        
+        const totalSpending = spendingData.reduce((s, c) => s + c.spent, 0);
+        const totalBudgetSpend = spendingData.reduce((s, c) => s + c.budget, 0);
+        
+        return (
+          <div style={{ marginBottom: '24px' }}>
+            <div 
+              onClick={() => toggleSection('spendingCategory')}
+              style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: '12px', 
+                marginBottom: collapsedSections.spendingCategory ? '0px' : '16px',
+                cursor: 'pointer',
+                userSelect: 'none'
+              }}
+            >
+              <div style={{ 
+                width: '4px', 
+                height: '24px', 
+                background: 'linear-gradient(180deg, #EC4899, #8B5CF6)', 
+                borderRadius: '2px' 
+              }} />
+              <h2 style={{ fontSize: '18px', fontWeight: '700', color: theme.textPrimary, margin: 0 }}>
+                Spending by Category
+              </h2>
+              <span style={{ 
+                background: theme.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
+                color: theme.textMuted,
+                padding: '4px 12px',
+                borderRadius: '20px',
+                fontSize: '12px',
+                fontWeight: '500'
+              }}>
+                {spendingData.length} categories
+              </span>
+              <span style={{ 
+                fontSize: '12px', 
+                color: theme.textMuted,
+                marginLeft: 'auto',
+                transition: 'transform 0.2s',
+                transform: collapsedSections.spendingCategory ? 'rotate(-90deg)' : 'rotate(0deg)'
+              }}>▼</span>
+            </div>
+            
+            {!collapsedSections.spendingCategory && (
+              <div style={{
+                background: theme.bgCard,
+                borderRadius: '20px',
+                padding: '28px',
+                boxShadow: theme.cardShadow,
+                border: `1px solid ${theme.borderLight}`,
+                position: 'relative',
+                overflow: 'hidden'
+              }}>
+                <div style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  height: '4px',
+                  background: 'linear-gradient(90deg, #EC4899, #8B5CF6, #3B82F6, #06B6D4)'
+                }} />
+                
+                {/* Header with totals */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '24px' }}>
+                  <div>
+                    <div style={{ fontSize: '13px', color: theme.textMuted, marginBottom: '6px' }}>Total Spending This Period</div>
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px' }}>
+                      <span style={{ fontSize: '32px', fontWeight: '700', color: theme.textPrimary }}>
+                        {formatCurrency(totalSpending)}
+                      </span>
+                      <span style={{ fontSize: '15px', color: theme.textMuted }}>
+                        / {formatCurrency(totalBudgetSpend)} budgeted
+                      </span>
+                    </div>
+                  </div>
+                  <div style={{
+                    padding: '8px 16px',
+                    background: totalSpending <= totalBudgetSpend ? '#10B98115' : '#EF444415',
+                    borderRadius: '10px',
+                    border: `1px solid ${totalSpending <= totalBudgetSpend ? '#10B98130' : '#EF444430'}`
+                  }}>
+                    <span style={{ 
+                      fontSize: '14px', 
+                      fontWeight: '600', 
+                      color: totalSpending <= totalBudgetSpend ? '#10B981' : '#EF4444' 
+                    }}>
+                      {totalSpending <= totalBudgetSpend ? '✓ Under Budget' : '⚠ Over Budget'}
+                    </span>
+                  </div>
+                </div>
+                
+                {/* Category Bars */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+                  {spendingData.map((cat, i) => (
+                    <div key={cat.name}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                          <div style={{
+                            width: '40px',
+                            height: '40px',
+                            borderRadius: '12px',
+                            background: `${cat.color}15`,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '20px',
+                            border: `1px solid ${cat.color}25`
+                          }}>
+                            {cat.icon}
+                          </div>
+                          <div>
+                            <div style={{ fontSize: '15px', fontWeight: '600', color: theme.textPrimary }}>
+                              {cat.name}
+                            </div>
+                            <div style={{ fontSize: '12px', color: theme.textMuted }}>
+                              {Math.round(cat.spent / totalSpending * 100)}% of total • {formatCurrency(cat.budget)} budget
+                            </div>
+                          </div>
+                        </div>
+                        <div style={{ textAlign: 'right' }}>
+                          <div style={{ fontSize: '17px', fontWeight: '700', color: theme.textPrimary }}>
+                            {formatCurrency(cat.spent)}
+                          </div>
+                          <div style={{ 
+                            fontSize: '12px', 
+                            fontWeight: '600',
+                            color: cat.percent > 100 ? '#EF4444' : cat.percent > 80 ? '#F59E0B' : '#10B981'
+                          }}>
+                            {cat.percent.toFixed(0)}% used
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Progress Bar */}
+                      <div style={{ position: 'relative', height: '10px' }}>
+                        <div style={{
+                          height: '100%',
+                          background: theme.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)',
+                          borderRadius: '5px',
+                          overflow: 'hidden'
+                        }}>
+                          <div style={{
+                            width: `${Math.min(cat.percent, 100)}%`,
+                            height: '100%',
+                            background: cat.percent > 100 
+                              ? 'linear-gradient(90deg, #EF4444, #F87171)'
+                              : cat.percent > 80
+                              ? 'linear-gradient(90deg, #F59E0B, #FBBF24)'
+                              : `linear-gradient(90deg, ${cat.color}, ${cat.color}BB)`,
+                            borderRadius: '5px',
+                            transition: 'width 0.6s ease-out',
+                            boxShadow: cat.percent > 80 ? `0 0 10px ${cat.percent > 100 ? '#EF444450' : '#F59E0B50'}` : 'none'
+                          }} />
+                        </div>
+                        {/* Budget line marker */}
+                        <div style={{
+                          position: 'absolute',
+                          left: '100%',
+                          top: '-2px',
+                          bottom: '-2px',
+                          width: '2px',
+                          background: theme.textMuted,
+                          borderRadius: '1px',
+                          opacity: 0.5
+                        }} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      })()}
+
+      
+{/* ═══════════════════════════════════════════════════════════════════ */}
       {/* 🔄 RECURRING TRANSACTIONS - Subscriptions & Bills Tracker */}
       {/* ═══════════════════════════════════════════════════════════════════ */}
       {(() => {
@@ -8019,7 +8038,448 @@ function DashboardHome({ transactions, goals, bills = [], tasks = [], theme, las
         );
       })()}
 
+      
+            {/* ═══════════════════════════════════════════════════════════════════ */}
+      {/* QUICK ACTIONS - Bills & Goals (Collapsible) */}
       {/* ═══════════════════════════════════════════════════════════════════ */}
+      <div 
+        onClick={() => toggleSection('quickActions')}
+        style={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          gap: '12px', 
+          marginBottom: collapsedSections.quickActions ? '24px' : '16px',
+          paddingTop: '8px',
+          cursor: 'pointer',
+          userSelect: 'none'
+        }}
+      >
+        <div style={{ 
+          width: '4px', 
+          height: '24px', 
+          background: 'linear-gradient(180deg, #EC4899 0%, #8B5CF6 100%)', 
+          borderRadius: '2px' 
+        }} />
+        <h2 style={{ 
+          fontSize: '18px', 
+          fontWeight: '700', 
+          color: theme.textPrimary, 
+          margin: 0,
+          letterSpacing: '-0.3px'
+        }}>Quick Actions</h2>
+        <span style={{ 
+          fontSize: '12px', 
+          color: theme.textMuted,
+          background: theme.bgMain,
+          padding: '4px 10px',
+          borderRadius: '6px'
+        }}>Items needing attention</span>
+        <span style={{ 
+          marginLeft: 'auto', 
+          fontSize: '12px', 
+          color: theme.textMuted,
+          transition: 'transform 0.2s',
+          transform: collapsedSections.quickActions ? 'rotate(-90deg)' : 'rotate(0deg)'
+        }}>▼</span>
+      </div>
+
+      {/* Bills, Tasks & Goals Row - Priority Section (3 columns) */}
+      {!collapsedSections.quickActions && (
+      <div className="quick-actions-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px', marginBottom: '32px' }}>
+        {/* Upcoming Bills */}
+        <div style={{ 
+          background: theme.bgCard, 
+          borderRadius: '16px', 
+          padding: '20px', 
+          boxShadow: theme.cardShadow, 
+          border: `1px solid ${theme.borderLight}`,
+          position: 'relative',
+          overflow: 'hidden'
+        }}>
+          {/* Subtle gradient accent */}
+          <div style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            height: '3px',
+            background: 'linear-gradient(90deg, #EF4444 0%, #F97316 100%)'
+          }} />
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+            <h3 style={{ fontSize: '15px', fontWeight: '600', color: theme.textPrimary, margin: 0 }}>Upcoming Bills</h3>
+            <span style={{ padding: '3px 8px', background: '#FEE2E2', color: '#DC2626', borderRadius: '10px', fontSize: '11px', fontWeight: '600' }}>{upcomingBills.length} due</span>
+          </div>
+          <div style={{ display: 'grid', gap: '10px' }}>
+            {upcomingBills.slice(0, 3).map((bill, i) => {
+              const dueDate = new Date(bill.dueDate);
+              const daysUntil = Math.ceil((dueDate - new Date()) / (1000 * 60 * 60 * 24));
+              return (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 12px', borderRadius: '10px', background: theme.bgMain, border: daysUntil <= 3 ? '1px solid #FCA5A5' : `1px solid ${theme.borderLight}` }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px' }}>{bill.icon || '📄'}</div>
+                    <div><div style={{ fontSize: '13px', fontWeight: '500', color: theme.textPrimary }}>{bill.name}</div><div style={{ fontSize: '11px', color: daysUntil <= 3 ? '#DC2626' : theme.textMuted }}>{daysUntil <= 0 ? 'Due today!' : daysUntil === 1 ? 'Tomorrow' : `${daysUntil} days`}</div></div>
+                  </div>
+                  <span style={{ fontSize: '13px', fontWeight: '700', color: theme.textPrimary }}>${bill.amount.toFixed(2)}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+        
+        {/* Upcoming Tasks */}
+        <div style={{ 
+          background: theme.bgCard, 
+          borderRadius: '16px', 
+          padding: '20px', 
+          boxShadow: theme.cardShadow, 
+          border: `1px solid ${theme.borderLight}`,
+          position: 'relative',
+          overflow: 'hidden'
+        }}>
+          {/* Subtle gradient accent */}
+          <div style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            height: '3px',
+            background: 'linear-gradient(90deg, #F59E0B 0%, #EF4444 100%)'
+          }} />
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+            <h3 style={{ fontSize: '15px', fontWeight: '600', color: theme.textPrimary, margin: 0 }}>Upcoming Tasks</h3>
+            <span style={{ padding: '3px 8px', background: '#FEF3C7', color: '#D97706', borderRadius: '10px', fontSize: '11px', fontWeight: '600' }}>{tasks.filter(t => t.status !== 'completed').length} pending</span>
+          </div>
+          <div style={{ display: 'grid', gap: '10px' }}>
+            {tasks.filter(t => t.status !== 'completed').slice(0, 3).length > 0 ? (
+              tasks.filter(t => t.status !== 'completed').slice(0, 3).map((task, i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 12px', borderRadius: '10px', background: theme.bgMain, border: `1px solid ${theme.borderLight}` }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <div style={{ 
+                      width: '32px', 
+                      height: '32px', 
+                      borderRadius: '8px', 
+                      background: task.status === 'in-progress' ? 'linear-gradient(135deg, #F59E0B 0%, #EF4444 100%)' : 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)', 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      justifyContent: 'center', 
+                      fontSize: '14px' 
+                    }}>{task.status === 'in-progress' ? '🔄' : '📋'}</div>
+                    <div>
+                      <div style={{ fontSize: '13px', fontWeight: '500', color: theme.textPrimary }}>{task.title.slice(0, 20)}{task.title.length > 20 ? '...' : ''}</div>
+                      <div style={{ fontSize: '11px', color: theme.textMuted }}>
+                        {task.dueDate ? new Date(task.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'No due date'}
+                      </div>
+                    </div>
+                  </div>
+                  <span style={{ 
+                    fontSize: '10px', 
+                    padding: '3px 8px', 
+                    borderRadius: '6px',
+                    background: task.status === 'in-progress' ? '#FEF3C7' : '#E0E7FF',
+                    color: task.status === 'in-progress' ? '#D97706' : '#6366F1',
+                    fontWeight: '600'
+                  }}>
+                    {task.status === 'in-progress' ? 'Active' : 'To Do'}
+                  </span>
+                </div>
+              ))
+            ) : (
+              <div style={{ 
+                padding: '20px', 
+                textAlign: 'center', 
+                background: theme.bgMain, 
+                borderRadius: '10px',
+                border: `1px dashed ${theme.borderLight}`
+              }}>
+                <span style={{ fontSize: '20px', display: 'block', marginBottom: '6px' }}>✨</span>
+                <span style={{ fontSize: '12px', color: theme.textMuted }}>No pending tasks</span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Savings Goals */}
+        <div style={{ 
+          background: theme.bgCard, 
+          borderRadius: '16px', 
+          padding: '20px', 
+          boxShadow: theme.cardShadow, 
+          border: `1px solid ${theme.borderLight}`,
+          position: 'relative',
+          overflow: 'hidden'
+        }}>
+          {/* Subtle gradient accent */}
+          <div style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            height: '3px',
+            background: 'linear-gradient(90deg, #10B981 0%, #06B6D4 100%)'
+          }} />
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+            <h3 style={{ fontSize: '15px', fontWeight: '600', color: theme.textPrimary, margin: 0 }}>Savings Goals</h3>
+            <button style={{ background: 'none', border: 'none', color: theme.primary, fontSize: '12px', cursor: 'pointer', fontWeight: '500' }}>View All →</button>
+          </div>
+          <div style={{ display: 'grid', gap: '10px' }}>
+            {displayGoals.slice(0, 3).map((goal, i) => {
+              const progress = (goal.currentAmount / goal.targetAmount) * 100;
+              return (
+                <div key={i} style={{ padding: '10px 12px', background: theme.bgMain, borderRadius: '10px', border: `1px solid ${theme.borderLight}` }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+                    <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: `${goal.color}20`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px' }}>{goal.icon}</div>
+                    <div style={{ flex: 1 }}><div style={{ fontSize: '13px', fontWeight: '600', color: theme.textPrimary }}>{goal.name}</div><div style={{ fontSize: '11px', color: theme.textMuted }}>{formatCurrency(goal.currentAmount)} of {formatCurrency(goal.targetAmount)}</div></div>
+                    <span style={{ fontSize: '13px', fontWeight: '700', color: goal.color }}>{progress.toFixed(0)}%</span>
+                  </div>
+                  <div style={{ height: '6px', background: theme.borderLight, borderRadius: '3px', overflow: 'hidden' }}><div style={{ height: '100%', width: `${progress}%`, background: `linear-gradient(90deg, ${goal.color} 0%, ${goal.color}CC 100%)`, borderRadius: '3px', transition: 'width 0.5s ease' }} /></div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+      )}
+
+{/* ═══════════════════════════════════════════════════════════════════ */}
+      {/* 🏆 FINANCIAL MILESTONES & ACHIEVEMENTS */}
+      {/* ═══════════════════════════════════════════════════════════════════ */}
+      {(() => {
+        const savingsRateAch = activeTotals.income > 0 
+          ? ((activeTotals.income - activeTotals.expenses) / activeTotals.income) * 100 
+          : 0;
+        
+        const completedGoalsCount = goals.filter(g => (g.currentAmount / g.targetAmount) >= 1).length;
+        
+        const achievements = [
+          { 
+            icon: '💰', 
+            title: 'Super Saver', 
+            desc: 'Saving 20%+ of income', 
+            color: '#10B981', 
+            earned: savingsRateAch >= 20 
+          },
+          { 
+            icon: '💵', 
+            title: 'Steady Saver', 
+            desc: 'Saving 10%+ of income', 
+            color: '#06B6D4', 
+            earned: savingsRateAch >= 10 
+          },
+          { 
+            icon: '📊', 
+            title: 'Data Master', 
+            desc: '100+ transactions', 
+            color: '#8B5CF6', 
+            earned: activeTransactions.length >= 100 
+          },
+          { 
+            icon: '🎯', 
+            title: 'Goal Crusher', 
+            desc: 'Completed a goal', 
+            color: '#EC4899', 
+            earned: completedGoalsCount >= 1 
+          },
+          { 
+            icon: '✅', 
+            title: 'Under Budget', 
+            desc: 'Spend less than earn', 
+            color: '#10B981', 
+            earned: activeTotals.expenses < activeTotals.income 
+          },
+          { 
+            icon: '🔥', 
+            title: 'Consistency King', 
+            desc: 'Track for 30+ days', 
+            color: '#F59E0B', 
+            earned: activeTransactions.length >= 30 
+          },
+          { 
+            icon: '🛡️', 
+            title: 'Safety Net', 
+            desc: 'Emergency fund started', 
+            color: '#3B82F6', 
+            earned: goals.some(g => g.name?.toLowerCase().includes('emergency') && g.currentAmount > 0) 
+          },
+          { 
+            icon: '📈', 
+            title: 'Wealth Builder', 
+            desc: 'Positive net worth', 
+            color: '#10B981', 
+            earned: (activeTotals.income - activeTotals.expenses) > 0 
+          }
+        ];
+        
+        const earnedCount = achievements.filter(a => a.earned).length;
+        
+        // Simulated streaks
+        const budgetStreak = Math.floor(Math.random() * 20) + 5;
+        const savingsStreak = Math.floor(Math.random() * 12) + 2;
+        
+        return (
+          <div style={{ marginBottom: '24px' }}>
+            <div 
+              onClick={() => toggleSection('milestones')}
+              style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: '12px', 
+                marginBottom: collapsedSections.milestones ? '0px' : '16px',
+                cursor: 'pointer',
+                userSelect: 'none'
+              }}
+            >
+              <div style={{ 
+                width: '4px', 
+                height: '24px', 
+                background: 'linear-gradient(180deg, #F59E0B, #EC4899)', 
+                borderRadius: '2px' 
+              }} />
+              <h2 style={{ fontSize: '18px', fontWeight: '700', color: theme.textPrimary, margin: 0 }}>
+                Achievements & Streaks
+              </h2>
+              <span style={{ 
+                background: '#F59E0B20',
+                color: '#F59E0B',
+                padding: '4px 12px',
+                borderRadius: '20px',
+                fontSize: '12px',
+                fontWeight: '600'
+              }}>
+                🔥 {budgetStreak} day streak
+              </span>
+              <span style={{ 
+                background: '#8B5CF620',
+                color: '#8B5CF6',
+                padding: '4px 12px',
+                borderRadius: '20px',
+                fontSize: '12px',
+                fontWeight: '600'
+              }}>
+                🏆 {earnedCount}/{achievements.length} earned
+              </span>
+              <span style={{ 
+                fontSize: '12px', 
+                color: theme.textMuted,
+                marginLeft: 'auto',
+                transition: 'transform 0.2s',
+                transform: collapsedSections.milestones ? 'rotate(-90deg)' : 'rotate(0deg)'
+              }}>▼</span>
+            </div>
+            
+            {!collapsedSections.milestones && (
+              <div style={{
+                background: theme.bgCard,
+                borderRadius: '20px',
+                padding: '28px',
+                boxShadow: theme.cardShadow,
+                border: `1px solid ${theme.borderLight}`,
+                position: 'relative',
+                overflow: 'hidden'
+              }}>
+                <div style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  height: '4px',
+                  background: 'linear-gradient(90deg, #F59E0B, #EC4899, #8B5CF6)'
+                }} />
+                
+                {/* Streaks Row */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '28px' }}>
+                  <div style={{
+                    background: `linear-gradient(135deg, ${theme.mode === 'dark' ? 'rgba(245, 158, 11, 0.15)' : 'rgba(245, 158, 11, 0.08)'}, ${theme.mode === 'dark' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(239, 68, 68, 0.05)'})`,
+                    borderRadius: '18px',
+                    padding: '24px',
+                    border: '1px solid rgba(245, 158, 11, 0.25)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '20px'
+                  }}>
+                    <div style={{ fontSize: '48px' }}>🔥</div>
+                    <div>
+                      <div style={{ fontSize: '36px', fontWeight: '800', color: '#F59E0B', lineHeight: 1 }}>{budgetStreak}</div>
+                      <div style={{ fontSize: '14px', color: theme.textSecondary, marginTop: '4px' }}>Days under budget</div>
+                    </div>
+                  </div>
+                  
+                  <div style={{
+                    background: `linear-gradient(135deg, ${theme.mode === 'dark' ? 'rgba(16, 185, 129, 0.15)' : 'rgba(16, 185, 129, 0.08)'}, ${theme.mode === 'dark' ? 'rgba(6, 182, 212, 0.1)' : 'rgba(6, 182, 212, 0.05)'})`,
+                    borderRadius: '18px',
+                    padding: '24px',
+                    border: '1px solid rgba(16, 185, 129, 0.25)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '20px'
+                  }}>
+                    <div style={{ fontSize: '48px' }}>💪</div>
+                    <div>
+                      <div style={{ fontSize: '36px', fontWeight: '800', color: '#10B981', lineHeight: 1 }}>{savingsStreak}</div>
+                      <div style={{ fontSize: '14px', color: theme.textSecondary, marginTop: '4px' }}>Months hitting savings goal</div>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Achievements Grid */}
+                <div style={{ marginBottom: '8px' }}>
+                  <div style={{ fontSize: '15px', fontWeight: '600', color: theme.textPrimary, marginBottom: '16px' }}>
+                    Achievements ({earnedCount}/{achievements.length})
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '14px' }}>
+                    {achievements.map((ach, i) => (
+                      <div key={i} style={{
+                        background: ach.earned 
+                          ? `${ach.color}12`
+                          : theme.mode === 'dark' ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)',
+                        borderRadius: '16px',
+                        padding: '20px 16px',
+                        border: `1px solid ${ach.earned ? `${ach.color}30` : theme.borderLight}`,
+                        textAlign: 'center',
+                        opacity: ach.earned ? 1 : 0.5,
+                        transition: 'all 0.3s ease',
+                        position: 'relative',
+                        overflow: 'hidden'
+                      }}>
+                        {ach.earned && (
+                          <div style={{
+                            position: 'absolute',
+                            top: '8px',
+                            right: '8px',
+                            width: '18px',
+                            height: '18px',
+                            borderRadius: '50%',
+                            background: ach.color,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '10px',
+                            color: 'white'
+                          }}>✓</div>
+                        )}
+                        <div style={{ fontSize: '36px', marginBottom: '10px' }}>{ach.earned ? ach.icon : '🔒'}</div>
+                        <div style={{ 
+                          fontSize: '13px', 
+                          fontWeight: '600', 
+                          color: ach.earned ? ach.color : theme.textMuted,
+                          marginBottom: '4px'
+                        }}>
+                          {ach.title}
+                        </div>
+                        <div style={{ fontSize: '11px', color: theme.textMuted }}>
+                          {ach.desc}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      })()}
+
+
+            {/* ═══════════════════════════════════════════════════════════════════ */}
       {/* FINANCIAL OVERVIEW (Collapsible) */}
       {/* ═══════════════════════════════════════════════════════════════════ */}
       <div 
@@ -8705,460 +9165,7 @@ function DashboardHome({ transactions, goals, bills = [], tasks = [], theme, las
       </div>
       )}
 
-      {/* ═══════════════════════════════════════════════════════════════════ */}
-      {/* 💰 NET WORTH TRACKER - Wealth Building */}
-      {/* ═══════════════════════════════════════════════════════════════════ */}
-      {(() => {
-        // Calculate net worth metrics
-        const savingsFromGoals = goals.reduce((sum, g) => sum + (parseFloat(g.currentAmount) || 0), 0);
-        const estimatedAssets = (activeTotals.income * 2.5) + savingsFromGoals;
-        const estimatedLiabilities = activeTotals.expenses * 0.25;
-        const netWorthValue = estimatedAssets - estimatedLiabilities;
-        const monthlyChange = activeTotals.income - activeTotals.expenses;
-        
-        // Trend data (simulated - 6 months)
-        const trendData = [
-          { month: 'Jul', value: netWorthValue * 0.82 },
-          { month: 'Aug', value: netWorthValue * 0.86 },
-          { month: 'Sep', value: netWorthValue * 0.90 },
-          { month: 'Oct', value: netWorthValue * 0.94 },
-          { month: 'Nov', value: netWorthValue * 0.97 },
-          { month: 'Dec', value: netWorthValue }
-        ];
-        
-        const minVal = Math.min(...trendData.map(d => d.value)) * 0.95;
-        const maxVal = Math.max(...trendData.map(d => d.value)) * 1.05;
-        
-        return (
-          <div style={{ marginBottom: '24px' }}>
-            <div 
-              onClick={() => toggleSection('netWorth')}
-              style={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                gap: '12px', 
-                marginBottom: collapsedSections.netWorth ? '0px' : '16px',
-                cursor: 'pointer',
-                userSelect: 'none'
-              }}
-            >
-              <div style={{ 
-                width: '4px', 
-                height: '24px', 
-                background: 'linear-gradient(180deg, #10B981, #3B82F6)', 
-                borderRadius: '2px' 
-              }} />
-              <h2 style={{ fontSize: '18px', fontWeight: '700', color: theme.textPrimary, margin: 0 }}>
-                Net Worth
-              </h2>
-              <span style={{ 
-                background: monthlyChange >= 0 ? '#10B98120' : '#EF444420',
-                color: monthlyChange >= 0 ? '#10B981' : '#EF4444',
-                padding: '4px 12px',
-                borderRadius: '20px',
-                fontSize: '12px',
-                fontWeight: '600'
-              }}>
-                {monthlyChange >= 0 ? '+' : ''}{formatCurrency(monthlyChange)} this month
-              </span>
-              <span style={{ 
-                fontSize: '12px', 
-                color: theme.textMuted,
-                marginLeft: 'auto',
-                transition: 'transform 0.2s',
-                transform: collapsedSections.netWorth ? 'rotate(-90deg)' : 'rotate(0deg)'
-              }}>▼</span>
-            </div>
-            
-            {!collapsedSections.netWorth && (
-              <div style={{
-                background: theme.bgCard,
-                borderRadius: '20px',
-                padding: '28px',
-                boxShadow: theme.cardShadow,
-                border: `1px solid ${theme.borderLight}`,
-                position: 'relative',
-                overflow: 'hidden'
-              }}>
-                <div style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  height: '4px',
-                  background: 'linear-gradient(90deg, #10B981, #3B82F6, #8B5CF6)'
-                }} />
-                
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr', gap: '40px' }}>
-                  {/* Left: Net Worth Display */}
-                  <div>
-                    <div style={{ fontSize: '13px', color: theme.textMuted, marginBottom: '8px' }}>Total Net Worth</div>
-                    <div style={{ 
-                      fontSize: '40px', 
-                      fontWeight: '800', 
-                      color: netWorthValue >= 0 ? '#10B981' : '#EF4444',
-                      marginBottom: '28px',
-                      letterSpacing: '-1px'
-                    }}>
-                      {formatCurrency(netWorthValue)}
-                    </div>
-                    
-                    {/* Assets & Liabilities */}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                      <div style={{
-                        background: theme.mode === 'dark' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(16, 185, 129, 0.05)',
-                        borderRadius: '14px',
-                        padding: '18px 20px',
-                        border: '1px solid rgba(16, 185, 129, 0.2)'
-                      }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                            <span style={{ fontSize: '22px' }}>📈</span>
-                            <span style={{ fontSize: '14px', color: theme.textSecondary, fontWeight: '500' }}>Total Assets</span>
-                          </div>
-                          <span style={{ fontSize: '20px', fontWeight: '700', color: '#10B981' }}>
-                            {formatCurrency(estimatedAssets)}
-                          </span>
-                        </div>
-                      </div>
-                      
-                      <div style={{
-                        background: theme.mode === 'dark' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(239, 68, 68, 0.05)',
-                        borderRadius: '14px',
-                        padding: '18px 20px',
-                        border: '1px solid rgba(239, 68, 68, 0.2)'
-                      }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                            <span style={{ fontSize: '22px' }}>📉</span>
-                            <span style={{ fontSize: '14px', color: theme.textSecondary, fontWeight: '500' }}>Total Liabilities</span>
-                          </div>
-                          <span style={{ fontSize: '20px', fontWeight: '700', color: '#EF4444' }}>
-                            {formatCurrency(estimatedLiabilities)}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  {/* Right: Trend Chart */}
-                  <div>
-                    <div style={{ fontSize: '13px', color: theme.textMuted, marginBottom: '16px' }}>6 Month Trend</div>
-                    <svg width="100%" height="180" viewBox="0 0 350 180" preserveAspectRatio="xMidYMid meet">
-                      <defs>
-                        <linearGradient id="netWorthAreaGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                          <stop offset="0%" stopColor="#10B981" stopOpacity="0.3" />
-                          <stop offset="100%" stopColor="#10B981" stopOpacity="0" />
-                        </linearGradient>
-                      </defs>
-                      
-                      {/* Grid */}
-                      {[0, 1, 2, 3].map(i => (
-                        <line key={i} x1="30" y1={30 + i * 35} x2="340" y2={30 + i * 35} stroke={theme.borderLight} strokeWidth="1" opacity="0.4" />
-                      ))}
-                      
-                      {/* Area */}
-                      <path
-                        d={`M 30 ${150 - ((trendData[0].value - minVal) / (maxVal - minVal)) * 120} 
-                            ${trendData.map((d, i) => `L ${30 + i * 62} ${150 - ((d.value - minVal) / (maxVal - minVal)) * 120}`).join(' ')} 
-                            L 340 150 L 30 150 Z`}
-                        fill="url(#netWorthAreaGrad)"
-                      />
-                      
-                      {/* Line */}
-                      <path
-                        d={`M 30 ${150 - ((trendData[0].value - minVal) / (maxVal - minVal)) * 120} 
-                            ${trendData.map((d, i) => `L ${30 + i * 62} ${150 - ((d.value - minVal) / (maxVal - minVal)) * 120}`).join(' ')}`}
-                        fill="none"
-                        stroke="#10B981"
-                        strokeWidth="3"
-                        strokeLinecap="round"
-                      />
-                      
-                      {/* Points and labels */}
-                      {trendData.map((d, i) => (
-                        <g key={i}>
-                          <circle
-                            cx={30 + i * 62}
-                            cy={150 - ((d.value - minVal) / (maxVal - minVal)) * 120}
-                            r="5"
-                            fill="#10B981"
-                            stroke="white"
-                            strokeWidth="2"
-                          />
-                          <text x={30 + i * 62} y="170" fill={theme.textMuted} fontSize="11" textAnchor="middle">
-                            {d.month}
-                          </text>
-                        </g>
-                      ))}
-                    </svg>
-                    
-                    {/* Growth indicator */}
-                    <div style={{
-                      marginTop: '16px',
-                      padding: '14px 18px',
-                      background: theme.mode === 'dark' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(16, 185, 129, 0.05)',
-                      borderRadius: '12px',
-                      border: '1px solid rgba(16, 185, 129, 0.2)',
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center'
-                    }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span style={{ fontSize: '18px' }}>🚀</span>
-                        <span style={{ fontSize: '13px', color: theme.textSecondary }}>6-Month Growth</span>
-                      </div>
-                      <span style={{ fontSize: '18px', fontWeight: '700', color: '#10B981' }}>
-                        +{((trendData[5].value - trendData[0].value) / trendData[0].value * 100).toFixed(1)}%
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        );
-      })()}
-
-      {/* ═══════════════════════════════════════════════════════════════════ */}
-      {/* 🏆 FINANCIAL MILESTONES & ACHIEVEMENTS */}
-      {/* ═══════════════════════════════════════════════════════════════════ */}
-      {(() => {
-        const savingsRateAch = activeTotals.income > 0 
-          ? ((activeTotals.income - activeTotals.expenses) / activeTotals.income) * 100 
-          : 0;
-        
-        const completedGoalsCount = goals.filter(g => (g.currentAmount / g.targetAmount) >= 1).length;
-        
-        const achievements = [
-          { 
-            icon: '💰', 
-            title: 'Super Saver', 
-            desc: 'Saving 20%+ of income', 
-            color: '#10B981', 
-            earned: savingsRateAch >= 20 
-          },
-          { 
-            icon: '💵', 
-            title: 'Steady Saver', 
-            desc: 'Saving 10%+ of income', 
-            color: '#06B6D4', 
-            earned: savingsRateAch >= 10 
-          },
-          { 
-            icon: '📊', 
-            title: 'Data Master', 
-            desc: '100+ transactions', 
-            color: '#8B5CF6', 
-            earned: activeTransactions.length >= 100 
-          },
-          { 
-            icon: '🎯', 
-            title: 'Goal Crusher', 
-            desc: 'Completed a goal', 
-            color: '#EC4899', 
-            earned: completedGoalsCount >= 1 
-          },
-          { 
-            icon: '✅', 
-            title: 'Under Budget', 
-            desc: 'Spend less than earn', 
-            color: '#10B981', 
-            earned: activeTotals.expenses < activeTotals.income 
-          },
-          { 
-            icon: '🔥', 
-            title: 'Consistency King', 
-            desc: 'Track for 30+ days', 
-            color: '#F59E0B', 
-            earned: activeTransactions.length >= 30 
-          },
-          { 
-            icon: '🛡️', 
-            title: 'Safety Net', 
-            desc: 'Emergency fund started', 
-            color: '#3B82F6', 
-            earned: goals.some(g => g.name?.toLowerCase().includes('emergency') && g.currentAmount > 0) 
-          },
-          { 
-            icon: '📈', 
-            title: 'Wealth Builder', 
-            desc: 'Positive net worth', 
-            color: '#10B981', 
-            earned: (activeTotals.income - activeTotals.expenses) > 0 
-          }
-        ];
-        
-        const earnedCount = achievements.filter(a => a.earned).length;
-        
-        // Simulated streaks
-        const budgetStreak = Math.floor(Math.random() * 20) + 5;
-        const savingsStreak = Math.floor(Math.random() * 12) + 2;
-        
-        return (
-          <div style={{ marginBottom: '24px' }}>
-            <div 
-              onClick={() => toggleSection('milestones')}
-              style={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                gap: '12px', 
-                marginBottom: collapsedSections.milestones ? '0px' : '16px',
-                cursor: 'pointer',
-                userSelect: 'none'
-              }}
-            >
-              <div style={{ 
-                width: '4px', 
-                height: '24px', 
-                background: 'linear-gradient(180deg, #F59E0B, #EC4899)', 
-                borderRadius: '2px' 
-              }} />
-              <h2 style={{ fontSize: '18px', fontWeight: '700', color: theme.textPrimary, margin: 0 }}>
-                Achievements & Streaks
-              </h2>
-              <span style={{ 
-                background: '#F59E0B20',
-                color: '#F59E0B',
-                padding: '4px 12px',
-                borderRadius: '20px',
-                fontSize: '12px',
-                fontWeight: '600'
-              }}>
-                🔥 {budgetStreak} day streak
-              </span>
-              <span style={{ 
-                background: '#8B5CF620',
-                color: '#8B5CF6',
-                padding: '4px 12px',
-                borderRadius: '20px',
-                fontSize: '12px',
-                fontWeight: '600'
-              }}>
-                🏆 {earnedCount}/{achievements.length} earned
-              </span>
-              <span style={{ 
-                fontSize: '12px', 
-                color: theme.textMuted,
-                marginLeft: 'auto',
-                transition: 'transform 0.2s',
-                transform: collapsedSections.milestones ? 'rotate(-90deg)' : 'rotate(0deg)'
-              }}>▼</span>
-            </div>
-            
-            {!collapsedSections.milestones && (
-              <div style={{
-                background: theme.bgCard,
-                borderRadius: '20px',
-                padding: '28px',
-                boxShadow: theme.cardShadow,
-                border: `1px solid ${theme.borderLight}`,
-                position: 'relative',
-                overflow: 'hidden'
-              }}>
-                <div style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  height: '4px',
-                  background: 'linear-gradient(90deg, #F59E0B, #EC4899, #8B5CF6)'
-                }} />
-                
-                {/* Streaks Row */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '28px' }}>
-                  <div style={{
-                    background: `linear-gradient(135deg, ${theme.mode === 'dark' ? 'rgba(245, 158, 11, 0.15)' : 'rgba(245, 158, 11, 0.08)'}, ${theme.mode === 'dark' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(239, 68, 68, 0.05)'})`,
-                    borderRadius: '18px',
-                    padding: '24px',
-                    border: '1px solid rgba(245, 158, 11, 0.25)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '20px'
-                  }}>
-                    <div style={{ fontSize: '48px' }}>🔥</div>
-                    <div>
-                      <div style={{ fontSize: '36px', fontWeight: '800', color: '#F59E0B', lineHeight: 1 }}>{budgetStreak}</div>
-                      <div style={{ fontSize: '14px', color: theme.textSecondary, marginTop: '4px' }}>Days under budget</div>
-                    </div>
-                  </div>
-                  
-                  <div style={{
-                    background: `linear-gradient(135deg, ${theme.mode === 'dark' ? 'rgba(16, 185, 129, 0.15)' : 'rgba(16, 185, 129, 0.08)'}, ${theme.mode === 'dark' ? 'rgba(6, 182, 212, 0.1)' : 'rgba(6, 182, 212, 0.05)'})`,
-                    borderRadius: '18px',
-                    padding: '24px',
-                    border: '1px solid rgba(16, 185, 129, 0.25)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '20px'
-                  }}>
-                    <div style={{ fontSize: '48px' }}>💪</div>
-                    <div>
-                      <div style={{ fontSize: '36px', fontWeight: '800', color: '#10B981', lineHeight: 1 }}>{savingsStreak}</div>
-                      <div style={{ fontSize: '14px', color: theme.textSecondary, marginTop: '4px' }}>Months hitting savings goal</div>
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Achievements Grid */}
-                <div style={{ marginBottom: '8px' }}>
-                  <div style={{ fontSize: '15px', fontWeight: '600', color: theme.textPrimary, marginBottom: '16px' }}>
-                    Achievements ({earnedCount}/{achievements.length})
-                  </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '14px' }}>
-                    {achievements.map((ach, i) => (
-                      <div key={i} style={{
-                        background: ach.earned 
-                          ? `${ach.color}12`
-                          : theme.mode === 'dark' ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)',
-                        borderRadius: '16px',
-                        padding: '20px 16px',
-                        border: `1px solid ${ach.earned ? `${ach.color}30` : theme.borderLight}`,
-                        textAlign: 'center',
-                        opacity: ach.earned ? 1 : 0.5,
-                        transition: 'all 0.3s ease',
-                        position: 'relative',
-                        overflow: 'hidden'
-                      }}>
-                        {ach.earned && (
-                          <div style={{
-                            position: 'absolute',
-                            top: '8px',
-                            right: '8px',
-                            width: '18px',
-                            height: '18px',
-                            borderRadius: '50%',
-                            background: ach.color,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            fontSize: '10px',
-                            color: 'white'
-                          }}>✓</div>
-                        )}
-                        <div style={{ fontSize: '36px', marginBottom: '10px' }}>{ach.earned ? ach.icon : '🔒'}</div>
-                        <div style={{ 
-                          fontSize: '13px', 
-                          fontWeight: '600', 
-                          color: ach.earned ? ach.color : theme.textMuted,
-                          marginBottom: '4px'
-                        }}>
-                          {ach.title}
-                        </div>
-                        <div style={{ fontSize: '11px', color: theme.textMuted }}>
-                          {ach.desc}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        );
-      })()}
-
-      {transactions.length === 0 && (
+            {transactions.length === 0 && (
         <div style={{ marginTop: '24px', background: theme.bgCard, borderRadius: '16px', padding: '60px', textAlign: 'center', boxShadow: theme.cardShadow, border: `1px solid ${theme.borderLight}` }}>
           <div style={{ width: '100px', height: '100px', borderRadius: '25px', background: `linear-gradient(135deg, ${theme.primary}15, ${theme.primary}25)`, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px', fontSize: '48px' }}>📊</div>
           <h3 style={{ fontSize: '24px', fontWeight: '600', color: theme.textPrimary, marginBottom: '12px' }}>Ready to Take Control?</h3>
