@@ -66,6 +66,499 @@ const COMMON_STYLES = {
 };
 
 // ============================================================================
+// COMING SOON MODE - Toggle this to show/hide the coming soon page
+// Set to false when ready to launch the full site
+// ============================================================================
+const COMING_SOON_MODE = true;
+
+// ============================================================================
+// COMING SOON PAGE COMPONENT - Pre-launch page with login access for testers
+// ============================================================================
+function ComingSoonPage({ onNavigateToApp, onNavigateToAuth }) {
+  const [email, setEmail] = useState('');
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [hoveredFeature, setHoveredFeature] = useState(null);
+  
+  const handleWaitlistSubmit = (e) => {
+    e.preventDefault();
+    if (email) {
+      // In production, this would send to your backend/email service
+      console.log('Waitlist signup:', email);
+      setIsSubmitted(true);
+      // Store in localStorage for now
+      const waitlist = JSON.parse(localStorage.getItem('pn_waitlist') || '[]');
+      waitlist.push({ email, timestamp: new Date().toISOString() });
+      localStorage.setItem('pn_waitlist', JSON.stringify(waitlist));
+    }
+  };
+  
+  const features = [
+    { icon: '🏠', title: 'HomeBudget Hub', desc: 'Personal finance mastery', color: '#EC4899' },
+    { icon: '💼', title: 'BizBudget Hub', desc: 'Side hustle & business tracking', color: '#8B5CF6' },
+    { icon: '🏢', title: 'REBudget Hub', desc: 'Real estate investment analysis', color: '#06B6D4' },
+    { icon: '🤖', title: 'Penny AI', desc: 'Your intelligent money assistant', color: '#10B981' }
+  ];
+
+  return (
+    <div style={{
+      minHeight: '100vh',
+      background: 'linear-gradient(135deg, #0F0F1A 0%, #1A1A2E 30%, #16213E 60%, #0F0F1A 100%)',
+      color: 'white',
+      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+      overflow: 'hidden',
+      position: 'relative'
+    }}>
+      {/* Animated background elements */}
+      <div style={{
+        position: 'absolute',
+        top: '5%',
+        right: '10%',
+        width: '600px',
+        height: '600px',
+        background: 'radial-gradient(circle, rgba(139, 92, 246, 0.15) 0%, transparent 70%)',
+        animation: 'pulse 8s ease-in-out infinite',
+        pointerEvents: 'none'
+      }} />
+      <div style={{
+        position: 'absolute',
+        bottom: '10%',
+        left: '5%',
+        width: '500px',
+        height: '500px',
+        background: 'radial-gradient(circle, rgba(236, 72, 153, 0.12) 0%, transparent 70%)',
+        animation: 'pulse 10s ease-in-out infinite reverse',
+        pointerEvents: 'none'
+      }} />
+      <div style={{
+        position: 'absolute',
+        top: '50%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)',
+        width: '800px',
+        height: '800px',
+        background: 'radial-gradient(circle, rgba(16, 185, 129, 0.08) 0%, transparent 60%)',
+        animation: 'pulse 12s ease-in-out infinite',
+        pointerEvents: 'none'
+      }} />
+      
+      {/* Floating particles */}
+      {[...Array(20)].map((_, i) => (
+        <div
+          key={i}
+          style={{
+            position: 'absolute',
+            width: `${Math.random() * 4 + 2}px`,
+            height: `${Math.random() * 4 + 2}px`,
+            background: ['#8B5CF6', '#EC4899', '#10B981', '#F59E0B'][i % 4],
+            borderRadius: '50%',
+            top: `${Math.random() * 100}%`,
+            left: `${Math.random() * 100}%`,
+            opacity: 0.4,
+            animation: `float ${Math.random() * 10 + 10}s ease-in-out infinite`,
+            animationDelay: `${Math.random() * 5}s`,
+            pointerEvents: 'none'
+          }}
+        />
+      ))}
+      
+      <style>{`
+        @keyframes pulse {
+          0%, 100% { transform: scale(1); opacity: 0.5; }
+          50% { transform: scale(1.1); opacity: 0.8; }
+        }
+        @keyframes float {
+          0%, 100% { transform: translateY(0) translateX(0); }
+          25% { transform: translateY(-20px) translateX(10px); }
+          50% { transform: translateY(-10px) translateX(-10px); }
+          75% { transform: translateY(-30px) translateX(5px); }
+        }
+        @keyframes shimmer {
+          0% { background-position: -200% center; }
+          100% { background-position: 200% center; }
+        }
+        @keyframes fadeInUp {
+          from { opacity: 0; transform: translateY(30px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
+      
+      <div style={{ position: 'relative', zIndex: 1 }}>
+        {/* Header - Same as main app */}
+        <header style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '20px 40px',
+          maxWidth: '1400px',
+          margin: '0 auto'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            {/* PennyLogo inline for coming soon page */}
+            <div style={{
+              width: '48px',
+              height: '48px',
+              borderRadius: '14px',
+              background: 'linear-gradient(135deg, #8B5CF6, #EC4899)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 8px 32px rgba(139, 92, 246, 0.4)'
+            }}>
+              <svg width="32" height="32" viewBox="0 0 64 64" fill="none">
+                <defs>
+                  <linearGradient id="coinGradCS" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="#FFE135" />
+                    <stop offset="50%" stopColor="#FFEC8B" />
+                    <stop offset="100%" stopColor="#FFD700" />
+                  </linearGradient>
+                </defs>
+                <circle cx="32" cy="32" r="28" fill="url(#coinGradCS)"/>
+                <circle cx="32" cy="32" r="24" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="1.5"/>
+                <text x="32" y="18" textAnchor="middle" fill="#1a1a1a" fontSize="12" fontWeight="bold" fontFamily="Arial">$</text>
+                <ellipse cx="24" cy="28" rx="3" ry="3.5" fill="#1a1a1a"/>
+                <ellipse cx="40" cy="28" rx="3" ry="3.5" fill="#1a1a1a"/>
+                <ellipse cx="25" cy="27" rx="1.2" ry="1.2" fill="#FFFFFF"/>
+                <ellipse cx="41" cy="27" rx="1.2" ry="1.2" fill="#FFFFFF"/>
+                <path d="M24 40 Q32 46 40 40" stroke="#1a1a1a" strokeWidth="2.5" fill="none" strokeLinecap="round"/>
+                <ellipse cx="17" cy="34" rx="3.5" ry="2.5" fill="#FFCCCB" opacity="0.5"/>
+                <ellipse cx="47" cy="34" rx="3.5" ry="2.5" fill="#FFCCCB" opacity="0.5"/>
+              </svg>
+            </div>
+            <div>
+              <span style={{ fontSize: '24px', fontWeight: '800', letterSpacing: '-0.5px' }}>
+                <span style={{ color: '#EC4899' }}>Prosper</span>
+                <span style={{ color: '#10B981' }}>Nest</span>
+              </span>
+              <div style={{
+                fontSize: '9px',
+                fontWeight: '600',
+                color: '#8B5CF6',
+                letterSpacing: '2px',
+                textTransform: 'uppercase',
+                marginTop: '-2px'
+              }}>
+                COMING SOON
+              </div>
+            </div>
+          </div>
+          
+          {/* Navigation - Login for testers */}
+          <nav style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <button
+              onClick={onNavigateToAuth}
+              style={{
+                padding: '12px 28px',
+                background: 'rgba(255,255,255,0.08)',
+                border: '1px solid rgba(255,255,255,0.15)',
+                borderRadius: '12px',
+                color: 'white',
+                cursor: 'pointer',
+                fontSize: '14px',
+                fontWeight: '500',
+                backdropFilter: 'blur(10px)',
+                transition: 'all 0.3s ease'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'rgba(255,255,255,0.12)';
+                e.currentTarget.style.borderColor = 'rgba(255,255,255,0.25)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'rgba(255,255,255,0.08)';
+                e.currentTarget.style.borderColor = 'rgba(255,255,255,0.15)';
+              }}
+            >
+              Team Login
+            </button>
+            <button
+              onClick={onNavigateToAuth}
+              style={{
+                padding: '12px 28px',
+                background: 'linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%)',
+                border: 'none',
+                borderRadius: '12px',
+                color: 'white',
+                cursor: 'pointer',
+                fontSize: '14px',
+                fontWeight: '600',
+                boxShadow: '0 4px 20px rgba(139, 92, 246, 0.4)',
+                transition: 'all 0.3s ease'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.boxShadow = '0 8px 30px rgba(139, 92, 246, 0.5)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 4px 20px rgba(139, 92, 246, 0.4)';
+              }}
+            >
+              Beta Access →
+            </button>
+          </nav>
+        </header>
+        
+        {/* Main Content */}
+        <main style={{
+          maxWidth: '1200px',
+          margin: '0 auto',
+          padding: '60px 40px 80px',
+          textAlign: 'center'
+        }}>
+          {/* Badge */}
+          <div style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '10px',
+            padding: '10px 20px',
+            background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(236, 72, 153, 0.15))',
+            borderRadius: '100px',
+            marginBottom: '32px',
+            border: '1px solid rgba(139, 92, 246, 0.3)',
+            animation: 'fadeInUp 0.6s ease-out'
+          }}>
+            <div style={{
+              width: '8px',
+              height: '8px',
+              borderRadius: '50%',
+              background: '#10B981',
+              boxShadow: '0 0 10px #10B981',
+              animation: 'pulse 2s ease-in-out infinite'
+            }} />
+            <span style={{
+              fontSize: '13px',
+              fontWeight: '600',
+              background: 'linear-gradient(90deg, #A78BFA, #F472B6)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent'
+            }}>
+              Launching Soon • Join the Waitlist
+            </span>
+          </div>
+          
+          {/* Headline */}
+          <h1 style={{
+            fontSize: 'clamp(40px, 8vw, 72px)',
+            fontWeight: '800',
+            lineHeight: '1.1',
+            marginBottom: '24px',
+            letterSpacing: '-2px',
+            animation: 'fadeInUp 0.6s ease-out 0.1s both'
+          }}>
+            Your Money.{' '}
+            <span style={{
+              background: 'linear-gradient(135deg, #A78BFA 0%, #EC4899 50%, #10B981 100%)',
+              backgroundSize: '200% auto',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              animation: 'shimmer 3s linear infinite'
+            }}>
+              Amplified.
+            </span>
+          </h1>
+          
+          {/* Subheadline */}
+          <p style={{
+            fontSize: 'clamp(16px, 2vw, 20px)',
+            color: 'rgba(255,255,255,0.7)',
+            lineHeight: '1.7',
+            marginBottom: '48px',
+            maxWidth: '640px',
+            margin: '0 auto 48px',
+            animation: 'fadeInUp 0.6s ease-out 0.2s both'
+          }}>
+            The all-in-one financial command center for entrepreneurs, side-hustlers, 
+            and real estate investors. Track, analyze, and grow — all in one place.
+          </p>
+          
+          {/* Waitlist Form */}
+          <div style={{
+            maxWidth: '480px',
+            margin: '0 auto 64px',
+            animation: 'fadeInUp 0.6s ease-out 0.3s both'
+          }}>
+            {!isSubmitted ? (
+              <form onSubmit={handleWaitlistSubmit} style={{
+                display: 'flex',
+                gap: '12px',
+                padding: '8px',
+                background: 'rgba(255,255,255,0.05)',
+                borderRadius: '16px',
+                border: '1px solid rgba(255,255,255,0.1)',
+                backdropFilter: 'blur(20px)'
+              }}>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Enter your email"
+                  required
+                  style={{
+                    flex: 1,
+                    padding: '16px 20px',
+                    background: 'transparent',
+                    border: 'none',
+                    borderRadius: '10px',
+                    color: 'white',
+                    fontSize: '15px',
+                    outline: 'none'
+                  }}
+                />
+                <button
+                  type="submit"
+                  style={{
+                    padding: '16px 32px',
+                    background: 'linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%)',
+                    border: 'none',
+                    borderRadius: '10px',
+                    color: 'white',
+                    fontSize: '15px',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease',
+                    whiteSpace: 'nowrap'
+                  }}
+                >
+                  Get Early Access
+                </button>
+              </form>
+            ) : (
+              <div style={{
+                padding: '24px',
+                background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(16, 185, 129, 0.05))',
+                borderRadius: '16px',
+                border: '1px solid rgba(16, 185, 129, 0.3)'
+              }}>
+                <div style={{ fontSize: '32px', marginBottom: '12px' }}>🎉</div>
+                <div style={{ fontSize: '18px', fontWeight: '600', color: '#10B981', marginBottom: '4px' }}>
+                  You're on the list!
+                </div>
+                <div style={{ fontSize: '14px', color: 'rgba(255,255,255,0.6)' }}>
+                  We'll notify you when we launch
+                </div>
+              </div>
+            )}
+            
+            <p style={{
+              fontSize: '12px',
+              color: 'rgba(255,255,255,0.4)',
+              marginTop: '16px'
+            }}>
+              🔒 No spam, ever. Unsubscribe anytime.
+            </p>
+          </div>
+          
+          {/* Feature Cards */}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+            gap: '20px',
+            marginBottom: '64px',
+            animation: 'fadeInUp 0.6s ease-out 0.4s both'
+          }}>
+            {features.map((feature, i) => (
+              <div
+                key={feature.title}
+                onMouseEnter={() => setHoveredFeature(i)}
+                onMouseLeave={() => setHoveredFeature(null)}
+                style={{
+                  padding: '28px',
+                  background: hoveredFeature === i 
+                    ? `linear-gradient(135deg, ${feature.color}15, ${feature.color}08)`
+                    : 'rgba(255,255,255,0.03)',
+                  borderRadius: '20px',
+                  border: `1px solid ${hoveredFeature === i ? `${feature.color}40` : 'rgba(255,255,255,0.08)'}`,
+                  backdropFilter: 'blur(10px)',
+                  transition: 'all 0.3s ease',
+                  transform: hoveredFeature === i ? 'translateY(-4px)' : 'translateY(0)',
+                  cursor: 'default'
+                }}
+              >
+                <div style={{
+                  width: '56px',
+                  height: '56px',
+                  borderRadius: '16px',
+                  background: `linear-gradient(135deg, ${feature.color}20, ${feature.color}10)`,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '28px',
+                  marginBottom: '16px',
+                  border: `1px solid ${feature.color}30`
+                }}>
+                  {feature.icon}
+                </div>
+                <h3 style={{
+                  fontSize: '17px',
+                  fontWeight: '700',
+                  color: 'white',
+                  marginBottom: '8px'
+                }}>
+                  {feature.title}
+                </h3>
+                <p style={{
+                  fontSize: '14px',
+                  color: 'rgba(255,255,255,0.5)',
+                  lineHeight: '1.5'
+                }}>
+                  {feature.desc}
+                </p>
+              </div>
+            ))}
+          </div>
+          
+          {/* Bottom Stats */}
+          <div style={{
+            display: 'flex',
+            justifyContent: 'center',
+            gap: '48px',
+            flexWrap: 'wrap',
+            animation: 'fadeInUp 0.6s ease-out 0.5s both'
+          }}>
+            {[
+              { value: '3', label: 'Powerful Hubs' },
+              { value: '16+', label: 'Professions Supported' },
+              { value: '∞', label: 'Growth Potential' }
+            ].map((stat) => (
+              <div key={stat.label} style={{ textAlign: 'center' }}>
+                <div style={{
+                  fontSize: '36px',
+                  fontWeight: '800',
+                  background: 'linear-gradient(135deg, #A78BFA, #F472B6)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  marginBottom: '4px'
+                }}>
+                  {stat.value}
+                </div>
+                <div style={{
+                  fontSize: '13px',
+                  color: 'rgba(255,255,255,0.4)',
+                  textTransform: 'uppercase',
+                  letterSpacing: '1px'
+                }}>
+                  {stat.label}
+                </div>
+              </div>
+            ))}
+          </div>
+        </main>
+        
+        {/* Footer */}
+        <footer style={{
+          padding: '32px 40px',
+          textAlign: 'center',
+          borderTop: '1px solid rgba(255,255,255,0.05)'
+        }}>
+          <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.3)' }}>
+            © 2024 ProsperNest. All rights reserved. • Built with 💜 for entrepreneurs everywhere.
+          </p>
+        </footer>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================================
 // SITE STATUS INDICATOR COMPONENT - Shows online/offline status
 // ============================================================================
 function SiteStatusIndicator({ showLabel = true, darkMode = true }) {
@@ -2076,6 +2569,7 @@ const parseCSV = (csvText) => {
 // ============================================================================
 function App() {
   const [view, setView] = useState('landing');
+  const [showComingSoon, setShowComingSoon] = useState(COMING_SOON_MODE); // Controls Coming Soon page visibility
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [transactions, setTransactions] = useState([]); // Start empty - load user-specific data only
@@ -2609,6 +3103,20 @@ function App() {
       />
     </>
   );
+  
+  // Show Coming Soon page if enabled and user hasn't clicked login
+  if (showComingSoon && view === 'landing') {
+    return (
+      <ComingSoonPage 
+        onNavigateToApp={() => setShowComingSoon(false)} 
+        onNavigateToAuth={() => {
+          setShowComingSoon(false);
+          setView('auth');
+        }}
+      />
+    );
+  }
+  
   return <ProsperNestLandingV4 onNavigate={setView} />;
 }
 // ============================================================================
