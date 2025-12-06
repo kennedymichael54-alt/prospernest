@@ -77,19 +77,121 @@ const COMING_SOON_MODE = true;
 function ComingSoonPage({ onNavigateToApp, onNavigateToAuth }) {
   const [email, setEmail] = useState('');
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [hoveredFeature, setHoveredFeature] = useState(null);
+  const [isDarkMode, setIsDarkMode] = useState(true); // Default to dark for Coming Soon
+  const [showPennyChat, setShowPennyChat] = useState(false);
+  const [chatMessages, setChatMessages] = useState([
+    { from: 'penny', text: "Hi there! 👋 I'm Penny, your AI financial assistant. Excited for ProsperNest to launch? I can answer questions about what we're building!" }
+  ]);
+  const [chatInput, setChatInput] = useState('');
   
-  const handleWaitlistSubmit = (e) => {
+  // Theme colors
+  const theme = isDarkMode ? {
+    bg: 'linear-gradient(135deg, #0F0F1A 0%, #1A1A2E 30%, #16213E 60%, #0F0F1A 100%)',
+    bgCard: 'rgba(255,255,255,0.03)',
+    bgCardHover: 'rgba(255,255,255,0.06)',
+    border: 'rgba(255,255,255,0.08)',
+    borderHover: 'rgba(255,255,255,0.15)',
+    text: 'white',
+    textMuted: 'rgba(255,255,255,0.5)',
+    textSecondary: 'rgba(255,255,255,0.7)',
+    inputBg: 'rgba(255,255,255,0.05)',
+    particleOpacity: 0.4
+  } : {
+    bg: 'linear-gradient(135deg, #F8FAFC 0%, #EEF2FF 30%, #F0FDFA 60%, #FFFFFF 100%)',
+    bgCard: 'rgba(0,0,0,0.02)',
+    bgCardHover: 'rgba(0,0,0,0.04)',
+    border: 'rgba(0,0,0,0.08)',
+    borderHover: 'rgba(0,0,0,0.15)',
+    text: '#1E293B',
+    textMuted: 'rgba(0,0,0,0.4)',
+    textSecondary: 'rgba(0,0,0,0.6)',
+    inputBg: 'rgba(0,0,0,0.03)',
+    particleOpacity: 0.2
+  };
+  
+  const handleWaitlistSubmit = async (e) => {
     e.preventDefault();
-    if (email) {
-      // In production, this would send to your backend/email service
-      console.log('Waitlist signup:', email);
-      setIsSubmitted(true);
-      // Store in localStorage for now
+    if (!email || isSubmitting) return;
+    
+    setIsSubmitting(true);
+    
+    try {
+      // ============================================================
+      // WAITLIST EMAIL STORAGE - IMPORTANT FOR PRODUCTION
+      // ============================================================
+      // Option 1: Store in Supabase (RECOMMENDED - you already have it!)
+      // Uncomment below and create a 'waitlist' table in Supabase:
+      // CREATE TABLE waitlist (
+      //   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+      //   email TEXT UNIQUE NOT NULL,
+      //   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+      //   source TEXT DEFAULT 'coming_soon_page'
+      // );
+      //
+      // const { data, error } = await supabase
+      //   .from('waitlist')
+      //   .insert([{ email: email, source: 'coming_soon_page' }]);
+      // if (error) throw error;
+      
+      // Option 2: Send to your email marketing service API
+      // Examples: Mailchimp, ConvertKit, Beehiiv, SendGrid, etc.
+      // await fetch('https://your-email-service-api.com/subscribe', {
+      //   method: 'POST',
+      //   headers: { 'Content-Type': 'application/json' },
+      //   body: JSON.stringify({ email })
+      // });
+      
+      // TEMPORARY: Store locally for demo (data stays in browser only!)
+      // ⚠️ WARNING: This does NOT persist across browsers/devices!
       const waitlist = JSON.parse(localStorage.getItem('pn_waitlist') || '[]');
-      waitlist.push({ email, timestamp: new Date().toISOString() });
-      localStorage.setItem('pn_waitlist', JSON.stringify(waitlist));
+      const exists = waitlist.some(entry => entry.email === email);
+      if (!exists) {
+        waitlist.push({ 
+          email, 
+          timestamp: new Date().toISOString(),
+          source: 'coming_soon_page'
+        });
+        localStorage.setItem('pn_waitlist', JSON.stringify(waitlist));
+      }
+      
+      console.log('✅ Waitlist signup:', email);
+      console.log('📊 Total signups (this browser):', waitlist.length);
+      
+      setIsSubmitted(true);
+    } catch (error) {
+      console.error('Waitlist signup error:', error);
+      alert('Something went wrong. Please try again.');
+    } finally {
+      setIsSubmitting(false);
     }
+  };
+  
+  const handleSendChat = () => {
+    if (!chatInput.trim()) return;
+    
+    const userMessage = chatInput.trim();
+    setChatMessages(prev => [...prev, { from: 'user', text: userMessage }]);
+    setChatInput('');
+    
+    // Simple AI responses for Coming Soon page
+    setTimeout(() => {
+      let response = "Great question! I'm still learning, but I'll be much smarter when we launch. In the meantime, join our waitlist to be first in line! 🚀";
+      
+      const lowerMsg = userMessage.toLowerCase();
+      if (lowerMsg.includes('when') || lowerMsg.includes('launch') || lowerMsg.includes('release')) {
+        response = "We're working hard to launch soon! Join the waitlist above and you'll be the first to know. We're aiming for an amazing experience! 🎯";
+      } else if (lowerMsg.includes('price') || lowerMsg.includes('cost') || lowerMsg.includes('free')) {
+        response = "We'll have a free tier plus premium plans starting at very competitive prices. Early waitlist members may get special launch pricing! 💰";
+      } else if (lowerMsg.includes('feature') || lowerMsg.includes('what') || lowerMsg.includes('do')) {
+        response = "ProsperNest includes 3 powerful hubs: HomeBudget for personal finance, BizBudget for side hustles & businesses, and REBudget for real estate investing. Plus AI-powered insights from me! 🏠💼🏢";
+      } else if (lowerMsg.includes('hello') || lowerMsg.includes('hi') || lowerMsg.includes('hey')) {
+        response = "Hello! 👋 So excited to meet you! I'm Penny, and I'll be your AI financial companion. Can't wait to help you build wealth when we launch!";
+      }
+      
+      setChatMessages(prev => [...prev, { from: 'penny', text: response }]);
+    }, 800);
   };
   
   const features = [
@@ -102,11 +204,12 @@ function ComingSoonPage({ onNavigateToApp, onNavigateToAuth }) {
   return (
     <div style={{
       minHeight: '100vh',
-      background: 'linear-gradient(135deg, #0F0F1A 0%, #1A1A2E 30%, #16213E 60%, #0F0F1A 100%)',
-      color: 'white',
+      background: theme.bg,
+      color: theme.text,
       fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
       overflow: 'hidden',
-      position: 'relative'
+      position: 'relative',
+      transition: 'background 0.3s ease'
     }}>
       {/* Animated background elements */}
       <div style={{
@@ -115,7 +218,7 @@ function ComingSoonPage({ onNavigateToApp, onNavigateToAuth }) {
         right: '10%',
         width: '600px',
         height: '600px',
-        background: 'radial-gradient(circle, rgba(139, 92, 246, 0.15) 0%, transparent 70%)',
+        background: `radial-gradient(circle, rgba(139, 92, 246, ${isDarkMode ? 0.15 : 0.1}) 0%, transparent 70%)`,
         animation: 'pulse 8s ease-in-out infinite',
         pointerEvents: 'none'
       }} />
@@ -125,7 +228,7 @@ function ComingSoonPage({ onNavigateToApp, onNavigateToAuth }) {
         left: '5%',
         width: '500px',
         height: '500px',
-        background: 'radial-gradient(circle, rgba(236, 72, 153, 0.12) 0%, transparent 70%)',
+        background: `radial-gradient(circle, rgba(236, 72, 153, ${isDarkMode ? 0.12 : 0.08}) 0%, transparent 70%)`,
         animation: 'pulse 10s ease-in-out infinite reverse',
         pointerEvents: 'none'
       }} />
@@ -136,7 +239,7 @@ function ComingSoonPage({ onNavigateToApp, onNavigateToAuth }) {
         transform: 'translate(-50%, -50%)',
         width: '800px',
         height: '800px',
-        background: 'radial-gradient(circle, rgba(16, 185, 129, 0.08) 0%, transparent 60%)',
+        background: `radial-gradient(circle, rgba(16, 185, 129, ${isDarkMode ? 0.08 : 0.05}) 0%, transparent 60%)`,
         animation: 'pulse 12s ease-in-out infinite',
         pointerEvents: 'none'
       }} />
@@ -153,7 +256,7 @@ function ComingSoonPage({ onNavigateToApp, onNavigateToAuth }) {
             borderRadius: '50%',
             top: `${Math.random() * 100}%`,
             left: `${Math.random() * 100}%`,
-            opacity: 0.4,
+            opacity: theme.particleOpacity,
             animation: `float ${Math.random() * 10 + 10}s ease-in-out infinite`,
             animationDelay: `${Math.random() * 5}s`,
             pointerEvents: 'none'
@@ -242,16 +345,67 @@ function ComingSoonPage({ onNavigateToApp, onNavigateToAuth }) {
             </div>
           </div>
           
-          {/* Navigation - Login for testers */}
+          {/* Navigation - Theme Toggle + Login for testers */}
           <nav style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            {/* Theme Toggle */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              {/* Sun icon */}
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={isDarkMode ? theme.textMuted : '#F59E0B'} strokeWidth="2" strokeLinecap="round">
+                <circle cx="12" cy="12" r="5"/>
+                <line x1="12" y1="1" x2="12" y2="3"/>
+                <line x1="12" y1="21" x2="12" y2="23"/>
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+                <line x1="1" y1="12" x2="3" y2="12"/>
+                <line x1="21" y1="12" x2="23" y2="12"/>
+                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+              </svg>
+              
+              {/* Toggle switch */}
+              <button
+                onClick={() => setIsDarkMode(!isDarkMode)}
+                style={{
+                  width: '44px',
+                  height: '24px',
+                  borderRadius: '12px',
+                  background: isDarkMode ? '#6366F1' : '#E5E7EB',
+                  border: 'none',
+                  cursor: 'pointer',
+                  position: 'relative',
+                  transition: 'background 0.2s ease',
+                  padding: 0
+                }}
+              >
+                <div style={{
+                  width: '18px',
+                  height: '18px',
+                  borderRadius: '50%',
+                  background: 'white',
+                  position: 'absolute',
+                  top: '3px',
+                  left: isDarkMode ? '23px' : '3px',
+                  transition: 'left 0.2s ease',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.2)'
+                }} />
+              </button>
+              
+              {/* Moon icon */}
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={isDarkMode ? '#6366F1' : theme.textMuted} strokeWidth="2" strokeLinecap="round">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+              </svg>
+            </div>
+            
+            <div style={{ width: '1px', height: '24px', background: theme.border }} />
+            
             <button
               onClick={onNavigateToAuth}
               style={{
                 padding: '12px 28px',
-                background: 'rgba(255,255,255,0.08)',
-                border: '1px solid rgba(255,255,255,0.15)',
+                background: theme.inputBg,
+                border: `1px solid ${theme.border}`,
                 borderRadius: '12px',
-                color: 'white',
+                color: theme.text,
                 cursor: 'pointer',
                 fontSize: '14px',
                 fontWeight: '500',
@@ -259,12 +413,12 @@ function ComingSoonPage({ onNavigateToApp, onNavigateToAuth }) {
                 transition: 'all 0.3s ease'
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'rgba(255,255,255,0.12)';
-                e.currentTarget.style.borderColor = 'rgba(255,255,255,0.25)';
+                e.currentTarget.style.background = theme.bgCardHover;
+                e.currentTarget.style.borderColor = theme.borderHover;
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'rgba(255,255,255,0.08)';
-                e.currentTarget.style.borderColor = 'rgba(255,255,255,0.15)';
+                e.currentTarget.style.background = theme.inputBg;
+                e.currentTarget.style.borderColor = theme.border;
               }}
             >
               Team Login
@@ -310,10 +464,12 @@ function ComingSoonPage({ onNavigateToApp, onNavigateToAuth }) {
             alignItems: 'center',
             gap: '10px',
             padding: '10px 20px',
-            background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(236, 72, 153, 0.15))',
+            background: isDarkMode 
+              ? 'linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(236, 72, 153, 0.15))'
+              : 'linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(236, 72, 153, 0.1))',
             borderRadius: '100px',
             marginBottom: '32px',
-            border: '1px solid rgba(139, 92, 246, 0.3)',
+            border: `1px solid ${isDarkMode ? 'rgba(139, 92, 246, 0.3)' : 'rgba(139, 92, 246, 0.2)'}`,
             animation: 'fadeInUp 0.6s ease-out'
           }}>
             <div style={{
@@ -342,7 +498,8 @@ function ComingSoonPage({ onNavigateToApp, onNavigateToAuth }) {
             lineHeight: '1.1',
             marginBottom: '24px',
             letterSpacing: '-2px',
-            animation: 'fadeInUp 0.6s ease-out 0.1s both'
+            animation: 'fadeInUp 0.6s ease-out 0.1s both',
+            color: theme.text
           }}>
             Your Money.{' '}
             <span style={{
@@ -359,7 +516,7 @@ function ComingSoonPage({ onNavigateToApp, onNavigateToAuth }) {
           {/* Subheadline */}
           <p style={{
             fontSize: 'clamp(16px, 2vw, 20px)',
-            color: 'rgba(255,255,255,0.7)',
+            color: theme.textSecondary,
             lineHeight: '1.7',
             marginBottom: '48px',
             maxWidth: '640px',
@@ -381,9 +538,9 @@ function ComingSoonPage({ onNavigateToApp, onNavigateToAuth }) {
                 display: 'flex',
                 gap: '12px',
                 padding: '8px',
-                background: 'rgba(255,255,255,0.05)',
+                background: theme.inputBg,
                 borderRadius: '16px',
-                border: '1px solid rgba(255,255,255,0.1)',
+                border: `1px solid ${theme.border}`,
                 backdropFilter: 'blur(20px)'
               }}>
                 <input
@@ -398,41 +555,47 @@ function ComingSoonPage({ onNavigateToApp, onNavigateToAuth }) {
                     background: 'transparent',
                     border: 'none',
                     borderRadius: '10px',
-                    color: 'white',
+                    color: theme.text,
                     fontSize: '15px',
                     outline: 'none'
                   }}
                 />
                 <button
                   type="submit"
+                  disabled={isSubmitting}
                   style={{
                     padding: '16px 32px',
-                    background: 'linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%)',
+                    background: isSubmitting 
+                      ? '#6B7280' 
+                      : 'linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%)',
                     border: 'none',
                     borderRadius: '10px',
                     color: 'white',
                     fontSize: '15px',
                     fontWeight: '600',
-                    cursor: 'pointer',
+                    cursor: isSubmitting ? 'not-allowed' : 'pointer',
                     transition: 'all 0.3s ease',
-                    whiteSpace: 'nowrap'
+                    whiteSpace: 'nowrap',
+                    opacity: isSubmitting ? 0.7 : 1
                   }}
                 >
-                  Get Early Access
+                  {isSubmitting ? 'Joining...' : 'Get Early Access'}
                 </button>
               </form>
             ) : (
               <div style={{
                 padding: '24px',
-                background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(16, 185, 129, 0.05))',
+                background: isDarkMode 
+                  ? 'linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(16, 185, 129, 0.05))'
+                  : 'linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(16, 185, 129, 0.03))',
                 borderRadius: '16px',
-                border: '1px solid rgba(16, 185, 129, 0.3)'
+                border: `1px solid ${isDarkMode ? 'rgba(16, 185, 129, 0.3)' : 'rgba(16, 185, 129, 0.2)'}`
               }}>
                 <div style={{ fontSize: '32px', marginBottom: '12px' }}>🎉</div>
                 <div style={{ fontSize: '18px', fontWeight: '600', color: '#10B981', marginBottom: '4px' }}>
                   You're on the list!
                 </div>
-                <div style={{ fontSize: '14px', color: 'rgba(255,255,255,0.6)' }}>
+                <div style={{ fontSize: '14px', color: theme.textMuted }}>
                   We'll notify you when we launch
                 </div>
               </div>
@@ -440,7 +603,7 @@ function ComingSoonPage({ onNavigateToApp, onNavigateToAuth }) {
             
             <p style={{
               fontSize: '12px',
-              color: 'rgba(255,255,255,0.4)',
+              color: theme.textMuted,
               marginTop: '16px'
             }}>
               🔒 No spam, ever. Unsubscribe anytime.
@@ -463,10 +626,10 @@ function ComingSoonPage({ onNavigateToApp, onNavigateToAuth }) {
                 style={{
                   padding: '28px',
                   background: hoveredFeature === i 
-                    ? `linear-gradient(135deg, ${feature.color}15, ${feature.color}08)`
-                    : 'rgba(255,255,255,0.03)',
+                    ? `linear-gradient(135deg, ${feature.color}${isDarkMode ? '15' : '10'}, ${feature.color}${isDarkMode ? '08' : '05'})`
+                    : theme.bgCard,
                   borderRadius: '20px',
-                  border: `1px solid ${hoveredFeature === i ? `${feature.color}40` : 'rgba(255,255,255,0.08)'}`,
+                  border: `1px solid ${hoveredFeature === i ? `${feature.color}40` : theme.border}`,
                   backdropFilter: 'blur(10px)',
                   transition: 'all 0.3s ease',
                   transform: hoveredFeature === i ? 'translateY(-4px)' : 'translateY(0)',
@@ -490,14 +653,14 @@ function ComingSoonPage({ onNavigateToApp, onNavigateToAuth }) {
                 <h3 style={{
                   fontSize: '17px',
                   fontWeight: '700',
-                  color: 'white',
+                  color: theme.text,
                   marginBottom: '8px'
                 }}>
                   {feature.title}
                 </h3>
                 <p style={{
                   fontSize: '14px',
-                  color: 'rgba(255,255,255,0.5)',
+                  color: theme.textMuted,
                   lineHeight: '1.5'
                 }}>
                   {feature.desc}
@@ -532,7 +695,7 @@ function ComingSoonPage({ onNavigateToApp, onNavigateToAuth }) {
                 </div>
                 <div style={{
                   fontSize: '13px',
-                  color: 'rgba(255,255,255,0.4)',
+                  color: theme.textMuted,
                   textTransform: 'uppercase',
                   letterSpacing: '1px'
                 }}>
@@ -547,12 +710,133 @@ function ComingSoonPage({ onNavigateToApp, onNavigateToAuth }) {
         <footer style={{
           padding: '32px 40px',
           textAlign: 'center',
-          borderTop: '1px solid rgba(255,255,255,0.05)'
+          borderTop: `1px solid ${theme.border}`
         }}>
-          <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.3)' }}>
+          <p style={{ fontSize: '13px', color: theme.textMuted }}>
             © 2024 ProsperNest. All rights reserved. • Built with 💜 for entrepreneurs everywhere.
           </p>
         </footer>
+      </div>
+      
+      {/* Penny AI Chat Widget */}
+      <div style={{ position: 'fixed', bottom: '24px', right: '24px', zIndex: 1000 }}>
+        {showPennyChat && (
+          <div style={{
+            position: 'absolute',
+            bottom: '70px',
+            right: 0,
+            width: '340px',
+            height: '440px',
+            background: isDarkMode ? '#1E293B' : '#FFFFFF',
+            borderRadius: '16px',
+            boxShadow: '0 10px 40px rgba(0,0,0,0.3)',
+            border: `1px solid ${theme.border}`,
+            display: 'flex',
+            flexDirection: 'column',
+            overflow: 'hidden'
+          }}>
+            <div style={{ padding: '16px', background: 'linear-gradient(135deg, #F97316, #EA580C)', color: 'white', display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <svg width="32" height="32" viewBox="0 0 64 64" fill="none">
+                <defs>
+                  <linearGradient id="coinGradPenny" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="#FFE135" />
+                    <stop offset="50%" stopColor="#FFEC8B" />
+                    <stop offset="100%" stopColor="#FFD700" />
+                  </linearGradient>
+                </defs>
+                <circle cx="32" cy="32" r="28" fill="url(#coinGradPenny)"/>
+                <circle cx="32" cy="32" r="24" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="1.5"/>
+                <text x="32" y="18" textAnchor="middle" fill="#1a1a1a" fontSize="12" fontWeight="bold" fontFamily="Arial">$</text>
+                <ellipse cx="24" cy="28" rx="3" ry="3.5" fill="#1a1a1a"/>
+                <ellipse cx="40" cy="28" rx="3" ry="3.5" fill="#1a1a1a"/>
+                <path d="M24 40 Q32 46 40 40" stroke="#1a1a1a" strokeWidth="2.5" fill="none" strokeLinecap="round"/>
+              </svg>
+              <div>
+                <div style={{ fontWeight: '600', fontSize: '14px' }}>Penny</div>
+                <div style={{ fontSize: '11px', opacity: 0.9 }}>Your AI Assistant</div>
+              </div>
+              <button onClick={() => setShowPennyChat(false)} style={{ marginLeft: 'auto', background: 'none', border: 'none', color: 'white', fontSize: '20px', cursor: 'pointer' }}>×</button>
+            </div>
+            <div style={{ flex: 1, padding: '16px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '12px', background: isDarkMode ? '#0F172A' : '#F8FAFC' }}>
+              {chatMessages.map((msg, i) => (
+                <div key={i} style={{ 
+                  alignSelf: msg.from === 'user' ? 'flex-end' : 'flex-start',
+                  background: msg.from === 'user' 
+                    ? 'linear-gradient(135deg, #8B5CF6, #7C3AED)' 
+                    : isDarkMode ? '#1E293B' : '#FFFFFF',
+                  color: msg.from === 'user' ? 'white' : theme.text,
+                  padding: '10px 14px',
+                  borderRadius: '12px',
+                  maxWidth: '80%',
+                  fontSize: '13px',
+                  lineHeight: 1.4,
+                  boxShadow: msg.from === 'penny' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none'
+                }}>
+                  {msg.text}
+                </div>
+              ))}
+            </div>
+            <div style={{ padding: '12px', borderTop: `1px solid ${theme.border}`, display: 'flex', gap: '8px', background: isDarkMode ? '#1E293B' : '#FFFFFF' }}>
+              <input
+                value={chatInput}
+                onChange={(e) => setChatInput(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && handleSendChat()}
+                placeholder="Ask Penny anything..."
+                style={{ 
+                  flex: 1, 
+                  padding: '10px 14px', 
+                  background: isDarkMode ? '#0F172A' : '#F1F5F9', 
+                  border: `1px solid ${theme.border}`, 
+                  borderRadius: '20px', 
+                  fontSize: '13px', 
+                  outline: 'none', 
+                  color: theme.text 
+                }}
+              />
+              <button onClick={handleSendChat} style={{ width: '36px', height: '36px', background: 'linear-gradient(135deg, #8B5CF6, #7C3AED)', border: 'none', borderRadius: '50%', color: 'white', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                ➤
+              </button>
+            </div>
+          </div>
+        )}
+        <button
+          onClick={() => setShowPennyChat(!showPennyChat)}
+          style={{
+            width: '56px',
+            height: '56px',
+            borderRadius: '50%',
+            background: 'linear-gradient(135deg, #F97316, #EA580C)',
+            border: 'none',
+            cursor: 'pointer',
+            boxShadow: '0 4px 20px rgba(249, 115, 22, 0.4)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            transition: 'transform 0.2s ease'
+          }}
+          onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.1)'}
+          onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+        >
+          <svg width="36" height="36" viewBox="0 0 64 64" fill="none">
+            <defs>
+              <linearGradient id="coinGradBtn" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#FFE135" />
+                <stop offset="50%" stopColor="#FFEC8B" />
+                <stop offset="100%" stopColor="#FFD700" />
+              </linearGradient>
+            </defs>
+            <circle cx="32" cy="32" r="28" fill="url(#coinGradBtn)"/>
+            <circle cx="32" cy="32" r="24" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="1.5"/>
+            <text x="32" y="18" textAnchor="middle" fill="#1a1a1a" fontSize="12" fontWeight="bold" fontFamily="Arial">$</text>
+            <ellipse cx="24" cy="28" rx="3" ry="3.5" fill="#1a1a1a"/>
+            <ellipse cx="40" cy="28" rx="3" ry="3.5" fill="#1a1a1a"/>
+            <ellipse cx="25" cy="27" rx="1.2" ry="1.2" fill="#FFFFFF"/>
+            <ellipse cx="41" cy="27" rx="1.2" ry="1.2" fill="#FFFFFF"/>
+            <path d="M24 40 Q32 46 40 40" stroke="#1a1a1a" strokeWidth="2.5" fill="none" strokeLinecap="round"/>
+            <ellipse cx="17" cy="34" rx="3.5" ry="2.5" fill="#FFCCCB" opacity="0.5"/>
+            <ellipse cx="47" cy="34" rx="3.5" ry="2.5" fill="#FFCCCB" opacity="0.5"/>
+          </svg>
+        </button>
       </div>
     </div>
   );
