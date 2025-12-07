@@ -7,12 +7,3 @@
     <priority>1.0</priority>
   </url>
 </urlset>
-```
-
-6. Commit changes
-7. Repeat for `public/robots.txt`:
-```
-User-agent: *
-Allow: /
-
-Sitemap: https://prospernest.app/sitemap.xml
