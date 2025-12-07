@@ -14230,6 +14230,50 @@ function GeneralBusinessDashboard({ theme, profile, lastImportDate, initialTab =
   const [showAddClient, setShowAddClient] = useState(false);
   const [showAddProject, setShowAddProject] = useState(false);
   
+  // Collapsible section states
+  const [collapsedSections, setCollapsedSections] = useState({});
+  
+  const toggleSection = (sectionId) => {
+    setCollapsedSections(prev => ({ ...prev, [sectionId]: !prev[sectionId] }));
+  };
+  
+  // Collapsible Section Component
+  const CollapsibleSection = ({ id, title, icon, children, defaultOpen = true }) => {
+    const isCollapsed = collapsedSections[id] ?? !defaultOpen;
+    return (
+      <div style={{
+        background: theme.bgCard, borderRadius: '16px',
+        boxShadow: theme.cardShadow, border: `1px solid ${theme.borderLight}`,
+        marginBottom: '20px', overflow: 'hidden'
+      }}>
+        <button
+          onClick={() => toggleSection(id)}
+          style={{
+            width: '100%', padding: '16px 20px',
+            display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+            background: 'transparent', border: 'none', cursor: 'pointer',
+            borderBottom: isCollapsed ? 'none' : `1px solid ${theme.borderLight}`
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <span style={{ fontSize: '18px' }}>{icon}</span>
+            <span style={{ fontSize: '16px', fontWeight: '600', color: theme.textPrimary }}>{title}</span>
+          </div>
+          <span style={{ 
+            fontSize: '20px', color: theme.textMuted,
+            transform: isCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)',
+            transition: 'transform 0.2s'
+          }}>▼</span>
+        </button>
+        {!isCollapsed && (
+          <div style={{ padding: '16px 20px' }}>
+            {children}
+          </div>
+        )}
+      </div>
+    );
+  };
+  
   // Update active tab when sidebar selection changes
   React.useEffect(() => {
     const mapped = tabMapping[initialTab];
@@ -14346,124 +14390,122 @@ function GeneralBusinessDashboard({ theme, profile, lastImportDate, initialTab =
       {/* Overview Tab */}
       {activeTab === 'overview' && (
         <div>
-          {/* Key Metrics */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px', marginBottom: '24px' }}>
-            {/* Total Revenue */}
-            <div style={{
-              background: isDark ? 'linear-gradient(135deg, #14532D 0%, #166534 100%)' : 'linear-gradient(135deg, #DCFCE7 0%, #BBF7D0 100%)',
-              borderRadius: '16px', padding: '20px',
-              border: `1px solid ${isDark ? 'rgba(34, 197, 94, 0.3)' : 'rgba(34, 197, 94, 0.2)'}`
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-                <span style={{ fontSize: '20px' }}>💰</span>
-                <span style={{ fontSize: '14px', color: isDark ? '#86EFAC' : '#166534', fontWeight: '600' }}>Revenue (MTD)</span>
-              </div>
-              <div style={{ fontSize: '28px', fontWeight: '700', color: isDark ? '#DCFCE7' : '#14532D' }}>{formatCurrency(totalRevenue)}</div>
-              <div style={{ fontSize: '12px', color: isDark ? '#86EFAC' : '#166534', marginTop: '4px' }}>+12% vs last month</div>
-            </div>
-
-            {/* Pending Invoices */}
-            <div style={{
-              background: isDark ? 'linear-gradient(135deg, #1E3A5F 0%, #1E40AF 100%)' : 'linear-gradient(135deg, #DBEAFE 0%, #BFDBFE 100%)',
-              borderRadius: '16px', padding: '20px',
-              border: `1px solid ${isDark ? 'rgba(59, 130, 246, 0.3)' : 'rgba(59, 130, 246, 0.2)'}`
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-                <span style={{ fontSize: '20px' }}>⏳</span>
-                <span style={{ fontSize: '14px', color: isDark ? '#93C5FD' : '#1E40AF', fontWeight: '600' }}>Pending</span>
-              </div>
-              <div style={{ fontSize: '28px', fontWeight: '700', color: isDark ? '#DBEAFE' : '#1E3A5F' }}>{formatCurrency(pendingInvoices)}</div>
-              <div style={{ fontSize: '12px', color: isDark ? '#93C5FD' : '#1E40AF', marginTop: '4px' }}>{invoices.filter(i => i.status === 'pending').length} invoices</div>
-            </div>
-
-            {/* Total Expenses */}
-            <div style={{
-              background: isDark ? 'linear-gradient(135deg, #7C2D12 0%, #9A3412 100%)' : 'linear-gradient(135deg, #FED7AA 0%, #FDBA74 100%)',
-              borderRadius: '16px', padding: '20px',
-              border: `1px solid ${isDark ? 'rgba(249, 115, 22, 0.3)' : 'rgba(249, 115, 22, 0.2)'}`
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-                <span style={{ fontSize: '20px' }}>💸</span>
-                <span style={{ fontSize: '14px', color: isDark ? '#FDBA74' : '#9A3412', fontWeight: '600' }}>Expenses (MTD)</span>
-              </div>
-              <div style={{ fontSize: '28px', fontWeight: '700', color: isDark ? '#FED7AA' : '#7C2D12' }}>{formatCurrency(totalExpenses)}</div>
-              <div style={{ fontSize: '12px', color: isDark ? '#FDBA74' : '#9A3412', marginTop: '4px' }}>{expenses.length} transactions</div>
-            </div>
-
-            {/* Net Profit */}
-            <div style={{
-              background: isDark ? 'linear-gradient(135deg, #581C87 0%, #7C3AED 100%)' : 'linear-gradient(135deg, #EDE9FE 0%, #DDD6FE 100%)',
-              borderRadius: '16px', padding: '20px',
-              border: `1px solid ${isDark ? 'rgba(139, 92, 246, 0.3)' : 'rgba(139, 92, 246, 0.2)'}`
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-                <span style={{ fontSize: '20px' }}>📈</span>
-                <span style={{ fontSize: '14px', color: isDark ? '#C4B5FD' : '#5B21B6', fontWeight: '600' }}>Net Profit</span>
-              </div>
-              <div style={{ fontSize: '28px', fontWeight: '700', color: isDark ? '#EDE9FE' : '#581C87' }}>{formatCurrency(netProfit)}</div>
-              <div style={{ fontSize: '12px', color: isDark ? '#C4B5FD' : '#5B21B6', marginTop: '4px' }}>{Math.round((netProfit / totalRevenue) * 100)}% margin</div>
-            </div>
-          </div>
-
-          {/* Second Row - Clients & Tax */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '24px' }}>
-            {/* Active Clients */}
-            <div style={{
-              background: theme.bgCard, borderRadius: '16px', padding: '20px',
-              boxShadow: theme.cardShadow, border: `1px solid ${theme.borderLight}`
-            }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                <h3 style={{ fontSize: '16px', fontWeight: '600', color: theme.textPrimary, margin: 0 }}>👥 Active Clients</h3>
-                <span style={{ fontSize: '24px', fontWeight: '700', color: theme.primary }}>{activeClients}</span>
-              </div>
-              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                {clients.filter(c => c.status === 'active').slice(0, 3).map(client => (
-                  <div key={client.id} style={{
-                    padding: '8px 12px', background: theme.bgMain, borderRadius: '8px',
-                    fontSize: '13px', color: theme.textSecondary
-                  }}>
-                    {client.name}
-                  </div>
-                ))}
-                {activeClients > 3 && (
-                  <div style={{
-                    padding: '8px 12px', background: theme.primary + '20', borderRadius: '8px',
-                    fontSize: '13px', color: theme.primary, fontWeight: '500'
-                  }}>
-                    +{activeClients - 3} more
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Quarterly Tax Estimate */}
-            <div style={{
-              background: theme.bgCard, borderRadius: '16px', padding: '20px',
-              boxShadow: theme.cardShadow, border: `1px solid ${theme.borderLight}`
-            }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                <h3 style={{ fontSize: '16px', fontWeight: '600', color: theme.textPrimary, margin: 0 }}>🧾 Quarterly Tax Estimate</h3>
-                <span style={{ fontSize: '24px', fontWeight: '700', color: '#F59E0B' }}>{formatCurrency(quarterlyTax)}</span>
-              </div>
-              <div style={{ fontSize: '13px', color: theme.textMuted }}>
-                Based on {formatCurrency(netProfit)} net profit • Next payment: Jan 15, 2026
-              </div>
-              <div style={{ 
-                marginTop: '12px', padding: '8px 12px', 
-                background: '#FEF3C7', borderRadius: '8px',
-                fontSize: '12px', color: '#92400E'
+          {/* Key Metrics - Collapsible */}
+          <CollapsibleSection id="overview-metrics" title="Key Performance Indicators" icon="📊" defaultOpen={true}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px' }}>
+              {/* Total Revenue */}
+              <div style={{
+                background: isDark ? 'linear-gradient(135deg, #14532D 0%, #166534 100%)' : 'linear-gradient(135deg, #DCFCE7 0%, #BBF7D0 100%)',
+                borderRadius: '16px', padding: '20px',
+                border: `1px solid ${isDark ? 'rgba(34, 197, 94, 0.3)' : 'rgba(34, 197, 94, 0.2)'}`
               }}>
-                💡 Set aside 25-30% of profit for taxes
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                  <span style={{ fontSize: '20px' }}>💰</span>
+                  <span style={{ fontSize: '14px', color: isDark ? '#86EFAC' : '#166534', fontWeight: '600' }}>Revenue (MTD)</span>
+                </div>
+                <div style={{ fontSize: '28px', fontWeight: '700', color: isDark ? '#DCFCE7' : '#14532D' }}>{formatCurrency(totalRevenue)}</div>
+                <div style={{ fontSize: '12px', color: isDark ? '#86EFAC' : '#166534', marginTop: '4px' }}>+12% vs last month</div>
+              </div>
+
+              {/* Pending Invoices */}
+              <div style={{
+                background: isDark ? 'linear-gradient(135deg, #1E3A5F 0%, #1E40AF 100%)' : 'linear-gradient(135deg, #DBEAFE 0%, #BFDBFE 100%)',
+                borderRadius: '16px', padding: '20px',
+                border: `1px solid ${isDark ? 'rgba(59, 130, 246, 0.3)' : 'rgba(59, 130, 246, 0.2)'}`
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                  <span style={{ fontSize: '20px' }}>⏳</span>
+                  <span style={{ fontSize: '14px', color: isDark ? '#93C5FD' : '#1E40AF', fontWeight: '600' }}>Pending</span>
+                </div>
+                <div style={{ fontSize: '28px', fontWeight: '700', color: isDark ? '#DBEAFE' : '#1E3A5F' }}>{formatCurrency(pendingInvoices)}</div>
+                <div style={{ fontSize: '12px', color: isDark ? '#93C5FD' : '#1E40AF', marginTop: '4px' }}>{invoices.filter(i => i.status === 'pending').length} invoices</div>
+              </div>
+
+              {/* Total Expenses */}
+              <div style={{
+                background: isDark ? 'linear-gradient(135deg, #7C2D12 0%, #9A3412 100%)' : 'linear-gradient(135deg, #FED7AA 0%, #FDBA74 100%)',
+                borderRadius: '16px', padding: '20px',
+                border: `1px solid ${isDark ? 'rgba(249, 115, 22, 0.3)' : 'rgba(249, 115, 22, 0.2)'}`
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                  <span style={{ fontSize: '20px' }}>💸</span>
+                  <span style={{ fontSize: '14px', color: isDark ? '#FDBA74' : '#9A3412', fontWeight: '600' }}>Expenses (MTD)</span>
+                </div>
+                <div style={{ fontSize: '28px', fontWeight: '700', color: isDark ? '#FED7AA' : '#7C2D12' }}>{formatCurrency(totalExpenses)}</div>
+                <div style={{ fontSize: '12px', color: isDark ? '#FDBA74' : '#9A3412', marginTop: '4px' }}>{expenses.length} transactions</div>
+              </div>
+
+              {/* Net Profit */}
+              <div style={{
+                background: isDark ? 'linear-gradient(135deg, #581C87 0%, #7C3AED 100%)' : 'linear-gradient(135deg, #EDE9FE 0%, #DDD6FE 100%)',
+                borderRadius: '16px', padding: '20px',
+                border: `1px solid ${isDark ? 'rgba(139, 92, 246, 0.3)' : 'rgba(139, 92, 246, 0.2)'}`
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                  <span style={{ fontSize: '20px' }}>📈</span>
+                  <span style={{ fontSize: '14px', color: isDark ? '#C4B5FD' : '#5B21B6', fontWeight: '600' }}>Net Profit</span>
+                </div>
+                <div style={{ fontSize: '28px', fontWeight: '700', color: isDark ? '#EDE9FE' : '#581C87' }}>{formatCurrency(netProfit)}</div>
+                <div style={{ fontSize: '12px', color: isDark ? '#C4B5FD' : '#5B21B6', marginTop: '4px' }}>{Math.round((netProfit / totalRevenue) * 100)}% margin</div>
               </div>
             </div>
-          </div>
+          </CollapsibleSection>
 
-          {/* Recent Activity */}
-          <div style={{
-            background: theme.bgCard, borderRadius: '16px', padding: '20px',
-            boxShadow: theme.cardShadow, border: `1px solid ${theme.borderLight}`
-          }}>
-            <h3 style={{ fontSize: '16px', fontWeight: '600', color: theme.textPrimary, marginBottom: '16px' }}>📋 Recent Activity</h3>
+          {/* Clients & Tax Row - Collapsible */}
+          <CollapsibleSection id="overview-clients-tax" title="Clients & Tax Summary" icon="👥" defaultOpen={true}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+              {/* Active Clients */}
+              <div style={{
+                background: theme.bgMain, borderRadius: '12px', padding: '16px'
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                  <h4 style={{ fontSize: '14px', fontWeight: '600', color: theme.textPrimary, margin: 0 }}>Active Clients</h4>
+                  <span style={{ fontSize: '20px', fontWeight: '700', color: theme.primary }}>{activeClients}</span>
+                </div>
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                  {clients.filter(c => c.status === 'active').slice(0, 3).map(client => (
+                    <div key={client.id} style={{
+                      padding: '6px 10px', background: theme.bgCard, borderRadius: '6px',
+                      fontSize: '12px', color: theme.textSecondary
+                    }}>
+                      {client.name}
+                    </div>
+                  ))}
+                  {activeClients > 3 && (
+                    <div style={{
+                      padding: '6px 10px', background: theme.primary + '20', borderRadius: '6px',
+                      fontSize: '12px', color: theme.primary, fontWeight: '500'
+                    }}>
+                      +{activeClients - 3} more
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Quarterly Tax Estimate */}
+              <div style={{
+                background: theme.bgMain, borderRadius: '12px', padding: '16px'
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                  <h4 style={{ fontSize: '14px', fontWeight: '600', color: theme.textPrimary, margin: 0 }}>Quarterly Tax Estimate</h4>
+                  <span style={{ fontSize: '20px', fontWeight: '700', color: '#F59E0B' }}>{formatCurrency(quarterlyTax)}</span>
+                </div>
+                <div style={{ fontSize: '12px', color: theme.textMuted }}>
+                  Based on {formatCurrency(netProfit)} net profit • Next: Jan 15, 2026
+                </div>
+                <div style={{ 
+                  marginTop: '10px', padding: '6px 10px', 
+                  background: '#FEF3C7', borderRadius: '6px',
+                  fontSize: '11px', color: '#92400E'
+                }}>
+                  💡 Set aside 25-30% of profit for taxes
+                </div>
+              </div>
+            </div>
+          </CollapsibleSection>
+
+          {/* Recent Activity - Collapsible */}
+          <CollapsibleSection id="overview-activity" title="Recent Activity" icon="📋" defaultOpen={true}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {[...invoices.slice(0, 2), ...expenses.slice(0, 2)].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 4).map((item, i) => (
                 <div key={i} style={{
@@ -14494,7 +14536,7 @@ function GeneralBusinessDashboard({ theme, profile, lastImportDate, initialTab =
                 </div>
               ))}
             </div>
-          </div>
+          </CollapsibleSection>
         </div>
       )}
 
@@ -14515,55 +14557,59 @@ function GeneralBusinessDashboard({ theme, profile, lastImportDate, initialTab =
             </button>
           </div>
 
-          {/* Invoice Stats */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '20px' }}>
-            <div style={{ background: '#DCFCE7', borderRadius: '12px', padding: '16px', textAlign: 'center' }}>
-              <div style={{ fontSize: '24px', fontWeight: '700', color: '#166534' }}>{formatCurrency(totalRevenue)}</div>
-              <div style={{ fontSize: '13px', color: '#166534' }}>Paid</div>
+          {/* Invoice Stats - Collapsible */}
+          <CollapsibleSection id="invoices-stats" title="Invoice Summary" icon="📊" defaultOpen={true}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
+              <div style={{ background: '#DCFCE7', borderRadius: '12px', padding: '16px', textAlign: 'center' }}>
+                <div style={{ fontSize: '24px', fontWeight: '700', color: '#166534' }}>{formatCurrency(totalRevenue)}</div>
+                <div style={{ fontSize: '13px', color: '#166534' }}>Paid</div>
+              </div>
+              <div style={{ background: '#DBEAFE', borderRadius: '12px', padding: '16px', textAlign: 'center' }}>
+                <div style={{ fontSize: '24px', fontWeight: '700', color: '#1E40AF' }}>{formatCurrency(pendingInvoices)}</div>
+                <div style={{ fontSize: '13px', color: '#1E40AF' }}>Pending</div>
+              </div>
+              <div style={{ background: '#FEE2E2', borderRadius: '12px', padding: '16px', textAlign: 'center' }}>
+                <div style={{ fontSize: '24px', fontWeight: '700', color: '#DC2626' }}>{formatCurrency(overdueInvoices)}</div>
+                <div style={{ fontSize: '13px', color: '#DC2626' }}>Overdue</div>
+              </div>
             </div>
-            <div style={{ background: '#DBEAFE', borderRadius: '12px', padding: '16px', textAlign: 'center' }}>
-              <div style={{ fontSize: '24px', fontWeight: '700', color: '#1E40AF' }}>{formatCurrency(pendingInvoices)}</div>
-              <div style={{ fontSize: '13px', color: '#1E40AF' }}>Pending</div>
-            </div>
-            <div style={{ background: '#FEE2E2', borderRadius: '12px', padding: '16px', textAlign: 'center' }}>
-              <div style={{ fontSize: '24px', fontWeight: '700', color: '#DC2626' }}>{formatCurrency(overdueInvoices)}</div>
-              <div style={{ fontSize: '13px', color: '#DC2626' }}>Overdue</div>
-            </div>
-          </div>
+          </CollapsibleSection>
 
-          {/* Invoice List */}
-          <div style={{ background: theme.bgCard, borderRadius: '16px', overflow: 'hidden', boxShadow: theme.cardShadow }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-              <thead>
-                <tr style={{ background: theme.bgMain }}>
-                  <th style={{ padding: '14px 16px', textAlign: 'left', fontSize: '13px', fontWeight: '600', color: theme.textSecondary }}>Client</th>
-                  <th style={{ padding: '14px 16px', textAlign: 'left', fontSize: '13px', fontWeight: '600', color: theme.textSecondary }}>Date</th>
-                  <th style={{ padding: '14px 16px', textAlign: 'left', fontSize: '13px', fontWeight: '600', color: theme.textSecondary }}>Due Date</th>
-                  <th style={{ padding: '14px 16px', textAlign: 'right', fontSize: '13px', fontWeight: '600', color: theme.textSecondary }}>Amount</th>
-                  <th style={{ padding: '14px 16px', textAlign: 'center', fontSize: '13px', fontWeight: '600', color: theme.textSecondary }}>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {invoices.map(invoice => (
-                  <tr key={invoice.id} style={{ borderTop: `1px solid ${theme.borderLight}` }}>
-                    <td style={{ padding: '14px 16px', fontSize: '14px', color: theme.textPrimary, fontWeight: '500' }}>{invoice.client}</td>
-                    <td style={{ padding: '14px 16px', fontSize: '14px', color: theme.textSecondary }}>{invoice.date}</td>
-                    <td style={{ padding: '14px 16px', fontSize: '14px', color: theme.textSecondary }}>{invoice.dueDate}</td>
-                    <td style={{ padding: '14px 16px', fontSize: '14px', color: theme.textPrimary, fontWeight: '600', textAlign: 'right' }}>{formatCurrency(invoice.amount)}</td>
-                    <td style={{ padding: '14px 16px', textAlign: 'center' }}>
-                      <span style={{
-                        padding: '4px 12px', borderRadius: '20px', fontSize: '12px', fontWeight: '500',
-                        background: invoice.status === 'paid' ? '#DCFCE7' : invoice.status === 'pending' ? '#DBEAFE' : '#FEE2E2',
-                        color: invoice.status === 'paid' ? '#166534' : invoice.status === 'pending' ? '#1E40AF' : '#DC2626'
-                      }}>
-                        {invoice.status.charAt(0).toUpperCase() + invoice.status.slice(1)}
-                      </span>
-                    </td>
+          {/* Invoice List - Collapsible */}
+          <CollapsibleSection id="invoices-list" title="All Invoices" icon="📄" defaultOpen={true}>
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr style={{ background: theme.bgMain }}>
+                    <th style={{ padding: '14px 16px', textAlign: 'left', fontSize: '13px', fontWeight: '600', color: theme.textSecondary }}>Client</th>
+                    <th style={{ padding: '14px 16px', textAlign: 'left', fontSize: '13px', fontWeight: '600', color: theme.textSecondary }}>Date</th>
+                    <th style={{ padding: '14px 16px', textAlign: 'left', fontSize: '13px', fontWeight: '600', color: theme.textSecondary }}>Due Date</th>
+                    <th style={{ padding: '14px 16px', textAlign: 'right', fontSize: '13px', fontWeight: '600', color: theme.textSecondary }}>Amount</th>
+                    <th style={{ padding: '14px 16px', textAlign: 'center', fontSize: '13px', fontWeight: '600', color: theme.textSecondary }}>Status</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {invoices.map(invoice => (
+                    <tr key={invoice.id} style={{ borderTop: `1px solid ${theme.borderLight}` }}>
+                      <td style={{ padding: '14px 16px', fontSize: '14px', color: theme.textPrimary, fontWeight: '500' }}>{invoice.client}</td>
+                      <td style={{ padding: '14px 16px', fontSize: '14px', color: theme.textSecondary }}>{invoice.date}</td>
+                      <td style={{ padding: '14px 16px', fontSize: '14px', color: theme.textSecondary }}>{invoice.dueDate}</td>
+                      <td style={{ padding: '14px 16px', fontSize: '14px', color: theme.textPrimary, fontWeight: '600', textAlign: 'right' }}>{formatCurrency(invoice.amount)}</td>
+                      <td style={{ padding: '14px 16px', textAlign: 'center' }}>
+                        <span style={{
+                          padding: '4px 12px', borderRadius: '20px', fontSize: '12px', fontWeight: '500',
+                          background: invoice.status === 'paid' ? '#DCFCE7' : invoice.status === 'pending' ? '#DBEAFE' : '#FEE2E2',
+                          color: invoice.status === 'paid' ? '#166534' : invoice.status === 'pending' ? '#1E40AF' : '#DC2626'
+                        }}>
+                          {invoice.status.charAt(0).toUpperCase() + invoice.status.slice(1)}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </CollapsibleSection>
         </div>
       )}
 
@@ -14584,52 +14630,55 @@ function GeneralBusinessDashboard({ theme, profile, lastImportDate, initialTab =
             </button>
           </div>
 
-          {/* Expense by Category */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '12px', marginBottom: '20px' }}>
-            {['Supplies', 'Software', 'Marketing', 'Education', 'Transportation'].map(cat => {
-              const catTotal = expenses.filter(e => e.category === cat).reduce((sum, e) => sum + e.amount, 0);
-              return (
-                <div key={cat} style={{
-                  background: theme.bgCard, borderRadius: '12px', padding: '16px',
-                  boxShadow: theme.cardShadow, border: `1px solid ${theme.borderLight}`
-                }}>
-                  <div style={{ fontSize: '13px', color: theme.textMuted, marginBottom: '4px' }}>{cat}</div>
-                  <div style={{ fontSize: '18px', fontWeight: '700', color: theme.textPrimary }}>{formatCurrency(catTotal)}</div>
-                </div>
-              );
-            })}
-          </div>
+          {/* Expense by Category - Collapsible */}
+          <CollapsibleSection id="expenses-categories" title="Expenses by Category" icon="📊" defaultOpen={true}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '12px' }}>
+              {['Supplies', 'Software', 'Marketing', 'Education', 'Transportation'].map(cat => {
+                const catTotal = expenses.filter(e => e.category === cat).reduce((sum, e) => sum + e.amount, 0);
+                return (
+                  <div key={cat} style={{
+                    background: theme.bgMain, borderRadius: '12px', padding: '16px'
+                  }}>
+                    <div style={{ fontSize: '13px', color: theme.textMuted, marginBottom: '4px' }}>{cat}</div>
+                    <div style={{ fontSize: '18px', fontWeight: '700', color: theme.textPrimary }}>{formatCurrency(catTotal)}</div>
+                  </div>
+                );
+              })}
+            </div>
+          </CollapsibleSection>
 
-          {/* Expense List */}
-          <div style={{ background: theme.bgCard, borderRadius: '16px', overflow: 'hidden', boxShadow: theme.cardShadow }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-              <thead>
-                <tr style={{ background: theme.bgMain }}>
-                  <th style={{ padding: '14px 16px', textAlign: 'left', fontSize: '13px', fontWeight: '600', color: theme.textSecondary }}>Description</th>
-                  <th style={{ padding: '14px 16px', textAlign: 'left', fontSize: '13px', fontWeight: '600', color: theme.textSecondary }}>Category</th>
-                  <th style={{ padding: '14px 16px', textAlign: 'left', fontSize: '13px', fontWeight: '600', color: theme.textSecondary }}>Date</th>
-                  <th style={{ padding: '14px 16px', textAlign: 'right', fontSize: '13px', fontWeight: '600', color: theme.textSecondary }}>Amount</th>
-                </tr>
-              </thead>
-              <tbody>
-                {expenses.map(expense => (
-                  <tr key={expense.id} style={{ borderTop: `1px solid ${theme.borderLight}` }}>
-                    <td style={{ padding: '14px 16px', fontSize: '14px', color: theme.textPrimary, fontWeight: '500' }}>{expense.description}</td>
-                    <td style={{ padding: '14px 16px' }}>
-                      <span style={{
-                        padding: '4px 10px', borderRadius: '6px', fontSize: '12px',
-                        background: theme.bgMain, color: theme.textSecondary
-                      }}>
-                        {expense.category}
-                      </span>
-                    </td>
-                    <td style={{ padding: '14px 16px', fontSize: '14px', color: theme.textSecondary }}>{expense.date}</td>
-                    <td style={{ padding: '14px 16px', fontSize: '14px', color: '#DC2626', fontWeight: '600', textAlign: 'right' }}>-{formatCurrency(expense.amount)}</td>
+          {/* Expense List - Collapsible */}
+          <CollapsibleSection id="expenses-list" title="All Expenses" icon="💸" defaultOpen={true}>
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr style={{ background: theme.bgMain }}>
+                    <th style={{ padding: '14px 16px', textAlign: 'left', fontSize: '13px', fontWeight: '600', color: theme.textSecondary }}>Description</th>
+                    <th style={{ padding: '14px 16px', textAlign: 'left', fontSize: '13px', fontWeight: '600', color: theme.textSecondary }}>Category</th>
+                    <th style={{ padding: '14px 16px', textAlign: 'left', fontSize: '13px', fontWeight: '600', color: theme.textSecondary }}>Date</th>
+                    <th style={{ padding: '14px 16px', textAlign: 'right', fontSize: '13px', fontWeight: '600', color: theme.textSecondary }}>Amount</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {expenses.map(expense => (
+                    <tr key={expense.id} style={{ borderTop: `1px solid ${theme.borderLight}` }}>
+                      <td style={{ padding: '14px 16px', fontSize: '14px', color: theme.textPrimary, fontWeight: '500' }}>{expense.description}</td>
+                      <td style={{ padding: '14px 16px' }}>
+                        <span style={{
+                          padding: '4px 10px', borderRadius: '6px', fontSize: '12px',
+                          background: theme.bgMain, color: theme.textSecondary
+                        }}>
+                          {expense.category}
+                        </span>
+                      </td>
+                      <td style={{ padding: '14px 16px', fontSize: '14px', color: theme.textSecondary }}>{expense.date}</td>
+                      <td style={{ padding: '14px 16px', fontSize: '14px', color: '#DC2626', fontWeight: '600', textAlign: 'right' }}>-{formatCurrency(expense.amount)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </CollapsibleSection>
         </div>
       )}
 
@@ -14650,35 +14699,36 @@ function GeneralBusinessDashboard({ theme, profile, lastImportDate, initialTab =
             </button>
           </div>
 
-          {/* Client Cards */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px' }}>
-            {clients.map(client => (
-              <div key={client.id} style={{
-                background: theme.bgCard, borderRadius: '16px', padding: '20px',
-                boxShadow: theme.cardShadow, border: `1px solid ${theme.borderLight}`
-              }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
-                  <div>
-                    <h3 style={{ fontSize: '16px', fontWeight: '600', color: theme.textPrimary, margin: 0 }}>{client.name}</h3>
-                    <p style={{ fontSize: '13px', color: theme.textMuted, margin: '4px 0 0 0' }}>{client.email}</p>
+          {/* Client Cards - Collapsible */}
+          <CollapsibleSection id="clients-list" title="All Clients" icon="👥" defaultOpen={true}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px' }}>
+              {clients.map(client => (
+                <div key={client.id} style={{
+                  background: theme.bgMain, borderRadius: '12px', padding: '16px'
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+                    <div>
+                      <h3 style={{ fontSize: '16px', fontWeight: '600', color: theme.textPrimary, margin: 0 }}>{client.name}</h3>
+                      <p style={{ fontSize: '13px', color: theme.textMuted, margin: '4px 0 0 0' }}>{client.email}</p>
+                    </div>
+                    <span style={{
+                      padding: '4px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: '500',
+                      background: client.status === 'active' ? '#DCFCE7' : '#F3F4F6',
+                      color: client.status === 'active' ? '#166534' : '#6B7280'
+                    }}>
+                      {client.status}
+                    </span>
                   </div>
-                  <span style={{
-                    padding: '4px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: '500',
-                    background: client.status === 'active' ? '#DCFCE7' : '#F3F4F6',
-                    color: client.status === 'active' ? '#166534' : '#6B7280'
-                  }}>
-                    {client.status}
-                  </span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div style={{ fontSize: '13px', color: theme.textMuted }}>📞 {client.phone}</div>
-                  <div style={{ fontSize: '14px', fontWeight: '600', color: theme.primary }}>
-                    {formatCurrency(client.totalRevenue)} total
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ fontSize: '13px', color: theme.textMuted }}>📞 {client.phone}</div>
+                    <div style={{ fontSize: '14px', fontWeight: '600', color: theme.primary }}>
+                      {formatCurrency(client.totalRevenue)} total
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          </CollapsibleSection>
         </div>
       )}
 
@@ -14687,40 +14737,29 @@ function GeneralBusinessDashboard({ theme, profile, lastImportDate, initialTab =
         <div>
           <h2 style={{ fontSize: '20px', fontWeight: '600', color: theme.textPrimary, marginBottom: '20px' }}>Tax Planning & Estimates</h2>
 
-          {/* Tax Overview */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px', marginBottom: '24px' }}>
-            <div style={{
-              background: theme.bgCard, borderRadius: '16px', padding: '24px',
-              boxShadow: theme.cardShadow, border: `1px solid ${theme.borderLight}`
-            }}>
-              <div style={{ fontSize: '14px', color: theme.textMuted, marginBottom: '8px' }}>Estimated Annual Tax</div>
-              <div style={{ fontSize: '32px', fontWeight: '700', color: theme.textPrimary }}>{formatCurrency(estimatedTax)}</div>
-              <div style={{ fontSize: '12px', color: theme.textMuted, marginTop: '4px' }}>Based on 25% rate</div>
+          {/* Tax Overview - Collapsible */}
+          <CollapsibleSection id="taxes-overview" title="Tax Summary" icon="🧾" defaultOpen={true}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px' }}>
+              <div style={{ background: theme.bgMain, borderRadius: '12px', padding: '20px' }}>
+                <div style={{ fontSize: '14px', color: theme.textMuted, marginBottom: '8px' }}>Estimated Annual Tax</div>
+                <div style={{ fontSize: '32px', fontWeight: '700', color: theme.textPrimary }}>{formatCurrency(estimatedTax)}</div>
+                <div style={{ fontSize: '12px', color: theme.textMuted, marginTop: '4px' }}>Based on 25% rate</div>
+              </div>
+              <div style={{ background: theme.bgMain, borderRadius: '12px', padding: '20px' }}>
+                <div style={{ fontSize: '14px', color: theme.textMuted, marginBottom: '8px' }}>Quarterly Payment</div>
+                <div style={{ fontSize: '32px', fontWeight: '700', color: '#F59E0B' }}>{formatCurrency(quarterlyTax)}</div>
+                <div style={{ fontSize: '12px', color: theme.textMuted, marginTop: '4px' }}>Next: Jan 15, 2026</div>
+              </div>
+              <div style={{ background: theme.bgMain, borderRadius: '12px', padding: '20px' }}>
+                <div style={{ fontSize: '14px', color: theme.textMuted, marginBottom: '8px' }}>Tax-Deductible Expenses</div>
+                <div style={{ fontSize: '32px', fontWeight: '700', color: '#059669' }}>{formatCurrency(totalExpenses)}</div>
+                <div style={{ fontSize: '12px', color: theme.textMuted, marginTop: '4px' }}>{expenses.length} deductions</div>
+              </div>
             </div>
-            <div style={{
-              background: theme.bgCard, borderRadius: '16px', padding: '24px',
-              boxShadow: theme.cardShadow, border: `1px solid ${theme.borderLight}`
-            }}>
-              <div style={{ fontSize: '14px', color: theme.textMuted, marginBottom: '8px' }}>Quarterly Payment</div>
-              <div style={{ fontSize: '32px', fontWeight: '700', color: '#F59E0B' }}>{formatCurrency(quarterlyTax)}</div>
-              <div style={{ fontSize: '12px', color: theme.textMuted, marginTop: '4px' }}>Next: Jan 15, 2026</div>
-            </div>
-            <div style={{
-              background: theme.bgCard, borderRadius: '16px', padding: '24px',
-              boxShadow: theme.cardShadow, border: `1px solid ${theme.borderLight}`
-            }}>
-              <div style={{ fontSize: '14px', color: theme.textMuted, marginBottom: '8px' }}>Tax-Deductible Expenses</div>
-              <div style={{ fontSize: '32px', fontWeight: '700', color: '#059669' }}>{formatCurrency(totalExpenses)}</div>
-              <div style={{ fontSize: '12px', color: theme.textMuted, marginTop: '4px' }}>{expenses.length} deductions</div>
-            </div>
-          </div>
+          </CollapsibleSection>
 
-          {/* Quarterly Deadlines */}
-          <div style={{
-            background: theme.bgCard, borderRadius: '16px', padding: '24px',
-            boxShadow: theme.cardShadow, border: `1px solid ${theme.borderLight}`, marginBottom: '24px'
-          }}>
-            <h3 style={{ fontSize: '16px', fontWeight: '600', color: theme.textPrimary, marginBottom: '16px' }}>📅 Quarterly Tax Deadlines</h3>
+          {/* Quarterly Deadlines - Collapsible */}
+          <CollapsibleSection id="taxes-deadlines" title="Quarterly Tax Deadlines" icon="📅" defaultOpen={true}>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px' }}>
               {[
                 { q: 'Q1', date: 'Apr 15, 2025', status: 'paid' },
@@ -14744,15 +14783,10 @@ function GeneralBusinessDashboard({ theme, profile, lastImportDate, initialTab =
                 </div>
               ))}
             </div>
-          </div>
+          </CollapsibleSection>
 
-          {/* Tax Tips */}
-          <div style={{
-            background: `linear-gradient(135deg, ${theme.primary}10, ${theme.primary}05)`,
-            borderRadius: '16px', padding: '24px',
-            border: `1px solid ${theme.primary}30`
-          }}>
-            <h3 style={{ fontSize: '16px', fontWeight: '600', color: theme.textPrimary, marginBottom: '12px' }}>💡 Tax Tips for Your Business</h3>
+          {/* Tax Tips - Collapsible */}
+          <CollapsibleSection id="taxes-tips" title="Tax Tips for Your Business" icon="💡" defaultOpen={true}>
             <ul style={{ margin: 0, paddingLeft: '20px', color: theme.textSecondary, fontSize: '14px', lineHeight: '1.8' }}>
               <li>Track all business expenses - they reduce your taxable income</li>
               <li>Consider a SEP-IRA or Solo 401(k) for retirement savings & tax deduction</li>
@@ -14760,7 +14794,7 @@ function GeneralBusinessDashboard({ theme, profile, lastImportDate, initialTab =
               <li>Home office? You may qualify for the home office deduction</li>
               <li>Vehicle used for business? Track your mileage for deductions</li>
             </ul>
-          </div>
+          </CollapsibleSection>
         </div>
       )}
 
@@ -14781,62 +14815,65 @@ function GeneralBusinessDashboard({ theme, profile, lastImportDate, initialTab =
             </button>
           </div>
 
-          {/* Pipeline Stats */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '24px' }}>
-            <div style={{ background: '#FEF3C7', borderRadius: '12px', padding: '16px', textAlign: 'center' }}>
-              <div style={{ fontSize: '24px', fontWeight: '700', color: '#92400E' }}>{projects.filter(p => p.status === 'proposal').length}</div>
-              <div style={{ fontSize: '13px', color: '#92400E' }}>Proposals</div>
-            </div>
-            <div style={{ background: '#DBEAFE', borderRadius: '12px', padding: '16px', textAlign: 'center' }}>
-              <div style={{ fontSize: '24px', fontWeight: '700', color: '#1E40AF' }}>{activeProjects}</div>
-              <div style={{ fontSize: '13px', color: '#1E40AF' }}>In Progress</div>
-            </div>
-            <div style={{ background: '#DCFCE7', borderRadius: '12px', padding: '16px', textAlign: 'center' }}>
-              <div style={{ fontSize: '24px', fontWeight: '700', color: '#166534' }}>{projects.filter(p => p.status === 'completed').length}</div>
-              <div style={{ fontSize: '13px', color: '#166534' }}>Completed</div>
-            </div>
-            <div style={{ background: '#EDE9FE', borderRadius: '12px', padding: '16px', textAlign: 'center' }}>
-              <div style={{ fontSize: '24px', fontWeight: '700', color: '#5B21B6' }}>{formatCurrency(pipelineValue)}</div>
-              <div style={{ fontSize: '13px', color: '#5B21B6' }}>Pipeline Value</div>
-            </div>
-          </div>
-
-          {/* Project Cards */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            {projects.map(project => (
-              <div key={project.id} style={{
-                background: theme.bgCard, borderRadius: '16px', padding: '20px',
-                boxShadow: theme.cardShadow, border: `1px solid ${theme.borderLight}`
-              }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
-                  <div>
-                    <h3 style={{ fontSize: '16px', fontWeight: '600', color: theme.textPrimary, margin: 0 }}>{project.name}</h3>
-                    <p style={{ fontSize: '13px', color: theme.textMuted, margin: '4px 0 0 0' }}>{project.client}</p>
-                  </div>
-                  <span style={{
-                    padding: '4px 12px', borderRadius: '20px', fontSize: '12px', fontWeight: '500',
-                    background: project.status === 'completed' ? '#DCFCE7' : project.status === 'in_progress' || project.status === 'active' ? '#DBEAFE' : '#FEF3C7',
-                    color: project.status === 'completed' ? '#166534' : project.status === 'in_progress' || project.status === 'active' ? '#1E40AF' : '#92400E'
-                  }}>
-                    {project.status === 'in_progress' ? 'In Progress' : project.status === 'proposal' ? 'Proposal' : project.status.charAt(0).toUpperCase() + project.status.slice(1)}
-                  </span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                  <div style={{ fontSize: '20px', fontWeight: '700', color: theme.primary }}>{formatCurrency(project.value)}</div>
-                  <div style={{ fontSize: '13px', color: theme.textMuted }}>Due: {project.deadline}</div>
-                </div>
-                {/* Progress Bar */}
-                <div style={{ background: theme.bgMain, borderRadius: '8px', height: '8px', overflow: 'hidden' }}>
-                  <div style={{
-                    width: `${project.progress}%`, height: '100%',
-                    background: project.progress === 100 ? '#22C55E' : theme.primary,
-                    borderRadius: '8px', transition: 'width 0.3s'
-                  }} />
-                </div>
-                <div style={{ fontSize: '12px', color: theme.textMuted, marginTop: '4px', textAlign: 'right' }}>{project.progress}% complete</div>
+          {/* Pipeline Stats - Collapsible */}
+          <CollapsibleSection id="projects-stats" title="Pipeline Overview" icon="📊" defaultOpen={true}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }}>
+              <div style={{ background: '#FEF3C7', borderRadius: '12px', padding: '16px', textAlign: 'center' }}>
+                <div style={{ fontSize: '24px', fontWeight: '700', color: '#92400E' }}>{projects.filter(p => p.status === 'proposal').length}</div>
+                <div style={{ fontSize: '13px', color: '#92400E' }}>Proposals</div>
               </div>
-            ))}
-          </div>
+              <div style={{ background: '#DBEAFE', borderRadius: '12px', padding: '16px', textAlign: 'center' }}>
+                <div style={{ fontSize: '24px', fontWeight: '700', color: '#1E40AF' }}>{activeProjects}</div>
+                <div style={{ fontSize: '13px', color: '#1E40AF' }}>In Progress</div>
+              </div>
+              <div style={{ background: '#DCFCE7', borderRadius: '12px', padding: '16px', textAlign: 'center' }}>
+                <div style={{ fontSize: '24px', fontWeight: '700', color: '#166534' }}>{projects.filter(p => p.status === 'completed').length}</div>
+                <div style={{ fontSize: '13px', color: '#166534' }}>Completed</div>
+              </div>
+              <div style={{ background: '#EDE9FE', borderRadius: '12px', padding: '16px', textAlign: 'center' }}>
+                <div style={{ fontSize: '24px', fontWeight: '700', color: '#5B21B6' }}>{formatCurrency(pipelineValue)}</div>
+                <div style={{ fontSize: '13px', color: '#5B21B6' }}>Pipeline Value</div>
+              </div>
+            </div>
+          </CollapsibleSection>
+
+          {/* Project Cards - Collapsible */}
+          <CollapsibleSection id="projects-list" title="All Projects" icon="📋" defaultOpen={true}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              {projects.map(project => (
+                <div key={project.id} style={{
+                  background: theme.bgMain, borderRadius: '12px', padding: '16px'
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+                    <div>
+                      <h3 style={{ fontSize: '16px', fontWeight: '600', color: theme.textPrimary, margin: 0 }}>{project.name}</h3>
+                      <p style={{ fontSize: '13px', color: theme.textMuted, margin: '4px 0 0 0' }}>{project.client}</p>
+                    </div>
+                    <span style={{
+                      padding: '4px 12px', borderRadius: '20px', fontSize: '12px', fontWeight: '500',
+                      background: project.status === 'completed' ? '#DCFCE7' : project.status === 'in_progress' || project.status === 'active' ? '#DBEAFE' : '#FEF3C7',
+                      color: project.status === 'completed' ? '#166534' : project.status === 'in_progress' || project.status === 'active' ? '#1E40AF' : '#92400E'
+                    }}>
+                      {project.status === 'in_progress' ? 'In Progress' : project.status === 'proposal' ? 'Proposal' : project.status.charAt(0).toUpperCase() + project.status.slice(1)}
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                    <div style={{ fontSize: '20px', fontWeight: '700', color: theme.primary }}>{formatCurrency(project.value)}</div>
+                    <div style={{ fontSize: '13px', color: theme.textMuted }}>Due: {project.deadline}</div>
+                  </div>
+                  {/* Progress Bar */}
+                  <div style={{ background: theme.bgCard, borderRadius: '8px', height: '8px', overflow: 'hidden' }}>
+                    <div style={{
+                      width: `${project.progress}%`, height: '100%',
+                      background: project.progress === 100 ? '#22C55E' : theme.primary,
+                      borderRadius: '8px', transition: 'width 0.3s'
+                    }} />
+                  </div>
+                  <div style={{ fontSize: '12px', color: theme.textMuted, marginTop: '4px', textAlign: 'right' }}>{project.progress}% complete</div>
+                </div>
+              ))}
+            </div>
+          </CollapsibleSection>
         </div>
       )}
 
@@ -14845,40 +14882,29 @@ function GeneralBusinessDashboard({ theme, profile, lastImportDate, initialTab =
         <div>
           <h2 style={{ fontSize: '20px', fontWeight: '600', color: theme.textPrimary, marginBottom: '20px' }}>Revenue Forecast</h2>
 
-          {/* Forecast Summary */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px', marginBottom: '24px' }}>
-            <div style={{
-              background: theme.bgCard, borderRadius: '16px', padding: '24px',
-              boxShadow: theme.cardShadow, border: `1px solid ${theme.borderLight}`
-            }}>
-              <div style={{ fontSize: '14px', color: theme.textMuted, marginBottom: '8px' }}>Projected Monthly Revenue</div>
-              <div style={{ fontSize: '32px', fontWeight: '700', color: '#22C55E' }}>{formatCurrency(10500)}</div>
-              <div style={{ fontSize: '12px', color: '#22C55E', marginTop: '4px' }}>↑ 8% growth trend</div>
+          {/* Forecast Summary - Collapsible */}
+          <CollapsibleSection id="forecast-summary" title="Forecast Summary" icon="📊" defaultOpen={true}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px' }}>
+              <div style={{ background: theme.bgMain, borderRadius: '12px', padding: '20px' }}>
+                <div style={{ fontSize: '14px', color: theme.textMuted, marginBottom: '8px' }}>Projected Monthly Revenue</div>
+                <div style={{ fontSize: '32px', fontWeight: '700', color: '#22C55E' }}>{formatCurrency(10500)}</div>
+                <div style={{ fontSize: '12px', color: '#22C55E', marginTop: '4px' }}>↑ 8% growth trend</div>
+              </div>
+              <div style={{ background: theme.bgMain, borderRadius: '12px', padding: '20px' }}>
+                <div style={{ fontSize: '14px', color: theme.textMuted, marginBottom: '8px' }}>Pipeline Revenue</div>
+                <div style={{ fontSize: '32px', fontWeight: '700', color: theme.primary }}>{formatCurrency(pipelineValue)}</div>
+                <div style={{ fontSize: '12px', color: theme.textMuted, marginTop: '4px' }}>{projects.filter(p => p.status !== 'completed').length} active projects</div>
+              </div>
+              <div style={{ background: theme.bgMain, borderRadius: '12px', padding: '20px' }}>
+                <div style={{ fontSize: '14px', color: theme.textMuted, marginBottom: '8px' }}>Annual Projection</div>
+                <div style={{ fontSize: '32px', fontWeight: '700', color: theme.textPrimary }}>{formatCurrency(126000)}</div>
+                <div style={{ fontSize: '12px', color: theme.textMuted, marginTop: '4px' }}>Based on 6-month trend</div>
+              </div>
             </div>
-            <div style={{
-              background: theme.bgCard, borderRadius: '16px', padding: '24px',
-              boxShadow: theme.cardShadow, border: `1px solid ${theme.borderLight}`
-            }}>
-              <div style={{ fontSize: '14px', color: theme.textMuted, marginBottom: '8px' }}>Pipeline Revenue</div>
-              <div style={{ fontSize: '32px', fontWeight: '700', color: theme.primary }}>{formatCurrency(pipelineValue)}</div>
-              <div style={{ fontSize: '12px', color: theme.textMuted, marginTop: '4px' }}>{projects.filter(p => p.status !== 'completed').length} active projects</div>
-            </div>
-            <div style={{
-              background: theme.bgCard, borderRadius: '16px', padding: '24px',
-              boxShadow: theme.cardShadow, border: `1px solid ${theme.borderLight}`
-            }}>
-              <div style={{ fontSize: '14px', color: theme.textMuted, marginBottom: '8px' }}>Annual Projection</div>
-              <div style={{ fontSize: '32px', fontWeight: '700', color: theme.textPrimary }}>{formatCurrency(126000)}</div>
-              <div style={{ fontSize: '12px', color: theme.textMuted, marginTop: '4px' }}>Based on 6-month trend</div>
-            </div>
-          </div>
+          </CollapsibleSection>
 
-          {/* Monthly Chart */}
-          <div style={{
-            background: theme.bgCard, borderRadius: '16px', padding: '24px',
-            boxShadow: theme.cardShadow, border: `1px solid ${theme.borderLight}`, marginBottom: '24px'
-          }}>
-            <h3 style={{ fontSize: '16px', fontWeight: '600', color: theme.textPrimary, marginBottom: '20px' }}>📈 6-Month Trend</h3>
+          {/* Monthly Chart - Collapsible */}
+          <CollapsibleSection id="forecast-chart" title="6-Month Trend" icon="📈" defaultOpen={true}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', height: '200px', gap: '12px' }}>
               {monthlyData.map((month, i) => {
                 const maxRevenue = Math.max(...monthlyData.map(m => m.revenue));
@@ -14896,20 +14922,15 @@ function GeneralBusinessDashboard({ theme, profile, lastImportDate, initialTab =
                 );
               })}
             </div>
-          </div>
+          </CollapsibleSection>
 
-          {/* Forecast Notes */}
-          <div style={{
-            background: `linear-gradient(135deg, ${theme.primary}10, ${theme.primary}05)`,
-            borderRadius: '16px', padding: '20px',
-            border: `1px solid ${theme.primary}30`
-          }}>
-            <h4 style={{ fontSize: '14px', fontWeight: '600', color: theme.textPrimary, marginBottom: '8px' }}>📊 Forecast Insights</h4>
+          {/* Forecast Insights - Collapsible */}
+          <CollapsibleSection id="forecast-insights" title="Forecast Insights" icon="💡" defaultOpen={true}>
             <p style={{ fontSize: '13px', color: theme.textSecondary, margin: 0, lineHeight: '1.6' }}>
               Based on your current pipeline and historical data, you're on track to exceed last year's revenue by 15%. 
               Consider focusing on converting your 2 pending proposals to maintain growth momentum.
             </p>
-          </div>
+          </CollapsibleSection>
         </div>
       )}
 
@@ -14918,64 +14939,62 @@ function GeneralBusinessDashboard({ theme, profile, lastImportDate, initialTab =
         <div>
           <h2 style={{ fontSize: '20px', fontWeight: '600', color: theme.textPrimary, marginBottom: '20px' }}>Project History</h2>
 
-          {/* Completed Projects */}
-          <div style={{
-            background: theme.bgCard, borderRadius: '16px', overflow: 'hidden',
-            boxShadow: theme.cardShadow, border: `1px solid ${theme.borderLight}`
-          }}>
-            <div style={{ padding: '16px 20px', borderBottom: `1px solid ${theme.borderLight}` }}>
-              <h3 style={{ fontSize: '16px', fontWeight: '600', color: theme.textPrimary, margin: 0 }}>✅ Completed Projects</h3>
-            </div>
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-              <thead>
-                <tr style={{ background: theme.bgMain }}>
-                  <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '13px', fontWeight: '600', color: theme.textSecondary }}>Project</th>
-                  <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '13px', fontWeight: '600', color: theme.textSecondary }}>Client</th>
-                  <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '13px', fontWeight: '600', color: theme.textSecondary }}>Completed</th>
-                  <th style={{ padding: '12px 16px', textAlign: 'right', fontSize: '13px', fontWeight: '600', color: theme.textSecondary }}>Revenue</th>
-                </tr>
-              </thead>
-              <tbody>
-                {projects.filter(p => p.status === 'completed').map(project => (
-                  <tr key={project.id} style={{ borderTop: `1px solid ${theme.borderLight}` }}>
-                    <td style={{ padding: '14px 16px', fontSize: '14px', color: theme.textPrimary, fontWeight: '500' }}>{project.name}</td>
-                    <td style={{ padding: '14px 16px', fontSize: '14px', color: theme.textSecondary }}>{project.client}</td>
-                    <td style={{ padding: '14px 16px', fontSize: '14px', color: theme.textSecondary }}>{project.deadline}</td>
-                    <td style={{ padding: '14px 16px', fontSize: '14px', color: '#22C55E', fontWeight: '600', textAlign: 'right' }}>{formatCurrency(project.value)}</td>
+          {/* Completed Projects - Collapsible */}
+          <CollapsibleSection id="history-completed" title="Completed Projects" icon="✅" defaultOpen={true}>
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr style={{ background: theme.bgMain }}>
+                    <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '13px', fontWeight: '600', color: theme.textSecondary }}>Project</th>
+                    <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '13px', fontWeight: '600', color: theme.textSecondary }}>Client</th>
+                    <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '13px', fontWeight: '600', color: theme.textSecondary }}>Completed</th>
+                    <th style={{ padding: '12px 16px', textAlign: 'right', fontSize: '13px', fontWeight: '600', color: theme.textSecondary }}>Revenue</th>
                   </tr>
-                ))}
-                {/* Add some historical data */}
-                <tr style={{ borderTop: `1px solid ${theme.borderLight}` }}>
-                  <td style={{ padding: '14px 16px', fontSize: '14px', color: theme.textPrimary, fontWeight: '500' }}>Marketing Audit</td>
-                  <td style={{ padding: '14px 16px', fontSize: '14px', color: theme.textSecondary }}>Tech Startup Co</td>
-                  <td style={{ padding: '14px 16px', fontSize: '14px', color: theme.textSecondary }}>2025-09-15</td>
-                  <td style={{ padding: '14px 16px', fontSize: '14px', color: '#22C55E', fontWeight: '600', textAlign: 'right' }}>{formatCurrency(2800)}</td>
-                </tr>
-                <tr style={{ borderTop: `1px solid ${theme.borderLight}` }}>
-                  <td style={{ padding: '14px 16px', fontSize: '14px', color: theme.textPrimary, fontWeight: '500' }}>Social Media Setup</td>
-                  <td style={{ padding: '14px 16px', fontSize: '14px', color: theme.textSecondary }}>Local Restaurant</td>
-                  <td style={{ padding: '14px 16px', fontSize: '14px', color: theme.textSecondary }}>2025-08-20</td>
-                  <td style={{ padding: '14px 16px', fontSize: '14px', color: '#22C55E', fontWeight: '600', textAlign: 'right' }}>{formatCurrency(1200)}</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {projects.filter(p => p.status === 'completed').map(project => (
+                    <tr key={project.id} style={{ borderTop: `1px solid ${theme.borderLight}` }}>
+                      <td style={{ padding: '14px 16px', fontSize: '14px', color: theme.textPrimary, fontWeight: '500' }}>{project.name}</td>
+                      <td style={{ padding: '14px 16px', fontSize: '14px', color: theme.textSecondary }}>{project.client}</td>
+                      <td style={{ padding: '14px 16px', fontSize: '14px', color: theme.textSecondary }}>{project.deadline}</td>
+                      <td style={{ padding: '14px 16px', fontSize: '14px', color: '#22C55E', fontWeight: '600', textAlign: 'right' }}>{formatCurrency(project.value)}</td>
+                    </tr>
+                  ))}
+                  {/* Add some historical data */}
+                  <tr style={{ borderTop: `1px solid ${theme.borderLight}` }}>
+                    <td style={{ padding: '14px 16px', fontSize: '14px', color: theme.textPrimary, fontWeight: '500' }}>Marketing Audit</td>
+                    <td style={{ padding: '14px 16px', fontSize: '14px', color: theme.textSecondary }}>Tech Startup Co</td>
+                    <td style={{ padding: '14px 16px', fontSize: '14px', color: theme.textSecondary }}>2025-09-15</td>
+                    <td style={{ padding: '14px 16px', fontSize: '14px', color: '#22C55E', fontWeight: '600', textAlign: 'right' }}>{formatCurrency(2800)}</td>
+                  </tr>
+                  <tr style={{ borderTop: `1px solid ${theme.borderLight}` }}>
+                    <td style={{ padding: '14px 16px', fontSize: '14px', color: theme.textPrimary, fontWeight: '500' }}>Social Media Setup</td>
+                    <td style={{ padding: '14px 16px', fontSize: '14px', color: theme.textSecondary }}>Local Restaurant</td>
+                    <td style={{ padding: '14px 16px', fontSize: '14px', color: theme.textSecondary }}>2025-08-20</td>
+                    <td style={{ padding: '14px 16px', fontSize: '14px', color: '#22C55E', fontWeight: '600', textAlign: 'right' }}>{formatCurrency(1200)}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </CollapsibleSection>
 
-          {/* Summary Stats */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginTop: '24px' }}>
-            <div style={{ background: theme.bgCard, borderRadius: '12px', padding: '20px', textAlign: 'center', boxShadow: theme.cardShadow }}>
-              <div style={{ fontSize: '28px', fontWeight: '700', color: theme.primary }}>12</div>
-              <div style={{ fontSize: '13px', color: theme.textMuted }}>Projects This Year</div>
+          {/* Summary Stats - Collapsible */}
+          <CollapsibleSection id="history-stats" title="Year-to-Date Summary" icon="📊" defaultOpen={true}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
+              <div style={{ background: theme.bgMain, borderRadius: '12px', padding: '20px', textAlign: 'center' }}>
+                <div style={{ fontSize: '28px', fontWeight: '700', color: theme.primary }}>12</div>
+                <div style={{ fontSize: '13px', color: theme.textMuted }}>Projects This Year</div>
+              </div>
+              <div style={{ background: theme.bgMain, borderRadius: '12px', padding: '20px', textAlign: 'center' }}>
+                <div style={{ fontSize: '28px', fontWeight: '700', color: '#22C55E' }}>{formatCurrency(45200)}</div>
+                <div style={{ fontSize: '13px', color: theme.textMuted }}>Total Revenue YTD</div>
+              </div>
+              <div style={{ background: theme.bgMain, borderRadius: '12px', padding: '20px', textAlign: 'center' }}>
+                <div style={{ fontSize: '28px', fontWeight: '700', color: '#F59E0B' }}>{formatCurrency(3767)}</div>
+                <div style={{ fontSize: '13px', color: theme.textMuted }}>Avg Project Value</div>
+              </div>
             </div>
-            <div style={{ background: theme.bgCard, borderRadius: '12px', padding: '20px', textAlign: 'center', boxShadow: theme.cardShadow }}>
-              <div style={{ fontSize: '28px', fontWeight: '700', color: '#22C55E' }}>{formatCurrency(45200)}</div>
-              <div style={{ fontSize: '13px', color: theme.textMuted }}>Total Revenue YTD</div>
-            </div>
-            <div style={{ background: theme.bgCard, borderRadius: '12px', padding: '20px', textAlign: 'center', boxShadow: theme.cardShadow }}>
-              <div style={{ fontSize: '28px', fontWeight: '700', color: '#F59E0B' }}>{formatCurrency(3767)}</div>
-              <div style={{ fontSize: '13px', color: theme.textMuted }}>Avg Project Value</div>
-            </div>
-          </div>
+          </CollapsibleSection>
         </div>
       )}
 
@@ -14984,13 +15003,8 @@ function GeneralBusinessDashboard({ theme, profile, lastImportDate, initialTab =
         <div>
           <h2 style={{ fontSize: '20px', fontWeight: '600', color: theme.textPrimary, marginBottom: '20px' }}>Financial Statements</h2>
 
-          {/* P&L Summary */}
-          <div style={{
-            background: theme.bgCard, borderRadius: '16px', padding: '24px',
-            boxShadow: theme.cardShadow, border: `1px solid ${theme.borderLight}`, marginBottom: '24px'
-          }}>
-            <h3 style={{ fontSize: '16px', fontWeight: '600', color: theme.textPrimary, marginBottom: '20px' }}>📊 Profit & Loss Summary (YTD)</h3>
-            
+          {/* P&L Summary - Collapsible */}
+          <CollapsibleSection id="statements-pnl" title="Profit & Loss Summary (YTD)" icon="📊" defaultOpen={true}>
             {/* Revenue Section */}
             <div style={{ marginBottom: '20px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 0', borderBottom: `1px solid ${theme.borderLight}` }}>
@@ -15005,7 +15019,7 @@ function GeneralBusinessDashboard({ theme, profile, lastImportDate, initialTab =
                 <span style={{ fontSize: '14px', color: theme.textSecondary }}>Product Sales</span>
                 <span style={{ fontSize: '14px', color: theme.textPrimary }}>{formatCurrency(2700)}</span>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 0', borderTop: `1px solid ${theme.borderLight}`, background: theme.bgMain, margin: '0 -24px', padding: '12px 24px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px', borderTop: `1px solid ${theme.borderLight}`, background: theme.bgMain, borderRadius: '8px', marginTop: '8px' }}>
                 <span style={{ fontSize: '14px', fontWeight: '600', color: '#22C55E' }}>Total Revenue</span>
                 <span style={{ fontSize: '14px', fontWeight: '600', color: '#22C55E' }}>{formatCurrency(45200)}</span>
               </div>
@@ -15029,7 +15043,7 @@ function GeneralBusinessDashboard({ theme, profile, lastImportDate, initialTab =
                 <span style={{ fontSize: '14px', color: theme.textSecondary }}>Software & Tools</span>
                 <span style={{ fontSize: '14px', color: theme.textPrimary }}>{formatCurrency(1200)}</span>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 0', borderTop: `1px solid ${theme.borderLight}`, background: theme.bgMain, margin: '0 -24px', padding: '12px 24px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px', borderTop: `1px solid ${theme.borderLight}`, background: theme.bgMain, borderRadius: '8px', marginTop: '8px' }}>
                 <span style={{ fontSize: '14px', fontWeight: '600', color: '#DC2626' }}>Total Expenses</span>
                 <span style={{ fontSize: '14px', fontWeight: '600', color: '#DC2626' }}>{formatCurrency(12100)}</span>
               </div>
@@ -15037,34 +15051,35 @@ function GeneralBusinessDashboard({ theme, profile, lastImportDate, initialTab =
 
             {/* Net Profit */}
             <div style={{
-              display: 'flex', justifyContent: 'space-between', padding: '16px 24px',
-              background: '#DCFCE7', borderRadius: '12px', margin: '0 -24px -24px -24px',
-              borderBottomLeftRadius: '16px', borderBottomRightRadius: '16px'
+              display: 'flex', justifyContent: 'space-between', padding: '16px',
+              background: '#DCFCE7', borderRadius: '12px'
             }}>
               <span style={{ fontSize: '16px', fontWeight: '700', color: '#166534' }}>Net Profit</span>
               <span style={{ fontSize: '16px', fontWeight: '700', color: '#166534' }}>{formatCurrency(33100)}</span>
             </div>
-          </div>
+          </CollapsibleSection>
 
-          {/* Download Options */}
-          <div style={{ display: 'flex', gap: '12px' }}>
-            <button style={{
-              padding: '12px 20px', background: theme.bgCard, color: theme.textPrimary,
-              border: `1px solid ${theme.borderLight}`, borderRadius: '10px',
-              fontSize: '14px', fontWeight: '500', cursor: 'pointer',
-              display: 'flex', alignItems: 'center', gap: '8px'
-            }}>
-              📄 Export P&L (PDF)
-            </button>
-            <button style={{
-              padding: '12px 20px', background: theme.bgCard, color: theme.textPrimary,
-              border: `1px solid ${theme.borderLight}`, borderRadius: '10px',
-              fontSize: '14px', fontWeight: '500', cursor: 'pointer',
-              display: 'flex', alignItems: 'center', gap: '8px'
-            }}>
-              📊 Export to Excel
-            </button>
-          </div>
+          {/* Export Options - Collapsible */}
+          <CollapsibleSection id="statements-export" title="Export Options" icon="📥" defaultOpen={true}>
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <button style={{
+                padding: '12px 20px', background: theme.bgMain, color: theme.textPrimary,
+                border: `1px solid ${theme.borderLight}`, borderRadius: '10px',
+                fontSize: '14px', fontWeight: '500', cursor: 'pointer',
+                display: 'flex', alignItems: 'center', gap: '8px'
+              }}>
+                📄 Export P&L (PDF)
+              </button>
+              <button style={{
+                padding: '12px 20px', background: theme.bgMain, color: theme.textPrimary,
+                border: `1px solid ${theme.borderLight}`, borderRadius: '10px',
+                fontSize: '14px', fontWeight: '500', cursor: 'pointer',
+                display: 'flex', alignItems: 'center', gap: '8px'
+              }}>
+                📊 Export to Excel
+              </button>
+            </div>
+          </CollapsibleSection>
         </div>
       )}
 
@@ -15073,41 +15088,29 @@ function GeneralBusinessDashboard({ theme, profile, lastImportDate, initialTab =
         <div>
           <h2 style={{ fontSize: '20px', fontWeight: '600', color: theme.textPrimary, marginBottom: '20px' }}>Budget vs Actuals</h2>
 
-          {/* Summary Cards */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px', marginBottom: '24px' }}>
-            <div style={{
-              background: theme.bgCard, borderRadius: '16px', padding: '20px',
-              boxShadow: theme.cardShadow, border: `1px solid ${theme.borderLight}`
-            }}>
-              <div style={{ fontSize: '13px', color: theme.textMuted, marginBottom: '8px' }}>Revenue Budget</div>
-              <div style={{ fontSize: '24px', fontWeight: '700', color: theme.textPrimary }}>{formatCurrency(50000)}</div>
-              <div style={{ fontSize: '12px', color: '#F59E0B', marginTop: '4px' }}>90% achieved</div>
+          {/* Summary Cards - Collapsible */}
+          <CollapsibleSection id="budget-summary" title="Budget Summary" icon="📊" defaultOpen={true}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px' }}>
+              <div style={{ background: theme.bgMain, borderRadius: '12px', padding: '20px' }}>
+                <div style={{ fontSize: '13px', color: theme.textMuted, marginBottom: '8px' }}>Revenue Budget</div>
+                <div style={{ fontSize: '24px', fontWeight: '700', color: theme.textPrimary }}>{formatCurrency(50000)}</div>
+                <div style={{ fontSize: '12px', color: '#F59E0B', marginTop: '4px' }}>90% achieved</div>
+              </div>
+              <div style={{ background: theme.bgMain, borderRadius: '12px', padding: '20px' }}>
+                <div style={{ fontSize: '13px', color: theme.textMuted, marginBottom: '8px' }}>Expense Budget</div>
+                <div style={{ fontSize: '24px', fontWeight: '700', color: theme.textPrimary }}>{formatCurrency(15000)}</div>
+                <div style={{ fontSize: '12px', color: '#22C55E', marginTop: '4px' }}>81% spent (under budget!)</div>
+              </div>
+              <div style={{ background: theme.bgMain, borderRadius: '12px', padding: '20px' }}>
+                <div style={{ fontSize: '13px', color: theme.textMuted, marginBottom: '8px' }}>Profit Target</div>
+                <div style={{ fontSize: '24px', fontWeight: '700', color: theme.textPrimary }}>{formatCurrency(35000)}</div>
+                <div style={{ fontSize: '12px', color: '#22C55E', marginTop: '4px' }}>95% on track</div>
+              </div>
             </div>
-            <div style={{
-              background: theme.bgCard, borderRadius: '16px', padding: '20px',
-              boxShadow: theme.cardShadow, border: `1px solid ${theme.borderLight}`
-            }}>
-              <div style={{ fontSize: '13px', color: theme.textMuted, marginBottom: '8px' }}>Expense Budget</div>
-              <div style={{ fontSize: '24px', fontWeight: '700', color: theme.textPrimary }}>{formatCurrency(15000)}</div>
-              <div style={{ fontSize: '12px', color: '#22C55E', marginTop: '4px' }}>81% spent (under budget!)</div>
-            </div>
-            <div style={{
-              background: theme.bgCard, borderRadius: '16px', padding: '20px',
-              boxShadow: theme.cardShadow, border: `1px solid ${theme.borderLight}`
-            }}>
-              <div style={{ fontSize: '13px', color: theme.textMuted, marginBottom: '8px' }}>Profit Target</div>
-              <div style={{ fontSize: '24px', fontWeight: '700', color: theme.textPrimary }}>{formatCurrency(35000)}</div>
-              <div style={{ fontSize: '12px', color: '#22C55E', marginTop: '4px' }}>95% on track</div>
-            </div>
-          </div>
+          </CollapsibleSection>
 
-          {/* Budget Breakdown */}
-          <div style={{
-            background: theme.bgCard, borderRadius: '16px', padding: '24px',
-            boxShadow: theme.cardShadow, border: `1px solid ${theme.borderLight}`
-          }}>
-            <h3 style={{ fontSize: '16px', fontWeight: '600', color: theme.textPrimary, marginBottom: '20px' }}>📊 Expense Categories</h3>
-            
+          {/* Budget Breakdown - Collapsible */}
+          <CollapsibleSection id="budget-categories" title="Expense Categories" icon="💰" defaultOpen={true}>
             {[
               { category: 'Marketing', budget: 3000, actual: 2400, icon: '📢' },
               { category: 'Software & Tools', budget: 1500, actual: 1200, icon: '💻' },
@@ -15140,7 +15143,7 @@ function GeneralBusinessDashboard({ theme, profile, lastImportDate, initialTab =
                 </div>
               );
             })}
-          </div>
+          </CollapsibleSection>
         </div>
       )}
     </div>
