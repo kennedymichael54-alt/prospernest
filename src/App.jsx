@@ -3363,6 +3363,10 @@ function App() {
           setUser(session.user);
           setView('dashboard');
           await loadUserData(session.user.id, session.user.email);
+        } else if (event === 'PASSWORD_RECOVERY') {
+          console.log('🔑 [Auth] Password recovery mode');
+          setUser(session?.user);
+          setView('reset-password');
         } else if (event === 'SIGNED_OUT') {
           console.log('🚪 [Auth] Signed out - clearing session');
           saveSession(null);
@@ -3450,6 +3454,7 @@ function App() {
   }
 
   if (view === 'auth') return <AuthPage setView={setView} />;
+  if (view === 'reset-password') return <ResetPasswordPage setView={setView} user={user} />;
   if (view === 'dashboard') return (
     <>
       {/* Tester Mode Watermark & Banner */}
@@ -3617,6 +3622,43 @@ function AuthPage({ setView }) {
   const [error, setError] = useState('');
   const [showTerms, setShowTerms] = useState(false);
   const [showPrivacy, setShowPrivacy] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [resetEmailSent, setResetEmailSent] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
+
+  // Handle forgot password
+  const handleForgotPassword = async (e) => {
+    e.preventDefault();
+    if (!email) {
+      setError('Please enter your email address');
+      return;
+    }
+    
+    setLoading(true);
+    setError('');
+    
+    const sb = await initSupabase();
+    if (!sb) {
+      setError('Connection error. Please try again.');
+      setLoading(false);
+      return;
+    }
+    
+    try {
+      const { error } = await sb.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}?reset=true`,
+      });
+      
+      if (error) throw error;
+      
+      setResetEmailSent(true);
+      setSuccessMessage('Password reset link sent! Check your email.');
+    } catch (err) {
+      console.error('❌ [Reset] Error:', err);
+      setError(err.message);
+    }
+    setLoading(false);
+  };
 
   const handleAuth = async (e) => {
     e.preventDefault();
@@ -3880,7 +3922,7 @@ function AuthPage({ setView }) {
                   />
                   <span style={{ fontSize: '14px', color: '#6B7280' }}>Remember me</span>
                 </label>
-                <button type="button" style={{ background: 'none', border: 'none', color: '#4F46E5', fontSize: '14px', cursor: 'pointer', fontWeight: '500' }}>
+                <button type="button" onClick={() => setShowForgotPassword(true)} style={{ background: 'none', border: 'none', color: '#4F46E5', fontSize: '14px', cursor: 'pointer', fontWeight: '500' }}>
                   Forgot password?
                 </button>
               </div>
@@ -4012,9 +4054,211 @@ function AuthPage({ setView }) {
           </div>
         </div>
       )}
+
+      {/* Forgot Password Modal */}
+      {showForgotPassword && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '20px' }}>
+          <div style={{ background: 'white', borderRadius: '16px', width: '100%', maxWidth: '400px', overflow: 'hidden' }}>
+            <div style={{ padding: '24px 24px 0' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                <h2 style={{ fontSize: '20px', fontWeight: '700', color: '#1F2937', margin: 0 }}>Reset Password</h2>
+                <button onClick={() => { setShowForgotPassword(false); setResetEmailSent(false); setError(''); }} style={{ background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer', color: '#6B7280' }}>×</button>
+              </div>
+              
+              {resetEmailSent ? (
+                <div style={{ textAlign: 'center', padding: '20px 0 30px' }}>
+                  <div style={{ width: '60px', height: '60px', background: '#D1FAE5', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', fontSize: '28px' }}>✓</div>
+                  <h3 style={{ color: '#059669', fontSize: '18px', marginBottom: '8px' }}>Check Your Email!</h3>
+                  <p style={{ color: '#6B7280', fontSize: '14px', lineHeight: 1.6 }}>
+                    We've sent a password reset link to<br/>
+                    <strong style={{ color: '#1F2937' }}>{email}</strong>
+                  </p>
+                  <p style={{ color: '#9CA3AF', fontSize: '13px', marginTop: '16px' }}>
+                    Didn't receive it? Check your spam folder or try again.
+                  </p>
+                  <button 
+                    onClick={() => { setShowForgotPassword(false); setResetEmailSent(false); }}
+                    style={{ marginTop: '20px', padding: '12px 24px', background: '#4F46E5', color: 'white', border: 'none', borderRadius: '8px', fontSize: '14px', fontWeight: '600', cursor: 'pointer' }}
+                  >
+                    Back to Login
+                  </button>
+                </div>
+              ) : (
+                <form onSubmit={handleForgotPassword}>
+                  <p style={{ color: '#6B7280', fontSize: '14px', marginBottom: '20px', lineHeight: 1.6 }}>
+                    Enter your email address and we'll send you a link to reset your password.
+                  </p>
+                  
+                  {error && (
+                    <div style={{ background: '#FEE2E2', border: '1px solid #FECACA', borderRadius: '8px', padding: '12px', marginBottom: '16px', color: '#DC2626', fontSize: '14px' }}>
+                      {error}
+                    </div>
+                  )}
+                  
+                  <div style={{ marginBottom: '20px' }}>
+                    <label style={{ display: 'block', marginBottom: '6px', color: '#6B7280', fontSize: '14px', fontWeight: '500' }}>Email Address</label>
+                    <input
+                      type="email"
+                      placeholder="john@example.com"
+                      value={email}
+                      onChange={e => setEmail(e.target.value)}
+                      style={{ width: '100%', padding: '12px 16px', background: 'white', border: '1px solid #E5E7EB', borderRadius: '10px', fontSize: '15px', outline: 'none', boxSizing: 'border-box', color: '#1F2937' }}
+                      autoFocus
+                    />
+                  </div>
+                  
+                  <div style={{ display: 'flex', gap: '12px', paddingBottom: '24px' }}>
+                    <button 
+                      type="button"
+                      onClick={() => { setShowForgotPassword(false); setError(''); }}
+                      style={{ flex: 1, padding: '12px', background: '#F3F4F6', color: '#4B5563', border: 'none', borderRadius: '8px', fontSize: '14px', fontWeight: '600', cursor: 'pointer' }}
+                    >
+                      Cancel
+                    </button>
+                    <button 
+                      type="submit"
+                      disabled={loading}
+                      style={{ flex: 1, padding: '12px', background: '#4F46E5', color: 'white', border: 'none', borderRadius: '8px', fontSize: '14px', fontWeight: '600', cursor: 'pointer', opacity: loading ? 0.7 : 1 }}
+                    >
+                      {loading ? 'Sending...' : 'Send Reset Link'}
+                    </button>
+                  </div>
+                </form>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+
+// ============================================================================
+// RESET PASSWORD PAGE
+// ============================================================================
+function ResetPasswordPage({ setView, user }) {
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState(false);
+
+  const handleResetPassword = async (e) => {
+    e.preventDefault();
+    
+    if (newPassword.length < 8) {
+      setError('Password must be at least 8 characters');
+      return;
+    }
+    
+    if (newPassword !== confirmPassword) {
+      setError('Passwords do not match');
+      return;
+    }
+    
+    setLoading(true);
+    setError('');
+    
+    const sb = await initSupabase();
+    if (!sb) {
+      setError('Connection error. Please try again.');
+      setLoading(false);
+      return;
+    }
+    
+    try {
+      const { error } = await sb.auth.updateUser({
+        password: newPassword
+      });
+      
+      if (error) throw error;
+      
+      setSuccess(true);
+      
+      // Redirect to dashboard after 2 seconds
+      setTimeout(() => {
+        setView('dashboard');
+      }, 2000);
+      
+    } catch (err) {
+      console.error('❌ [Reset] Error:', err);
+      setError(err.message);
+    }
+    setLoading(false);
+  };
+
+  return (
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4c1d95 100%)', padding: '20px' }}>
+      <div style={{ background: 'white', borderRadius: '20px', padding: '40px', width: '100%', maxWidth: '420px', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)' }}>
+        {success ? (
+          <div style={{ textAlign: 'center' }}>
+            <div style={{ width: '80px', height: '80px', background: '#D1FAE5', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px', fontSize: '40px' }}>✓</div>
+            <h2 style={{ fontSize: '24px', fontWeight: '700', color: '#059669', marginBottom: '12px' }}>Password Updated!</h2>
+            <p style={{ color: '#6B7280', fontSize: '15px' }}>Redirecting you to your dashboard...</p>
+          </div>
+        ) : (
+          <>
+            <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+              <div style={{ fontSize: '48px', marginBottom: '16px' }}>🔐</div>
+              <h2 style={{ fontSize: '24px', fontWeight: '700', color: '#1F2937', marginBottom: '8px' }}>Set New Password</h2>
+              <p style={{ color: '#6B7280', fontSize: '15px' }}>
+                {user?.email ? `For: ${user.email}` : 'Create your new password'}
+              </p>
+            </div>
+            
+            {error && (
+              <div style={{ background: '#FEE2E2', border: '1px solid #FECACA', borderRadius: '8px', padding: '12px', marginBottom: '20px', color: '#DC2626', fontSize: '14px' }}>
+                {error}
+              </div>
+            )}
+            
+            <form onSubmit={handleResetPassword}>
+              <div style={{ marginBottom: '20px' }}>
+                <label style={{ display: 'block', marginBottom: '6px', color: '#6B7280', fontSize: '14px', fontWeight: '500' }}>New Password</label>
+                <input
+                  type="password"
+                  placeholder="••••••••"
+                  value={newPassword}
+                  onChange={e => setNewPassword(e.target.value)}
+                  style={{ width: '100%', padding: '14px 16px', background: 'white', border: '1px solid #E5E7EB', borderRadius: '10px', fontSize: '15px', outline: 'none', boxSizing: 'border-box', color: '#1F2937' }}
+                  autoFocus
+                />
+                <p style={{ fontSize: '12px', color: '#9CA3AF', marginTop: '6px' }}>Must be at least 8 characters</p>
+              </div>
+              
+              <div style={{ marginBottom: '24px' }}>
+                <label style={{ display: 'block', marginBottom: '6px', color: '#6B7280', fontSize: '14px', fontWeight: '500' }}>Confirm Password</label>
+                <input
+                  type="password"
+                  placeholder="••••••••"
+                  value={confirmPassword}
+                  onChange={e => setConfirmPassword(e.target.value)}
+                  style={{ width: '100%', padding: '14px 16px', background: 'white', border: '1px solid #E5E7EB', borderRadius: '10px', fontSize: '15px', outline: 'none', boxSizing: 'border-box', color: '#1F2937' }}
+                />
+              </div>
+              
+              <button 
+                type="submit"
+                disabled={loading}
+                style={{ width: '100%', padding: '14px', background: '#4F46E5', color: 'white', border: 'none', borderRadius: '10px', fontSize: '16px', fontWeight: '600', cursor: 'pointer', opacity: loading ? 0.7 : 1 }}
+              >
+                {loading ? 'Updating...' : 'Update Password'}
+              </button>
+            </form>
+            
+            <p style={{ textAlign: 'center', marginTop: '24px', color: '#9CA3AF', fontSize: '13px' }}>
+              Remember your password?{' '}
+              <button onClick={() => setView('auth')} style={{ background: 'none', border: 'none', color: '#4F46E5', cursor: 'pointer', fontSize: '13px', fontWeight: '600' }}>
+                Sign in
+              </button>
+            </p>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ============================================================================
 // THEME TOGGLE COMPONENT - Sun/Toggle/Moon Style
 // ============================================================================
