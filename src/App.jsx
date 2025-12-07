@@ -5523,7 +5523,8 @@ function Dashboard({
     gender: '',
     photoUrl: '',
     sidehustleName: '',
-    sideHustle: ''
+    sideHustle: '',
+    businessType: ''
   });
   
   // Update editProfile when modal opens or profile props change
@@ -5538,7 +5539,8 @@ function Dashboard({
         gender: profile.gender || '',
         photoUrl: profile.photoUrl || '',
         sidehustleName: profile.sidehustleName || '',
-        sideHustle: profile.sideHustle || ''
+        sideHustle: profile.sideHustle || '',
+        businessType: profile.businessType || ''
       });
     }
   }, [showManageAccountModal, profile, user?.email]);
@@ -5924,7 +5926,7 @@ function Dashboard({
       case 'goals':
         return <GradientSection tab="goals"><GoalsTimelineWithCelebration goals={goals} onUpdateGoals={onUpdateGoals} theme={theme} lastImportDate={lastImportDate} /></GradientSection>;
       case 'tasks':
-        return <GradientSection tab="tasks"><TasksTab tasks={tasks || []} onUpdateTasks={onUpdateTasks} theme={theme} lastImportDate={lastImportDate} /></GradientSection>;
+        return <GradientSection tab="tasks"><TasksTab tasks={tasks || []} onUpdateTasks={onUpdateTasks} theme={theme} lastImportDate={lastImportDate} accountLabels={accountLabels} /></GradientSection>;
       case 'retirement':
         // Only pass default retirement data to the owner account - others see empty state
         const retirementData = user?.email === 'kennedymichael54@gmail.com' ? DEFAULT_RETIREMENT_DATA : null;
@@ -8940,6 +8942,47 @@ function Dashboard({
               {editProfile.sideHustle === 'realtor' && (
                 <p style={{ fontSize: '12px', color: '#10B981', marginTop: '8px' }}>
                   ✨ You'll get access to the Real Estate Command Center in the Side Hustle Hub tab!
+                </p>
+              )}
+            </div>
+
+            {/* Business Type */}
+            <div style={{ marginBottom: '24px' }}>
+              <label style={{ display: 'block', fontSize: '14px', color: theme.textSecondary, marginBottom: '6px' }}>Business Type</label>
+              <select 
+                value={editProfile.businessType || ''}
+                onChange={(e) => setEditProfile({...editProfile, businessType: e.target.value})}
+                style={{ width: '100%', padding: '12px', background: theme.inputBg, border: `1px solid ${theme.border}`, borderRadius: '8px', color: theme.textPrimary, fontSize: '14px', boxSizing: 'border-box' }}
+              >
+                <option value="">Select your business type...</option>
+                <option value="real_estate_franchise">🏠 Real Estate / HomeVestors Franchise</option>
+                <option value="construction">🔨 Construction / Contracting</option>
+                <option value="lawn_care">🌿 Lawn Care / Landscaping</option>
+                <option value="tax_preparer">📋 Tax Preparation Services</option>
+                <option value="artist">🎨 Artist / Creative Services</option>
+                <option value="sales">💼 Sales / Commission-Based</option>
+                <option value="beauty">💇 Hair Stylist / Beauty Services</option>
+                <option value="accounting">📊 Accountant / CPA / Bookkeeper</option>
+                <option value="trucking">🚛 Truck Driver / Transportation</option>
+                <option value="consulting">💡 Consulting / Coaching</option>
+                <option value="cleaning">🧹 Cleaning Services</option>
+                <option value="photography">📷 Photography / Videography</option>
+                <option value="fitness">💪 Personal Trainer / Fitness</option>
+                <option value="food">🍳 Food Service / Catering</option>
+                <option value="retail">🛍️ Retail / E-commerce</option>
+                <option value="tech">💻 Freelance Tech / Developer</option>
+                <option value="medical">⚕️ Medical / Healthcare Services</option>
+                <option value="legal">⚖️ Legal Services</option>
+                <option value="education">📚 Tutoring / Education</option>
+                <option value="general">📦 General / Other</option>
+              </select>
+              {editProfile.businessType === 'real_estate_franchise' ? (
+                <p style={{ fontSize: '12px', color: '#8B5CF6', marginTop: '8px' }}>
+                  ✨ You'll get access to the Real Estate Command Center in the BizBudget Hub!
+                </p>
+              ) : editProfile.businessType && (
+                <p style={{ fontSize: '12px', color: '#14B8A6', marginTop: '8px' }}>
+                  📊 You'll get access to the Business Command Center in the BizBudget Hub!
                 </p>
               )}
             </div>
@@ -12042,18 +12085,25 @@ function DashboardHome({ transactions, goals, bills = [], tasks = [], theme, las
           </div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          {/* Edit Layout Button */}
+          {/* Collapse/Expand All Button */}
           <button
-            onClick={() => setIsEditMode(!isEditMode)}
+            onClick={() => {
+              const allCollapsed = !expandedHubs.homebudget && !expandedHubs.bizbudget && !expandedHubs.rebudget;
+              if (allCollapsed) {
+                setExpandedHubs({ homebudget: true, bizbudget: true, rebudget: true, dataimport: true });
+              } else {
+                setExpandedHubs({ homebudget: false, bizbudget: false, rebudget: false, dataimport: false });
+              }
+            }}
             style={{
               display: 'flex',
               alignItems: 'center',
               gap: '6px',
               padding: '10px 16px',
-              border: isEditMode ? 'none' : `1px solid ${theme.borderLight}`,
+              border: `1px solid ${theme.borderLight}`,
               borderRadius: '10px',
-              background: isEditMode ? theme.primary : theme.bgCard,
-              color: isEditMode ? 'white' : theme.textSecondary,
+              background: theme.bgCard,
+              color: theme.textSecondary,
               fontSize: '13px',
               fontWeight: '600',
               cursor: 'pointer',
@@ -12061,13 +12111,27 @@ function DashboardHome({ transactions, goals, bills = [], tasks = [], theme, las
               transition: 'all 0.2s'
             }}
           >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-              <rect x="3" y="3" width="7" height="7" />
-              <rect x="14" y="3" width="7" height="7" />
-              <rect x="14" y="14" width="7" height="7" />
-              <rect x="3" y="14" width="7" height="7" />
-            </svg>
-            {isEditMode ? 'Done' : 'Edit Layout'}
+            {(!expandedHubs.homebudget && !expandedHubs.bizbudget && !expandedHubs.rebudget) ? (
+              <>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="15 3 21 3 21 9"></polyline>
+                  <polyline points="9 21 3 21 3 15"></polyline>
+                  <line x1="21" y1="3" x2="14" y2="10"></line>
+                  <line x1="3" y1="21" x2="10" y2="14"></line>
+                </svg>
+                Expand All
+              </>
+            ) : (
+              <>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="4 14 10 14 10 20"></polyline>
+                  <polyline points="20 10 14 10 14 4"></polyline>
+                  <line x1="14" y1="10" x2="21" y2="3"></line>
+                  <line x1="3" y1="21" x2="10" y2="14"></line>
+                </svg>
+                Collapse All
+              </>
+            )}
           </button>
           
           <div className="account-toggle" style={{ display: 'flex', gap: '8px', background: theme.bgCard, padding: '4px', borderRadius: '12px', boxShadow: theme.cardShadow }}>
@@ -14162,21 +14226,30 @@ function DashboardHome({ transactions, goals, bills = [], tasks = [], theme, las
 // ============================================================================
 // TASKS TAB - Task Management (Image 6 inspired)
 // ============================================================================
-function TasksTab({ tasks, onUpdateTasks, theme, lastImportDate }) {
+function TasksTab({ tasks, onUpdateTasks, theme, lastImportDate, accountLabels }) {
   const [filter, setFilter] = useState('all');
   const [showAddModal, setShowAddModal] = useState(false);
   const [newTask, setNewTask] = useState({ title: '', description: '', dueDate: '', priority: 'medium', category: 'Personal' });
   const [editingTask, setEditingTask] = useState(null);
+  const [activeAccount, setActiveAccount] = useState('all');
 
-  const todoTasks = tasks.filter(t => t.status === 'todo');
-  const inProgressTasks = tasks.filter(t => t.status === 'in-progress');
-  const completedTasks = tasks.filter(t => t.status === 'completed');
+  // Filter tasks by account type
+  const accountFilteredTasks = tasks.filter(t => {
+    if (activeAccount === 'all') return true;
+    if (activeAccount === 'personal') return t.accountType === 'personal' || !t.accountType;
+    if (activeAccount === 'sidehustle') return t.accountType === 'sidehustle';
+    return true;
+  });
+
+  const todoTasks = accountFilteredTasks.filter(t => t.status === 'todo');
+  const inProgressTasks = accountFilteredTasks.filter(t => t.status === 'in-progress');
+  const completedTasks = accountFilteredTasks.filter(t => t.status === 'completed');
   
-  const filteredTasks = filter === 'all' ? tasks : 
+  const filteredTasks = filter === 'all' ? accountFilteredTasks : 
     filter === 'todo' ? todoTasks :
     filter === 'in-progress' ? inProgressTasks : completedTasks;
 
-  const completionRate = tasks.length > 0 ? Math.round((completedTasks.length / tasks.length) * 100) : 0;
+  const completionRate = accountFilteredTasks.length > 0 ? Math.round((completedTasks.length / accountFilteredTasks.length) * 100) : 0;
 
   const addTask = () => {
     if (!newTask.title.trim()) return;
@@ -14207,8 +14280,8 @@ function TasksTab({ tasks, onUpdateTasks, theme, lastImportDate }) {
 
   return (
     <div style={{ width: '100%' }}>
-      {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px' }}>
+      {/* Header with Account Filter */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
         <div>
           <h1 style={{ fontSize: '28px', fontWeight: '700', color: theme.textPrimary, marginBottom: '4px' }}>Tasks</h1>
           <div style={{ display: 'flex', alignItems: 'center' }}>
@@ -14218,25 +14291,58 @@ function TasksTab({ tasks, onUpdateTasks, theme, lastImportDate }) {
             <LastImportIndicator lastImportDate={lastImportDate} />
           </div>
         </div>
-        <button
-          onClick={() => setShowAddModal(true)}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            padding: '12px 20px',
-            background: theme.primary,
-            color: 'white',
-            border: 'none',
-            borderRadius: '10px',
-            fontSize: '14px',
-            fontWeight: '600',
-            cursor: 'pointer'
-          }}
-        >
-          <span style={{ fontSize: '18px' }}>+</span>
-          Add Task
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          {/* Account Filter Toggle */}
+          <div style={{ display: 'flex', gap: '8px', background: theme.bgCard, padding: '4px', borderRadius: '12px', boxShadow: theme.cardShadow }}>
+            {[
+              { id: 'all', label: 'All Accounts', icon: '📊' },
+              { id: 'personal', label: accountLabels?.personal || 'Personal', icon: '👤' },
+              { id: 'sidehustle', label: accountLabels?.sidehustle || 'Side Hustle', icon: '💼' }
+            ].map(acc => (
+              <button
+                key={acc.id}
+                onClick={() => setActiveAccount(acc.id)}
+                style={{
+                  padding: '10px 16px',
+                  border: 'none',
+                  borderRadius: '10px',
+                  background: activeAccount === acc.id ? theme.primary : 'transparent',
+                  color: activeAccount === acc.id ? 'white' : theme.textSecondary,
+                  fontSize: '13px',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  transition: 'all 0.2s',
+                  whiteSpace: 'nowrap'
+                }}
+              >
+                <span>{acc.icon}</span>
+                {acc.label}
+              </button>
+            ))}
+          </div>
+          <button
+            onClick={() => setShowAddModal(true)}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              padding: '12px 20px',
+              background: theme.primary,
+              color: 'white',
+              border: 'none',
+              borderRadius: '10px',
+              fontSize: '14px',
+              fontWeight: '600',
+              cursor: 'pointer'
+            }}
+          >
+            <span style={{ fontSize: '18px' }}>+</span>
+            Add Task
+          </button>
+        </div>
       </div>
 
       {/* Stats Overview */}
@@ -14245,7 +14351,7 @@ function TasksTab({ tasks, onUpdateTasks, theme, lastImportDate }) {
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: '#EEF2FF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px' }}>📋</div>
             <div>
-              <div style={{ fontSize: '24px', fontWeight: '700', color: theme.textPrimary }}>{tasks.length}</div>
+              <div style={{ fontSize: '24px', fontWeight: '700', color: theme.textPrimary }}>{accountFilteredTasks.length}</div>
               <div style={{ fontSize: '13px', color: theme.textMuted }}>Total Tasks</div>
             </div>
           </div>
@@ -14559,6 +14665,7 @@ function TransactionsTabDS({ transactions, onNavigateToImport, theme, lastImport
   const isDark = theme?.mode === 'dark';
   const [filter, setFilter] = useState({ date: '', type: '', status: '' });
   const [selectedTxns, setSelectedTxns] = useState([]);
+  const [activeAccount, setActiveAccount] = useState('all');
   
   // Collapsible sections state
   const [collapsedSections, setCollapsedSections] = useState({
@@ -14569,10 +14676,18 @@ function TransactionsTabDS({ transactions, onNavigateToImport, theme, lastImport
     setCollapsedSections(prev => ({ ...prev, [section]: !prev[section] }));
   };
   
-  // Calculate stats
-  const totalTransactions = transactions.length;
-  const incomeTransactions = transactions.filter(t => parseFloat(t.amount) > 0);
-  const expenseTransactions = transactions.filter(t => parseFloat(t.amount) < 0);
+  // Filter transactions by account type
+  const accountFilteredTransactions = transactions.filter(t => {
+    if (activeAccount === 'all') return true;
+    if (activeAccount === 'personal') return t.accountType === 'personal' || !t.accountType;
+    if (activeAccount === 'sidehustle') return t.accountType === 'sidehustle';
+    return true;
+  });
+  
+  // Calculate stats from filtered transactions
+  const totalTransactions = accountFilteredTransactions.length;
+  const incomeTransactions = accountFilteredTransactions.filter(t => parseFloat(t.amount) > 0);
+  const expenseTransactions = accountFilteredTransactions.filter(t => parseFloat(t.amount) < 0);
   const totalIncome = incomeTransactions.reduce((sum, t) => sum + parseFloat(t.amount), 0);
   const totalExpenses = Math.abs(expenseTransactions.reduce((sum, t) => sum + parseFloat(t.amount), 0));
   
@@ -14601,14 +14716,47 @@ function TransactionsTabDS({ transactions, onNavigateToImport, theme, lastImport
 
   return (
     <div>
-      {/* Header */}
-      <div style={{ marginBottom: '24px' }}>
-        <h1 style={{ fontSize: '28px', fontWeight: '700', color: theme.textPrimary, marginBottom: '4px', letterSpacing: '-0.5px' }}>Transactions</h1>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <p style={{ fontSize: '14px', color: theme.textMuted, margin: 0 }}>
-            {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
-          </p>
-          <LastImportIndicator lastImportDate={lastImportDate} />
+      {/* Header with Account Filter */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
+        <div>
+          <h1 style={{ fontSize: '28px', fontWeight: '700', color: theme.textPrimary, marginBottom: '4px', letterSpacing: '-0.5px' }}>Transactions</h1>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <p style={{ fontSize: '14px', color: theme.textMuted, margin: 0 }}>
+              {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
+            </p>
+            <LastImportIndicator lastImportDate={lastImportDate} />
+          </div>
+        </div>
+        {/* Account Filter Toggle */}
+        <div style={{ display: 'flex', gap: '8px', background: theme.bgCard, padding: '4px', borderRadius: '12px', boxShadow: theme.cardShadow }}>
+          {[
+            { id: 'all', label: 'All Accounts', icon: '📊' },
+            { id: 'personal', label: accountLabels?.personal || 'Personal', icon: '👤' },
+            { id: 'sidehustle', label: accountLabels?.sidehustle || 'Side Hustle', icon: '💼' }
+          ].map(acc => (
+            <button
+              key={acc.id}
+              onClick={() => setActiveAccount(acc.id)}
+              style={{
+                padding: '10px 16px',
+                border: 'none',
+                borderRadius: '10px',
+                background: activeAccount === acc.id ? theme.primary : 'transparent',
+                color: activeAccount === acc.id ? 'white' : theme.textSecondary,
+                fontSize: '13px',
+                fontWeight: '600',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                transition: 'all 0.2s',
+                whiteSpace: 'nowrap'
+              }}
+            >
+              <span>{acc.icon}</span>
+              {acc.label}
+            </button>
+          ))}
         </div>
       </div>
 
@@ -14806,8 +14954,8 @@ function TransactionsTabDS({ transactions, onNavigateToImport, theme, lastImport
               <th style={{ padding: '16px 20px', textAlign: 'left', fontSize: '13px', fontWeight: '600', color: theme.textSecondary, textTransform: 'uppercase', width: '40px' }}>
                 <input 
                   type="checkbox" 
-                  checked={selectedTxns.length === Math.min(10, transactions.length) && transactions.length > 0}
-                  onChange={(e) => setSelectedTxns(e.target.checked ? transactions.slice(0, 10).map((_, i) => i) : [])}
+                  checked={selectedTxns.length === Math.min(10, accountFilteredTransactions.length) && accountFilteredTransactions.length > 0}
+                  onChange={(e) => setSelectedTxns(e.target.checked ? accountFilteredTransactions.slice(0, 10).map((_, i) => i) : [])}
                   style={{ cursor: 'pointer' }} 
                 />
               </th>
@@ -14820,7 +14968,7 @@ function TransactionsTabDS({ transactions, onNavigateToImport, theme, lastImport
             </tr>
           </thead>
           <tbody>
-            {transactions.length === 0 ? (
+            {accountFilteredTransactions.length === 0 ? (
               <tr>
                 <td colSpan="7" style={{ padding: '80px 20px', textAlign: 'center', color: theme.textMuted }}>
                   <div style={{ 
@@ -14838,7 +14986,7 @@ function TransactionsTabDS({ transactions, onNavigateToImport, theme, lastImport
                 </td>
               </tr>
             ) : (
-              transactions.slice(0, 10).map((t, i) => {
+              accountFilteredTransactions.slice(0, 10).map((t, i) => {
                 const isSideHustle = t.accountType === 'sidehustle';
                 const acctStyle = isSideHustle 
                   ? { bg: '#FEE2E2', color: '#DC2626', icon: '💼', label: accountLabels?.sidehustle || 'Side Hustle' }
