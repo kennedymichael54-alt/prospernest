@@ -1473,6 +1473,9 @@ const SPECIAL_ACCOUNTS = {
   'meadow23ben@gmail.com': USER_ROLES.PROMOTER,
   'jwitczak1992@gmail.com': USER_ROLES.PROMOTER,
   'mylbel5748@yahoo.com': USER_ROLES.PROMOTER,
+  // Family - Perpetual Free Forever
+  'jfksmusic@hotmail.com': USER_ROLES.PROMOTER,
+  'jessicalynkennedy@gmail.com': USER_ROLES.PROMOTER,
 };
 
 // Users with perpetual licenses (never expire, never charged)
@@ -1487,6 +1490,8 @@ const PERPETUAL_LICENSE_USERS = [
   'meadow23ben@gmail.com',
   'jwitczak1992@gmail.com',
   'mylbel5748@yahoo.com',
+  'jfksmusic@hotmail.com',
+  'jessicalynkennedy@gmail.com',
 ];
 
 // Users with BizBudget Hub access
@@ -1501,6 +1506,8 @@ const BIZBUDGET_ACCESS_USERS = [
   'meadow23ben@gmail.com',
   'jwitczak1992@gmail.com',
   'mylbel5748@yahoo.com',
+  'jfksmusic@hotmail.com',
+  'jessicalynkennedy@gmail.com',
 ];
 
 // Users with REBudget Hub access (Real Estate Investment Analysis)
@@ -1516,6 +1523,8 @@ const REBUDGET_ACCESS_USERS = [
   'meadow23ben@gmail.com',
   'jwitczak1992@gmail.com',
   'mylbel5748@yahoo.com',
+  'jfksmusic@hotmail.com',
+  'jessicalynkennedy@gmail.com',
 ];
 
 // Feature permissions by role
