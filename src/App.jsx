@@ -370,15 +370,78 @@ function ComingSoonPage({ onNavigateToApp, onNavigateToAuth }) {
           from { opacity: 0; transform: translateY(30px); }
           to { opacity: 1; transform: translateY(0); }
         }
+        @keyframes bounce {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-8px); }
+        }
+        @keyframes gentleBounce {
+          0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+          40% { transform: translateY(-10px); }
+          60% { transform: translateY(-5px); }
+        }
+        
+        /* Coming Soon Responsive Styles */
+        .coming-soon-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 20px 40px;
+          max-width: 1400px;
+          margin: 0 auto;
+        }
+        .coming-soon-main {
+          max-width: 1200px;
+          margin: 0 auto;
+          padding: 60px 40px 80px;
+          text-align: center;
+        }
+        .coming-soon-features {
+          display: grid;
+          grid-template-columns: repeat(4, 1fr);
+          gap: 20px;
+          margin-top: 48px;
+        }
+        
+        @media (max-width: 1024px) {
+          .coming-soon-features {
+            grid-template-columns: repeat(2, 1fr);
+          }
+        }
+        
+        @media (max-width: 768px) {
+          .coming-soon-header {
+            padding: 16px 20px;
+          }
+          .coming-soon-main {
+            padding: 40px 20px 60px;
+          }
+          .coming-soon-features {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+          }
+        }
+        
+        @media (max-width: 480px) {
+          .coming-soon-header {
+            padding: 12px 16px;
+          }
+          .coming-soon-main {
+            padding: 30px 16px 50px;
+          }
+          .coming-soon-features {
+            grid-template-columns: 1fr;
+            gap: 12px;
+          }
+        }
       `}</style>
       
       <div style={{ position: 'relative', zIndex: 1 }}>
         {/* Header - Same as main app */}
-        <header style={{
+        <header className="coming-soon-header" style={{
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          padding: '20px 40px',
+          padding: 'clamp(12px, 3vw, 20px) clamp(16px, 5vw, 40px)',
           maxWidth: '1400px',
           margin: '0 auto'
         }}>
@@ -539,10 +602,10 @@ function ComingSoonPage({ onNavigateToApp, onNavigateToAuth }) {
         </header>
         
         {/* Main Content */}
-        <main style={{
+        <main className="coming-soon-main" style={{
           maxWidth: '1200px',
           margin: '0 auto',
-          padding: '60px 40px 80px',
+          padding: 'clamp(30px, 6vw, 60px) clamp(16px, 5vw, 40px) clamp(50px, 8vw, 80px)',
           textAlign: 'center'
         }}>
           {/* Badge */}
@@ -557,7 +620,12 @@ function ComingSoonPage({ onNavigateToApp, onNavigateToAuth }) {
             borderRadius: '100px',
             marginBottom: '32px',
             border: `1px solid ${isDarkMode ? 'rgba(139, 92, 246, 0.3)' : 'rgba(139, 92, 246, 0.2)'}`,
-            animation: 'fadeInUp 0.6s ease-out'
+            animation: 'fadeInUp 0.6s ease-out, gentleBounce 2s ease-in-out infinite',
+            cursor: 'pointer',
+            transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+            boxShadow: isDarkMode 
+              ? '0 4px 20px rgba(139, 92, 246, 0.2)' 
+              : '0 4px 20px rgba(139, 92, 246, 0.15)'
           }}>
             <div style={{
               width: '8px',
@@ -698,10 +766,10 @@ function ComingSoonPage({ onNavigateToApp, onNavigateToAuth }) {
           </div>
           
           {/* Feature Cards */}
-          <div style={{
+          <div className="coming-soon-features" style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-            gap: '20px',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+            gap: 'clamp(12px, 2vw, 20px)',
             marginBottom: '64px',
             animation: 'fadeInUp 0.6s ease-out 0.4s both'
           }}>
@@ -3594,13 +3662,120 @@ function App() {
 function LandingPage({ setView }) {
   return (
     <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4c1d95 100%)', color: 'white', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}>
+      {/* Responsive Styles */}
+      <style>{`
+        .landing-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 20px 40px;
+          max-width: 1400px;
+          margin: 0 auto;
+        }
+        .landing-nav {
+          display: flex;
+          align-items: center;
+          gap: 32px;
+        }
+        .landing-nav-links {
+          display: flex;
+          align-items: center;
+          gap: 32px;
+        }
+        .landing-hero {
+          max-width: 1200px;
+          margin: 0 auto;
+          padding: 80px 40px;
+          text-align: center;
+        }
+        .landing-hero h1 {
+          font-size: clamp(32px, 8vw, 64px);
+          font-weight: 800;
+          line-height: 1.1;
+          margin-bottom: 24px;
+          max-width: 900px;
+          margin: 0 auto 24px;
+        }
+        .landing-hero p {
+          font-size: clamp(16px, 2vw, 20px);
+        }
+        .landing-cta-buttons {
+          display: flex;
+          gap: 16px;
+          justify-content: center;
+          margin-bottom: 60px;
+          flex-wrap: wrap;
+        }
+        .landing-stats {
+          display: flex;
+          gap: 60px;
+          justify-content: center;
+          flex-wrap: wrap;
+        }
+        .landing-features-grid {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 24px;
+        }
+        
+        @media (max-width: 1024px) {
+          .landing-features-grid {
+            grid-template-columns: repeat(2, 1fr);
+          }
+        }
+        
+        @media (max-width: 768px) {
+          .landing-header {
+            padding: 16px 20px;
+            flex-wrap: wrap;
+            gap: 16px;
+          }
+          .landing-nav-links {
+            display: none;
+          }
+          .landing-nav {
+            gap: 12px;
+          }
+          .landing-hero {
+            padding: 40px 20px;
+          }
+          .landing-stats {
+            gap: 30px;
+          }
+          .landing-features-grid {
+            grid-template-columns: 1fr;
+          }
+        }
+        
+        @media (max-width: 480px) {
+          .landing-header {
+            padding: 12px 16px;
+          }
+          .landing-hero {
+            padding: 30px 16px;
+          }
+          .landing-cta-buttons {
+            flex-direction: column;
+            align-items: center;
+          }
+          .landing-cta-buttons button {
+            width: 100%;
+            max-width: 280px;
+          }
+          .landing-stats {
+            flex-direction: column;
+            gap: 24px;
+          }
+        }
+      `}</style>
+      
       {/* Background effects */}
       <div style={{ position: 'absolute', top: '10%', right: '10%', width: '400px', height: '400px', background: 'rgba(139, 92, 246, 0.3)', borderRadius: '50%', filter: 'blur(80px)' }} />
       <div style={{ position: 'absolute', bottom: '20%', left: '10%', width: '300px', height: '300px', background: 'rgba(236, 72, 153, 0.2)', borderRadius: '50%', filter: 'blur(60px)' }} />
 
       <div style={{ position: 'relative', zIndex: 1 }}>
         {/* Header */}
-        <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 40px', maxWidth: '1400px', margin: '0 auto' }}>
+        <header className="landing-header">
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <div style={{ width: '44px', height: '44px', borderRadius: '12px', background: 'linear-gradient(135deg, #8B5CF6, #EC4899)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '700', fontSize: '16px' }}>
               PN
@@ -3611,10 +3786,12 @@ function LandingPage({ setView }) {
             {/* Online Status Indicator */}
             <SiteStatusIndicator showLabel={true} darkMode={true} />
           </div>
-          <nav style={{ display: 'flex', alignItems: 'center', gap: '32px' }}>
-            <a href="#features" style={{ color: 'rgba(255,255,255,0.8)', textDecoration: 'none', fontSize: '15px', fontWeight: '500' }}>Features</a>
-            <a href="#pricing" style={{ color: 'rgba(255,255,255,0.8)', textDecoration: 'none', fontSize: '15px', fontWeight: '500' }}>Pricing</a>
-            <a href="#about" style={{ color: 'rgba(255,255,255,0.8)', textDecoration: 'none', fontSize: '15px', fontWeight: '500' }}>About</a>
+          <nav className="landing-nav">
+            <div className="landing-nav-links">
+              <a href="#features" style={{ color: 'rgba(255,255,255,0.8)', textDecoration: 'none', fontSize: '15px', fontWeight: '500' }}>Features</a>
+              <a href="#pricing" style={{ color: 'rgba(255,255,255,0.8)', textDecoration: 'none', fontSize: '15px', fontWeight: '500' }}>Pricing</a>
+              <a href="#about" style={{ color: 'rgba(255,255,255,0.8)', textDecoration: 'none', fontSize: '15px', fontWeight: '500' }}>About</a>
+            </div>
             <button onClick={() => setView('auth')} style={{ padding: '10px 24px', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '8px', color: 'white', cursor: 'pointer', fontSize: '15px', fontWeight: '500', backdropFilter: 'blur(10px)' }}>
               Sign In
             </button>
@@ -3625,25 +3802,25 @@ function LandingPage({ setView }) {
         </header>
 
         {/* Hero Section */}
-        <section style={{ maxWidth: '1200px', margin: '0 auto', padding: '80px 40px', textAlign: 'center' }}>
+        <section className="landing-hero">
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '8px 16px', background: 'rgba(16, 185, 129, 0.15)', borderRadius: '20px', marginBottom: '24px', border: '1px solid rgba(16, 185, 129, 0.3)' }}>
             <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#10B981' }} />
             <span style={{ color: '#10B981', fontSize: '14px', fontWeight: '500' }}>Trusted by 10,000+ families</span>
           </div>
 
-          <h1 style={{ fontSize: '64px', fontWeight: '800', lineHeight: 1.1, marginBottom: '24px', maxWidth: '900px', margin: '0 auto 24px' }}>
+          <h1>
             Your Financial Future,{' '}
             <span style={{ background: 'linear-gradient(135deg, #A78BFA, #F472B6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
               Simplified
             </span>
           </h1>
 
-          <p style={{ fontSize: '20px', color: 'rgba(255,255,255,0.7)', lineHeight: 1.6, marginBottom: '40px', maxWidth: '600px', margin: '0 auto 40px' }}>
+          <p style={{ color: 'rgba(255,255,255,0.7)', lineHeight: 1.6, marginBottom: '40px', maxWidth: '600px', margin: '0 auto 40px' }}>
             Track your personal finances and side hustle income in one beautiful dashboard. Make smarter decisions with real-time insights.
           </p>
 
-          <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', marginBottom: '60px' }}>
-            <button onClick={() => setView('auth')} style={{ padding: '16px 40px', background: 'white', border: 'none', borderRadius: '12px', color: '#1e1b4b', fontSize: '16px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div className="landing-cta-buttons">
+            <button onClick={() => setView('auth')} style={{ padding: '16px 40px', background: 'white', border: 'none', borderRadius: '12px', color: '#1e1b4b', fontSize: '16px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'center' }}>
               Start Free Trial <span>→</span>
             </button>
             <button style={{ padding: '16px 40px', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '12px', color: 'white', fontSize: '16px', fontWeight: '500', cursor: 'pointer', backdropFilter: 'blur(10px)' }}>
@@ -3652,26 +3829,26 @@ function LandingPage({ setView }) {
           </div>
 
           {/* Stats */}
-          <div style={{ display: 'flex', gap: '60px', justifyContent: 'center' }}>
+          <div className="landing-stats">
             <div>
-              <div style={{ fontSize: '36px', fontWeight: '700' }}>$2.4B+</div>
+              <div style={{ fontSize: 'clamp(28px, 4vw, 36px)', fontWeight: '700' }}>$2.4B+</div>
               <div style={{ fontSize: '14px', color: 'rgba(255,255,255,0.5)' }}>Assets Tracked</div>
             </div>
             <div>
-              <div style={{ fontSize: '36px', fontWeight: '700' }}>4.9<span style={{ color: '#FBBF24' }}>★</span></div>
+              <div style={{ fontSize: 'clamp(28px, 4vw, 36px)', fontWeight: '700' }}>4.9<span style={{ color: '#FBBF24' }}>★</span></div>
               <div style={{ fontSize: '14px', color: 'rgba(255,255,255,0.5)' }}>App Store Rating</div>
             </div>
             <div>
-              <div style={{ fontSize: '36px', fontWeight: '700' }}>256-bit</div>
+              <div style={{ fontSize: 'clamp(28px, 4vw, 36px)', fontWeight: '700' }}>256-bit</div>
               <div style={{ fontSize: '14px', color: 'rgba(255,255,255,0.5)' }}>Bank-Level Security</div>
             </div>
           </div>
         </section>
 
         {/* Features Preview */}
-        <section style={{ maxWidth: '1200px', margin: '0 auto', padding: '40px' }}>
-          <div style={{ background: 'rgba(255,255,255,0.05)', backdropFilter: 'blur(20px)', borderRadius: '24px', padding: '40px', border: '1px solid rgba(255,255,255,0.1)' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '24px' }}>
+        <section style={{ maxWidth: '1200px', margin: '0 auto', padding: 'clamp(20px, 4vw, 40px)' }}>
+          <div style={{ background: 'rgba(255,255,255,0.05)', backdropFilter: 'blur(20px)', borderRadius: '24px', padding: 'clamp(20px, 4vw, 40px)', border: '1px solid rgba(255,255,255,0.1)' }}>
+            <div className="landing-features-grid">
               {[
                 { icon: '📊', title: 'Smart Dashboard', desc: 'Real-time overview of all your finances' },
                 { icon: '💼', title: 'Side Hustle Tracking', desc: 'Separate tracking for your business income' },
@@ -3691,7 +3868,7 @@ function LandingPage({ setView }) {
         </section>
 
         {/* Footer */}
-        <footer style={{ maxWidth: '1400px', margin: '0 auto', padding: '40px', borderTop: '1px solid rgba(255,255,255,0.1)', textAlign: 'center', marginTop: '60px' }}>
+        <footer style={{ maxWidth: '1400px', margin: '0 auto', padding: 'clamp(20px, 4vw, 40px) clamp(16px, 4vw, 40px)', borderTop: '1px solid rgba(255,255,255,0.1)', textAlign: 'center', marginTop: '60px' }}>
           <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '14px' }}>© 2025 ProsperNest. All rights reserved. www.prospernest.app</p>
         </footer>
       </div>
@@ -3876,8 +4053,53 @@ function AuthPage({ setView }) {
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}>
+      {/* Responsive styles for Auth page */}
+      <style>{`
+        .auth-container {
+          display: flex;
+          min-height: 100vh;
+        }
+        .auth-branding {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          align-items: center;
+          padding: 60px;
+          position: relative;
+          overflow: hidden;
+        }
+        .auth-form-container {
+          flex: 1;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 40px;
+        }
+        .auth-form-box {
+          width: 100%;
+          max-width: 400px;
+        }
+        
+        @media (max-width: 1024px) {
+          .auth-branding {
+            display: none;
+          }
+          .auth-form-container {
+            flex: none;
+            width: 100%;
+          }
+        }
+        
+        @media (max-width: 480px) {
+          .auth-form-container {
+            padding: 20px;
+          }
+        }
+      `}</style>
+      
       {/* Left side - Branding */}
-      <div style={{ flex: 1, background: 'linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4c1d95 100%)', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '60px', position: 'relative', overflow: 'hidden' }}>
+      <div className="auth-branding" style={{ flex: 1, background: 'linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4c1d95 100%)', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '60px', position: 'relative', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', top: '20%', right: '20%', width: '300px', height: '300px', background: 'rgba(139, 92, 246, 0.3)', borderRadius: '50%', filter: 'blur(80px)' }} />
         <div style={{ position: 'absolute', bottom: '30%', left: '10%', width: '200px', height: '200px', background: 'rgba(236, 72, 153, 0.2)', borderRadius: '50%', filter: 'blur(60px)' }} />
 
@@ -3923,8 +4145,8 @@ function AuthPage({ setView }) {
       </div>
 
       {/* Right side - Form */}
-      <div style={{ flex: 1, background: '#F5F6FA', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px' }}>
-        <div style={{ width: '100%', maxWidth: '400px' }}>
+      <div className="auth-form-container" style={{ flex: 1, background: '#F5F6FA', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px' }}>
+        <div className="auth-form-box" style={{ width: '100%', maxWidth: '400px' }}>
           {/* Mobile header with matching branding */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '24px' }}>
             <PennyLogo size={36} />
