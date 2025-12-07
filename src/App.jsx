@@ -5749,10 +5749,10 @@ function Dashboard({
       requiresBizBudgetAccess: true,
       items: BIZBUDGET_ACCESS_USERS.includes(user?.email?.toLowerCase()) ? [
         { id: 'bizbudget-dashboard', label: 'Dashboard', icon: Icons.Dashboard },
-        { id: 'bizbudget-pipeline', label: 'Deal Pipeline', icon: Icons.HomeBudgetHub },
+        { id: 'bizbudget-pipeline', label: profile?.businessType === 'real_estate_franchise' ? 'Deal Pipeline' : 'Projects', icon: Icons.HomeBudgetHub },
         { id: 'bizbudget-forecast', label: 'Revenue Forecast', icon: Icons.Reports },
         { id: 'bizbudget-tax', label: 'Tax Planning', icon: Icons.Budget },
-        { id: 'bizbudget-history', label: 'Deal History', icon: Icons.Calendar },
+        { id: 'bizbudget-history', label: profile?.businessType === 'real_estate_franchise' ? 'Deal History' : 'Project History', icon: Icons.Calendar },
         { id: 'bizbudget-statements', label: 'Financial Statements', icon: Icons.Reports },
         { id: 'bizbudget-budget', label: 'Budget vs Actuals', icon: Icons.Budget },
       ] : []
@@ -14321,20 +14321,6 @@ function GeneralBusinessDashboard({ theme, profile, lastImportDate, initialTab =
     return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
   };
 
-  // These tabs show in the top navigation bar inside the dashboard
-  const tabs = [
-    { id: 'overview', label: 'Overview', icon: '📊' },
-    { id: 'projects', label: 'Projects', icon: '📋' },
-    { id: 'invoices', label: 'Invoices', icon: '📄' },
-    { id: 'expenses', label: 'Expenses', icon: '💸' },
-    { id: 'clients', label: 'Clients', icon: '👥' },
-    { id: 'forecast', label: 'Forecast', icon: '📈' },
-    { id: 'taxes', label: 'Taxes', icon: '🧾' },
-    { id: 'history', label: 'History', icon: '📜' },
-    { id: 'statements', label: 'Statements', icon: '📑' },
-    { id: 'budget', label: 'Budget', icon: '💰' },
-  ];
-
   return (
     <div style={{ padding: '24px' }}>
       {/* Header */}
@@ -14355,38 +14341,6 @@ function GeneralBusinessDashboard({ theme, profile, lastImportDate, initialTab =
         <p style={{ fontSize: '14px', color: theme.textMuted, margin: 0 }}>
           {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
         </p>
-      </div>
-
-      {/* Tab Navigation */}
-      <div style={{ 
-        display: 'flex', gap: '8px', marginBottom: '24px', 
-        background: theme.bgCard, padding: '6px', borderRadius: '12px',
-        boxShadow: theme.cardShadow, overflowX: 'auto'
-      }}>
-        {tabs.map(tab => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            style={{
-              padding: '10px 20px',
-              border: 'none',
-              borderRadius: '8px',
-              background: activeTab === tab.id ? theme.primary : 'transparent',
-              color: activeTab === tab.id ? 'white' : theme.textSecondary,
-              fontSize: '14px',
-              fontWeight: '600',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              transition: 'all 0.2s',
-              whiteSpace: 'nowrap'
-            }}
-          >
-            <span>{tab.icon}</span>
-            {tab.label}
-          </button>
-        ))}
       </div>
 
       {/* Overview Tab */}
