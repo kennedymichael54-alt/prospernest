@@ -5944,7 +5944,11 @@ function Dashboard({
         if (!BIZBUDGET_ACCESS_USERS.includes(user?.email?.toLowerCase())) {
           return <GradientSection tab="home"><DashboardHome transactions={transactions} goals={goals} bills={bills} tasks={tasks || []} theme={theme} lastImportDate={lastImportDate} accountLabels={accountLabels} editingAccountLabel={editingAccountLabel} setEditingAccountLabel={setEditingAccountLabel} updateAccountLabel={updateAccountLabel} /></GradientSection>;
         }
-        return <GradientSection tab="bizbudget"><BizBudgetHub theme={theme} lastImportDate={lastImportDate} userEmail={user?.email} initialTab={activeTab.replace('bizbudget-', '')} profile={profile} onUpdateProfile={saveProfileToDB} /></GradientSection>;
+        // Show RE Command Center for real_estate_franchise, General Business Dashboard for all others
+        if (profile?.businessType === 'real_estate_franchise') {
+          return <GradientSection tab="bizbudget"><BizBudgetHub theme={theme} lastImportDate={lastImportDate} userEmail={user?.email} initialTab={activeTab.replace('bizbudget-', '')} profile={profile} onUpdateProfile={saveProfileToDB} /></GradientSection>;
+        }
+        return <GradientSection tab="bizbudget"><GeneralBusinessDashboard theme={theme} profile={profile} lastImportDate={lastImportDate} /></GradientSection>;
       
       // REBudget Hub tabs - Real Estate Investment Analysis (authorized users only)
       case 'rebudget-analyzer':
@@ -14202,6 +14206,567 @@ function DashboardHome({ transactions, goals, bills = [], tasks = [], theme, las
     </div>
   );
 }
+
+// ============================================================================
+// GENERAL BUSINESS DASHBOARD - For all business types except RE Franchise
+// ============================================================================
+function GeneralBusinessDashboard({ theme, profile, lastImportDate }) {
+  const isDark = theme?.mode === 'dark';
+  const [activeTab, setActiveTab] = useState('overview');
+  const [showAddInvoice, setShowAddInvoice] = useState(false);
+  const [showAddExpense, setShowAddExpense] = useState(false);
+  const [showAddClient, setShowAddClient] = useState(false);
+  
+  // Get business type label
+  const businessTypeLabels = {
+    construction: '🔨 Construction / Contracting',
+    lawn_care: '🌿 Lawn Care / Landscaping',
+    tax_preparer: '📋 Tax Preparation Services',
+    artist: '🎨 Artist / Creative Services',
+    sales: '💼 Sales / Commission-Based',
+    beauty: '💇 Hair Stylist / Beauty Services',
+    accounting: '📊 Accountant / CPA / Bookkeeper',
+    trucking: '🚛 Truck Driver / Transportation',
+    consulting: '💡 Consulting / Coaching',
+    cleaning: '🧹 Cleaning Services',
+    photography: '📷 Photography / Videography',
+    fitness: '💪 Personal Trainer / Fitness',
+    food: '🍳 Food Service / Catering',
+    retail: '🛍️ Retail / E-commerce',
+    tech: '💻 Freelance Tech / Developer',
+    medical: '⚕️ Medical / Healthcare Services',
+    legal: '⚖️ Legal Services',
+    education: '📚 Tutoring / Education',
+    general: '📦 General Business'
+  };
+  
+  const businessLabel = businessTypeLabels[profile?.businessType] || '📦 General Business';
+  
+  // Demo data for the dashboard
+  const [invoices] = useState([
+    { id: 1, client: 'ABC Company', amount: 2500, status: 'paid', date: '2025-12-01', dueDate: '2025-12-15' },
+    { id: 2, client: 'XYZ Corp', amount: 1800, status: 'pending', date: '2025-12-03', dueDate: '2025-12-17' },
+    { id: 3, client: 'Smith & Associates', amount: 3200, status: 'overdue', date: '2025-11-15', dueDate: '2025-11-30' },
+    { id: 4, client: 'Johnson LLC', amount: 950, status: 'paid', date: '2025-11-28', dueDate: '2025-12-12' },
+  ]);
+  
+  const [expenses] = useState([
+    { id: 1, description: 'Office Supplies', amount: 125, category: 'Supplies', date: '2025-12-05' },
+    { id: 2, description: 'Software Subscription', amount: 49, category: 'Software', date: '2025-12-01' },
+    { id: 3, description: 'Marketing - Facebook Ads', amount: 200, category: 'Marketing', date: '2025-12-02' },
+    { id: 4, description: 'Professional Development', amount: 299, category: 'Education', date: '2025-11-28' },
+    { id: 5, description: 'Vehicle Fuel', amount: 85, category: 'Transportation', date: '2025-12-04' },
+  ]);
+  
+  const [clients] = useState([
+    { id: 1, name: 'ABC Company', email: 'contact@abc.com', phone: '555-0101', totalRevenue: 12500, status: 'active' },
+    { id: 2, name: 'XYZ Corp', email: 'info@xyz.com', phone: '555-0102', totalRevenue: 8200, status: 'active' },
+    { id: 3, name: 'Smith & Associates', email: 'smith@associates.com', phone: '555-0103', totalRevenue: 15800, status: 'active' },
+    { id: 4, name: 'Johnson LLC', email: 'johnson@llc.com', phone: '555-0104', totalRevenue: 4500, status: 'inactive' },
+  ]);
+  
+  // Calculate metrics
+  const totalRevenue = invoices.filter(i => i.status === 'paid').reduce((sum, i) => sum + i.amount, 0);
+  const pendingInvoices = invoices.filter(i => i.status === 'pending').reduce((sum, i) => sum + i.amount, 0);
+  const overdueInvoices = invoices.filter(i => i.status === 'overdue').reduce((sum, i) => sum + i.amount, 0);
+  const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
+  const netProfit = totalRevenue - totalExpenses;
+  const activeClients = clients.filter(c => c.status === 'active').length;
+  
+  // Tax estimates (simplified)
+  const estimatedTax = netProfit * 0.25; // 25% estimated tax rate
+  const quarterlyTax = estimatedTax / 4;
+  
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
+  };
+
+  const tabs = [
+    { id: 'overview', label: 'Overview', icon: '📊' },
+    { id: 'invoices', label: 'Invoices', icon: '📄' },
+    { id: 'expenses', label: 'Expenses', icon: '💸' },
+    { id: 'clients', label: 'Clients', icon: '👥' },
+    { id: 'taxes', label: 'Tax Planning', icon: '🧾' },
+  ];
+
+  return (
+    <div style={{ padding: '24px' }}>
+      {/* Header */}
+      <div style={{ marginBottom: '24px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+          <div style={{ 
+            width: '48px', height: '48px', borderRadius: '12px',
+            background: `linear-gradient(135deg, ${theme.primary}, ${theme.primaryDark || theme.primary})`,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px'
+          }}>
+            💼
+          </div>
+          <div>
+            <h1 style={{ fontSize: '28px', fontWeight: '700', color: theme.textPrimary, margin: 0 }}>Business Command Center</h1>
+            <p style={{ fontSize: '14px', color: theme.textMuted, margin: 0 }}>{businessLabel}</p>
+          </div>
+        </div>
+        <p style={{ fontSize: '14px', color: theme.textMuted, margin: 0 }}>
+          {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
+        </p>
+      </div>
+
+      {/* Tab Navigation */}
+      <div style={{ 
+        display: 'flex', gap: '8px', marginBottom: '24px', 
+        background: theme.bgCard, padding: '6px', borderRadius: '12px',
+        boxShadow: theme.cardShadow, overflowX: 'auto'
+      }}>
+        {tabs.map(tab => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            style={{
+              padding: '10px 20px',
+              border: 'none',
+              borderRadius: '8px',
+              background: activeTab === tab.id ? theme.primary : 'transparent',
+              color: activeTab === tab.id ? 'white' : theme.textSecondary,
+              fontSize: '14px',
+              fontWeight: '600',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              transition: 'all 0.2s',
+              whiteSpace: 'nowrap'
+            }}
+          >
+            <span>{tab.icon}</span>
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Overview Tab */}
+      {activeTab === 'overview' && (
+        <div>
+          {/* Key Metrics */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px', marginBottom: '24px' }}>
+            {/* Total Revenue */}
+            <div style={{
+              background: isDark ? 'linear-gradient(135deg, #14532D 0%, #166534 100%)' : 'linear-gradient(135deg, #DCFCE7 0%, #BBF7D0 100%)',
+              borderRadius: '16px', padding: '20px',
+              border: `1px solid ${isDark ? 'rgba(34, 197, 94, 0.3)' : 'rgba(34, 197, 94, 0.2)'}`
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                <span style={{ fontSize: '20px' }}>💰</span>
+                <span style={{ fontSize: '14px', color: isDark ? '#86EFAC' : '#166534', fontWeight: '600' }}>Revenue (MTD)</span>
+              </div>
+              <div style={{ fontSize: '28px', fontWeight: '700', color: isDark ? '#DCFCE7' : '#14532D' }}>{formatCurrency(totalRevenue)}</div>
+              <div style={{ fontSize: '12px', color: isDark ? '#86EFAC' : '#166534', marginTop: '4px' }}>+12% vs last month</div>
+            </div>
+
+            {/* Pending Invoices */}
+            <div style={{
+              background: isDark ? 'linear-gradient(135deg, #1E3A5F 0%, #1E40AF 100%)' : 'linear-gradient(135deg, #DBEAFE 0%, #BFDBFE 100%)',
+              borderRadius: '16px', padding: '20px',
+              border: `1px solid ${isDark ? 'rgba(59, 130, 246, 0.3)' : 'rgba(59, 130, 246, 0.2)'}`
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                <span style={{ fontSize: '20px' }}>⏳</span>
+                <span style={{ fontSize: '14px', color: isDark ? '#93C5FD' : '#1E40AF', fontWeight: '600' }}>Pending</span>
+              </div>
+              <div style={{ fontSize: '28px', fontWeight: '700', color: isDark ? '#DBEAFE' : '#1E3A5F' }}>{formatCurrency(pendingInvoices)}</div>
+              <div style={{ fontSize: '12px', color: isDark ? '#93C5FD' : '#1E40AF', marginTop: '4px' }}>{invoices.filter(i => i.status === 'pending').length} invoices</div>
+            </div>
+
+            {/* Total Expenses */}
+            <div style={{
+              background: isDark ? 'linear-gradient(135deg, #7C2D12 0%, #9A3412 100%)' : 'linear-gradient(135deg, #FED7AA 0%, #FDBA74 100%)',
+              borderRadius: '16px', padding: '20px',
+              border: `1px solid ${isDark ? 'rgba(249, 115, 22, 0.3)' : 'rgba(249, 115, 22, 0.2)'}`
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                <span style={{ fontSize: '20px' }}>💸</span>
+                <span style={{ fontSize: '14px', color: isDark ? '#FDBA74' : '#9A3412', fontWeight: '600' }}>Expenses (MTD)</span>
+              </div>
+              <div style={{ fontSize: '28px', fontWeight: '700', color: isDark ? '#FED7AA' : '#7C2D12' }}>{formatCurrency(totalExpenses)}</div>
+              <div style={{ fontSize: '12px', color: isDark ? '#FDBA74' : '#9A3412', marginTop: '4px' }}>{expenses.length} transactions</div>
+            </div>
+
+            {/* Net Profit */}
+            <div style={{
+              background: isDark ? 'linear-gradient(135deg, #581C87 0%, #7C3AED 100%)' : 'linear-gradient(135deg, #EDE9FE 0%, #DDD6FE 100%)',
+              borderRadius: '16px', padding: '20px',
+              border: `1px solid ${isDark ? 'rgba(139, 92, 246, 0.3)' : 'rgba(139, 92, 246, 0.2)'}`
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                <span style={{ fontSize: '20px' }}>📈</span>
+                <span style={{ fontSize: '14px', color: isDark ? '#C4B5FD' : '#5B21B6', fontWeight: '600' }}>Net Profit</span>
+              </div>
+              <div style={{ fontSize: '28px', fontWeight: '700', color: isDark ? '#EDE9FE' : '#581C87' }}>{formatCurrency(netProfit)}</div>
+              <div style={{ fontSize: '12px', color: isDark ? '#C4B5FD' : '#5B21B6', marginTop: '4px' }}>{Math.round((netProfit / totalRevenue) * 100)}% margin</div>
+            </div>
+          </div>
+
+          {/* Second Row - Clients & Tax */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '24px' }}>
+            {/* Active Clients */}
+            <div style={{
+              background: theme.bgCard, borderRadius: '16px', padding: '20px',
+              boxShadow: theme.cardShadow, border: `1px solid ${theme.borderLight}`
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                <h3 style={{ fontSize: '16px', fontWeight: '600', color: theme.textPrimary, margin: 0 }}>👥 Active Clients</h3>
+                <span style={{ fontSize: '24px', fontWeight: '700', color: theme.primary }}>{activeClients}</span>
+              </div>
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                {clients.filter(c => c.status === 'active').slice(0, 3).map(client => (
+                  <div key={client.id} style={{
+                    padding: '8px 12px', background: theme.bgMain, borderRadius: '8px',
+                    fontSize: '13px', color: theme.textSecondary
+                  }}>
+                    {client.name}
+                  </div>
+                ))}
+                {activeClients > 3 && (
+                  <div style={{
+                    padding: '8px 12px', background: theme.primary + '20', borderRadius: '8px',
+                    fontSize: '13px', color: theme.primary, fontWeight: '500'
+                  }}>
+                    +{activeClients - 3} more
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Quarterly Tax Estimate */}
+            <div style={{
+              background: theme.bgCard, borderRadius: '16px', padding: '20px',
+              boxShadow: theme.cardShadow, border: `1px solid ${theme.borderLight}`
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                <h3 style={{ fontSize: '16px', fontWeight: '600', color: theme.textPrimary, margin: 0 }}>🧾 Quarterly Tax Estimate</h3>
+                <span style={{ fontSize: '24px', fontWeight: '700', color: '#F59E0B' }}>{formatCurrency(quarterlyTax)}</span>
+              </div>
+              <div style={{ fontSize: '13px', color: theme.textMuted }}>
+                Based on {formatCurrency(netProfit)} net profit • Next payment: Jan 15, 2026
+              </div>
+              <div style={{ 
+                marginTop: '12px', padding: '8px 12px', 
+                background: '#FEF3C7', borderRadius: '8px',
+                fontSize: '12px', color: '#92400E'
+              }}>
+                💡 Set aside 25-30% of profit for taxes
+              </div>
+            </div>
+          </div>
+
+          {/* Recent Activity */}
+          <div style={{
+            background: theme.bgCard, borderRadius: '16px', padding: '20px',
+            boxShadow: theme.cardShadow, border: `1px solid ${theme.borderLight}`
+          }}>
+            <h3 style={{ fontSize: '16px', fontWeight: '600', color: theme.textPrimary, marginBottom: '16px' }}>📋 Recent Activity</h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {[...invoices.slice(0, 2), ...expenses.slice(0, 2)].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 4).map((item, i) => (
+                <div key={i} style={{
+                  display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                  padding: '12px', background: theme.bgMain, borderRadius: '10px'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <div style={{
+                      width: '36px', height: '36px', borderRadius: '8px',
+                      background: item.client ? '#DCFCE7' : '#FEE2E2',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px'
+                    }}>
+                      {item.client ? '📄' : '💸'}
+                    </div>
+                    <div>
+                      <div style={{ fontSize: '14px', fontWeight: '500', color: theme.textPrimary }}>
+                        {item.client || item.description}
+                      </div>
+                      <div style={{ fontSize: '12px', color: theme.textMuted }}>{item.date}</div>
+                    </div>
+                  </div>
+                  <div style={{ 
+                    fontSize: '14px', fontWeight: '600',
+                    color: item.client ? '#059669' : '#DC2626'
+                  }}>
+                    {item.client ? '+' : '-'}{formatCurrency(item.amount)}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Invoices Tab */}
+      {activeTab === 'invoices' && (
+        <div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+            <h2 style={{ fontSize: '20px', fontWeight: '600', color: theme.textPrimary, margin: 0 }}>Invoice Management</h2>
+            <button
+              onClick={() => setShowAddInvoice(true)}
+              style={{
+                padding: '10px 20px', background: theme.primary, color: 'white',
+                border: 'none', borderRadius: '10px', fontSize: '14px', fontWeight: '600', cursor: 'pointer',
+                display: 'flex', alignItems: 'center', gap: '8px'
+              }}
+            >
+              <span>+</span> New Invoice
+            </button>
+          </div>
+
+          {/* Invoice Stats */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '20px' }}>
+            <div style={{ background: '#DCFCE7', borderRadius: '12px', padding: '16px', textAlign: 'center' }}>
+              <div style={{ fontSize: '24px', fontWeight: '700', color: '#166534' }}>{formatCurrency(totalRevenue)}</div>
+              <div style={{ fontSize: '13px', color: '#166534' }}>Paid</div>
+            </div>
+            <div style={{ background: '#DBEAFE', borderRadius: '12px', padding: '16px', textAlign: 'center' }}>
+              <div style={{ fontSize: '24px', fontWeight: '700', color: '#1E40AF' }}>{formatCurrency(pendingInvoices)}</div>
+              <div style={{ fontSize: '13px', color: '#1E40AF' }}>Pending</div>
+            </div>
+            <div style={{ background: '#FEE2E2', borderRadius: '12px', padding: '16px', textAlign: 'center' }}>
+              <div style={{ fontSize: '24px', fontWeight: '700', color: '#DC2626' }}>{formatCurrency(overdueInvoices)}</div>
+              <div style={{ fontSize: '13px', color: '#DC2626' }}>Overdue</div>
+            </div>
+          </div>
+
+          {/* Invoice List */}
+          <div style={{ background: theme.bgCard, borderRadius: '16px', overflow: 'hidden', boxShadow: theme.cardShadow }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr style={{ background: theme.bgMain }}>
+                  <th style={{ padding: '14px 16px', textAlign: 'left', fontSize: '13px', fontWeight: '600', color: theme.textSecondary }}>Client</th>
+                  <th style={{ padding: '14px 16px', textAlign: 'left', fontSize: '13px', fontWeight: '600', color: theme.textSecondary }}>Date</th>
+                  <th style={{ padding: '14px 16px', textAlign: 'left', fontSize: '13px', fontWeight: '600', color: theme.textSecondary }}>Due Date</th>
+                  <th style={{ padding: '14px 16px', textAlign: 'right', fontSize: '13px', fontWeight: '600', color: theme.textSecondary }}>Amount</th>
+                  <th style={{ padding: '14px 16px', textAlign: 'center', fontSize: '13px', fontWeight: '600', color: theme.textSecondary }}>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {invoices.map(invoice => (
+                  <tr key={invoice.id} style={{ borderTop: `1px solid ${theme.borderLight}` }}>
+                    <td style={{ padding: '14px 16px', fontSize: '14px', color: theme.textPrimary, fontWeight: '500' }}>{invoice.client}</td>
+                    <td style={{ padding: '14px 16px', fontSize: '14px', color: theme.textSecondary }}>{invoice.date}</td>
+                    <td style={{ padding: '14px 16px', fontSize: '14px', color: theme.textSecondary }}>{invoice.dueDate}</td>
+                    <td style={{ padding: '14px 16px', fontSize: '14px', color: theme.textPrimary, fontWeight: '600', textAlign: 'right' }}>{formatCurrency(invoice.amount)}</td>
+                    <td style={{ padding: '14px 16px', textAlign: 'center' }}>
+                      <span style={{
+                        padding: '4px 12px', borderRadius: '20px', fontSize: '12px', fontWeight: '500',
+                        background: invoice.status === 'paid' ? '#DCFCE7' : invoice.status === 'pending' ? '#DBEAFE' : '#FEE2E2',
+                        color: invoice.status === 'paid' ? '#166534' : invoice.status === 'pending' ? '#1E40AF' : '#DC2626'
+                      }}>
+                        {invoice.status.charAt(0).toUpperCase() + invoice.status.slice(1)}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* Expenses Tab */}
+      {activeTab === 'expenses' && (
+        <div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+            <h2 style={{ fontSize: '20px', fontWeight: '600', color: theme.textPrimary, margin: 0 }}>Expense Tracking</h2>
+            <button
+              onClick={() => setShowAddExpense(true)}
+              style={{
+                padding: '10px 20px', background: theme.primary, color: 'white',
+                border: 'none', borderRadius: '10px', fontSize: '14px', fontWeight: '600', cursor: 'pointer',
+                display: 'flex', alignItems: 'center', gap: '8px'
+              }}
+            >
+              <span>+</span> Add Expense
+            </button>
+          </div>
+
+          {/* Expense by Category */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '12px', marginBottom: '20px' }}>
+            {['Supplies', 'Software', 'Marketing', 'Education', 'Transportation'].map(cat => {
+              const catTotal = expenses.filter(e => e.category === cat).reduce((sum, e) => sum + e.amount, 0);
+              return (
+                <div key={cat} style={{
+                  background: theme.bgCard, borderRadius: '12px', padding: '16px',
+                  boxShadow: theme.cardShadow, border: `1px solid ${theme.borderLight}`
+                }}>
+                  <div style={{ fontSize: '13px', color: theme.textMuted, marginBottom: '4px' }}>{cat}</div>
+                  <div style={{ fontSize: '18px', fontWeight: '700', color: theme.textPrimary }}>{formatCurrency(catTotal)}</div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Expense List */}
+          <div style={{ background: theme.bgCard, borderRadius: '16px', overflow: 'hidden', boxShadow: theme.cardShadow }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr style={{ background: theme.bgMain }}>
+                  <th style={{ padding: '14px 16px', textAlign: 'left', fontSize: '13px', fontWeight: '600', color: theme.textSecondary }}>Description</th>
+                  <th style={{ padding: '14px 16px', textAlign: 'left', fontSize: '13px', fontWeight: '600', color: theme.textSecondary }}>Category</th>
+                  <th style={{ padding: '14px 16px', textAlign: 'left', fontSize: '13px', fontWeight: '600', color: theme.textSecondary }}>Date</th>
+                  <th style={{ padding: '14px 16px', textAlign: 'right', fontSize: '13px', fontWeight: '600', color: theme.textSecondary }}>Amount</th>
+                </tr>
+              </thead>
+              <tbody>
+                {expenses.map(expense => (
+                  <tr key={expense.id} style={{ borderTop: `1px solid ${theme.borderLight}` }}>
+                    <td style={{ padding: '14px 16px', fontSize: '14px', color: theme.textPrimary, fontWeight: '500' }}>{expense.description}</td>
+                    <td style={{ padding: '14px 16px' }}>
+                      <span style={{
+                        padding: '4px 10px', borderRadius: '6px', fontSize: '12px',
+                        background: theme.bgMain, color: theme.textSecondary
+                      }}>
+                        {expense.category}
+                      </span>
+                    </td>
+                    <td style={{ padding: '14px 16px', fontSize: '14px', color: theme.textSecondary }}>{expense.date}</td>
+                    <td style={{ padding: '14px 16px', fontSize: '14px', color: '#DC2626', fontWeight: '600', textAlign: 'right' }}>-{formatCurrency(expense.amount)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* Clients Tab */}
+      {activeTab === 'clients' && (
+        <div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+            <h2 style={{ fontSize: '20px', fontWeight: '600', color: theme.textPrimary, margin: 0 }}>Client Management</h2>
+            <button
+              onClick={() => setShowAddClient(true)}
+              style={{
+                padding: '10px 20px', background: theme.primary, color: 'white',
+                border: 'none', borderRadius: '10px', fontSize: '14px', fontWeight: '600', cursor: 'pointer',
+                display: 'flex', alignItems: 'center', gap: '8px'
+              }}
+            >
+              <span>+</span> Add Client
+            </button>
+          </div>
+
+          {/* Client Cards */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px' }}>
+            {clients.map(client => (
+              <div key={client.id} style={{
+                background: theme.bgCard, borderRadius: '16px', padding: '20px',
+                boxShadow: theme.cardShadow, border: `1px solid ${theme.borderLight}`
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+                  <div>
+                    <h3 style={{ fontSize: '16px', fontWeight: '600', color: theme.textPrimary, margin: 0 }}>{client.name}</h3>
+                    <p style={{ fontSize: '13px', color: theme.textMuted, margin: '4px 0 0 0' }}>{client.email}</p>
+                  </div>
+                  <span style={{
+                    padding: '4px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: '500',
+                    background: client.status === 'active' ? '#DCFCE7' : '#F3F4F6',
+                    color: client.status === 'active' ? '#166534' : '#6B7280'
+                  }}>
+                    {client.status}
+                  </span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ fontSize: '13px', color: theme.textMuted }}>📞 {client.phone}</div>
+                  <div style={{ fontSize: '14px', fontWeight: '600', color: theme.primary }}>
+                    {formatCurrency(client.totalRevenue)} total
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Tax Planning Tab */}
+      {activeTab === 'taxes' && (
+        <div>
+          <h2 style={{ fontSize: '20px', fontWeight: '600', color: theme.textPrimary, marginBottom: '20px' }}>Tax Planning & Estimates</h2>
+
+          {/* Tax Overview */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px', marginBottom: '24px' }}>
+            <div style={{
+              background: theme.bgCard, borderRadius: '16px', padding: '24px',
+              boxShadow: theme.cardShadow, border: `1px solid ${theme.borderLight}`
+            }}>
+              <div style={{ fontSize: '14px', color: theme.textMuted, marginBottom: '8px' }}>Estimated Annual Tax</div>
+              <div style={{ fontSize: '32px', fontWeight: '700', color: theme.textPrimary }}>{formatCurrency(estimatedTax)}</div>
+              <div style={{ fontSize: '12px', color: theme.textMuted, marginTop: '4px' }}>Based on 25% rate</div>
+            </div>
+            <div style={{
+              background: theme.bgCard, borderRadius: '16px', padding: '24px',
+              boxShadow: theme.cardShadow, border: `1px solid ${theme.borderLight}`
+            }}>
+              <div style={{ fontSize: '14px', color: theme.textMuted, marginBottom: '8px' }}>Quarterly Payment</div>
+              <div style={{ fontSize: '32px', fontWeight: '700', color: '#F59E0B' }}>{formatCurrency(quarterlyTax)}</div>
+              <div style={{ fontSize: '12px', color: theme.textMuted, marginTop: '4px' }}>Next: Jan 15, 2026</div>
+            </div>
+            <div style={{
+              background: theme.bgCard, borderRadius: '16px', padding: '24px',
+              boxShadow: theme.cardShadow, border: `1px solid ${theme.borderLight}`
+            }}>
+              <div style={{ fontSize: '14px', color: theme.textMuted, marginBottom: '8px' }}>Tax-Deductible Expenses</div>
+              <div style={{ fontSize: '32px', fontWeight: '700', color: '#059669' }}>{formatCurrency(totalExpenses)}</div>
+              <div style={{ fontSize: '12px', color: theme.textMuted, marginTop: '4px' }}>{expenses.length} deductions</div>
+            </div>
+          </div>
+
+          {/* Quarterly Deadlines */}
+          <div style={{
+            background: theme.bgCard, borderRadius: '16px', padding: '24px',
+            boxShadow: theme.cardShadow, border: `1px solid ${theme.borderLight}`, marginBottom: '24px'
+          }}>
+            <h3 style={{ fontSize: '16px', fontWeight: '600', color: theme.textPrimary, marginBottom: '16px' }}>📅 Quarterly Tax Deadlines</h3>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px' }}>
+              {[
+                { q: 'Q1', date: 'Apr 15, 2025', status: 'paid' },
+                { q: 'Q2', date: 'Jun 15, 2025', status: 'paid' },
+                { q: 'Q3', date: 'Sep 15, 2025', status: 'paid' },
+                { q: 'Q4', date: 'Jan 15, 2026', status: 'upcoming' },
+              ].map(quarter => (
+                <div key={quarter.q} style={{
+                  padding: '16px', borderRadius: '12px', textAlign: 'center',
+                  background: quarter.status === 'paid' ? '#DCFCE7' : '#FEF3C7',
+                  border: `1px solid ${quarter.status === 'paid' ? '#BBF7D0' : '#FDE68A'}`
+                }}>
+                  <div style={{ fontSize: '18px', fontWeight: '700', color: quarter.status === 'paid' ? '#166534' : '#92400E' }}>{quarter.q}</div>
+                  <div style={{ fontSize: '12px', color: quarter.status === 'paid' ? '#166534' : '#92400E', marginTop: '4px' }}>{quarter.date}</div>
+                  <div style={{
+                    fontSize: '11px', fontWeight: '500', marginTop: '8px',
+                    color: quarter.status === 'paid' ? '#059669' : '#D97706'
+                  }}>
+                    {quarter.status === 'paid' ? '✓ Paid' : '⏳ Upcoming'}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Tax Tips */}
+          <div style={{
+            background: `linear-gradient(135deg, ${theme.primary}10, ${theme.primary}05)`,
+            borderRadius: '16px', padding: '24px',
+            border: `1px solid ${theme.primary}30`
+          }}>
+            <h3 style={{ fontSize: '16px', fontWeight: '600', color: theme.textPrimary, marginBottom: '12px' }}>💡 Tax Tips for Your Business</h3>
+            <ul style={{ margin: 0, paddingLeft: '20px', color: theme.textSecondary, fontSize: '14px', lineHeight: '1.8' }}>
+              <li>Track all business expenses - they reduce your taxable income</li>
+              <li>Consider a SEP-IRA or Solo 401(k) for retirement savings & tax deduction</li>
+              <li>Keep receipts for expenses over $75 (IRS requirement)</li>
+              <li>Home office? You may qualify for the home office deduction</li>
+              <li>Vehicle used for business? Track your mileage for deductions</li>
+            </ul>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ============================================================================
 // TASKS TAB - Task Management (Image 6 inspired)
 // ============================================================================
