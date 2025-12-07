@@ -5948,7 +5948,7 @@ function Dashboard({
         if (profile?.businessType === 'real_estate_franchise') {
           return <GradientSection tab="bizbudget"><BizBudgetHub theme={theme} lastImportDate={lastImportDate} userEmail={user?.email} initialTab={activeTab.replace('bizbudget-', '')} profile={profile} onUpdateProfile={saveProfileToDB} /></GradientSection>;
         }
-        return <GradientSection tab="bizbudget"><GeneralBusinessDashboard theme={theme} profile={profile} lastImportDate={lastImportDate} /></GradientSection>;
+        return <GradientSection tab="bizbudget"><GeneralBusinessDashboard theme={theme} profile={profile} lastImportDate={lastImportDate} initialTab={activeTab.replace('bizbudget-', '')} /></GradientSection>;
       
       // REBudget Hub tabs - Real Estate Investment Analysis (authorized users only)
       case 'rebudget-analyzer':
@@ -14210,12 +14210,31 @@ function DashboardHome({ transactions, goals, bills = [], tasks = [], theme, las
 // ============================================================================
 // GENERAL BUSINESS DASHBOARD - For all business types except RE Franchise
 // ============================================================================
-function GeneralBusinessDashboard({ theme, profile, lastImportDate }) {
+function GeneralBusinessDashboard({ theme, profile, lastImportDate, initialTab = 'dashboard' }) {
   const isDark = theme?.mode === 'dark';
-  const [activeTab, setActiveTab] = useState('overview');
+  
+  // Map sidebar tabs to internal view
+  const tabMapping = {
+    'dashboard': 'overview',
+    'pipeline': 'projects',
+    'forecast': 'forecast',
+    'tax': 'taxes',
+    'history': 'history',
+    'statements': 'statements',
+    'budget': 'budget'
+  };
+  
+  const [activeTab, setActiveTab] = useState(tabMapping[initialTab] || 'overview');
   const [showAddInvoice, setShowAddInvoice] = useState(false);
   const [showAddExpense, setShowAddExpense] = useState(false);
   const [showAddClient, setShowAddClient] = useState(false);
+  const [showAddProject, setShowAddProject] = useState(false);
+  
+  // Update active tab when sidebar selection changes
+  React.useEffect(() => {
+    const mapped = tabMapping[initialTab];
+    if (mapped) setActiveTab(mapped);
+  }, [initialTab]);
   
   // Get business type label
   const businessTypeLabels = {
@@ -14265,13 +14284,34 @@ function GeneralBusinessDashboard({ theme, profile, lastImportDate }) {
     { id: 4, name: 'Johnson LLC', email: 'johnson@llc.com', phone: '555-0104', totalRevenue: 4500, status: 'inactive' },
   ]);
   
-  // Calculate metrics
+  // Projects/Jobs data (like Deal Pipeline for general business)
+  const [projects] = useState([
+    { id: 1, name: 'Website Redesign', client: 'ABC Company', value: 5000, status: 'in_progress', startDate: '2025-11-15', deadline: '2025-12-30', progress: 65 },
+    { id: 2, name: 'Monthly Retainer', client: 'XYZ Corp', value: 2000, status: 'active', startDate: '2025-12-01', deadline: '2025-12-31', progress: 30 },
+    { id: 3, name: 'Consulting Project', client: 'Smith & Associates', value: 3500, status: 'proposal', startDate: null, deadline: '2026-01-15', progress: 0 },
+    { id: 4, name: 'Q4 Campaign', client: 'Johnson LLC', value: 1500, status: 'completed', startDate: '2025-10-01', deadline: '2025-11-30', progress: 100 },
+    { id: 5, name: 'Brand Strategy', client: 'New Client Inc', value: 4000, status: 'proposal', startDate: null, deadline: '2026-02-01', progress: 0 },
+  ]);
+  
+  // Calculate metrics first (needed for monthlyData)
   const totalRevenue = invoices.filter(i => i.status === 'paid').reduce((sum, i) => sum + i.amount, 0);
   const pendingInvoices = invoices.filter(i => i.status === 'pending').reduce((sum, i) => sum + i.amount, 0);
   const overdueInvoices = invoices.filter(i => i.status === 'overdue').reduce((sum, i) => sum + i.amount, 0);
   const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
   const netProfit = totalRevenue - totalExpenses;
   const activeClients = clients.filter(c => c.status === 'active').length;
+  const activeProjects = projects.filter(p => p.status === 'in_progress' || p.status === 'active').length;
+  const pipelineValue = projects.filter(p => p.status !== 'completed').reduce((sum, p) => sum + p.value, 0);
+
+  // Monthly revenue data for forecast
+  const monthlyData = [
+    { month: 'Jul', revenue: 8200, expenses: 2100 },
+    { month: 'Aug', revenue: 9500, expenses: 2400 },
+    { month: 'Sep', revenue: 7800, expenses: 1900 },
+    { month: 'Oct', revenue: 11200, expenses: 2800 },
+    { month: 'Nov', revenue: 10500, expenses: 2600 },
+    { month: 'Dec', revenue: totalRevenue, expenses: totalExpenses },
+  ];
   
   // Tax estimates (simplified)
   const estimatedTax = netProfit * 0.25; // 25% estimated tax rate
@@ -14281,12 +14321,18 @@ function GeneralBusinessDashboard({ theme, profile, lastImportDate }) {
     return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
   };
 
+  // These tabs show in the top navigation bar inside the dashboard
   const tabs = [
     { id: 'overview', label: 'Overview', icon: '📊' },
+    { id: 'projects', label: 'Projects', icon: '📋' },
     { id: 'invoices', label: 'Invoices', icon: '📄' },
     { id: 'expenses', label: 'Expenses', icon: '💸' },
     { id: 'clients', label: 'Clients', icon: '👥' },
-    { id: 'taxes', label: 'Tax Planning', icon: '🧾' },
+    { id: 'forecast', label: 'Forecast', icon: '📈' },
+    { id: 'taxes', label: 'Taxes', icon: '🧾' },
+    { id: 'history', label: 'History', icon: '📜' },
+    { id: 'statements', label: 'Statements', icon: '📑' },
+    { id: 'budget', label: 'Budget', icon: '💰' },
   ];
 
   return (
@@ -14760,6 +14806,386 @@ function GeneralBusinessDashboard({ theme, profile, lastImportDate }) {
               <li>Home office? You may qualify for the home office deduction</li>
               <li>Vehicle used for business? Track your mileage for deductions</li>
             </ul>
+          </div>
+        </div>
+      )}
+
+      {/* Projects Tab (Deal Pipeline equivalent) */}
+      {activeTab === 'projects' && (
+        <div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+            <h2 style={{ fontSize: '20px', fontWeight: '600', color: theme.textPrimary, margin: 0 }}>Project Pipeline</h2>
+            <button
+              onClick={() => setShowAddProject(true)}
+              style={{
+                padding: '10px 20px', background: theme.primary, color: 'white',
+                border: 'none', borderRadius: '10px', fontSize: '14px', fontWeight: '600', cursor: 'pointer',
+                display: 'flex', alignItems: 'center', gap: '8px'
+              }}
+            >
+              <span>+</span> New Project
+            </button>
+          </div>
+
+          {/* Pipeline Stats */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '24px' }}>
+            <div style={{ background: '#FEF3C7', borderRadius: '12px', padding: '16px', textAlign: 'center' }}>
+              <div style={{ fontSize: '24px', fontWeight: '700', color: '#92400E' }}>{projects.filter(p => p.status === 'proposal').length}</div>
+              <div style={{ fontSize: '13px', color: '#92400E' }}>Proposals</div>
+            </div>
+            <div style={{ background: '#DBEAFE', borderRadius: '12px', padding: '16px', textAlign: 'center' }}>
+              <div style={{ fontSize: '24px', fontWeight: '700', color: '#1E40AF' }}>{activeProjects}</div>
+              <div style={{ fontSize: '13px', color: '#1E40AF' }}>In Progress</div>
+            </div>
+            <div style={{ background: '#DCFCE7', borderRadius: '12px', padding: '16px', textAlign: 'center' }}>
+              <div style={{ fontSize: '24px', fontWeight: '700', color: '#166534' }}>{projects.filter(p => p.status === 'completed').length}</div>
+              <div style={{ fontSize: '13px', color: '#166534' }}>Completed</div>
+            </div>
+            <div style={{ background: '#EDE9FE', borderRadius: '12px', padding: '16px', textAlign: 'center' }}>
+              <div style={{ fontSize: '24px', fontWeight: '700', color: '#5B21B6' }}>{formatCurrency(pipelineValue)}</div>
+              <div style={{ fontSize: '13px', color: '#5B21B6' }}>Pipeline Value</div>
+            </div>
+          </div>
+
+          {/* Project Cards */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            {projects.map(project => (
+              <div key={project.id} style={{
+                background: theme.bgCard, borderRadius: '16px', padding: '20px',
+                boxShadow: theme.cardShadow, border: `1px solid ${theme.borderLight}`
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+                  <div>
+                    <h3 style={{ fontSize: '16px', fontWeight: '600', color: theme.textPrimary, margin: 0 }}>{project.name}</h3>
+                    <p style={{ fontSize: '13px', color: theme.textMuted, margin: '4px 0 0 0' }}>{project.client}</p>
+                  </div>
+                  <span style={{
+                    padding: '4px 12px', borderRadius: '20px', fontSize: '12px', fontWeight: '500',
+                    background: project.status === 'completed' ? '#DCFCE7' : project.status === 'in_progress' || project.status === 'active' ? '#DBEAFE' : '#FEF3C7',
+                    color: project.status === 'completed' ? '#166534' : project.status === 'in_progress' || project.status === 'active' ? '#1E40AF' : '#92400E'
+                  }}>
+                    {project.status === 'in_progress' ? 'In Progress' : project.status === 'proposal' ? 'Proposal' : project.status.charAt(0).toUpperCase() + project.status.slice(1)}
+                  </span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                  <div style={{ fontSize: '20px', fontWeight: '700', color: theme.primary }}>{formatCurrency(project.value)}</div>
+                  <div style={{ fontSize: '13px', color: theme.textMuted }}>Due: {project.deadline}</div>
+                </div>
+                {/* Progress Bar */}
+                <div style={{ background: theme.bgMain, borderRadius: '8px', height: '8px', overflow: 'hidden' }}>
+                  <div style={{
+                    width: `${project.progress}%`, height: '100%',
+                    background: project.progress === 100 ? '#22C55E' : theme.primary,
+                    borderRadius: '8px', transition: 'width 0.3s'
+                  }} />
+                </div>
+                <div style={{ fontSize: '12px', color: theme.textMuted, marginTop: '4px', textAlign: 'right' }}>{project.progress}% complete</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Revenue Forecast Tab */}
+      {activeTab === 'forecast' && (
+        <div>
+          <h2 style={{ fontSize: '20px', fontWeight: '600', color: theme.textPrimary, marginBottom: '20px' }}>Revenue Forecast</h2>
+
+          {/* Forecast Summary */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px', marginBottom: '24px' }}>
+            <div style={{
+              background: theme.bgCard, borderRadius: '16px', padding: '24px',
+              boxShadow: theme.cardShadow, border: `1px solid ${theme.borderLight}`
+            }}>
+              <div style={{ fontSize: '14px', color: theme.textMuted, marginBottom: '8px' }}>Projected Monthly Revenue</div>
+              <div style={{ fontSize: '32px', fontWeight: '700', color: '#22C55E' }}>{formatCurrency(10500)}</div>
+              <div style={{ fontSize: '12px', color: '#22C55E', marginTop: '4px' }}>↑ 8% growth trend</div>
+            </div>
+            <div style={{
+              background: theme.bgCard, borderRadius: '16px', padding: '24px',
+              boxShadow: theme.cardShadow, border: `1px solid ${theme.borderLight}`
+            }}>
+              <div style={{ fontSize: '14px', color: theme.textMuted, marginBottom: '8px' }}>Pipeline Revenue</div>
+              <div style={{ fontSize: '32px', fontWeight: '700', color: theme.primary }}>{formatCurrency(pipelineValue)}</div>
+              <div style={{ fontSize: '12px', color: theme.textMuted, marginTop: '4px' }}>{projects.filter(p => p.status !== 'completed').length} active projects</div>
+            </div>
+            <div style={{
+              background: theme.bgCard, borderRadius: '16px', padding: '24px',
+              boxShadow: theme.cardShadow, border: `1px solid ${theme.borderLight}`
+            }}>
+              <div style={{ fontSize: '14px', color: theme.textMuted, marginBottom: '8px' }}>Annual Projection</div>
+              <div style={{ fontSize: '32px', fontWeight: '700', color: theme.textPrimary }}>{formatCurrency(126000)}</div>
+              <div style={{ fontSize: '12px', color: theme.textMuted, marginTop: '4px' }}>Based on 6-month trend</div>
+            </div>
+          </div>
+
+          {/* Monthly Chart */}
+          <div style={{
+            background: theme.bgCard, borderRadius: '16px', padding: '24px',
+            boxShadow: theme.cardShadow, border: `1px solid ${theme.borderLight}`, marginBottom: '24px'
+          }}>
+            <h3 style={{ fontSize: '16px', fontWeight: '600', color: theme.textPrimary, marginBottom: '20px' }}>📈 6-Month Trend</h3>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', height: '200px', gap: '12px' }}>
+              {monthlyData.map((month, i) => {
+                const maxRevenue = Math.max(...monthlyData.map(m => m.revenue));
+                const height = (month.revenue / maxRevenue) * 160;
+                return (
+                  <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+                    <div style={{ fontSize: '12px', fontWeight: '600', color: '#22C55E' }}>{formatCurrency(month.revenue)}</div>
+                    <div style={{
+                      width: '100%', height: `${height}px`,
+                      background: `linear-gradient(180deg, ${theme.primary} 0%, ${theme.primary}80 100%)`,
+                      borderRadius: '8px 8px 0 0'
+                    }} />
+                    <div style={{ fontSize: '13px', color: theme.textMuted }}>{month.month}</div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Forecast Notes */}
+          <div style={{
+            background: `linear-gradient(135deg, ${theme.primary}10, ${theme.primary}05)`,
+            borderRadius: '16px', padding: '20px',
+            border: `1px solid ${theme.primary}30`
+          }}>
+            <h4 style={{ fontSize: '14px', fontWeight: '600', color: theme.textPrimary, marginBottom: '8px' }}>📊 Forecast Insights</h4>
+            <p style={{ fontSize: '13px', color: theme.textSecondary, margin: 0, lineHeight: '1.6' }}>
+              Based on your current pipeline and historical data, you're on track to exceed last year's revenue by 15%. 
+              Consider focusing on converting your 2 pending proposals to maintain growth momentum.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* History Tab (Deal History equivalent) */}
+      {activeTab === 'history' && (
+        <div>
+          <h2 style={{ fontSize: '20px', fontWeight: '600', color: theme.textPrimary, marginBottom: '20px' }}>Project History</h2>
+
+          {/* Completed Projects */}
+          <div style={{
+            background: theme.bgCard, borderRadius: '16px', overflow: 'hidden',
+            boxShadow: theme.cardShadow, border: `1px solid ${theme.borderLight}`
+          }}>
+            <div style={{ padding: '16px 20px', borderBottom: `1px solid ${theme.borderLight}` }}>
+              <h3 style={{ fontSize: '16px', fontWeight: '600', color: theme.textPrimary, margin: 0 }}>✅ Completed Projects</h3>
+            </div>
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr style={{ background: theme.bgMain }}>
+                  <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '13px', fontWeight: '600', color: theme.textSecondary }}>Project</th>
+                  <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '13px', fontWeight: '600', color: theme.textSecondary }}>Client</th>
+                  <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '13px', fontWeight: '600', color: theme.textSecondary }}>Completed</th>
+                  <th style={{ padding: '12px 16px', textAlign: 'right', fontSize: '13px', fontWeight: '600', color: theme.textSecondary }}>Revenue</th>
+                </tr>
+              </thead>
+              <tbody>
+                {projects.filter(p => p.status === 'completed').map(project => (
+                  <tr key={project.id} style={{ borderTop: `1px solid ${theme.borderLight}` }}>
+                    <td style={{ padding: '14px 16px', fontSize: '14px', color: theme.textPrimary, fontWeight: '500' }}>{project.name}</td>
+                    <td style={{ padding: '14px 16px', fontSize: '14px', color: theme.textSecondary }}>{project.client}</td>
+                    <td style={{ padding: '14px 16px', fontSize: '14px', color: theme.textSecondary }}>{project.deadline}</td>
+                    <td style={{ padding: '14px 16px', fontSize: '14px', color: '#22C55E', fontWeight: '600', textAlign: 'right' }}>{formatCurrency(project.value)}</td>
+                  </tr>
+                ))}
+                {/* Add some historical data */}
+                <tr style={{ borderTop: `1px solid ${theme.borderLight}` }}>
+                  <td style={{ padding: '14px 16px', fontSize: '14px', color: theme.textPrimary, fontWeight: '500' }}>Marketing Audit</td>
+                  <td style={{ padding: '14px 16px', fontSize: '14px', color: theme.textSecondary }}>Tech Startup Co</td>
+                  <td style={{ padding: '14px 16px', fontSize: '14px', color: theme.textSecondary }}>2025-09-15</td>
+                  <td style={{ padding: '14px 16px', fontSize: '14px', color: '#22C55E', fontWeight: '600', textAlign: 'right' }}>{formatCurrency(2800)}</td>
+                </tr>
+                <tr style={{ borderTop: `1px solid ${theme.borderLight}` }}>
+                  <td style={{ padding: '14px 16px', fontSize: '14px', color: theme.textPrimary, fontWeight: '500' }}>Social Media Setup</td>
+                  <td style={{ padding: '14px 16px', fontSize: '14px', color: theme.textSecondary }}>Local Restaurant</td>
+                  <td style={{ padding: '14px 16px', fontSize: '14px', color: theme.textSecondary }}>2025-08-20</td>
+                  <td style={{ padding: '14px 16px', fontSize: '14px', color: '#22C55E', fontWeight: '600', textAlign: 'right' }}>{formatCurrency(1200)}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          {/* Summary Stats */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginTop: '24px' }}>
+            <div style={{ background: theme.bgCard, borderRadius: '12px', padding: '20px', textAlign: 'center', boxShadow: theme.cardShadow }}>
+              <div style={{ fontSize: '28px', fontWeight: '700', color: theme.primary }}>12</div>
+              <div style={{ fontSize: '13px', color: theme.textMuted }}>Projects This Year</div>
+            </div>
+            <div style={{ background: theme.bgCard, borderRadius: '12px', padding: '20px', textAlign: 'center', boxShadow: theme.cardShadow }}>
+              <div style={{ fontSize: '28px', fontWeight: '700', color: '#22C55E' }}>{formatCurrency(45200)}</div>
+              <div style={{ fontSize: '13px', color: theme.textMuted }}>Total Revenue YTD</div>
+            </div>
+            <div style={{ background: theme.bgCard, borderRadius: '12px', padding: '20px', textAlign: 'center', boxShadow: theme.cardShadow }}>
+              <div style={{ fontSize: '28px', fontWeight: '700', color: '#F59E0B' }}>{formatCurrency(3767)}</div>
+              <div style={{ fontSize: '13px', color: theme.textMuted }}>Avg Project Value</div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Financial Statements Tab */}
+      {activeTab === 'statements' && (
+        <div>
+          <h2 style={{ fontSize: '20px', fontWeight: '600', color: theme.textPrimary, marginBottom: '20px' }}>Financial Statements</h2>
+
+          {/* P&L Summary */}
+          <div style={{
+            background: theme.bgCard, borderRadius: '16px', padding: '24px',
+            boxShadow: theme.cardShadow, border: `1px solid ${theme.borderLight}`, marginBottom: '24px'
+          }}>
+            <h3 style={{ fontSize: '16px', fontWeight: '600', color: theme.textPrimary, marginBottom: '20px' }}>📊 Profit & Loss Summary (YTD)</h3>
+            
+            {/* Revenue Section */}
+            <div style={{ marginBottom: '20px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 0', borderBottom: `1px solid ${theme.borderLight}` }}>
+                <span style={{ fontSize: '14px', fontWeight: '600', color: theme.textPrimary }}>Revenue</span>
+                <span style={{ fontSize: '14px', fontWeight: '600', color: theme.textPrimary }}></span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0 10px 20px' }}>
+                <span style={{ fontSize: '14px', color: theme.textSecondary }}>Service Income</span>
+                <span style={{ fontSize: '14px', color: theme.textPrimary }}>{formatCurrency(42500)}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0 10px 20px' }}>
+                <span style={{ fontSize: '14px', color: theme.textSecondary }}>Product Sales</span>
+                <span style={{ fontSize: '14px', color: theme.textPrimary }}>{formatCurrency(2700)}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 0', borderTop: `1px solid ${theme.borderLight}`, background: theme.bgMain, margin: '0 -24px', padding: '12px 24px' }}>
+                <span style={{ fontSize: '14px', fontWeight: '600', color: '#22C55E' }}>Total Revenue</span>
+                <span style={{ fontSize: '14px', fontWeight: '600', color: '#22C55E' }}>{formatCurrency(45200)}</span>
+              </div>
+            </div>
+
+            {/* Expenses Section */}
+            <div style={{ marginBottom: '20px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 0', borderBottom: `1px solid ${theme.borderLight}` }}>
+                <span style={{ fontSize: '14px', fontWeight: '600', color: theme.textPrimary }}>Expenses</span>
+                <span style={{ fontSize: '14px', fontWeight: '600', color: theme.textPrimary }}></span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0 10px 20px' }}>
+                <span style={{ fontSize: '14px', color: theme.textSecondary }}>Operating Expenses</span>
+                <span style={{ fontSize: '14px', color: theme.textPrimary }}>{formatCurrency(8500)}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0 10px 20px' }}>
+                <span style={{ fontSize: '14px', color: theme.textSecondary }}>Marketing & Advertising</span>
+                <span style={{ fontSize: '14px', color: theme.textPrimary }}>{formatCurrency(2400)}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0 10px 20px' }}>
+                <span style={{ fontSize: '14px', color: theme.textSecondary }}>Software & Tools</span>
+                <span style={{ fontSize: '14px', color: theme.textPrimary }}>{formatCurrency(1200)}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 0', borderTop: `1px solid ${theme.borderLight}`, background: theme.bgMain, margin: '0 -24px', padding: '12px 24px' }}>
+                <span style={{ fontSize: '14px', fontWeight: '600', color: '#DC2626' }}>Total Expenses</span>
+                <span style={{ fontSize: '14px', fontWeight: '600', color: '#DC2626' }}>{formatCurrency(12100)}</span>
+              </div>
+            </div>
+
+            {/* Net Profit */}
+            <div style={{
+              display: 'flex', justifyContent: 'space-between', padding: '16px 24px',
+              background: '#DCFCE7', borderRadius: '12px', margin: '0 -24px -24px -24px',
+              borderBottomLeftRadius: '16px', borderBottomRightRadius: '16px'
+            }}>
+              <span style={{ fontSize: '16px', fontWeight: '700', color: '#166534' }}>Net Profit</span>
+              <span style={{ fontSize: '16px', fontWeight: '700', color: '#166534' }}>{formatCurrency(33100)}</span>
+            </div>
+          </div>
+
+          {/* Download Options */}
+          <div style={{ display: 'flex', gap: '12px' }}>
+            <button style={{
+              padding: '12px 20px', background: theme.bgCard, color: theme.textPrimary,
+              border: `1px solid ${theme.borderLight}`, borderRadius: '10px',
+              fontSize: '14px', fontWeight: '500', cursor: 'pointer',
+              display: 'flex', alignItems: 'center', gap: '8px'
+            }}>
+              📄 Export P&L (PDF)
+            </button>
+            <button style={{
+              padding: '12px 20px', background: theme.bgCard, color: theme.textPrimary,
+              border: `1px solid ${theme.borderLight}`, borderRadius: '10px',
+              fontSize: '14px', fontWeight: '500', cursor: 'pointer',
+              display: 'flex', alignItems: 'center', gap: '8px'
+            }}>
+              📊 Export to Excel
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Budget vs Actuals Tab */}
+      {activeTab === 'budget' && (
+        <div>
+          <h2 style={{ fontSize: '20px', fontWeight: '600', color: theme.textPrimary, marginBottom: '20px' }}>Budget vs Actuals</h2>
+
+          {/* Summary Cards */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px', marginBottom: '24px' }}>
+            <div style={{
+              background: theme.bgCard, borderRadius: '16px', padding: '20px',
+              boxShadow: theme.cardShadow, border: `1px solid ${theme.borderLight}`
+            }}>
+              <div style={{ fontSize: '13px', color: theme.textMuted, marginBottom: '8px' }}>Revenue Budget</div>
+              <div style={{ fontSize: '24px', fontWeight: '700', color: theme.textPrimary }}>{formatCurrency(50000)}</div>
+              <div style={{ fontSize: '12px', color: '#F59E0B', marginTop: '4px' }}>90% achieved</div>
+            </div>
+            <div style={{
+              background: theme.bgCard, borderRadius: '16px', padding: '20px',
+              boxShadow: theme.cardShadow, border: `1px solid ${theme.borderLight}`
+            }}>
+              <div style={{ fontSize: '13px', color: theme.textMuted, marginBottom: '8px' }}>Expense Budget</div>
+              <div style={{ fontSize: '24px', fontWeight: '700', color: theme.textPrimary }}>{formatCurrency(15000)}</div>
+              <div style={{ fontSize: '12px', color: '#22C55E', marginTop: '4px' }}>81% spent (under budget!)</div>
+            </div>
+            <div style={{
+              background: theme.bgCard, borderRadius: '16px', padding: '20px',
+              boxShadow: theme.cardShadow, border: `1px solid ${theme.borderLight}`
+            }}>
+              <div style={{ fontSize: '13px', color: theme.textMuted, marginBottom: '8px' }}>Profit Target</div>
+              <div style={{ fontSize: '24px', fontWeight: '700', color: theme.textPrimary }}>{formatCurrency(35000)}</div>
+              <div style={{ fontSize: '12px', color: '#22C55E', marginTop: '4px' }}>95% on track</div>
+            </div>
+          </div>
+
+          {/* Budget Breakdown */}
+          <div style={{
+            background: theme.bgCard, borderRadius: '16px', padding: '24px',
+            boxShadow: theme.cardShadow, border: `1px solid ${theme.borderLight}`
+          }}>
+            <h3 style={{ fontSize: '16px', fontWeight: '600', color: theme.textPrimary, marginBottom: '20px' }}>📊 Expense Categories</h3>
+            
+            {[
+              { category: 'Marketing', budget: 3000, actual: 2400, icon: '📢' },
+              { category: 'Software & Tools', budget: 1500, actual: 1200, icon: '💻' },
+              { category: 'Office & Supplies', budget: 2000, actual: 1800, icon: '🏢' },
+              { category: 'Professional Services', budget: 4000, actual: 3500, icon: '👔' },
+              { category: 'Transportation', budget: 2500, actual: 2200, icon: '🚗' },
+              { category: 'Miscellaneous', budget: 2000, actual: 1000, icon: '📦' },
+            ].map((item, i) => {
+              const percentage = (item.actual / item.budget) * 100;
+              const isUnder = item.actual <= item.budget;
+              return (
+                <div key={i} style={{ marginBottom: '16px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span>{item.icon}</span>
+                      <span style={{ fontSize: '14px', fontWeight: '500', color: theme.textPrimary }}>{item.category}</span>
+                    </div>
+                    <div style={{ fontSize: '14px', color: theme.textSecondary }}>
+                      <span style={{ color: isUnder ? '#22C55E' : '#DC2626', fontWeight: '600' }}>{formatCurrency(item.actual)}</span>
+                      <span> / {formatCurrency(item.budget)}</span>
+                    </div>
+                  </div>
+                  <div style={{ background: theme.bgMain, borderRadius: '8px', height: '8px', overflow: 'hidden' }}>
+                    <div style={{
+                      width: `${Math.min(percentage, 100)}%`, height: '100%',
+                      background: isUnder ? '#22C55E' : '#DC2626',
+                      borderRadius: '8px'
+                    }} />
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       )}
