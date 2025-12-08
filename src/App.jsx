@@ -2647,7 +2647,7 @@ const loadUserDataFromDB = async (userId) => {
       console.log('ℹ️ [DB] Settings query error:', e.message);
     }
 
-    // Load other data in parallel
+    // Load other data in parallel - use high limit for transactions to get all records
     const [
       { data: transactions },
       { data: bills },
@@ -2657,13 +2657,13 @@ const loadUserDataFromDB = async (userId) => {
       { data: incomeTypes },
       { data: categories }
     ] = await Promise.all([
-      sb.from('transactions').select('*').eq('user_id', userId).order('date', { ascending: false }),
-      sb.from('bills').select('*').eq('user_id', userId),
-      sb.from('goals').select('*').eq('user_id', userId),
-      sb.from('tasks').select('*').eq('user_id', userId).order('created_at', { ascending: false }),
-      sb.from('budgets').select('*').eq('user_id', userId),
-      sb.from('income_types').select('*').eq('user_id', userId),
-      sb.from('accounting_categories').select('*').eq('user_id', userId)
+      sb.from('transactions').select('*').eq('user_id', userId).order('date', { ascending: false }).limit(50000),
+      sb.from('bills').select('*').eq('user_id', userId).limit(1000),
+      sb.from('goals').select('*').eq('user_id', userId).limit(100),
+      sb.from('tasks').select('*').eq('user_id', userId).order('created_at', { ascending: false }).limit(500),
+      sb.from('budgets').select('*').eq('user_id', userId).limit(100),
+      sb.from('income_types').select('*').eq('user_id', userId).limit(100),
+      sb.from('accounting_categories').select('*').eq('user_id', userId).limit(500)
     ]);
     
     console.log('✅ [DB] Loaded:', {
@@ -2758,7 +2758,7 @@ const dbToAppTask = (t) => ({
   createdAt: t.created_at
 });
 
-// Save transactions to Supabase
+// Save transactions to Supabase - handles large batches
 const saveTransactionsToDB = async (userId, transactions) => {
   const sb = await initSupabase();
   if (!sb || !transactions?.length) return;
@@ -2766,7 +2766,7 @@ const saveTransactionsToDB = async (userId, transactions) => {
   console.log('💾 [DB] Saving transactions:', transactions.length);
   
   try {
-    // Delete existing and insert new (simple sync strategy)
+    // Delete existing transactions
     await sb.from('transactions').delete().eq('user_id', userId);
     
     const toInsert = transactions.map(t => ({
@@ -2777,12 +2777,24 @@ const saveTransactionsToDB = async (userId, transactions) => {
       category: t.category,
       amount: t.amount,
       status: t.status,
-      account_type: t.accountType || 'personal'
+      account_type: t.accountType || 'personal',
+      hub_type: t.hubType || 'homebudget',
+      file_type: t.fileType || null,
+      source: t.source || 'manual'
     }));
     
-    const { error } = await sb.from('transactions').insert(toInsert);
-    if (error) throw error;
-    console.log('✅ [DB] Transactions saved');
+    // Batch insert in chunks of 500 to avoid Supabase limits
+    const BATCH_SIZE = 500;
+    for (let i = 0; i < toInsert.length; i += BATCH_SIZE) {
+      const batch = toInsert.slice(i, i + BATCH_SIZE);
+      const { error } = await sb.from('transactions').insert(batch);
+      if (error) {
+        console.error(`❌ [DB] Batch ${Math.floor(i/BATCH_SIZE) + 1} error:`, error);
+        throw error;
+      }
+      console.log(`✅ [DB] Batch ${Math.floor(i/BATCH_SIZE) + 1}/${Math.ceil(toInsert.length/BATCH_SIZE)} saved (${batch.length} records)`);
+    }
+    console.log('✅ [DB] All transactions saved:', transactions.length);
   } catch (e) {
     console.error('❌ [DB] Save transactions error:', e);
   }
@@ -2942,7 +2954,10 @@ const dbToAppTransaction = (t) => ({
   category: t.category,
   amount: parseFloat(t.amount),
   status: t.status,
-  accountType: t.account_type
+  accountType: t.account_type || 'personal',
+  hubType: t.hub_type || 'homebudget',
+  fileType: t.file_type || null,
+  source: t.source || 'import'
 });
 
 // Convert DB bill to app format
@@ -3412,12 +3427,15 @@ function App() {
       
       // Load transactions, bills, goals
       if (dbData.transactions?.length) {
+        console.log(`📥 [Data] Loading ${dbData.transactions.length} transactions from Supabase`);
         setTransactions(dbData.transactions.map(dbToAppTransaction));
       }
       if (dbData.bills?.length) {
+        console.log(`📥 [Data] Loading ${dbData.bills.length} bills from Supabase`);
         setBills(dbData.bills.map(dbToAppBill));
       }
       if (dbData.goals?.length) {
+        console.log(`📥 [Data] Loading ${dbData.goals.length} goals from Supabase`);
         setGoals(dbData.goals.map(dbToAppGoal));
       }
       
@@ -3718,28 +3736,59 @@ function App() {
   // Save data to localStorage and sync to DB
   const saveData = async (userId, key, data) => {
     try {
-      localStorage.setItem(`pn_${key}_${userId}`, JSON.stringify(data));
-      
-      // Also sync to database
+      // Always sync to Supabase first (primary storage for large datasets)
       if (key === 'transactions') {
-        saveTransactionsToDB(userId, data);
+        await saveTransactionsToDB(userId, data);
       } else if (key === 'bills') {
-        saveBillsToDB(userId, data);
+        await saveBillsToDB(userId, data);
       } else if (key === 'goals') {
-        saveGoalsToDB(userId, data);
+        await saveGoalsToDB(userId, data);
+      }
+      
+      // Try localStorage as backup (may fail for large datasets)
+      try {
+        const jsonStr = JSON.stringify(data);
+        const sizeKB = Math.round(jsonStr.length / 1024);
+        
+        // Warn if data is large
+        if (sizeKB > 2000) {
+          console.warn(`⚠️ [Storage] ${key} data is ${sizeKB}KB - may exceed localStorage quota`);
+        }
+        
+        localStorage.setItem(`pn_${key}_${userId}`, jsonStr);
+        console.log(`💾 [localStorage] ${key} saved (${sizeKB}KB)`);
+      } catch (storageError) {
+        if (storageError.name === 'QuotaExceededError' || storageError.code === 22) {
+          console.warn(`⚠️ [localStorage] Quota exceeded for ${key} - data saved to Supabase only`);
+          // Clear old localStorage data to make room
+          localStorage.removeItem(`pn_${key}_${userId}`);
+        } else {
+          throw storageError;
+        }
       }
     } catch (e) {
       console.error('Error saving data:', e);
     }
   };
 
-  const handleImportTransactions = (newTransactions) => {
+  const handleImportTransactions = async (newTransactions) => {
     const userId = user?.id;
-    if (!userId) return;
+    if (!userId) {
+      console.error('❌ [Import] No user ID - cannot save transactions');
+      return;
+    }
+    
+    console.log(`📥 [Import] Received ${newTransactions.length} transactions`);
+    
+    // Update state immediately for UI
     setTransactions(newTransactions);
     setLastImportDate(new Date());
-    saveData(userId, 'transactions', newTransactions);
     localStorage.setItem(`pn_lastImport_${userId}`, new Date().toISOString());
+    
+    // Save to Supabase (async, batched for large datasets)
+    console.log(`💾 [Import] Saving ${newTransactions.length} transactions to database...`);
+    await saveData(userId, 'transactions', newTransactions);
+    console.log(`✅ [Import] Complete! ${newTransactions.length} transactions saved`);
   };
 
   const handleUpdateBills = (newBills) => {
