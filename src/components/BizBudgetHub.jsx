@@ -47,6 +47,29 @@ export default function BizBudgetHub({ theme, lastImportDate, userEmail, initial
   const [collapsedSections, setCollapsedSections] = useState({});
   const [deals] = useState(DEMO_DEALS);
   
+  // All section IDs for collapse/expand all
+  const ALL_SECTIONS = [
+    'kpiOverview', 'dealsPipeline', 'taxReserves', 'pendingDeals', 'closedDeals',
+    'pipelinePotential', 'revenueProjections', 'distribution', 'pnl', 'cashflow',
+    'trends', 'monthlyBreakdown', 'budgetOverview', 'categoryBreakdown', 'spendingTrends',
+    'recentTransactions', 'transactionHistory', 'transactionSummary', 'billsSummary',
+    'upcomingBills', 'subscriptions', 'goalsOverview', 'activeGoals', 'timeline',
+    'taskSummary', 'activeTasks', 'dealTasks', 'taxSummary', 'quarterlyEstimates',
+    'taxByDeal', 'novoSetup', 'anniversaries'
+  ];
+  
+  const collapseAll = () => {
+    const collapsed = {};
+    ALL_SECTIONS.forEach(s => collapsed[s] = true);
+    setCollapsedSections(collapsed);
+  };
+  
+  const expandAll = () => {
+    const expanded = {};
+    ALL_SECTIONS.forEach(s => expanded[s] = false);
+    setCollapsedSections(expanded);
+  };
+  
   // Filter transactions for BizBudget Hub - show business and sidehustle transactions
   const bizTransactions = useMemo(() => {
     return transactions.filter(t => 
@@ -186,6 +209,22 @@ export default function BizBudgetHub({ theme, lastImportDate, userEmail, initial
           <p style={{ fontSize: '14px', color: theme.textMuted, margin: 0 }}>{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}</p>
           {lastImportDate && <div style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '4px 10px', background: '#10B98115', borderRadius: '8px' }}><div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10B981' }} /><span style={{ fontSize: '12px', color: '#10B981', fontWeight: '500' }}>Last import: {new Date(lastImportDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span></div>}
         </div>
+      </div>
+
+      {/* Collapse All / Expand All Toolbar */}
+      <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
+        <button onClick={collapseAll} style={{
+          display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 14px',
+          background: theme.bgCard, border: `1px solid ${theme.borderLight}`,
+          borderRadius: '10px', cursor: 'pointer', fontSize: '13px',
+          color: theme.textSecondary, fontWeight: '500', transition: 'all 0.2s'
+        }}>🗂️ Collapse All</button>
+        <button onClick={expandAll} style={{
+          display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 14px',
+          background: theme.bgCard, border: `1px solid ${theme.borderLight}`,
+          borderRadius: '10px', cursor: 'pointer', fontSize: '13px',
+          color: theme.textSecondary, fontWeight: '500', transition: 'all 0.2s'
+        }}>📂 Expand All</button>
       </div>
 
       {/* Stat Cards */}
