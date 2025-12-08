@@ -1,3 +1,6 @@
+// Force rebuild - Dec 7 2025
+
+
 import React, { useState, useEffect, useRef, useMemo, useCallback, lazy, Suspense } from 'react';
 // Component Imports - Static (always needed)
 import MonthYearSelector from './components/MonthYearSelector';
