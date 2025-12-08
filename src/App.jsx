@@ -2890,6 +2890,7 @@ const saveProfileToDB = async (userId, profile, forceUpdate = false) => {
       photo_url: profile.photoUrl,
       sidehustle_name: profile.sidehustleName,
       side_hustle: profile.sideHustle,
+      business_type: profile.businessType,
       account_labels: profile.accountLabels ? JSON.stringify(profile.accountLabels) : null,
       updated_at: new Date().toISOString()
     }, { onConflict: 'user_id' });
@@ -2921,6 +2922,7 @@ const dbToAppProfile = (p) => {
     photoUrl: p?.photo_url || '',
     sidehustleName: p?.sidehustle_name || '',
     sideHustle: p?.side_hustle || '',
+    businessType: p?.business_type || '',
     accountLabels
   };
 };
@@ -3126,7 +3128,8 @@ function App() {
     gender: '',
     photoUrl: '',
     sidehustleName: '',
-    sideHustle: ''
+    sideHustle: '',
+    businessType: ''
   });
   const [userPreferences, setUserPreferences] = useState(() => {
     try {
@@ -3372,7 +3375,8 @@ function App() {
         gender: newProfile.gender || profile.gender,
         photoUrl: newProfile.photoUrl || profile.photoUrl,
         sidehustleName: newProfile.sidehustleName || profile.sidehustleName,
-        sideHustle: newProfile.sideHustle || profile.sideHustle
+        sideHustle: newProfile.sideHustle || profile.sideHustle,
+        businessType: newProfile.businessType || profile.businessType
       };
       
       console.log('🛡️ [Profile] Merged profile to preserve data:', mergedProfile.firstName, mergedProfile.lastName);
@@ -6466,7 +6470,7 @@ function Dashboard({
         }}>
           {/* Logo */}
           <div 
-            onClick={() => setActiveTab('home')}
+            onClick={() => setActiveTab('newsfeed')}
             style={{ 
               display: 'flex', 
               alignItems: 'center', 
