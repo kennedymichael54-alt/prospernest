@@ -38,7 +38,7 @@ const BUDGET_CATEGORIES = [
   { category: 'Office & Supplies', budgeted: 2000, actual: 1500, icon: '📦' },
 ];
 
-export default function BizBudgetHub({ theme, lastImportDate, userEmail, initialTab = 'dashboard', profile, onUpdateProfile }) {
+export default function BizBudgetHub({ theme, lastImportDate, userEmail, initialTab = 'dashboard', profile, onUpdateProfile, transactions = [] }) {
   const isDark = theme?.mode === 'dark';
   const activeTab = initialTab;
   const [businessName, setBusinessName] = useState(() => profile?.bizbudgetBusinessName || 'KM GA LLC - HomeVestors Franchise Management');
@@ -83,8 +83,6 @@ export default function BizBudgetHub({ theme, lastImportDate, userEmail, initial
   };
 
   const MiniSparkline = ({ data, color, height = 40 }) => {
-    // Handle edge cases - need at least 2 data points for a line
-    if (!data || data.length < 2) return null;
     const max = Math.max(...data), min = Math.min(...data), range = max - min || 1, width = 120;
     const points = data.map((v, i) => `${(i / (data.length - 1)) * width},${height - ((v - min) / range) * (height - 8)}`).join(' ');
     return <svg width={width} height={height}><polyline points={points} fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>;
@@ -945,6 +943,115 @@ export default function BizBudgetHub({ theme, lastImportDate, userEmail, initial
                   ))}
                 </tbody>
               </table>
+            </div>
+          )}
+
+          {/* Transaction History Section */}
+          <SectionHeader 
+            title="Transaction History" 
+            icon="📋"
+            badge={`${transactions?.length || 0} records`}
+            gradient="linear-gradient(180deg, #3B82F6, #06B6D4)" 
+            sectionKey="transactionHistory"
+          />
+          {!collapsedSections.transactionHistory && (
+            <div style={{ background: theme.bgCard, borderRadius: '16px', overflow: 'hidden', marginBottom: '32px', border: `1px solid ${theme.borderLight}`, position: 'relative' }}>
+              <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '3px', background: 'linear-gradient(90deg, #3B82F6, #06B6D4)' }} />
+              
+              {/* Filter Bar */}
+              <div style={{ padding: '16px 20px', borderBottom: `1px solid ${theme.borderLight}`, display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ fontSize: '13px', color: theme.textMuted }}>🔍 Filter By</span>
+                  <select style={{ padding: '8px 12px', borderRadius: '8px', border: `1px solid ${theme.borderLight}`, background: theme.bgMain, color: theme.textPrimary, fontSize: '13px' }}>
+                    <option>Date</option>
+                    <option>This Week</option>
+                    <option>This Month</option>
+                    <option>Last 30 Days</option>
+                  </select>
+                  <select style={{ padding: '8px 12px', borderRadius: '8px', border: `1px solid ${theme.borderLight}`, background: theme.bgMain, color: theme.textPrimary, fontSize: '13px' }}>
+                    <option>Type</option>
+                    <option>Income</option>
+                    <option>Expense</option>
+                  </select>
+                  <select style={{ padding: '8px 12px', borderRadius: '8px', border: `1px solid ${theme.borderLight}`, background: theme.bgMain, color: theme.textPrimary, fontSize: '13px' }}>
+                    <option>Category</option>
+                    <option>Property Sales</option>
+                    <option>Contractor</option>
+                    <option>Materials</option>
+                    <option>Marketing</option>
+                  </select>
+                </div>
+                <button style={{ marginLeft: 'auto', padding: '8px 14px', borderRadius: '8px', border: 'none', background: 'transparent', color: theme.danger, fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  🔄 Reset Filter
+                </button>
+              </div>
+
+              {/* Transaction Table */}
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr style={{ background: theme.bgMain }}>
+                    <th style={{ padding: '14px 20px', textAlign: 'left', fontSize: '12px', fontWeight: '600', color: theme.textMuted, textTransform: 'uppercase' }}>
+                      <input type="checkbox" style={{ marginRight: '12px' }} />
+                      Date
+                    </th>
+                    <th style={{ padding: '14px 20px', textAlign: 'left', fontSize: '12px', fontWeight: '600', color: theme.textMuted, textTransform: 'uppercase' }}>Description</th>
+                    <th style={{ padding: '14px 20px', textAlign: 'left', fontSize: '12px', fontWeight: '600', color: theme.textMuted, textTransform: 'uppercase' }}>Category</th>
+                    <th style={{ padding: '14px 20px', textAlign: 'right', fontSize: '12px', fontWeight: '600', color: theme.textMuted, textTransform: 'uppercase' }}>Amount</th>
+                    <th style={{ padding: '14px 20px', textAlign: 'center', fontSize: '12px', fontWeight: '600', color: theme.textMuted, textTransform: 'uppercase' }}>Status</th>
+                    <th style={{ padding: '14px 20px', textAlign: 'center', fontSize: '12px', fontWeight: '600', color: theme.textMuted, textTransform: 'uppercase' }}>Property</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {(transactions && transactions.length > 0 ? transactions.slice(0, 15) : [
+                    { date: '2025-12-06', description: 'Property Sale - 321 Elm St', category: 'Sales', amount: 95000, status: 'Completed', property: 'Roswell' },
+                    { date: '2025-12-05', description: 'Contractor Payment - Plumbing', category: 'Contractor', amount: -4500, status: 'Completed', property: '456 Oak Ave' },
+                    { date: '2025-12-04', description: 'Materials - Flooring', category: 'Materials', amount: -2800, status: 'Completed', property: '456 Oak Ave' },
+                    { date: '2025-12-03', description: 'Earnest Money Deposit', category: 'Acquisition', amount: -2500, status: 'Processing', property: '123 Main St' },
+                    { date: '2025-12-02', description: 'Closing Costs', category: 'Closing', amount: -1800, status: 'Completed', property: '321 Elm St' },
+                    { date: '2025-12-01', description: 'Marketing - Listing Photos', category: 'Marketing', amount: -450, status: 'Completed', property: '789 Pine Rd' },
+                    { date: '2025-11-30', description: 'Insurance Premium', category: 'Insurance', amount: -350, status: 'Completed', property: '456 Oak Ave' },
+                    { date: '2025-11-29', description: 'Utility Bill - Electric', category: 'Utilities', amount: -180, status: 'Completed', property: '321 Elm St' },
+                    { date: '2025-11-28', description: 'HOA Fees', category: 'HOA', amount: -275, status: 'Completed', property: '789 Pine Rd' },
+                    { date: '2025-11-27', description: 'Title Search Fee', category: 'Closing', amount: -400, status: 'Completed', property: '123 Main St' },
+                  ]).map((txn, i) => (
+                    <tr key={i} style={{ borderBottom: `1px solid ${theme.borderLight}` }}>
+                      <td style={{ padding: '14px 20px', fontSize: '14px', color: theme.textSecondary }}>
+                        <input type="checkbox" style={{ marginRight: '12px' }} />
+                        {txn.date}
+                      </td>
+                      <td style={{ padding: '14px 20px', fontSize: '14px', fontWeight: '500', color: theme.textPrimary }}>{txn.description}</td>
+                      <td style={{ padding: '14px 20px', fontSize: '13px', color: theme.textMuted }}>{txn.category}</td>
+                      <td style={{ padding: '14px 20px', fontSize: '14px', fontWeight: '600', textAlign: 'right', color: txn.amount > 0 ? theme.success : theme.danger }}>
+                        {txn.amount > 0 ? '+' : ''}{formatCurrency(Math.abs(txn.amount))}
+                      </td>
+                      <td style={{ padding: '14px 20px', textAlign: 'center' }}>
+                        <span style={{ 
+                          padding: '4px 12px', 
+                          borderRadius: '20px', 
+                          fontSize: '12px',
+                          fontWeight: '500',
+                          background: txn.status === 'Completed' ? 'rgba(16, 185, 129, 0.15)' : 'rgba(59, 130, 246, 0.15)',
+                          color: txn.status === 'Completed' ? '#10B981' : '#3B82F6'
+                        }}>
+                          {txn.status}
+                        </span>
+                      </td>
+                      <td style={{ padding: '14px 20px', textAlign: 'center' }}>
+                        <span style={{ padding: '4px 12px', borderRadius: '20px', background: theme.bgMain, color: theme.textMuted, fontSize: '12px' }}>{txn.property}</span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+
+              {/* Pagination */}
+              <div style={{ padding: '16px 20px', borderTop: `1px solid ${theme.borderLight}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: '13px', color: theme.textMuted }}>Showing 1-10 of {transactions?.length || 10}</span>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button style={{ padding: '8px 14px', borderRadius: '8px', border: `1px solid ${theme.borderLight}`, background: theme.bgMain, color: theme.textSecondary, fontSize: '13px', cursor: 'pointer' }}>Previous</button>
+                  <button style={{ padding: '8px 14px', borderRadius: '8px', border: 'none', background: theme.primary, color: 'white', fontSize: '13px', cursor: 'pointer' }}>Next</button>
+                </div>
+              </div>
             </div>
           )}
         </div>
