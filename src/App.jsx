@@ -5342,6 +5342,9 @@ function Dashboard({
   });
   const [editingAccountLabel, setEditingAccountLabel] = useState(null);
   
+  // Global account filter for HomeBudget Hub tabs (All Accounts, Personal, Side Hustle)
+  const [globalActiveAccount, setGlobalActiveAccount] = useState('all');
+  
   // Update account labels and persist to Supabase
   const updateAccountLabel = async (type, newLabel) => {
     const updated = { ...accountLabels, [type]: newLabel };
@@ -5846,8 +5849,70 @@ function Dashboard({
     return gradientMap[tab] || theme.gradients?.dashboard || theme.bgMain;
   }, [theme]);
 
+  // Account Filter Bar Component - for HomeBudget Hub tabs
+  const AccountFilterBar = ({ showEditLabels = false }) => (
+    <div style={{ 
+      display: 'flex', 
+      alignItems: 'center', 
+      gap: '8px',
+      background: theme.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)',
+      padding: '6px',
+      borderRadius: '12px',
+      marginBottom: '20px',
+      width: 'fit-content'
+    }}>
+      {[
+        { id: 'all', label: 'All Accounts', icon: '📊' },
+        { id: 'personal', label: accountLabels?.personal || 'Personal', icon: '👤' },
+        { id: 'sidehustle', label: accountLabels?.sidehustle || 'Side Hustle', icon: '💼' }
+      ].map(acc => (
+        <div key={acc.id} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+          <button 
+            onClick={() => setGlobalActiveAccount(acc.id)}
+            style={{
+              padding: '10px 16px',
+              borderRadius: '8px',
+              border: 'none',
+              background: globalActiveAccount === acc.id ? theme.primary : 'transparent',
+              color: globalActiveAccount === acc.id ? 'white' : theme.textSecondary,
+              fontSize: '13px',
+              fontWeight: '600',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              transition: 'all 0.2s'
+            }}
+          >
+            <span>{acc.icon}</span>
+            {editingAccountLabel === acc.id && showEditLabels ? (
+              <input
+                autoFocus
+                defaultValue={acc.label}
+                style={{ background: 'transparent', border: 'none', color: 'inherit', fontSize: '13px', fontWeight: '600', width: '80px', outline: 'none' }}
+                onBlur={(e) => updateAccountLabel(acc.id, e.target.value || acc.label)}
+                onKeyDown={(e) => { if (e.key === 'Enter') updateAccountLabel(acc.id, e.target.value || acc.label); }}
+              />
+            ) : (
+              <span>{acc.label}</span>
+            )}
+          </button>
+          {acc.id !== 'all' && globalActiveAccount === acc.id && showEditLabels && (
+            <button
+              onClick={() => setEditingAccountLabel(acc.id)}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '12px', opacity: 0.7, padding: '4px' }}
+              title={`Rename ${acc.label}`}
+            >
+              ✏️
+            </button>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+
   // Gradient wrapper component for content sections
-  const GradientSection = ({ children, tab }) => (
+  const GradientSection = ({ children, tab, showAccountFilter = false }) => (
     <div style={{
       minHeight: 'calc(100vh - 70px)',
       background: getGradientForTab(tab),
@@ -5934,6 +5999,8 @@ function Dashboard({
       )}
       {/* Content with z-index to appear above decorative elements */}
       <div style={{ position: 'relative', zIndex: 1 }}>
+        {/* Account Filter Bar for HomeBudget Hub tabs */}
+        {showAccountFilter && <AccountFilterBar showEditLabels={true} />}
         {children}
       </div>
     </div>
@@ -5961,23 +6028,23 @@ function Dashboard({
         if (profile?.sideHustle === 'realtor') {
           return <GradientSection tab="sales"><RealEstateCommandCenter theme={theme} lastImportDate={lastImportDate} userId={user?.id} userEmail={user?.email} isDarkMode={theme.mode === 'dark'} showDemoData={permissions.showDemoData} /></GradientSection>;
         }
-        return <GradientSection tab="sales"><SalesTrackerTab theme={theme} lastImportDate={lastImportDate} userId={user?.id} userEmail={user?.email} /></GradientSection>;
+        return <GradientSection tab="sales"><SalesTrackerTab user={{...user, sideHustle: profile?.sideHustle}} isDarkMode={theme.mode === 'dark'} /></GradientSection>;
       case 'budget':
-        return <GradientSection tab="budget"><BudgetTab transactions={transactions} onNavigateToImport={() => setActiveTab('import')} theme={theme} lastImportDate={lastImportDate} /></GradientSection>;
+        return <GradientSection tab="budget" showAccountFilter={true}><BudgetTab transactions={transactions} onNavigateToImport={() => setActiveTab('import')} theme={theme} lastImportDate={lastImportDate} activeAccount={globalActiveAccount} /></GradientSection>;
       case 'transactions':
-        return <GradientSection tab="transactions"><TransactionsTabDS transactions={transactions} onNavigateToImport={() => setActiveTab('import')} theme={theme} lastImportDate={lastImportDate} accountLabels={accountLabels} /></GradientSection>;
+        return <GradientSection tab="transactions" showAccountFilter={true}><TransactionsTabDS transactions={transactions} onNavigateToImport={() => setActiveTab('import')} theme={theme} lastImportDate={lastImportDate} accountLabels={accountLabels} activeAccount={globalActiveAccount} /></GradientSection>;
       case 'bills':
-        return <GradientSection tab="bills"><BillsCalendarView theme={theme} lastImportDate={lastImportDate} /></GradientSection>;
+        return <GradientSection tab="bills" showAccountFilter={true}><BillsCalendarView theme={theme} lastImportDate={lastImportDate} activeAccount={globalActiveAccount} /></GradientSection>;
       case 'goals':
-        return <GradientSection tab="goals"><GoalsTimelineWithCelebration goals={goals} onUpdateGoals={onUpdateGoals} theme={theme} lastImportDate={lastImportDate} /></GradientSection>;
+        return <GradientSection tab="goals" showAccountFilter={true}><GoalsTimelineWithCelebration goals={goals} onUpdateGoals={onUpdateGoals} theme={theme} lastImportDate={lastImportDate} activeAccount={globalActiveAccount} /></GradientSection>;
       case 'tasks':
-        return <GradientSection tab="tasks"><TasksTab tasks={tasks || []} onUpdateTasks={onUpdateTasks} theme={theme} lastImportDate={lastImportDate} accountLabels={accountLabels} /></GradientSection>;
+        return <GradientSection tab="tasks" showAccountFilter={true}><TasksTab tasks={tasks || []} onUpdateTasks={onUpdateTasks} theme={theme} lastImportDate={lastImportDate} accountLabels={accountLabels} activeAccount={globalActiveAccount} /></GradientSection>;
       case 'retirement':
         // Only pass default retirement data to the owner account - others see empty state
         const retirementData = user?.email === 'kennedymichael54@gmail.com' ? DEFAULT_RETIREMENT_DATA : null;
-        return <GradientSection tab="retirement"><RetirementTab theme={theme} lastImportDate={lastImportDate} retirementData={retirementData} /></GradientSection>;
+        return <GradientSection tab="retirement" showAccountFilter={true}><RetirementTab theme={theme} lastImportDate={lastImportDate} retirementData={retirementData} activeAccount={globalActiveAccount} /></GradientSection>;
       case 'reports':
-        return <GradientSection tab="reports"><ReportsTab transactions={transactions} onNavigateToImport={() => setActiveTab('import')} theme={theme} lastImportDate={lastImportDate} /></GradientSection>;
+        return <GradientSection tab="reports" showAccountFilter={true}><ReportsTab transactions={transactions} onNavigateToImport={() => setActiveTab('import')} theme={theme} lastImportDate={lastImportDate} activeAccount={globalActiveAccount} /></GradientSection>;
       // BizBudget Hub tabs - accessible only to authorized users
       case 'bizbudget-dashboard':
       case 'bizbudget-pipeline':
