@@ -1525,17 +1525,23 @@ const Icons = {
   // Hub Icons
   HomeBudgetHub: () => (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
+      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+      <polyline points="9 22 9 12 15 12 15 22"/>
     </svg>
   ),
   BizBudgetHub: () => (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+      <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
+      <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
     </svg>
   ),
   REBudgetHub: () => (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/>
+      <rect x="4" y="2" width="16" height="20" rx="2" ry="2"/>
+      <path d="M9 22v-4h6v4"/>
+      <path d="M8 6h.01"/><path d="M16 6h.01"/>
+      <path d="M8 10h.01"/><path d="M16 10h.01"/>
+      <path d="M8 14h.01"/><path d="M16 14h.01"/>
     </svg>
   ),
   Crown: () => (
@@ -5296,7 +5302,36 @@ function Dashboard({
   // Responsive hook - detect device and screen size
   const screen = useResponsive();
   
-  const [activeTab, setActiveTab] = useState('newsfeed');
+  // Initialize activeTab from localStorage to persist across refresh
+  const [activeTab, setActiveTab] = useState(() => {
+    try {
+      // First try the lastUserId (faster)
+      const lastUserId = localStorage.getItem('pn_lastUserId');
+      if (lastUserId) {
+        const savedTab = localStorage.getItem(`pn_activeTab_${lastUserId}`);
+        if (savedTab) {
+          console.log('🔄 [Tab] Restoring from localStorage on mount:', savedTab);
+          return savedTab;
+        }
+      }
+      // Fallback: try to get user ID from Supabase session
+      const sessionStr = localStorage.getItem('sb-olcwfnbvtmxqmzbttnwi-auth-token');
+      if (sessionStr) {
+        const session = JSON.parse(sessionStr);
+        const userId = session?.user?.id;
+        if (userId) {
+          const savedTab = localStorage.getItem(`pn_activeTab_${userId}`);
+          if (savedTab) {
+            console.log('🔄 [Tab] Restoring from session on mount:', savedTab);
+            return savedTab;
+          }
+        }
+      }
+    } catch (e) {
+      console.log('Could not restore tab from localStorage');
+    }
+    return 'newsfeed';
+  });
   const [previousTab, setPreviousTab] = useState('home');
   const [tabRestored, setTabRestored] = useState(false); // Track if we've restored the tab
   const [showProfileMenu, setShowProfileMenu] = useState(false);
@@ -5327,7 +5362,38 @@ function Dashboard({
   const [subscription, setSubscription] = useState(null);
   const [subscriptionLoading, setSubscriptionLoading] = useState(true);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
-  const [expandedHubs, setExpandedHubs] = useState({}); // All hubs collapsed by default
+  // Initialize expandedHubs based on saved tab
+  const [expandedHubs, setExpandedHubs] = useState(() => {
+    try {
+      // First try the lastUserId (faster)
+      const lastUserId = localStorage.getItem('pn_lastUserId');
+      if (lastUserId) {
+        const savedTab = localStorage.getItem(`pn_activeTab_${lastUserId}`);
+        if (savedTab) {
+          if (savedTab.startsWith('bizbudget-')) return { bizbudget: true };
+          if (savedTab.startsWith('rebudget-')) return { rebudget: true };
+          if (savedTab === 'import' || savedTab === 'plaid') return { dataimport: true };
+          if (['home', 'transactions', 'budget', 'bills', 'goals', 'tasks', 'retirement', 'reports', 'sales'].includes(savedTab)) return { homebudget: true };
+        }
+      }
+      // Fallback: try Supabase session
+      const sessionStr = localStorage.getItem('sb-olcwfnbvtmxqmzbttnwi-auth-token');
+      if (sessionStr) {
+        const session = JSON.parse(sessionStr);
+        const userId = session?.user?.id;
+        if (userId) {
+          const savedTab = localStorage.getItem(`pn_activeTab_${userId}`);
+          if (savedTab) {
+            if (savedTab.startsWith('bizbudget-')) return { bizbudget: true };
+            if (savedTab.startsWith('rebudget-')) return { rebudget: true };
+            if (savedTab === 'import' || savedTab === 'plaid') return { dataimport: true };
+            if (['home', 'transactions', 'budget', 'bills', 'goals', 'tasks', 'retirement', 'reports', 'sales'].includes(savedTab)) return { homebudget: true };
+          }
+        }
+      }
+    } catch (e) {}
+    return {};
+  });
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => screen.isMobile || screen.isTablet); // Auto-collapse on mobile/tablet
   const [trialBannerCollapsed, setTrialBannerCollapsed] = useState(false); // Trial banner collapse
   
@@ -5406,6 +5472,7 @@ function Dashboard({
   useEffect(() => {
     if (user?.id && activeTab) {
       localStorage.setItem(`pn_activeTab_${user.id}`, activeTab);
+      localStorage.setItem('pn_lastUserId', user.id); // Save for quick restore on refresh
       console.log('💾 [Tab] Saved active tab:', activeTab);
     }
   }, [activeTab, user?.id]);
