@@ -83,6 +83,8 @@ export default function BizBudgetHub({ theme, lastImportDate, userEmail, initial
   };
 
   const MiniSparkline = ({ data, color, height = 40 }) => {
+    // Handle edge cases - need at least 2 data points for a line
+    if (!data || data.length < 2) return null;
     const max = Math.max(...data), min = Math.min(...data), range = max - min || 1, width = 120;
     const points = data.map((v, i) => `${(i / (data.length - 1)) * width},${height - ((v - min) / range) * (height - 8)}`).join(' ');
     return <svg width={width} height={height}><polyline points={points} fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>;
