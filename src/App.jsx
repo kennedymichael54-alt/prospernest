@@ -2730,11 +2730,11 @@ const savePreferencesToDB = async (userId, preferences) => {
   console.log('💾 [DB] Saving preferences...');
   
   try {
+    // Only include columns that exist in the database schema
     const { error } = await sb.from('user_settings').upsert({
       user_id: userId,
       theme: preferences.theme || 'light',
       language: preferences.language || 'en',
-      avatar: preferences.avatar || '👨‍💼',
       last_import_date: preferences.lastImportDate || null,
       updated_at: new Date().toISOString()
     }, { onConflict: 'user_id' });
@@ -2769,6 +2769,7 @@ const saveTransactionsToDB = async (userId, transactions) => {
     // Delete existing transactions
     await sb.from('transactions').delete().eq('user_id', userId);
     
+    // Only include columns that exist in the database schema
     const toInsert = transactions.map(t => ({
       user_id: userId,
       date: t.date,
@@ -2777,10 +2778,7 @@ const saveTransactionsToDB = async (userId, transactions) => {
       category: t.category,
       amount: t.amount,
       status: t.status,
-      account_type: t.accountType || 'personal',
-      hub_type: t.hubType || 'homebudget',
-      file_type: t.fileType || null,
-      source: t.source || 'manual'
+      account_type: t.accountType || 'personal'
     }));
     
     // Batch insert in chunks of 500 to avoid Supabase limits
@@ -2954,10 +2952,7 @@ const dbToAppTransaction = (t) => ({
   category: t.category,
   amount: parseFloat(t.amount),
   status: t.status,
-  accountType: t.account_type || 'personal',
-  hubType: t.hub_type || 'homebudget',
-  fileType: t.file_type || null,
-  source: t.source || 'import'
+  accountType: t.account_type || 'personal'
 });
 
 // Convert DB bill to app format
