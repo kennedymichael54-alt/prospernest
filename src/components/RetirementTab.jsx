@@ -82,13 +82,56 @@ export default function RetirementTab({ theme: propTheme, retirementData, lastIm
   const [activeView, setActiveView] = useState('overview');
   const [selectedOwner, setSelectedOwner] = useState('all');
   
+  // Contribution Schedule state
+  const [contributions, setContributions] = useState(() => {
+    const saved = localStorage.getItem('pn_contributions');
+    return saved ? JSON.parse(saved) : [];
+  });
+  const [showAddContribution, setShowAddContribution] = useState(false);
+  const [newContribution, setNewContribution] = useState({ name: '', type: '401k', amount: '', frequency: 'monthly', deductDay: 1, autoDeduct: true });
+  
+  const saveContribution = () => {
+    if (!newContribution.name || !newContribution.amount) return;
+    const updated = [...contributions, { ...newContribution, id: Date.now(), amount: parseFloat(newContribution.amount) }];
+    setContributions(updated);
+    localStorage.setItem('pn_contributions', JSON.stringify(updated));
+    setNewContribution({ name: '', type: '401k', amount: '', frequency: 'monthly', deductDay: 1, autoDeduct: true });
+    setShowAddContribution(false);
+  };
+  
+  const deleteContribution = (id) => {
+    const updated = contributions.filter(c => c.id !== id);
+    setContributions(updated);
+    localStorage.setItem('pn_contributions', JSON.stringify(updated));
+  };
+  
+  const totalMonthlyContributions = contributions.reduce((sum, c) => {
+    if (c.frequency === 'monthly') return sum + c.amount;
+    if (c.frequency === 'biweekly') return sum + (c.amount * 26 / 12);
+    if (c.frequency === 'weekly') return sum + (c.amount * 52 / 12);
+    return sum;
+  }, 0);
+  
   // Collapsible sections state
   const [collapsedSections, setCollapsedSections] = useState({
     portfolioGrowth: false,
     allocation: false,
     accounts: false,
-    monthlyProgress: false
+    monthlyProgress: false,
+    contributions: false
   });
+  
+  const ALL_SECTIONS = ['portfolioGrowth', 'allocation', 'accounts', 'monthlyProgress', 'contributions'];
+  const collapseAll = () => {
+    const collapsed = {};
+    ALL_SECTIONS.forEach(s => collapsed[s] = true);
+    setCollapsedSections(collapsed);
+  };
+  const expandAll = () => {
+    const expanded = {};
+    ALL_SECTIONS.forEach(s => expanded[s] = false);
+    setCollapsedSections(expanded);
+  };
   
   const toggleSection = (section) => {
     setCollapsedSections(prev => ({ ...prev, [section]: !prev[section] }));
@@ -966,6 +1009,154 @@ export default function RetirementTab({ theme: propTheme, retirementData, lastIm
             </table>
           </div>
           )}
+
+          {/* ═══════════════════════════════════════════════════════════════════ */}
+          {/* 📅 CONTRIBUTION SCHEDULE */}
+          {/* ═══════════════════════════════════════════════════════════════════ */}
+          <div style={{ 
+            background: theme.bgCard, 
+            borderRadius: '16px', 
+            marginTop: '24px',
+            boxShadow: theme.cardShadow,
+            border: `1px solid ${theme.borderLight}`,
+            overflow: 'hidden'
+          }}>
+            <button
+              onClick={() => toggleSection('contributions')}
+              style={{
+                width: '100%',
+                padding: '20px 24px',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                background: 'transparent',
+                border: 'none',
+                cursor: 'pointer',
+                borderBottom: collapsedSections.contributions ? 'none' : `1px solid ${theme.borderLight}`
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <span style={{ fontSize: '20px' }}>📅</span>
+                <h3 style={{ fontSize: '16px', fontWeight: '600', color: theme.textPrimary, margin: 0 }}>Contribution Schedule</h3>
+                <span style={{ fontSize: '12px', color: theme.textMuted, background: `${theme.success}15`, padding: '4px 10px', borderRadius: '12px' }}>
+                  {contributions.length} active
+                </span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <span style={{ fontSize: '14px', fontWeight: '600', color: theme.success }}>{formatCurrency(totalMonthlyContributions)}/mo</span>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={theme.textMuted} strokeWidth="2" style={{ transform: collapsedSections.contributions ? 'rotate(-90deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}>
+                  <path d="M6 9l6 6 6-6"/>
+                </svg>
+              </div>
+            </button>
+            
+            {!collapsedSections.contributions && (
+              <div style={{ padding: '20px 24px' }}>
+                {/* Contributions List */}
+                {contributions.length > 0 ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '16px' }}>
+                    {contributions.map(contrib => (
+                      <div key={contrib.id} style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        padding: '16px 20px',
+                        background: theme.bgMain,
+                        borderRadius: '12px',
+                        border: `1px solid ${theme.borderLight}`
+                      }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                          <div style={{
+                            width: '44px',
+                            height: '44px',
+                            borderRadius: '12px',
+                            background: contrib.type === '401k' ? '#8B5CF620' : contrib.type === 'ira' ? '#3B82F620' : contrib.type === 'roth' ? '#10B98120' : '#F59E0B20',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '20px'
+                          }}>
+                            {contrib.type === '401k' ? '🏦' : contrib.type === 'ira' ? '📊' : contrib.type === 'roth' ? '💰' : '🛡️'}
+                          </div>
+                          <div>
+                            <div style={{ fontWeight: '600', color: theme.textPrimary }}>{contrib.name}</div>
+                            <div style={{ fontSize: '12px', color: theme.textMuted }}>
+                              {contrib.type.toUpperCase()} • {contrib.frequency} • Day {contrib.deductDay}
+                              {contrib.autoDeduct && <span style={{ marginLeft: '8px', color: theme.success }}>✓ Auto-deduct</span>}
+                            </div>
+                          </div>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                          <div style={{ textAlign: 'right' }}>
+                            <div style={{ fontSize: '18px', fontWeight: '700', color: theme.success }}>{formatCurrency(contrib.amount)}</div>
+                            <div style={{ fontSize: '11px', color: theme.textMuted }}>per {contrib.frequency === 'biweekly' ? '2 weeks' : contrib.frequency}</div>
+                          </div>
+                          <button onClick={() => deleteContribution(contrib.id)} style={{ background: '#EF444420', border: 'none', borderRadius: '8px', padding: '8px 12px', cursor: 'pointer', color: '#EF4444', fontSize: '12px' }}>Remove</button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div style={{ textAlign: 'center', padding: '40px', color: theme.textMuted }}>
+                    <div style={{ fontSize: '40px', marginBottom: '12px' }}>📅</div>
+                    <div style={{ fontWeight: '500', marginBottom: '4px' }}>No contributions scheduled</div>
+                    <div style={{ fontSize: '13px' }}>Add your 401k, IRA, Roth, or insurance contributions</div>
+                  </div>
+                )}
+
+                {/* Add Contribution Form */}
+                {showAddContribution ? (
+                  <div style={{ padding: '20px', background: theme.bgMain, borderRadius: '12px', border: `1px solid ${theme.borderLight}` }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '16px' }}>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '12px', color: theme.textMuted, marginBottom: '6px' }}>Name *</label>
+                        <input type="text" value={newContribution.name} onChange={(e) => setNewContribution({...newContribution, name: e.target.value})} placeholder="e.g., Ameriprise 401k" style={{ width: '100%', padding: '10px 12px', background: theme.bgCard, border: `1px solid ${theme.borderLight}`, borderRadius: '8px', color: theme.textPrimary, fontSize: '14px' }} />
+                      </div>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '12px', color: theme.textMuted, marginBottom: '6px' }}>Type</label>
+                        <select value={newContribution.type} onChange={(e) => setNewContribution({...newContribution, type: e.target.value})} style={{ width: '100%', padding: '10px 12px', background: theme.bgCard, border: `1px solid ${theme.borderLight}`, borderRadius: '8px', color: theme.textPrimary, fontSize: '14px' }}>
+                          <option value="401k">🏦 401(k)</option>
+                          <option value="ira">📊 Traditional IRA</option>
+                          <option value="roth">💰 Roth IRA</option>
+                          <option value="insurance">🛡️ Life Insurance</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '12px', color: theme.textMuted, marginBottom: '6px' }}>Amount *</label>
+                        <input type="number" value={newContribution.amount} onChange={(e) => setNewContribution({...newContribution, amount: e.target.value})} placeholder="0.00" style={{ width: '100%', padding: '10px 12px', background: theme.bgCard, border: `1px solid ${theme.borderLight}`, borderRadius: '8px', color: theme.textPrimary, fontSize: '14px' }} />
+                      </div>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '12px', color: theme.textMuted, marginBottom: '6px' }}>Frequency</label>
+                        <select value={newContribution.frequency} onChange={(e) => setNewContribution({...newContribution, frequency: e.target.value})} style={{ width: '100%', padding: '10px 12px', background: theme.bgCard, border: `1px solid ${theme.borderLight}`, borderRadius: '8px', color: theme.textPrimary, fontSize: '14px' }}>
+                          <option value="monthly">Monthly</option>
+                          <option value="biweekly">Bi-weekly</option>
+                          <option value="weekly">Weekly</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '12px', color: theme.textMuted, marginBottom: '6px' }}>Deduct Day</label>
+                        <input type="number" min="1" max="31" value={newContribution.deductDay} onChange={(e) => setNewContribution({...newContribution, deductDay: parseInt(e.target.value) || 1})} style={{ width: '100%', padding: '10px 12px', background: theme.bgCard, border: `1px solid ${theme.borderLight}`, borderRadius: '8px', color: theme.textPrimary, fontSize: '14px' }} />
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'flex-end' }}>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                          <input type="checkbox" checked={newContribution.autoDeduct} onChange={(e) => setNewContribution({...newContribution, autoDeduct: e.target.checked})} />
+                          <span style={{ fontSize: '13px', color: theme.textSecondary }}>Auto-deduct from paycheck</span>
+                        </label>
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+                      <button onClick={() => setShowAddContribution(false)} style={{ padding: '10px 20px', background: 'transparent', border: `1px solid ${theme.borderLight}`, borderRadius: '8px', color: theme.textMuted, cursor: 'pointer' }}>Cancel</button>
+                      <button onClick={saveContribution} style={{ padding: '10px 20px', background: theme.primary, border: 'none', borderRadius: '8px', color: 'white', cursor: 'pointer', fontWeight: '500' }}>Save Contribution</button>
+                    </div>
+                  </div>
+                ) : (
+                  <button onClick={() => setShowAddContribution(true)} style={{ width: '100%', padding: '14px', background: `${theme.success}15`, border: `1px dashed ${theme.success}50`, borderRadius: '10px', color: theme.success, fontSize: '14px', fontWeight: '500', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                    <span style={{ fontSize: '18px' }}>+</span> Add Contribution
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
         </>
       )}
     </div>
