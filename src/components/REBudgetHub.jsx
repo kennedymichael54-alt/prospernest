@@ -1159,7 +1159,7 @@ const REBudgetHub = ({ theme: themeProp = {}, profile, initialTab = 'analyzer' }
                   stroke="#8B5CF6"
                   strokeWidth="2"
                   points={calculations.projections.slice(0, chartFilter.yearRange).map((proj, i) => {
-                    const x = (i / (chartFilter.yearRange - 1)) * 100;
+                    const x = (i / Math.max(chartFilter.yearRange - 1, 1)) * 100;
                     const y = 100 - ((proj.annualizedROI * 100 + 10) / 40 * 100);
                     return `${x}%,${Math.max(0, Math.min(100, y))}%`;
                   }).join(' ')}
@@ -1170,7 +1170,7 @@ const REBudgetHub = ({ theme: themeProp = {}, profile, initialTab = 'analyzer' }
                   stroke="#10B981"
                   strokeWidth="2"
                   points={calculations.projections.slice(0, chartFilter.yearRange).map((proj, i) => {
-                    const x = (i / (chartFilter.yearRange - 1)) * 100;
+                    const x = (i / Math.max(chartFilter.yearRange - 1, 1)) * 100;
                     const compoundROI = proj.roi;
                     const y = 100 - ((compoundROI + 10) / 40 * 100);
                     return `${x}%,${Math.max(0, Math.min(100, y))}%`;
@@ -1222,7 +1222,7 @@ const REBudgetHub = ({ theme: themeProp = {}, profile, initialTab = 'analyzer' }
                   stroke="#10B981"
                   strokeWidth="2"
                   points={`0,100% ${calculations.projections.slice(0, chartFilter.yearRange).map((proj, i) => {
-                    const x = (i / (chartFilter.yearRange - 1)) * 100;
+                    const x = (i / Math.max(chartFilter.yearRange - 1, 1)) * 100;
                     const maxEquity = calculations.projections[chartFilter.yearRange - 1]?.equity || 1;
                     const y = 100 - (proj.equity / maxEquity * 100);
                     return `${x}%,${Math.max(0, y)}%`;
@@ -1236,7 +1236,7 @@ const REBudgetHub = ({ theme: themeProp = {}, profile, initialTab = 'analyzer' }
                   strokeWidth="2"
                   strokeDasharray="5,5"
                   points={calculations.projections.slice(0, chartFilter.yearRange).map((proj, i) => {
-                    const x = (i / (chartFilter.yearRange - 1)) * 100;
+                    const x = (i / Math.max(chartFilter.yearRange - 1, 1)) * 100;
                     const maxEquity = calculations.projections[chartFilter.yearRange - 1]?.equity || 1;
                     const y = 100 - (proj.cashOutRefiEquity / maxEquity * 100);
                     return `${x}%,${Math.max(0, y)}%`;
