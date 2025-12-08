@@ -6032,17 +6032,17 @@ function Dashboard({
       case 'budget':
         return <GradientSection tab="budget" showAccountFilter={true}><BudgetTab transactions={transactions} onNavigateToImport={() => setActiveTab('import')} theme={theme} lastImportDate={lastImportDate} activeAccount={globalActiveAccount} /></GradientSection>;
       case 'transactions':
-        return <GradientSection tab="transactions" showAccountFilter={true}><TransactionsTabDS transactions={transactions} onNavigateToImport={() => setActiveTab('import')} theme={theme} lastImportDate={lastImportDate} accountLabels={accountLabels} activeAccount={globalActiveAccount} /></GradientSection>;
+        return <GradientSection tab="transactions"><TransactionsTabDS transactions={transactions} onNavigateToImport={() => setActiveTab('import')} theme={theme} lastImportDate={lastImportDate} accountLabels={accountLabels} activeAccount={globalActiveAccount} /></GradientSection>;
       case 'bills':
         return <GradientSection tab="bills" showAccountFilter={true}><BillsCalendarView theme={theme} lastImportDate={lastImportDate} activeAccount={globalActiveAccount} /></GradientSection>;
       case 'goals':
         return <GradientSection tab="goals" showAccountFilter={true}><GoalsTimelineWithCelebration goals={goals} onUpdateGoals={onUpdateGoals} theme={theme} lastImportDate={lastImportDate} activeAccount={globalActiveAccount} /></GradientSection>;
       case 'tasks':
-        return <GradientSection tab="tasks" showAccountFilter={true}><TasksTab tasks={tasks || []} onUpdateTasks={onUpdateTasks} theme={theme} lastImportDate={lastImportDate} accountLabels={accountLabels} activeAccount={globalActiveAccount} /></GradientSection>;
+        return <GradientSection tab="tasks"><TasksTab tasks={tasks || []} onUpdateTasks={onUpdateTasks} theme={theme} lastImportDate={lastImportDate} accountLabels={accountLabels} activeAccount={globalActiveAccount} /></GradientSection>;
       case 'retirement':
         // Only pass default retirement data to the owner account - others see empty state
         const retirementData = user?.email === 'kennedymichael54@gmail.com' ? DEFAULT_RETIREMENT_DATA : null;
-        return <GradientSection tab="retirement" showAccountFilter={true}><RetirementTab theme={theme} lastImportDate={lastImportDate} retirementData={retirementData} activeAccount={globalActiveAccount} /></GradientSection>;
+        return <GradientSection tab="retirement"><RetirementTab theme={theme} lastImportDate={lastImportDate} retirementData={retirementData} /></GradientSection>;
       case 'reports':
         return <GradientSection tab="reports" showAccountFilter={true}><ReportsTab transactions={transactions} onNavigateToImport={() => setActiveTab('import')} theme={theme} lastImportDate={lastImportDate} activeAccount={globalActiveAccount} /></GradientSection>;
       // BizBudget Hub tabs - accessible only to authorized users
@@ -6062,7 +6062,7 @@ function Dashboard({
         }
         // Show RE Command Center for real_estate_franchise, General Business Dashboard for all others
         if (profile?.businessType === 'real_estate_franchise') {
-          return <GradientSection tab="bizbudget"><BizBudgetHub theme={theme} lastImportDate={lastImportDate} userEmail={user?.email} initialTab={activeTab.replace('bizbudget-', '')} profile={profile} onUpdateProfile={saveProfileToDB} /></GradientSection>;
+          return <GradientSection tab="bizbudget"><BizBudgetHub theme={theme} lastImportDate={lastImportDate} userEmail={user?.email} initialTab={activeTab.replace('bizbudget-', '')} profile={profile} onUpdateProfile={saveProfileToDB} transactions={transactions} /></GradientSection>;
         }
         return <GradientSection tab="bizbudget"><GeneralBusinessDashboard theme={theme} profile={profile} lastImportDate={lastImportDate} initialTab={activeTab.replace('bizbudget-', '')} /></GradientSection>;
       
@@ -10508,47 +10508,6 @@ function NewsfeedHome({ theme, user, profile, subscription, subscriptionAccess, 
             Expand All
           </button>
         </div>
-        
-        <button
-          onClick={() => {
-            if (isEditLayoutMode) {
-              saveLayout();
-            } else {
-              setIsEditLayoutMode(true);
-            }
-          }}
-          style={{
-            padding: '8px 16px',
-            borderRadius: '8px',
-            background: isEditLayoutMode ? 'linear-gradient(135deg, #10B981, #34D399)' : theme.bgMain,
-            border: isEditLayoutMode ? 'none' : `1px solid ${theme.borderLight}`,
-            color: isEditLayoutMode ? 'white' : theme.textSecondary,
-            fontSize: '13px',
-            fontWeight: '600',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-            transition: 'all 0.2s'
-          }}
-        >
-          {isEditLayoutMode ? (
-            <>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <polyline points="20 6 9 17 4 12"/>
-              </svg>
-              Save Layout
-            </>
-          ) : (
-            <>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-              </svg>
-              Edit Layout
-            </>
-          )}
-        </button>
       </div>
       
       {/* Edit Layout Mode Panel */}
@@ -12370,34 +12329,6 @@ function DashboardHome({ transactions, goals, bills = [], tasks = [], theme, las
           </div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          {/* Edit Layout Button */}
-          <button
-            onClick={() => setIsEditMode(!isEditMode)}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '10px 16px',
-              border: isEditMode ? 'none' : `1px solid ${theme.borderLight}`,
-              borderRadius: '10px',
-              background: isEditMode ? theme.primary : theme.bgCard,
-              color: isEditMode ? 'white' : theme.textSecondary,
-              fontSize: '13px',
-              fontWeight: '600',
-              cursor: 'pointer',
-              boxShadow: theme.cardShadow,
-              transition: 'all 0.2s'
-            }}
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-              <rect x="3" y="3" width="7" height="7" />
-              <rect x="14" y="3" width="7" height="7" />
-              <rect x="14" y="14" width="7" height="7" />
-              <rect x="3" y="14" width="7" height="7" />
-            </svg>
-            {isEditMode ? 'Done' : 'Edit Layout'}
-          </button>
-          
           <div className="account-toggle" style={{ display: 'flex', gap: '8px', background: theme.bgCard, padding: '4px', borderRadius: '12px', boxShadow: theme.cardShadow }}>
             {[{ id: 'all', label: 'All Accounts', icon: '📊' }, { id: 'personal', label: accountLabels?.personal || 'Personal', icon: '👤' }, { id: 'sidehustle', label: accountLabels?.sidehustle || 'Side Hustle', icon: '💼' }].map(acc => (
               <div key={acc.id} style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
