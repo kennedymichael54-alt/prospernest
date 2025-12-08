@@ -2724,24 +2724,9 @@ const saveTasksToDB = async (userId, tasks) => {
 
 // Save user preferences to Supabase
 const savePreferencesToDB = async (userId, preferences) => {
-  const sb = await initSupabase();
-  if (!sb) return;
-  
-  console.log('💾 [DB] Saving preferences...');
-  
-  try {
-    // Only include columns that exist in the database schema
-    const { error } = await sb.from('user_settings').upsert({
-      user_id: userId,
-      theme: preferences.theme || 'light',
-      updated_at: new Date().toISOString()
-    }, { onConflict: 'user_id' });
-    
-    if (error) throw error;
-    console.log('✅ [DB] Preferences saved');
-  } catch (e) {
-    console.error('❌ [DB] Save preferences error:', e);
-  }
+  // Disabled - user_settings table schema doesn't match expected columns
+  // The user's theme is saved in localStorage which works fine
+  console.log('ℹ️ [DB] Preferences save skipped (using localStorage)');
 };
 
 // Convert DB task to app format
@@ -3421,7 +3406,11 @@ function App() {
       // Load transactions, bills, goals
       if (dbData.transactions?.length) {
         console.log(`📥 [Data] Loading ${dbData.transactions.length} transactions from Supabase`);
-        setTransactions(dbData.transactions.map(dbToAppTransaction));
+        console.log('📊 [Debug] Sample raw transaction from DB:', dbData.transactions[0]);
+        const mapped = dbData.transactions.map(dbToAppTransaction);
+        console.log('📊 [Debug] Sample mapped transaction:', mapped[0]);
+        console.log('📊 [Debug] First 5 amounts:', mapped.slice(0, 5).map(t => t.amount));
+        setTransactions(mapped);
       }
       if (dbData.bills?.length) {
         console.log(`📥 [Data] Loading ${dbData.bills.length} bills from Supabase`);
@@ -12067,6 +12056,27 @@ function DashboardHome({ transactions, goals, bills = [], tasks = [], theme, las
   // Bulk selection for transactions
   const [selectedTxns, setSelectedTxns] = useState([]);
   
+  // Account balances state (editable until Plaid integration)
+  const [accountBalances, setAccountBalances] = useState(() => {
+    const saved = localStorage.getItem('pn_accountBalances');
+    return saved ? JSON.parse(saved) : {
+      usaaChecking: 0,
+      usaaSavings: 0,
+      navyFedChecking: 0,
+      navyFedSavings: 0,
+      helocAvailable: 0,
+      crypto: 0
+    };
+  });
+  
+  const updateAccountBalance = (key, value) => {
+    const newBalances = { ...accountBalances, [key]: parseFloat(value) || 0 };
+    setAccountBalances(newBalances);
+    localStorage.setItem('pn_accountBalances', JSON.stringify(newBalances));
+  };
+  
+  const totalLiquidAssets = Object.values(accountBalances).reduce((sum, val) => sum + val, 0);
+  
   // Collapsible sections
   const [collapsedSections, setCollapsedSections] = useState({
     healthScore: false,
@@ -12112,6 +12122,15 @@ function DashboardHome({ transactions, goals, bills = [], tasks = [], theme, las
   };
 
   const allTotals = calcTotals(transactions);
+  
+  // Debug logging
+  if (transactions.length > 0 && allTotals.income === 0 && allTotals.expenses === 0) {
+    console.log('⚠️ [Debug] Transactions exist but totals are $0!');
+    console.log('📊 [Debug] Sample transaction:', transactions[0]);
+    console.log('📊 [Debug] Amount type:', typeof transactions[0]?.amount);
+    console.log('📊 [Debug] First 5 amounts:', transactions.slice(0, 5).map(t => ({ amount: t.amount, parsed: parseFloat(t.amount) })));
+  }
+  
   const personalTotals = calcTotals(personalTransactions);
   const sideHustleTotals = calcTotals(sideHustleTransactions);
   const activeTotals = calcTotals(activeTransactions);
@@ -12825,6 +12844,168 @@ function DashboardHome({ transactions, goals, bills = [], tasks = [], theme, las
             </div>
             <Sparkline data={monthlyData.map(m => activeTransactions.filter(t => t.date?.startsWith(`${currentYear}-${String(monthlyData.indexOf(m) + 1).padStart(2, '0')}`)).length || 1)} color="#9C27B0" width={70} height={40} />
           </div>
+        </div>
+      </div>
+
+      {/* ═══════════════════════════════════════════════════════════════════ */}
+      {/* 📈 PROJECTED INCOME (15/30/45/60 Days) */}
+      {/* ═══════════════════════════════════════════════════════════════════ */}
+      <div style={{ marginBottom: '24px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
+          <span style={{ fontSize: '18px' }}>📈</span>
+          <h3 style={{ fontSize: '16px', fontWeight: '600', color: theme.textPrimary, margin: 0 }}>Projected Income</h3>
+          <span style={{ fontSize: '12px', color: theme.textMuted, background: theme.bgCard, padding: '4px 10px', borderRadius: '12px' }}>Based on recurring income + pipeline</span>
+        </div>
+        <div className="stat-grid-4" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }}>
+          {[15, 30, 45, 60].map(days => {
+            // Calculate recurring income (extrapolate from monthly average)
+            const monthlyIncome = activeTotals.income / Math.max(1, new Date().getMonth() + 1);
+            const dailyIncome = monthlyIncome / 30;
+            const projectedRecurring = dailyIncome * days;
+            // TODO: Add pipeline commissions from SalesTracker
+            const pipelineCommissions = 0;
+            const totalProjected = projectedRecurring + pipelineCommissions;
+            
+            return (
+              <div key={days} style={{
+                background: theme.bgCard,
+                borderRadius: '16px',
+                padding: '20px',
+                border: `1px solid ${theme.borderLight}`,
+                boxShadow: theme.cardShadow
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                  <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#10B98120', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <span style={{ fontSize: '16px' }}>💵</span>
+                  </div>
+                  <span style={{ fontSize: '13px', color: theme.textMuted, fontWeight: '500' }}>Next {days} Days</span>
+                </div>
+                <div style={{ fontSize: '24px', fontWeight: '700', color: '#10B981' }}>
+                  {formatCurrency(totalProjected)}
+                </div>
+                <div style={{ fontSize: '11px', color: theme.textMuted, marginTop: '6px' }}>
+                  Recurring: {formatCurrency(projectedRecurring)}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* ═══════════════════════════════════════════════════════════════════ */}
+      {/* 💰 PROJECTED CASH BALANCE (15/30/45/60 Days) */}
+      {/* ═══════════════════════════════════════════════════════════════════ */}
+      <div style={{ marginBottom: '24px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
+          <span style={{ fontSize: '18px' }}>💰</span>
+          <h3 style={{ fontSize: '16px', fontWeight: '600', color: theme.textPrimary, margin: 0 }}>Projected Cash Balance</h3>
+          <span style={{ fontSize: '12px', color: theme.textMuted, background: theme.bgCard, padding: '4px 10px', borderRadius: '12px' }}>Assets + Income - Expenses - Bills</span>
+        </div>
+        <div className="stat-grid-4" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }}>
+          {[15, 30, 45, 60].map(days => {
+            // Current liquid assets
+            const currentAssets = totalLiquidAssets;
+            // Projected income
+            const monthlyIncome = activeTotals.income / Math.max(1, new Date().getMonth() + 1);
+            const projectedIncome = (monthlyIncome / 30) * days;
+            // Projected expenses (average daily spending)
+            const monthlyExpenses = activeTotals.expenses / Math.max(1, new Date().getMonth() + 1);
+            const projectedExpenses = (monthlyExpenses / 30) * days;
+            // Bills due (estimate monthly bills prorated)
+            const monthlyBills = bills.reduce((sum, b) => sum + (parseFloat(b.amount) || 0), 0);
+            const projectedBills = (monthlyBills / 30) * days;
+            // Final projection
+            const projectedBalance = currentAssets + projectedIncome - projectedExpenses - projectedBills;
+            const isPositive = projectedBalance >= 0;
+            
+            return (
+              <div key={days} style={{
+                background: theme.bgCard,
+                borderRadius: '16px',
+                padding: '20px',
+                border: `1px solid ${theme.borderLight}`,
+                boxShadow: theme.cardShadow
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                  <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: isPositive ? '#3B82F620' : '#EF444420', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <span style={{ fontSize: '16px' }}>{isPositive ? '📊' : '⚠️'}</span>
+                  </div>
+                  <span style={{ fontSize: '13px', color: theme.textMuted, fontWeight: '500' }}>Day {days}</span>
+                </div>
+                <div style={{ fontSize: '24px', fontWeight: '700', color: isPositive ? '#3B82F6' : '#EF4444' }}>
+                  {formatCurrency(projectedBalance)}
+                </div>
+                <div style={{ fontSize: '11px', color: theme.textMuted, marginTop: '6px' }}>
+                  In: +{formatCurrency(projectedIncome)} | Out: -{formatCurrency(projectedExpenses + projectedBills)}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* ═══════════════════════════════════════════════════════════════════ */}
+      {/* 🏦 MY ACCOUNTS - Manual Balance Entry */}
+      {/* ═══════════════════════════════════════════════════════════════════ */}
+      <div style={{ 
+        background: theme.bgCard, 
+        borderRadius: '16px', 
+        padding: '24px', 
+        marginBottom: '24px',
+        boxShadow: theme.cardShadow,
+        border: `1px solid ${theme.borderLight}`
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <span style={{ fontSize: '20px' }}>🏦</span>
+            <h3 style={{ fontSize: '16px', fontWeight: '600', color: theme.textPrimary, margin: 0 }}>My Accounts</h3>
+            <span style={{ fontSize: '12px', color: theme.textMuted, background: `${theme.primary}15`, padding: '4px 10px', borderRadius: '12px' }}>Manual entry • Plaid coming soon</span>
+          </div>
+          <div style={{ fontSize: '20px', fontWeight: '700', color: theme.primary }}>
+            Total: {formatCurrency(totalLiquidAssets)}
+          </div>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
+          {[
+            { key: 'usaaChecking', label: 'USAA Checking', icon: '🏦', color: '#3B82F6' },
+            { key: 'usaaSavings', label: 'USAA Savings', icon: '💰', color: '#10B981' },
+            { key: 'navyFedChecking', label: 'Navy Fed Checking', icon: '🏦', color: '#6366F1' },
+            { key: 'navyFedSavings', label: 'Navy Fed Savings', icon: '💰', color: '#8B5CF6' },
+            { key: 'helocAvailable', label: 'HELOC Available', icon: '🏠', color: '#F59E0B' },
+            { key: 'crypto', label: 'Crypto Holdings', icon: '₿', color: '#F97316' }
+          ].map(account => (
+            <div key={account.key} style={{
+              background: `${account.color}10`,
+              borderRadius: '12px',
+              padding: '16px',
+              border: `1px solid ${account.color}30`
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
+                <span style={{ fontSize: '16px' }}>{account.icon}</span>
+                <span style={{ fontSize: '13px', fontWeight: '500', color: theme.textSecondary }}>{account.label}</span>
+              </div>
+              <div style={{ position: 'relative' }}>
+                <span style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: account.color, fontWeight: '600' }}>$</span>
+                <input
+                  type="number"
+                  value={accountBalances[account.key] || ''}
+                  onChange={(e) => updateAccountBalance(account.key, e.target.value)}
+                  placeholder="0.00"
+                  style={{
+                    width: '100%',
+                    padding: '10px 12px 10px 28px',
+                    fontSize: '18px',
+                    fontWeight: '600',
+                    color: theme.textPrimary,
+                    background: theme.bgMain,
+                    border: `1px solid ${theme.borderLight}`,
+                    borderRadius: '8px',
+                    outline: 'none'
+                  }}
+                />
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 
