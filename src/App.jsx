@@ -12013,7 +12013,7 @@ function DashboardHome({ transactions, goals, bills = [], tasks = [], theme, las
 
   // Sparkline Chart Component (like OrbitNest)
   const Sparkline = ({ data, color, height = 45, width = 80, trend = 'up' }) => {
-    if (!data || data.length === 0) return null;
+    if (!data || data.length < 2) return null;
     const max = Math.max(...data, 1);
     const min = Math.min(...data, 0);
     const range = max - min || 1;
@@ -12043,6 +12043,7 @@ function DashboardHome({ transactions, goals, bills = [], tasks = [], theme, las
 
   // Modern Line Chart with smooth curves (like Image 2)
   const LineChart = ({ data, height = 260 }) => {
+    if (!data || data.length < 2) return null;
     const padding = { top: 30, right: 30, bottom: 50, left: 50 };
     const chartWidth = 600;
     const chartHeight = height - padding.top - padding.bottom;
