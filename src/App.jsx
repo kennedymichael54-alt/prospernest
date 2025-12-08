@@ -5320,6 +5320,8 @@ function Dashboard({
   const [showManageAccountModal, setShowManageAccountModal] = useState(false);
   const [showWelcomeModal, setShowWelcomeModal] = useState(false); // VIP welcome modal
   const [showBirthdayModal, setShowBirthdayModal] = useState(false); // Birthday celebration modal
+  const [showOnboardingModal, setShowOnboardingModal] = useState(false); // New user profile setup modal
+  const [onboardingProfile, setOnboardingProfile] = useState({ sideHustle: '', businessType: '' });
   
   // Subscription & Hub State
   const [subscription, setSubscription] = useState(null);
@@ -5516,6 +5518,33 @@ function Dashboard({
       }
     }
   }, [profile?.dateOfBirth, user?.id]);
+  
+  // Show onboarding modal for users who haven't set up their profile yet
+  useEffect(() => {
+    if (!user?.id || !profile) return;
+    
+    // Check if user has access to BizBudget Hub
+    const hasBizBudgetAccess = BIZBUDGET_ACCESS_USERS.includes(user?.email?.toLowerCase());
+    
+    // Check if profile is incomplete (no side hustle AND no business type selected)
+    const needsOnboarding = !profile.sideHustle && !profile.businessType;
+    
+    if (needsOnboarding && hasBizBudgetAccess) {
+      // Check if we've shown onboarding this session
+      const sessionKey = `pn_onboarding_shown_${user.id}`;
+      const hasShownThisSession = sessionStorage.getItem(sessionKey);
+      
+      if (!hasShownThisSession) {
+        // Delay to let dashboard load and other modals show first
+        const timer = setTimeout(() => {
+          setOnboardingProfile({ sideHustle: '', businessType: '' });
+          setShowOnboardingModal(true);
+          sessionStorage.setItem(sessionKey, 'true');
+        }, 2500);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [user?.id, user?.email, profile?.sideHustle, profile?.businessType]);
   
   // Toggle hub expansion - memoized to prevent child re-renders
   const toggleHub = useCallback((hubId) => {
@@ -8580,6 +8609,160 @@ function Dashboard({
         />
       )}
 
+      {/* Onboarding Modal - Profile Setup for New Users */}
+      {showOnboardingModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000, padding: '20px' }}>
+          <div style={{ 
+            background: theme.bgCard, 
+            borderRadius: '24px', 
+            padding: '32px', 
+            maxWidth: '520px',
+            width: '100%',
+            maxHeight: '90vh',
+            overflow: 'auto',
+            boxShadow: '0 25px 80px rgba(0,0,0,0.4)',
+            border: `1px solid ${theme.border}`
+          }}>
+            {/* Header */}
+            <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+              <div style={{ fontSize: '48px', marginBottom: '12px' }}>🚀</div>
+              <h2 style={{ fontSize: '24px', fontWeight: '700', color: theme.textPrimary, marginBottom: '8px' }}>
+                Welcome to ProsperNest!
+              </h2>
+              <p style={{ color: theme.textSecondary, fontSize: '14px', lineHeight: 1.5 }}>
+                Let's personalize your experience. Tell us about your work so we can customize your dashboard.
+              </p>
+            </div>
+
+            {/* HomeBudget Hub - Side Hustle */}
+            <div style={{ marginBottom: '20px', padding: '16px', background: theme.mode === 'dark' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(16, 185, 129, 0.05)', borderRadius: '12px', border: `1px solid ${theme.mode === 'dark' ? 'rgba(16, 185, 129, 0.2)' : 'rgba(16, 185, 129, 0.15)'}` }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                <span style={{ fontSize: '18px' }}>🏠</span>
+                <span style={{ fontSize: '14px', fontWeight: '600', color: '#10B981' }}>HomeBudget Hub</span>
+              </div>
+              <label style={{ display: 'block', fontSize: '14px', color: theme.textSecondary, marginBottom: '6px' }}>Do you have a side hustle?</label>
+              <select 
+                value={onboardingProfile.sideHustle}
+                onChange={(e) => setOnboardingProfile(prev => ({...prev, sideHustle: e.target.value}))}
+                style={{ width: '100%', padding: '12px', background: theme.inputBg, border: `1px solid ${theme.border}`, borderRadius: '8px', color: theme.textPrimary, fontSize: '14px', boxSizing: 'border-box' }}
+              >
+                <option value="">Select your side hustle (optional)...</option>
+                <option value="realtor">🏠 Realtor / Real Estate Agent</option>
+                <option value="freelancer">💻 Freelancer / Consultant</option>
+                <option value="ecommerce">🛒 E-commerce / Online Store</option>
+                <option value="rideshare">🚗 Rideshare / Delivery Driver</option>
+                <option value="content">📱 Content Creator / Influencer</option>
+                <option value="tutor">📚 Tutor / Coach</option>
+                <option value="crafts">🎨 Crafts / Handmade Products</option>
+                <option value="photography">📸 Photography / Videography</option>
+                <option value="fitness">💪 Personal Trainer / Fitness</option>
+                <option value="beauty">💅 Beauty / Salon Services</option>
+                <option value="food">🍳 Food / Catering Business</option>
+                <option value="repair">🔧 Repair / Handyman Services</option>
+                <option value="pet">🐕 Pet Care / Dog Walking</option>
+                <option value="music">🎵 Music / DJ Services</option>
+                <option value="rental">🏢 Property Rental / Airbnb</option>
+                <option value="none">❌ No side hustle</option>
+                <option value="other">📦 Other Side Business</option>
+              </select>
+              {onboardingProfile.sideHustle === 'realtor' && (
+                <p style={{ fontSize: '12px', color: '#10B981', marginTop: '8px', marginBottom: '0' }}>
+                  ✨ You'll get the Real Estate Command Center!
+                </p>
+              )}
+            </div>
+
+            {/* BizBudget Hub - Business Type */}
+            <div style={{ marginBottom: '24px', padding: '16px', background: theme.mode === 'dark' ? 'rgba(139, 92, 246, 0.1)' : 'rgba(139, 92, 246, 0.05)', borderRadius: '12px', border: `1px solid ${theme.mode === 'dark' ? 'rgba(139, 92, 246, 0.2)' : 'rgba(139, 92, 246, 0.15)'}` }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                <span style={{ fontSize: '18px' }}>💼</span>
+                <span style={{ fontSize: '14px', fontWeight: '600', color: '#8B5CF6' }}>BizBudget Hub</span>
+              </div>
+              <label style={{ display: 'block', fontSize: '14px', color: theme.textSecondary, marginBottom: '6px' }}>What type of business do you run?</label>
+              <select 
+                value={onboardingProfile.businessType}
+                onChange={(e) => setOnboardingProfile(prev => ({...prev, businessType: e.target.value}))}
+                style={{ width: '100%', padding: '12px', background: theme.inputBg, border: `1px solid ${theme.border}`, borderRadius: '8px', color: theme.textPrimary, fontSize: '14px', boxSizing: 'border-box' }}
+              >
+                <option value="">Select your business type (optional)...</option>
+                <option value="real_estate_franchise">🏠 Real Estate / HomeVestors Franchise</option>
+                <option value="construction">🔨 Construction / Contracting</option>
+                <option value="lawn_care">🌿 Lawn Care / Landscaping</option>
+                <option value="tax_preparer">📋 Tax Preparation Services</option>
+                <option value="artist">🎨 Artist / Creative Services</option>
+                <option value="sales">💼 Sales / Commission-Based</option>
+                <option value="beauty">💇 Hair Stylist / Beauty Services</option>
+                <option value="accounting">📊 Accountant / CPA / Bookkeeper</option>
+                <option value="trucking">🚛 Truck Driver / Transportation</option>
+                <option value="consulting">💡 Consulting / Coaching</option>
+                <option value="cleaning">🧹 Cleaning Services</option>
+                <option value="photography">📷 Photography / Videography</option>
+                <option value="fitness">💪 Personal Trainer / Fitness</option>
+                <option value="food">🍳 Food Service / Catering</option>
+                <option value="retail">🛍️ Retail / E-commerce</option>
+                <option value="tech">💻 Freelance Tech / Developer</option>
+                <option value="medical">⚕️ Medical / Healthcare Services</option>
+                <option value="legal">⚖️ Legal Services</option>
+                <option value="education">📚 Tutoring / Education</option>
+                <option value="none">❌ No business</option>
+                <option value="general">📦 General / Other</option>
+              </select>
+              {onboardingProfile.businessType === 'real_estate_franchise' && (
+                <p style={{ fontSize: '12px', color: '#8B5CF6', marginTop: '8px', marginBottom: '0' }}>
+                  ✨ You'll get the Real Estate Command Center in BizBudget Hub!
+                </p>
+              )}
+            </div>
+
+            {/* Action Buttons */}
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <button 
+                onClick={() => setShowOnboardingModal(false)}
+                style={{ 
+                  flex: 1, 
+                  padding: '14px 24px', 
+                  background: 'transparent', 
+                  border: `1px solid ${theme.border}`, 
+                  borderRadius: '12px', 
+                  color: theme.textSecondary, 
+                  fontSize: '15px', 
+                  fontWeight: '600', 
+                  cursor: 'pointer' 
+                }}
+              >
+                Skip for now
+              </button>
+              <button 
+                onClick={() => {
+                  // Update profile with selected values
+                  const updatedProfile = {
+                    ...profile,
+                    sideHustle: onboardingProfile.sideHustle === 'none' ? '' : onboardingProfile.sideHustle,
+                    businessType: onboardingProfile.businessType === 'none' ? '' : onboardingProfile.businessType
+                  };
+                  handleUpdateProfile(updatedProfile, true);
+                  setShowOnboardingModal(false);
+                }}
+                style={{ 
+                  flex: 1, 
+                  padding: '14px 24px', 
+                  background: 'linear-gradient(135deg, #10B981, #059669)', 
+                  border: 'none', 
+                  borderRadius: '12px', 
+                  color: 'white', 
+                  fontSize: '15px', 
+                  fontWeight: '600', 
+                  cursor: 'pointer',
+                  boxShadow: '0 4px 14px rgba(16, 185, 129, 0.4)'
+                }}
+              >
+                Save & Continue
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Upgrade Modal */}
       {showUpgradeModal && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000 }}>
@@ -8937,8 +9120,13 @@ function Dashboard({
               </div>
             </div>
             
-            {/* Side Hustle Type */}
-            <div style={{ marginBottom: '24px' }}>
+            {/* HomeBudget Hub Configuration */}
+            <div style={{ marginBottom: '24px', padding: '16px', background: theme.mode === 'dark' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(16, 185, 129, 0.05)', borderRadius: '12px', border: `1px solid ${theme.mode === 'dark' ? 'rgba(16, 185, 129, 0.2)' : 'rgba(16, 185, 129, 0.15)'}` }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                <span style={{ fontSize: '18px' }}>🏠</span>
+                <span style={{ fontSize: '14px', fontWeight: '600', color: '#10B981' }}>HomeBudget Hub</span>
+                <span style={{ fontSize: '11px', color: theme.textMuted, background: theme.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)', padding: '2px 8px', borderRadius: '4px' }}>Personal & Side Hustle</span>
+              </div>
               <label style={{ display: 'block', fontSize: '14px', color: theme.textSecondary, marginBottom: '6px' }}>Side Hustle Type</label>
               <select 
                 value={editProfile.sideHustle || ''}
@@ -8964,14 +9152,19 @@ function Dashboard({
                 <option value="other">📦 Other Side Business</option>
               </select>
               {editProfile.sideHustle === 'realtor' && (
-                <p style={{ fontSize: '12px', color: '#10B981', marginTop: '8px' }}>
+                <p style={{ fontSize: '12px', color: '#10B981', marginTop: '8px', marginBottom: '0' }}>
                   ✨ You'll get access to the Real Estate Command Center in the Side Hustle Hub tab!
                 </p>
               )}
             </div>
 
-            {/* Business Type */}
-            <div style={{ marginBottom: '24px' }}>
+            {/* BizBudget Hub Configuration */}
+            <div style={{ marginBottom: '24px', padding: '16px', background: theme.mode === 'dark' ? 'rgba(139, 92, 246, 0.1)' : 'rgba(139, 92, 246, 0.05)', borderRadius: '12px', border: `1px solid ${theme.mode === 'dark' ? 'rgba(139, 92, 246, 0.2)' : 'rgba(139, 92, 246, 0.15)'}` }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                <span style={{ fontSize: '18px' }}>💼</span>
+                <span style={{ fontSize: '14px', fontWeight: '600', color: '#8B5CF6' }}>BizBudget Hub</span>
+                <span style={{ fontSize: '11px', color: theme.textMuted, background: theme.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)', padding: '2px 8px', borderRadius: '4px' }}>Business Command Center</span>
+              </div>
               <label style={{ display: 'block', fontSize: '14px', color: theme.textSecondary, marginBottom: '6px' }}>Business Type</label>
               <select 
                 value={editProfile.businessType || ''}
@@ -9001,11 +9194,11 @@ function Dashboard({
                 <option value="general">📦 General / Other</option>
               </select>
               {editProfile.businessType === 'real_estate_franchise' ? (
-                <p style={{ fontSize: '12px', color: '#8B5CF6', marginTop: '8px' }}>
+                <p style={{ fontSize: '12px', color: '#8B5CF6', marginTop: '8px', marginBottom: '0' }}>
                   ✨ You'll get access to the Real Estate Command Center in the BizBudget Hub!
                 </p>
               ) : editProfile.businessType && (
-                <p style={{ fontSize: '12px', color: '#14B8A6', marginTop: '8px' }}>
+                <p style={{ fontSize: '12px', color: '#14B8A6', marginTop: '8px', marginBottom: '0' }}>
                   📊 You'll get access to the Business Command Center in the BizBudget Hub!
                 </p>
               )}
