@@ -6541,7 +6541,7 @@ function Dashboard({
       <aside 
         className={`dashboard-sidebar ${mobileMenuOpen ? 'open' : ''} ${sidebarCollapsed ? 'collapsed' : ''}`}
         style={{
-        width: sidebarCollapsed ? '80px' : (screen.isTablet ? '220px' : '260px'),
+        width: sidebarCollapsed ? '80px' : (screen.isTablet ? '260px' : '260px'),
         background: theme.sidebarBg,
         borderRight: theme.mode === 'light' ? 'none' : `1px solid ${theme.border}`,
         display: 'flex',
@@ -6859,12 +6859,12 @@ function Dashboard({
 
           {/* Newsfeed Button */}
           {sidebarCollapsed ? (
-            <div style={{ marginBottom: '8px', display: 'flex', justifyContent: 'center' }}>
+            <div style={{ marginBottom: '12px', display: 'flex', justifyContent: 'center' }}>
               <div
                 onClick={() => navigateToTab('newsfeed')}
                 style={{
-                  width: '48px',
-                  height: '48px',
+                  width: '52px',
+                  height: '52px',
                   borderRadius: '12px',
                   background: activeTab === 'newsfeed' ? 'linear-gradient(135deg, #3B82F6 0%, #60A5FA 100%)' : 'rgba(255, 255, 255, 0.05)',
                   border: activeTab === 'newsfeed' ? 'none' : '1px solid rgba(255, 255, 255, 0.08)',
@@ -6958,8 +6958,8 @@ function Dashboard({
                     if (!isDataConnectActive) setActiveTab('import');
                   }}
                   style={{
-                    width: '48px',
-                    height: '48px',
+                    width: '52px',
+                    height: '52px',
                     borderRadius: '12px',
                     background: isDataConnectActive ? 'linear-gradient(135deg, #10B981 0%, #34D399 100%)' : 'rgba(255, 255, 255, 0.05)',
                     border: isDataConnectActive ? 'none' : '1px solid rgba(255, 255, 255, 0.08)',
@@ -7203,7 +7203,7 @@ function Dashboard({
             // Collapsed view - just show icon
             if (sidebarCollapsed) {
               return (
-                <div key={hub.id} style={{ marginBottom: '8px', display: 'flex', justifyContent: 'center' }}>
+                <div key={hub.id} style={{ marginBottom: '12px', display: 'flex', justifyContent: 'center' }}>
                   <div
                     onClick={() => {
                       if (isComingSoon) return;
@@ -7217,8 +7217,8 @@ function Dashboard({
                       }
                     }}
                     style={{
-                      width: '48px',
-                      height: '48px',
+                      width: '52px',
+                      height: '52px',
                       borderRadius: '14px',
                       background: isActive ? gradients.active : 'rgba(255, 255, 255, 0.08)',
                       border: isActive ? `2px solid ${hub.color}` : '1px solid rgba(255, 255, 255, 0.1)',
@@ -7343,9 +7343,7 @@ function Dashboard({
                       fontSize: '11px', 
                       color: 'rgba(255, 255, 255, 0.5)', 
                       fontWeight: '500',
-                      whiteSpace: 'nowrap',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis'
+                      lineHeight: '1.3'
                     }}>
                       {hub.subtitle}
                     </div>
